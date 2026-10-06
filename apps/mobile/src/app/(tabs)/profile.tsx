@@ -1432,6 +1432,10 @@ const styles = StyleSheet.create({
   itemActions: {
     flexDirection: "row",
     gap: Spacing.two,
+    // 076 review fix: the trailing actions cannot collapse when the row's
+    // caption wraps at compact - the 44dp touch floor holds for the buttons.
+    minHeight: MIN_TOUCH_TARGET,
+    alignItems: "center",
   },
   readyLine: {
     paddingVertical: Spacing.one,

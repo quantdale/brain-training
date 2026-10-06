@@ -43,41 +43,36 @@ const st = StyleSheet.create({
 /** Aspect-ratio box: width is a percent of the still frame, height derives
  *  from `ar` (h/w). Percent HEIGHTS collapse inside auto-height rows, so the
  *  stills size everything off the width instead (review fix). */
-function Box({
-  x = 0,
-  y = 0,
-  w,
-  ar,
-  color,
-  radius = 4,
-  border,
-  opacity = 1,
-}: {
-  x?: number;
-  y?: number;
+interface BoxProps {
   /** Width as percent of the still frame. */
   w: number;
-  /** Height-to-width ratio. */
+  /** RN aspectRatio convention: width / height. */
   ar: number;
   color: string;
   radius?: number;
   border?: string;
   opacity?: number;
-}) {
+  /** Opt-in absolute placement (percent of the still frame) inside a
+   *  positioned parent - scatter fields, line marks. Omit for flow layout:
+   *   defaulting omitted coords to absolute origin was the review's overlap bug. */
+  abs?: { x: number; y: number };
+}
+
+function Box({ w, ar, color, radius = 4, border, opacity = 1, abs }: BoxProps) {
   return (
     <View
-      style={{
-        position: x !== undefined || y !== undefined ? 'absolute' : 'relative',
-        left: x !== undefined ? `${x}%` : undefined,
-        top: y !== undefined ? `${y}%` : undefined,
-        width: `${w}%`,
-        aspectRatio: ar,
-        backgroundColor: color,
-        borderRadius: radius,
-        borderWidth: border ? 1.5 : 0,
-        borderColor: border ?? 'transparent',
-        opacity,
-      }}
+      style={[
+        {
+          width: `${w}%`,
+          aspectRatio: ar,
+          backgroundColor: color,
+          borderRadius: radius,
+          borderWidth: border ? 1.5 : 0,
+          borderColor: border ?? 'transparent',
+          opacity,
+        },
+        abs ? { position: 'absolute' as const, left: `${abs.x}%`, top: `${abs.y}%` } : null,
+      ]}
     />
   );
 }
@@ -109,7 +104,7 @@ function MemoryGridStill({ colors, variant }: { colors: BoardStillColors; varian
 function TargetOptionsStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, { paddingHorizontal: '8%', paddingTop: '6%' }]}>
-      <Box x={30} y={0} w={40} ar={ 1.053 } color={colors.base} radius={6} border={colors.ink} />
+      <Box w={40} ar={ 1.053 } color={colors.base} radius={6} border={colors.ink} />
       <View style={[st.row, { position: 'absolute', left: '8%', right: '8%', top: '52%' }]}>
         {[0, 1, 2, 3].map((i) => (
           <Box key={i} w={22} ar={ 0.647 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={5}  opacity={i === 1 ? 1 : 0.75} />
@@ -128,9 +123,9 @@ function SearchFieldStill({ colors, variant }: { colors: BoardStillColors; varia
   return (
     <View style={st.fill}>
       {dots.map((d, i) => (
-        <Box key={i} x={d.x} y={d.y} w={9} ar={ 0.75 } color={i === (variant % dots.length) ? colors.base : colors.secondary} radius={3} opacity={i === (variant % dots.length) ? 1 : 0.5} />
+        <Box key={i} w={9} ar={ 0.75 } color={i === (variant % dots.length) ? colors.base : colors.secondary} radius={3} opacity={i === (variant % dots.length) ? 1 : 0.5} abs={{ x: d.x, y: d.y }} />
       ))}
-      <Box x={40} y={38} w={26} ar={ 0.765 } color="transparent" radius={12} border={colors.base} opacity={0.9} />
+      <Box w={26} ar={ 0.765 } color="transparent" radius={12} border={colors.base} opacity={0.9} />
     </View>
   );
 }
@@ -175,10 +170,10 @@ function EquationStill({ colors }: { colors: BoardStillColors }) {
 function NumberLineStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box x={10} y={48} w={80} ar={ 20.0 } color={colors.ink} radius={2} />
-      <Box x={38} y={30} w={7} ar={ 0.233 } color={colors.base} radius={2} border={colors.ink} />
+      <Box w={80} ar={ 20.0 } color={colors.ink} radius={2} />
+      <Box w={7} ar={ 0.233 } color={colors.base} radius={2} border={colors.ink} />
       {[14, 38, 62, 86].map((x, i) => (
-        <Box key={i} x={x - 1} y={54} w={2} ar={ 0.2 } color={colors.ink} opacity={0.7} />
+        <Box key={i} w={2} ar={ 0.2 } color={colors.ink} opacity={0.7} abs={{ x: x - 1, y: 54 }} />
       ))}
     </View>
   );
@@ -285,9 +280,9 @@ function PathGridStill({ colors, variant }: { colors: BoardStillColors; variant:
 function CompassStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box x={26} y={14} w={48} ar={ 0.75 } color="transparent" radius={30} border={colors.base} />
-      <Box x={47} y={30} w={6} ar={ 0.2 } color={colors.base} radius={3} />
-      <Box x={40} y={68} w={20} ar={ 1.667 } color={colors.secondary} radius={3} />
+      <Box w={48} ar={ 0.75 } color="transparent" radius={30} border={colors.base} />
+      <Box w={6} ar={ 0.2 } color={colors.base} radius={3} />
+      <Box w={20} ar={ 1.667 } color={colors.secondary} radius={3} />
     </View>
   );
 }
@@ -296,7 +291,7 @@ function CompassStill({ colors }: { colors: BoardStillColors }) {
 function TriggerStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center, { gap: 10 }]}>
-      <Box x={34} y={12} w={32} ar={ 0.695 } color={colors.base} radius={16} border={colors.ink} />
+      <Box w={32} ar={ 0.695 } color={colors.base} radius={16} border={colors.ink} />
       <View style={[st.row, { width: '70%', justifyContent: 'center' }]}>
         {[0, 1, 2].map((i) => (
           <Box key={i} w={12} ar={ 1.0 } color={i === 1 ? colors.base : colors.secondary} radius={6} opacity={i === 1 ? 1 : 0.5} />
@@ -315,7 +310,7 @@ function SweepStill({ colors }: { colors: BoardStillColors }) {
           <Box key={i} w={20} ar={ 0.769 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={i === 1 ? 1 : 0.85} />
         ))}
       </View>
-      <Box x={22} y={58} w={56} ar={ 6.993 } color={colors.secondary} radius={4} opacity={0.7} />
+      <Box w={56} ar={ 6.993 } color={colors.secondary} radius={4} opacity={0.7} />
     </View>
   );
 }

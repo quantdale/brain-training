@@ -98,20 +98,24 @@ describe('games library', () => {
     expect(screen.getByTestId('games-filter-memory')).toBeOnTheScreen();
     expect(screen.getByTestId('games-filter-favorites')).toBeOnTheScreen();
 
-    // Suggested Next leads with the top recommendation (novelty orders the
-    // fresh catalog in registry order) and explains the source signal.
-    const suggested = screen.getByTestId('games-suggested-next');
-    expect(within(suggested).getByText('Suggested next')).toBeOnTheScreen();
-    expect(within(suggested).getByText('Memory Alpha')).toBeOnTheScreen();
-    expect(screen.getByTestId('games-suggested-reason')).toBeOnTheScreen();
+    // 076 review round-2: the catalog grid leads (action-led navigation);
+    // the Suggested Next recommendation follows the library. The suggestion
+    // renders once, after the grid.
     expect(screen.getByTestId('games-browse-all')).toBeOnTheScreen();
 
     // Grid carries one card per game under the stable card testIDs.
-    expect(screen.getByTestId('games-grid')).toBeOnTheScreen();
+    const grid = screen.getByTestId('games-grid');
+    expect(grid).toBeOnTheScreen();
     for (const game of GAMES) {
       expect(screen.getByTestId(`game-card-${game.id}`)).toBeOnTheScreen();
     }
     expect(screen.getByTestId('games-count')).toHaveTextContent('Showing 6 of 6 games');
+
+    const suggested = screen.getAllByTestId('games-suggested-next');
+    expect(suggested.length).toBe(1);
+    expect(within(suggested[0]).getByText('Suggested next')).toBeOnTheScreen();
+    expect(within(suggested[0]).getByText('Memory Alpha')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-suggested-reason')).toBeOnTheScreen();
   });
 
   it('exposes every card to assistive technology by name and category', async () => {

@@ -555,6 +555,16 @@ async function main() {
     }
     process.exit(1);
   }
+  // 076 review fix: skipped captures (foreground misses) must fail the
+  // run - a [PASS] over an incomplete set is a false certification.
+  if (manifest.skipped.length > 0) {
+    console.error(
+      `[FAIL] ${manifest.skipped.length} skipped capture(s): ${manifest.skipped
+        .map((s) => `${s.profile}/${s.theme}/${s.surface}`)
+        .join(', ')}`,
+    );
+    process.exit(1);
+  }
   console.log(`[PASS] ${manifest.surfaces.length} surface capture(s)`);
 }
 

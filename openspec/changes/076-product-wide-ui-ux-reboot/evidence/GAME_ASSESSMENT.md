@@ -79,7 +79,11 @@ placement (one red action, in-viewport), **States** = captured state frames
 - All staged chips read in stageInk; the instrument strip + stage panel frame
   is uniform across all 42 (inherited from the wave-3 shared chrome).
 - Controls: every interactive element ≥44dp in the default matrix (compact
-  findings fixed: window-control constraint, segmented min-width); the
-  compact games-rail clips are scroll-reachable (rail-edge class).
+  findings fixed: window-control constraint, segmented min-width, profile
+  itemActions minHeight); the compact games-rail clips are scroll-reachable
+  (rail-edge class). The compact profile's below-fold `streak-buy-recovery`
+  button measures 1px in the unscrolled dump (visible-portion clip at the
+  scroll boundary) and 51dp scrolled into view — same artifact class as the
+  screen-edge exclusions, not a layout defect.
 - Action placement: one red primary per viewport on every game intro and
   result; pause/resume reachable in the strip at all three profiles.

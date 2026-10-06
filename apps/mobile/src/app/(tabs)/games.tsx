@@ -224,12 +224,7 @@ export default function GamesScreen() {
             </ScrollView>
           </View>
 
-          {/* 076 review fix: the recommendation sits BELOW the catalog grid
-              (outside the filter rail) so the filters and the first library
-              rows own the first viewport. */}
-          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
 
-          {/* Live result count so filtering feedback is explicit. */}
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">
             Showing {visible.length} of {games.length} games
           </ThemedText>
@@ -270,6 +265,11 @@ export default function GamesScreen() {
               ))}
             </View>
           )}
+
+          {/* 076 review round-2 fix: the recommendation renders AFTER the
+              catalog grid so the first viewport shows the library tiles and
+              filters (action-led navigation requirement). */}
+          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
         </>
       )}
     </ScreenShell>
