@@ -110,3 +110,17 @@ the standing boundary.
 - `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `change.json`, this file,
   and the OpenSpec tasks ledger updated at the close; work committed and
   pushed to `origin/main`; no abandoned worktrees or branches.
+
+## Review-response record (frontier-model review, addressed 2026-10-06)
+
+| Finding | Resolution | Evidence |
+| --- | --- | --- |
+| Standards High — stage contrast (equation timer 2.13:1, reaction badge 2.75:1) | `stageWarn`/`stageError`/`stageMuted`/`stageBorder`/`stageFill` tokens added (contrast-verified ≥4.5:1 vs stage in BOTH schemes by the new pairing test); equation urgent timer → stageWarn; reaction badge → stageWarn; session-header/result stage chrome → tokens (hardcoded rgba removed) | `reference-lock.test.ts` stage-pairing block; `tokens.ts` stage family |
+| Standards Medium — stale durable state | `.agent/VALIDATION.md` campaign record prepended; `EXECUTION.md` moved to VALIDATED terminal form | both files at the terminal commit |
+| Standards Review-required — ARTEMIS doctor credential fragment + provider mismatch | doctor raw output scrubbed of the masked credential fragment; the doc/trace provider naming mismatch recorded as trace-naming only (the doctor line names the configured planner; `docs/ARTEMIS_ANDROID_QA.md` names the trace convention) | `evidence/task-1-2-artemis-doctor.raw.txt` (scrubbed) |
+| Standards Low — hardcoded stage colors + duplicated fact rows | stageFill/stageBorder/stageMuted tokens adopted at session-header/results; FactRow local to progress-domain (single-screen usage — the results/game-detail numbered rows are one-off compositions, not shared grammar; consolidation rejected to avoid premature abstraction) | tokens.ts; session-header.tsx |
+| Spec High — release gate (controller-led journeys) | 7 ARTEMIS Pro attempts across two days, all provider-BLOCKED (429/503/180s), each recorded; Flash smoke PASS; the stateful coverage (first-run workout, per-game play, resume, completion, diagnostics) executed on the deterministic ADB lane | `evidence/task-1-2-artemis.md` + trace dirs under `qa-artifacts/076-ui-reboot/artemis/` |
+| Spec High — catalog review overstated | per-game visual assessment manifest published (Leg/Ctrl/Act per game + exact frame totals: feedback 40/42, pause 38/42 with causes; states NOT CAPTURED never inferred) | `GAME_ASSESSMENT.md` |
+| Spec High — discovery order | SuggestedNext moved BELOW the browse grid; filters in the first viewport | games.tsx; re-captured route evidence |
+| Spec High — board media | `board-stills.tsx` GameBoardStill: per-game genuine board grammar (20 still types covering 42 ids) wired into GameWorldArt behind the family-motif fallback; dark+light verified on device | `board-stills.tsx`; `stills-*.png` captures |
+| Spec Medium — coverage/state gaps | harness grown 11→15 surfaces (progress-domain/game + recovery routes; query-param routes fixed); 90/90 matrix captures; progress-rail tone success; persist-error precedes facts | `after-matrix-*/`; `session-header.tsx`; `results.tsx` |
