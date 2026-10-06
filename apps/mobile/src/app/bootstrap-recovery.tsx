@@ -43,11 +43,15 @@ const STAGE_COPY: Record<BootstrapRecoveryProps['stage'], { title: string; messa
 };
 
 export default function BootstrapRecovery({
-  stage,
-  error,
-  onRetry,
+  stage = 'catalog-registry',
+  error = null,
+  onRetry = () => undefined,
 }: BootstrapRecoveryProps) {
-  const copy = STAGE_COPY[stage];
+  // Deep-link envelope (076 review fix): the route is reachable directly
+  // (braintraining://bootstrap-recovery) where no shellState props exist —
+  // render the catalog-registry copy with a no-op retry instead of crashing
+  // on STAGE_COPY[undefined]. The shell flow still passes the real stage.
+  const copy = STAGE_COPY[stage] ?? STAGE_COPY['catalog-registry'];
   return (
     <RecoveryScreen
       testIDPrefix="bootstrap-recovery"

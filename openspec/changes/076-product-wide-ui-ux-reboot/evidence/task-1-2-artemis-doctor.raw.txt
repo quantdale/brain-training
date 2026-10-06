@@ -25,7 +25,7 @@
 │                               │              │ the first task.              │
 │ Multimodal LLM API Key        │ ✔ OK         │ Gemini multimodal API        │
 │                               │              │ credential is active         │
-│                               │              │ (AQ.Ab8...A-UA) and ready    │
+│                               │              │ (credential redacted) and ready    │
 │                               │              │ for vision and reasoning.    │
 │ Device / Emulator Connected   │ ✔ OK         │ ADB connected to sdk         │
 │                               │              │ gphone64 x86 64 (1080x2400). │

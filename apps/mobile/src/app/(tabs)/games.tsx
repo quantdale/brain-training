@@ -221,9 +221,13 @@ export default function GamesScreen() {
                   onPress={clearFilters}
                 />
               ) : null}
-              {isDefaultView ? <SuggestedNext data={discovery} /> : null}
-        </ScrollView>
+            </ScrollView>
           </View>
+
+          {/* 076 review fix: the recommendation sits BELOW the catalog grid
+              (outside the filter rail) so the filters and the first library
+              rows own the first viewport. */}
+          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
 
           {/* Live result count so filtering feedback is explicit. */}
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">

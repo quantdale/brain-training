@@ -102,13 +102,13 @@ const SURFACES = [
     id: 'storage-unavailable',
     route: '/storage-unavailable',
     settleMs: 2000,
-    expects: [],
+    expects: ['storage-unavailable-title', 'storage-unavailable-message'],
   },
   {
     id: 'bootstrap-recovery',
     route: '/bootstrap-recovery',
-    settleMs: 2000,
-    expects: [],
+    settleMs: 4500,
+    expects: ['bootstrap-recovery-title', 'bootstrap-recovery-message'],
   },
 ];
 
@@ -429,6 +429,23 @@ async function main() {
 
         const opened = openRoute(device, options.scheme, surface.route, options.pkg);
         await sleep(surface.settleMs + options.settleMs);
+        // 076 review fix: verify the app OWNS the foreground before
+        // capturing. A dropped deep link can leave the launcher in front;
+        // those frames are launcher evidence, never app evidence.
+        const focus = (adb(device, ['shell', 'dumpsys', 'window']).match(/mCurrentFocus=Window\{[^}]* ([^\s}/]+)/) || [])[1] ?? '';
+        if (!focus.includes(options.pkg)) {
+          console.log(`FOREGROUND-MISS ${profileName}/${theme}/${surface.id} (${focus}) - cold retry`);
+          relaunchApp(device, options.pkg);
+          await sleep(4000);
+          openRoute(device, options.scheme, surface.route, options.pkg);
+          await sleep(surface.settleMs + options.settleMs);
+          const focus2 = (adb(device, ['shell', 'dumpsys', 'window']).match(/mCurrentFocus=Window\{[^}]* ([^\s}/]+)/) || [])[1] ?? '';
+          if (!focus2.includes(options.pkg)) {
+            manifest.skipped.push({ surface: surface.id, profile: profileName, theme, reason: `foreground=${focus2 || 'unknown'}` });
+            console.log(`FOREGROUND-FAIL ${profileName}/${theme}/${surface.id} - skipped`);
+            continue;
+          }
+        }
         wake(device);
         await sleep(400);
 

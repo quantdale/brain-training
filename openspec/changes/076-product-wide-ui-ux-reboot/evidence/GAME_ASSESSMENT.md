@@ -59,17 +59,18 @@ placement (one red action, in-viewport), **States** = captured state frames
 | speed-reaction-time | PASS | PASS | PASS | A F R | GO=success / HOLD=danger disambiguated |
 | speed-tap-rush | PASS | PASS | PASS | A F P R (F gap-fill pending) | target speed-hue |
 
-## Exact frame-coverage totals (honest)
+## Exact frame-coverage totals (honest, from the committed index)
 
 - **Active:** 42/42 · **Result:** 42/42 · **Feedback:** 40/42 · **Pause:**
-  38/42. Missing frames and cause: `math-equation-builder` (F+P) and
-  `speed-tap-rush` (F) — first-play tutorial demos whose scripted dismissal
-  requires game-specific sequences on a release build (no QA hooks); 3 pause
-  frames (`attention-sustained-vigilance`, `language-context-fit`,
-  `language-word-match`) — the pause tap raced the round transition in the
-  gap-fill pass. These frames are `NOT CAPTURED (cause recorded)` — not
-  inferred or synthesized; the states themselves are unit-pinned and the
-  tutorial-demos were played interactively in the wave-6–13 runs.
+  38/42 (188 committed images). Missing frames and cause:
+  `math-equation-builder` (F+P) and `speed-tap-rush` (F) — first-play tutorial
+  demos whose scripted dismissal requires game-specific sequences on a release
+  build (no QA hooks); 3 pause frames (`attention-sustained-vigilance`,
+  `language-context-fit`, `language-word-match`) — the pause tap raced the
+  round transition in the gap-fill pass. These frames are
+  `NOT CAPTURED (cause recorded)` — not inferred or synthesized; the states
+  themselves are unit-pinned and the tutorial demos were played interactively
+  in the wave-6–13 runs.
 
 ## Cross-game assessment conclusions
 

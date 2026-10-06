@@ -1,14 +1,18 @@
 {
-  "build": "release APK 14cb165b05d2f234 (waves 6-13 tree)",
-  "count": 173,
+  "build": "release APK 0556520f9cc7cf4a (game-play wave) + review-fix builds",
+  "count": 188,
   "images": [
     {
       "file": "after-attention-odd-one-out-active.png",
       "sha256": "dbb66df15a47a28b3497d48e35a04c3cc2a2d0712ec7f9bd105cf9734457f582"
     },
     {
+      "file": "after-attention-odd-one-out-feedback.png",
+      "sha256": "a32dd23c489e6ec328f9f7cbe90cdc29c66910ac81852cf8e710cfeed0cce7fe"
+    },
+    {
       "file": "after-attention-odd-one-out-pause.png",
-      "sha256": "8b2c7a2ac18e3f46d539d2d1ee0dcfd745e976f9d436c19c5d686be162da8b16"
+      "sha256": "d30595bee6ee921d13706df7fd810dbae5533e795674b1c3132b9aa9d9db3ce2"
     },
     {
       "file": "after-attention-odd-one-out-result.png",
@@ -17,6 +21,10 @@
     {
       "file": "after-attention-sustained-vigilance-active.png",
       "sha256": "7affcc1431e34cfbceeb7ed74bf28784489fc0335d19a72503cccec24c0fe457"
+    },
+    {
+      "file": "after-attention-sustained-vigilance-feedback.png",
+      "sha256": "e9191cf69da2ecac01f92ea6b7b121ae874b8bf2e885863de21bbb7cf5b28d58"
     },
     {
       "file": "after-attention-sustained-vigilance-result.png",
@@ -43,8 +51,12 @@
       "sha256": "0c5146c3d0d577b1cc01df8cfae98e0cbd36c566b5193ea39e4894be82033c99"
     },
     {
+      "file": "after-attention-target-count-feedback.png",
+      "sha256": "d41d92ff04e21d6b987fb0035755bb634eab914006385967c342a73eee1e15c2"
+    },
+    {
       "file": "after-attention-target-count-pause.png",
-      "sha256": "4342201670af0b0d2f44d53a7b659218b7bc42f5efd79fcec2ed6f2be6e3de20"
+      "sha256": "b5a27a10904c58f7728b32b7b8e62083601becef686602cdff23b6ba4b62e96b"
     },
     {
       "file": "after-attention-target-count-result.png",
@@ -55,8 +67,12 @@
       "sha256": "0d206b54f43013b43ec3c07f077a8a3bd89cebd979d062482df09ad146dc989d"
     },
     {
+      "file": "after-attention-visual-search-feedback.png",
+      "sha256": "bb3026916785b06e1d3e02fea9bd51f9b6820317b11e23fbc39a473ec6873508"
+    },
+    {
       "file": "after-attention-visual-search-pause.png",
-      "sha256": "1085cec1a68699221f280cb2604b9af72894846c6d236a0f945e2fa006d9923a"
+      "sha256": "e094bf71ee582c7b783acccd6827c63ad95ddc13f38c134d00933c0a3c0151a7"
     },
     {
       "file": "after-attention-visual-search-result.png",
@@ -155,6 +171,10 @@
       "sha256": "3727599edd35906bf64bbe42f2ec9e18e518c0c3d73d46696038f24d6d003c4d"
     },
     {
+      "file": "after-language-context-fit-feedback.png",
+      "sha256": "f205c6eb299906336238a074d8b27903f9433fca9ec7288fe21a605f4a07ad33"
+    },
+    {
       "file": "after-language-context-fit-result.png",
       "sha256": "d08337dafffa5234bc1f168c9ff780eca900555930c482d713cf201d0f3fdc4b"
     },
@@ -179,8 +199,12 @@
       "sha256": "c88ba5388260486eb88361511fdcffe78a0f3762a7cb6a2ef6f7b7491a8811cf"
     },
     {
+      "file": "after-language-word-chain-feedback.png",
+      "sha256": "8d5ca77d9cceba71d86cf3df0ee40ff175e4263cc0a94e37273b4c16d31a47e0"
+    },
+    {
       "file": "after-language-word-chain-pause.png",
-      "sha256": "5640ccc080e5bef8c1ef610992558fed600e3febb3e3fd37e2f595ed5e161cc3"
+      "sha256": "fe887a7a04f2debb3bb90be429274c1e09a93e7c448f59bc841ac01e90588115"
     },
     {
       "file": "after-language-word-chain-result.png",
@@ -189,6 +213,10 @@
     {
       "file": "after-language-word-match-active.png",
       "sha256": "407a94791399a85cacd000881bb21a9d4a4db5193b69aac574a0c173247431e2"
+    },
+    {
+      "file": "after-language-word-match-feedback.png",
+      "sha256": "60e6206179d5a54526cf476aa75135ae8c53bbc812281347e05597624a532020"
     },
     {
       "file": "after-language-word-match-result.png",
@@ -335,8 +363,12 @@
       "sha256": "84133c6f6663a0c5f9f0d50dc4354c63c743345b0ecdc57e8a3a35eb2ab33ab9"
     },
     {
+      "file": "after-math-missing-operator-feedback.png",
+      "sha256": "6cf8bfc315b40740f0eca45358a3bf8fc2ff97b4ab60f6b220213d7368379532"
+    },
+    {
       "file": "after-math-missing-operator-pause.png",
-      "sha256": "ce894b5e5323a4991fc4cb3bb66e885a95885931286bbd500ee9fe34b0613ab2"
+      "sha256": "1c451954a91a8c244247178d0d099a410b480f84c04ce2a30e449cf468e5e671"
     },
     {
       "file": "after-math-missing-operator-result.png",
@@ -347,8 +379,12 @@
       "sha256": "fc290383dfe9240d7bffe33fb8e4878d0a1288c31662836cbeaca4c83041cfee"
     },
     {
+      "file": "after-math-number-line-estimation-feedback.png",
+      "sha256": "d3a8dc318a5aff8a47ce1a7c5254986d6b78d74f0bd501dea602f2d5ab4feaa9"
+    },
+    {
       "file": "after-math-number-line-estimation-pause.png",
-      "sha256": "ebc654ee4ddb1e405871d3c6ea57544f37d5d6132506d0f10e6ee568b518e333"
+      "sha256": "2c7da27607d00a88d73fb32f493f58098ebea5250613abd21db9a2ad31827af9"
     },
     {
       "file": "after-math-number-line-estimation-result.png",
@@ -359,8 +395,12 @@
       "sha256": "ccccb717d4c9d649def603d9ad43dcf30424cb3786b34b73a20e11ce2bf8b2f2"
     },
     {
+      "file": "after-math-value-ordering-feedback.png",
+      "sha256": "b10e7d3b762518b4fe8cc5d112c0bc946fad99e345de962d9b0c8b6ba357ef0a"
+    },
+    {
       "file": "after-math-value-ordering-pause.png",
-      "sha256": "84137ad36f56c7e1ba2e0694bf37d00f1953a452d31ba3f23dee513dafff44de"
+      "sha256": "c0724d79b8e714e946158f734e4d13e7674bf094969cf62b313ccb7b8c8d99c8"
     },
     {
       "file": "after-math-value-ordering-result.png",
@@ -480,7 +520,11 @@
     },
     {
       "file": "after-memory-sequence-memory-feedback.png",
-      "sha256": "20c700d9eeaea588db661a6acc60317a1be1aa4b3e93bdfd7c3cef3783c8aa17"
+      "sha256": "3968cf33bbe264ea7c3b4a4c94a7a4371873fb2bfd09e2045f0d76faf43fa323"
+    },
+    {
+      "file": "after-memory-sequence-memory-pause.png",
+      "sha256": "17a961f268fb65d48bcaae8fe049f799f81797768e3f2688ab083f85f6e693c5"
     },
     {
       "file": "after-memory-sequence-memory-result.png",
@@ -491,8 +535,12 @@
       "sha256": "15a5a05e80d370e54e51e80473a5cdd4cffbd3c112b084bb84422559041a1063"
     },
     {
+      "file": "after-spatial-coordinate-turn-feedback.png",
+      "sha256": "93371d004fa278745b4cdf2c3f9ca6324287dc05c99aec45d3ea4289e59b5e92"
+    },
+    {
       "file": "after-spatial-coordinate-turn-pause.png",
-      "sha256": "c701ed2dddf7efc3da4370fa1fd6ab53724d5d646326e92ccb106a3a622095cb"
+      "sha256": "5a8a59889195fadf970ae2a7311f40cb03babd8c3b5947ede6c8f522ea009840"
     },
     {
       "file": "after-spatial-coordinate-turn-result.png",
@@ -595,8 +643,12 @@
       "sha256": "df9e77fb2b80e12ef85c24e93bc471bb1359313146917c9d67b3f0c8559d6bc8"
     },
     {
+      "file": "after-speed-order-sweep-feedback.png",
+      "sha256": "4507ca001c03b7e9e23e513e23b4323e502ba83df1615a0003af8aa590a0aae4"
+    },
+    {
       "file": "after-speed-order-sweep-pause.png",
-      "sha256": "092d68cdfdeae607b0ecf7d170e945a2c3fe41ae1680322b2be648313e599704"
+      "sha256": "bf6cfc2d98b1bb3dcbfedae88b9bd97dcaa02d69b2948b17e56e57475fd43a1b"
     },
     {
       "file": "after-speed-order-sweep-result.png",
@@ -607,8 +659,12 @@
       "sha256": "fe6afd0eceb229bd2188dc223bea7da91a6b23ee42e95a1244e1d5ce544f2d09"
     },
     {
+      "file": "after-speed-quick-compare-feedback.png",
+      "sha256": "a0ac14653b5498f816747a4afcae26e15da0c6453fb496128a728564f97ec4e7"
+    },
+    {
       "file": "after-speed-quick-compare-pause.png",
-      "sha256": "b430009619f2e2c1abc049bec1a0a9d03f742226bca6bce87226bbcf796530d7"
+      "sha256": "a59af9fe3873ab929fd6fbda1c50a57bbbee4b7c7a67a805a2f3969a1bf9fa7f"
     },
     {
       "file": "after-speed-quick-compare-result.png",
@@ -619,8 +675,12 @@
       "sha256": "6648644b0304b2b12bf258fa0aa2d7d3e8fe0622873c663b2395597ce1ad8701"
     },
     {
+      "file": "after-speed-reaction-time-feedback.png",
+      "sha256": "6e8581bd370369fc7d254c895baedf0959f56843857ffc70803b9f0846548097"
+    },
+    {
       "file": "after-speed-reaction-time-pause.png",
-      "sha256": "d5a08af9276685e89e3d4226ce490111237291c699c80086435626d9307c5eab"
+      "sha256": "791d46a6cc856fed0a01c221cacb7b911bb0226be659cc99e17cce8c6a305207"
     },
     {
       "file": "after-speed-reaction-time-result.png",

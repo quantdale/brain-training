@@ -86,19 +86,19 @@ function Box({
 function MemoryGridStill({ colors, variant }: { colors: BoardStillColors; variant: number }) {
   const lit = [variant % 9, (variant + 3) % 9, (variant + 6) % 9];
   return (
-    <View style={[st.fill, st.center]}>
-      <View style={{ width: '62%', height: '78%', flexDirection: 'row', flexWrap: 'wrap', gap: '4%' }}>
-        {Array.from({ length: 9 }, (_, i) => (
-          <Box
-            key={i}
-            x={0}
-            y={0}
-            w={30.6} ar={ 1.0 }
-            color={lit.includes(i) ? colors.base : 'transparent'} border={colors.ink}
-            radius={6}
-            
-            opacity={lit.includes(i) ? 1 : 0.85}
-          />
+    <View style={[st.fill, st.center, { paddingHorizontal: '18%' }]}>
+      <View style={{ width: '100%', aspectRatio: 0.9, flexDirection: 'column', gap: 6 }}>
+        {[0, 1, 2].map((row) => (
+          <View key={row} style={{ flex: 1, flexDirection: 'row', gap: 6 }}>
+            {[0, 1, 2].map((col) => {
+              const i = row * 3 + col;
+              return (
+                <View key={i} style={{ flex: 1 }}>
+                  <Box w={100} ar={1} color={lit.includes(i) ? colors.base : 'transparent'} border={colors.ink} radius={6} opacity={lit.includes(i) ? 1 : 0.85} />
+                </View>
+              );
+            })}
+          </View>
         ))}
       </View>
     </View>
@@ -109,10 +109,10 @@ function MemoryGridStill({ colors, variant }: { colors: BoardStillColors; varian
 function TargetOptionsStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, { paddingHorizontal: '8%', paddingTop: '6%' }]}>
-      <Box x={30} y={0} w={40} ar={ 0.95 } color={colors.base} radius={6} border={colors.ink} />
+      <Box x={30} y={0} w={40} ar={ 1.053 } color={colors.base} radius={6} border={colors.ink} />
       <View style={[st.row, { position: 'absolute', left: '8%', right: '8%', top: '52%' }]}>
         {[0, 1, 2, 3].map((i) => (
-          <Box key={i} x={0} y={0} w={22} ar={ 1.545 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={5}  opacity={i === 1 ? 1 : 0.75} />
+          <Box key={i} w={22} ar={ 0.647 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={5}  opacity={i === 1 ? 1 : 0.75} />
         ))}
       </View>
     </View>
@@ -128,9 +128,9 @@ function SearchFieldStill({ colors, variant }: { colors: BoardStillColors; varia
   return (
     <View style={st.fill}>
       {dots.map((d, i) => (
-        <Box key={i} x={d.x} y={d.y} w={9} ar={ 1.333 } color={i === (variant % dots.length) ? colors.base : colors.secondary} radius={3} opacity={i === (variant % dots.length) ? 1 : 0.5} />
+        <Box key={i} x={d.x} y={d.y} w={9} ar={ 0.75 } color={i === (variant % dots.length) ? colors.base : colors.secondary} radius={3} opacity={i === (variant % dots.length) ? 1 : 0.5} />
       ))}
-      <Box x={40} y={38} w={26} ar={ 1.308 } color="transparent" radius={12} border={colors.base} opacity={0.9} />
+      <Box x={40} y={38} w={26} ar={ 0.765 } color="transparent" radius={12} border={colors.base} opacity={0.9} />
     </View>
   );
 }
@@ -138,15 +138,15 @@ function SearchFieldStill({ colors, variant }: { colors: BoardStillColors; varia
 /** Signal stream + response slots (running order / prospective cue). */
 function StreamStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { gap: '8%' }]}>
+    <View style={[st.fill, st.center, { gap: 10 }]}>
       <View style={[st.row, { width: '84%' }]}>
         {[0, 1, 2, 3, 4].map((i) => (
-          <Box key={i} x={0} y={0} w={17} ar={ 1.529 } color={i < 2 ? colors.base : colors.secondary} radius={5} opacity={i < 2 ? 1 : 0.5} />
+          <Box key={i} w={17} ar={ 0.654 } color={i < 2 ? colors.base : colors.secondary} radius={5} opacity={i < 2 ? 1 : 0.5} />
         ))}
       </View>
       <View style={[st.row, { width: '60%' }]}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={30} ar={ 0.6 } color="transparent" radius={4} border={colors.base} />
+          <Box key={i} w={30} ar={ 1.667 } color="transparent" radius={4} border={colors.base} />
         ))}
       </View>
     </View>
@@ -156,15 +156,15 @@ function StreamStill({ colors }: { colors: BoardStillColors }) {
 /** Token equation slots (equation builder / missing operator / fast math). */
 function EquationStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { gap: '10%' }]}>
+    <View style={[st.fill, st.center, { gap: 12 }]}>
       <View style={[st.row, { width: '70%', justifyContent: 'center' }]}>
-        <Box x={0} y={0} w={26} ar={ 1.308 } color={colors.base} radius={5} />
-        <Box x={0} y={0} w={18} ar={ 1.889 } color="transparent" radius={4} border={colors.base} />
-        <Box x={0} y={0} w={26} ar={ 1.308 } color={colors.base} radius={5} />
+        <Box w={26} ar={ 0.765 } color={colors.base} radius={5} />
+        <Box w={18} ar={ 0.529 } color="transparent" radius={4} border={colors.base} />
+        <Box w={26} ar={ 0.765 } color={colors.base} radius={5} />
       </View>
       <View style={[st.row, { width: '76%', justifyContent: 'center' }]}>
         {[0, 1, 2, 3].map((i) => (
-          <Box key={i} x={0} y={0} w={22} ar={ 0.909 } color='transparent' border={colors.ink} radius={4}  opacity={0.9} />
+          <Box key={i} w={22} ar={ 1.1 } color='transparent' border={colors.ink} radius={4}  opacity={0.9} />
         ))}
       </View>
     </View>
@@ -175,10 +175,10 @@ function EquationStill({ colors }: { colors: BoardStillColors }) {
 function NumberLineStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box x={10} y={48} w={80} ar={ 0.05 } color={colors.ink} radius={2} />
-      <Box x={38} y={30} w={7} ar={ 4.286 } color={colors.base} radius={2} border={colors.ink} />
+      <Box x={10} y={48} w={80} ar={ 20.0 } color={colors.ink} radius={2} />
+      <Box x={38} y={30} w={7} ar={ 0.233 } color={colors.base} radius={2} border={colors.ink} />
       {[14, 38, 62, 86].map((x, i) => (
-        <Box key={i} x={x - 1} y={54} w={2} ar={ 5.0 } color={colors.ink} opacity={0.7} />
+        <Box key={i} x={x - 1} y={54} w={2} ar={ 0.2 } color={colors.ink} opacity={0.7} />
       ))}
     </View>
   );
@@ -187,9 +187,9 @@ function NumberLineStill({ colors }: { colors: BoardStillColors }) {
 /** Value ordering bars. */
 function OrderingStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, { paddingHorizontal: '14%', paddingTop: '12%', gap: '7%' }]}>
+    <View style={[st.fill, { paddingHorizontal: '14%', paddingTop: '12%', gap: 10 }]}>
       {[0, 1, 2, 3].map((i) => (
-        <Box key={i} w={58 + ((i * 13) % 34)} ar={0.28} color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={4} opacity={i === 1 ? 1 : 0.85} />
+        <Box key={i} w={58 + ((i * 13) % 34)} ar={ 3.571 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={4} opacity={i === 1 ? 1 : 0.85} />
       ))}
     </View>
   );
@@ -198,15 +198,15 @@ function OrderingStill({ colors }: { colors: BoardStillColors }) {
 /** Linked word chips (word chain / sentence builder / context fit / match). */
 function WordChipsStill({ colors, variant }: { colors: BoardStillColors; variant: number }) {
   return (
-    <View style={[st.fill, st.center, { gap: '9%' }]}>
+    <View style={[st.fill, st.center, { gap: 10 }]}>
       <View style={[st.row, { width: '80%', justifyContent: 'center' }]}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={28} ar={ 0.786 } color={i === variant % 3 ? colors.base : colors.surface} radius={10} border={colors.ink} opacity={i === variant % 3 ? 1 : 0.85} />
+          <Box key={i} w={28} ar={ 1.272 } color={i === variant % 3 ? colors.base : colors.surface} radius={10} border={colors.ink} opacity={i === variant % 3 ? 1 : 0.85} />
         ))}
       </View>
       <View style={[st.row, { width: '62%', justifyContent: 'center' }]}>
         {[0, 1].map((i) => (
-          <Box key={i} x={0} y={0} w={28} ar={ 0.786 } color='transparent' border={colors.ink} radius={10}  opacity={0.85} />
+          <Box key={i} w={28} ar={ 1.272 } color='transparent' border={colors.ink} radius={10}  opacity={0.85} />
         ))}
       </View>
     </View>
@@ -217,9 +217,9 @@ function WordChipsStill({ colors, variant }: { colors: BoardStillColors; variant
 function ScrambleStill({ colors, variant }: { colors: BoardStillColors; variant: number }) {
   return (
     <View style={[st.fill, st.center]}>
-      <View style={[st.row, { width: '84%', flexWrap: 'wrap', justifyContent: 'center', gap: '4%' }]}>
+      <View style={[st.row, { width: '84%', flexWrap: 'wrap', justifyContent: 'center', gap: 6 }]}>
         {Array.from({ length: 6 }, (_, i) => (
-          <Box key={i} x={0} y={0} w={13} ar={ 1.692 } color={(i + variant) % 6 === 0 ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={(i + variant) % 6 === 0 ? 1 : 0.85} />
+          <Box key={i} w={13} ar={ 0.591 } color={(i + variant) % 6 === 0 ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={(i + variant) % 6 === 0 ? 1 : 0.85} />
         ))}
       </View>
     </View>
@@ -229,15 +229,15 @@ function ScrambleStill({ colors, variant }: { colors: BoardStillColors; variant:
 /** Clue/deduction grid (deduction table / code cracker / rule grid). */
 function DeductionStill({ colors, variant }: { colors: BoardStillColors; variant: number }) {
   return (
-    <View style={[st.fill, st.center, { flexDirection: 'row', gap: '5%' }]}>
-      <View style={{ width: '30%', height: '70%', gap: '8%' }}>
+    <View style={[st.fill, st.center, { flexDirection: 'row', gap: 8 }]}>
+      <View style={{ width: '30%', height: '70%', gap: 10 }}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={100} ar={ 0.24 } color='transparent' border={colors.ink} radius={3}  opacity={0.9} />
+          <Box key={i} w={100} ar={ 4.167 } color='transparent' border={colors.ink} radius={3}  opacity={0.9} />
         ))}
       </View>
-      <View style={{ width: '52%', height: '70%', gap: '8%' }}>
+      <View style={{ width: '52%', height: '70%', gap: 10 }}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={100} ar={ 0.24 } color={(i + variant) % 3 === 0 ? colors.base : 'transparent'} border={colors.ink} radius={3}  opacity={(i + variant) % 3 === 0 ? 1 : 0.85} />
+          <Box key={i} w={100} ar={ 4.167 } color={(i + variant) % 3 === 0 ? colors.base : 'transparent'} border={colors.ink} radius={3}  opacity={(i + variant) % 3 === 0 ? 1 : 0.85} />
         ))}
       </View>
     </View>
@@ -247,12 +247,12 @@ function DeductionStill({ colors, variant }: { colors: BoardStillColors; variant
 /** Sequence chips with unknown slot (next sequence). */
 function SequenceStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { gap: '10%' }]}>
+    <View style={[st.fill, st.center, { gap: 12 }]}>
       <View style={[st.row, { width: '78%', justifyContent: 'center' }]}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={22} ar={ 1.273 } color={colors.base} radius={5} />
+          <Box key={i} w={22} ar={ 0.786 } color={colors.base} radius={5} />
         ))}
-        <Box x={0} y={0} w={22} ar={ 1.273 } color="transparent" radius={5} border={colors.base} />
+        <Box w={22} ar={ 0.786 } color="transparent" radius={5} border={colors.base} />
       </View>
     </View>
   );
@@ -262,10 +262,19 @@ function SequenceStill({ colors }: { colors: BoardStillColors }) {
 function PathGridStill({ colors, variant }: { colors: BoardStillColors; variant: number }) {
   const path = [variant % 9, (variant + 4) % 9, (variant + 8) % 9];
   return (
-    <View style={[st.fill, st.center]}>
-      <View style={{ width: '58%', height: '80%', flexDirection: 'row', flexWrap: 'wrap', gap: '3%' }}>
-        {Array.from({ length: 9 }, (_, i) => (
-          <Box key={i} x={0} y={0} w={30.6} ar={ 1.0 } color={path.includes(i) ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={path.includes(i) ? 1 : 0.8} />
+    <View style={[st.fill, st.center, { paddingHorizontal: '20%' }]}>
+      <View style={{ width: '100%', aspectRatio: 0.9, flexDirection: 'column', gap: 6 }}>
+        {[0, 1, 2].map((row) => (
+          <View key={row} style={{ flex: 1, flexDirection: 'row', gap: 6 }}>
+            {[0, 1, 2].map((col) => {
+              const i = row * 3 + col;
+              return (
+                <View key={i} style={{ flex: 1 }}>
+                  <Box w={100} ar={1} color={path.includes(i) ? colors.base : 'transparent'} border={colors.ink} radius={4} opacity={path.includes(i) ? 1 : 0.8} />
+                </View>
+              );
+            })}
+          </View>
         ))}
       </View>
     </View>
@@ -276,9 +285,9 @@ function PathGridStill({ colors, variant }: { colors: BoardStillColors; variant:
 function CompassStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box x={26} y={14} w={48} ar={ 1.333 } color="transparent" radius={30} border={colors.base} />
-      <Box x={47} y={30} w={6} ar={ 5.0 } color={colors.base} radius={3} />
-      <Box x={40} y={68} w={20} ar={ 0.6 } color={colors.secondary} radius={3} />
+      <Box x={26} y={14} w={48} ar={ 0.75 } color="transparent" radius={30} border={colors.base} />
+      <Box x={47} y={30} w={6} ar={ 0.2 } color={colors.base} radius={3} />
+      <Box x={40} y={68} w={20} ar={ 1.667 } color={colors.secondary} radius={3} />
     </View>
   );
 }
@@ -286,11 +295,11 @@ function CompassStill({ colors }: { colors: BoardStillColors }) {
 /** Reaction trigger + tap field (reaction time / tap rush / color match / quick compare). */
 function TriggerStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { gap: '8%' }]}>
-      <Box x={34} y={12} w={32} ar={ 1.438 } color={colors.base} radius={16} border={colors.ink} />
+    <View style={[st.fill, st.center, { gap: 10 }]}>
+      <Box x={34} y={12} w={32} ar={ 0.695 } color={colors.base} radius={16} border={colors.ink} />
       <View style={[st.row, { width: '70%', justifyContent: 'center' }]}>
         {[0, 1, 2].map((i) => (
-          <Box key={i} x={0} y={0} w={12} ar={ 1.0 } color={i === 1 ? colors.base : colors.secondary} radius={6} opacity={i === 1 ? 1 : 0.5} />
+          <Box key={i} w={12} ar={ 1.0 } color={i === 1 ? colors.base : colors.secondary} radius={6} opacity={i === 1 ? 1 : 0.5} />
         ))}
       </View>
     </View>
@@ -300,13 +309,13 @@ function TriggerStill({ colors }: { colors: BoardStillColors }) {
 /** Numbered token row (order sweep). */
 function SweepStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { gap: '9%' }]}>
+    <View style={[st.fill, st.center, { gap: 10 }]}>
       <View style={[st.row, { width: '86%', justifyContent: 'center' }]}>
         {[0, 1, 2, 3].map((i) => (
-          <Box key={i} x={0} y={0} w={20} ar={ 1.3 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={i === 1 ? 1 : 0.85} />
+          <Box key={i} w={20} ar={ 0.769 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={4}  opacity={i === 1 ? 1 : 0.85} />
         ))}
       </View>
-      <Box x={22} y={58} w={56} ar={ 0.143 } color={colors.secondary} radius={4} opacity={0.7} />
+      <Box x={22} y={58} w={56} ar={ 6.993 } color={colors.secondary} radius={4} opacity={0.7} />
     </View>
   );
 }
@@ -314,7 +323,7 @@ function SweepStill({ colors }: { colors: BoardStillColors }) {
 /** Vigilance signal bars (sustained vigilance). */
 function VigilanceStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { flexDirection: 'row', alignItems: 'flex-end', gap: '4%', height: '70%' }]}>
+    <View style={[st.fill, st.center, { flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: '70%' }]}>
       {[0.5, 0.8, 0.35, 0.9, 0.6].map((h, i) => (
         <View key={i} style={{ flex: 1, alignSelf: 'stretch' }}>
           <Box w={100} ar={0.34 + (i % 2) * 0.12} color={i === 3 ? colors.base : colors.secondary} radius={2} opacity={i === 3 ? 1 : 0.55} />
