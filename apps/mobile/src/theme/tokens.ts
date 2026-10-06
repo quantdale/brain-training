@@ -169,6 +169,8 @@ interface NeutralTheme {
   stageMuted: string;
   /** Hairline border ON the stage panel. */
   stageBorder: string;
+  /** Translucent chip/instrument fill ON the stage panel. */
+  stageFill: string;
   /** Surface for the hero/elevated card of a screen. */
   surfaceRaised: string;
   /** Recessed surface for wells, tracks and inline code. */
@@ -206,6 +208,7 @@ const NEUTRALS = {
     stageError: '#FF8179',
     stageMuted: '#B9BABC',
     stageBorder: 'rgba(255, 255, 255, 0.28)',
+    stageFill: 'rgba(255, 255, 255, 0.08)',
     border: '#D8D5CE',
     borderStrong: '#4A4B4E',
     accentStrong: '#B01E2E',
@@ -230,6 +233,7 @@ const NEUTRALS = {
     stageError: '#FF8179',
     stageMuted: '#B9BABC',
     stageBorder: 'rgba(255, 255, 255, 0.28)',
+    stageFill: 'rgba(255, 255, 255, 0.08)',
     border: '#34363B',
     borderStrong: '#A2A3A6',
     accentStrong: '#FF6E79',

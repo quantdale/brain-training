@@ -75,8 +75,8 @@ export function SessionHeader({
       style={[
         styles.strip,
         {
-          backgroundColor: onStage ? 'rgba(255, 255, 255, 0.06)' : theme.surface,
-          borderColor: onStage ? 'rgba(255, 255, 255, 0.28)' : theme.border,
+          backgroundColor: onStage ? theme.stageFill : theme.surface,
+          borderColor: onStage ? theme.stageBorder : theme.border,
         },
       ]}>
       {children !== undefined ? (

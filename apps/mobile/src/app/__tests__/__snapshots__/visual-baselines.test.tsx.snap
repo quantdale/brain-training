@@ -3687,6 +3687,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "flex": 1,
                               "justifyContent": "center",
                               "minHeight": 44,
+                              "minWidth": 44,
                               "paddingHorizontal": 4,
                               "transform": [
                                 {
@@ -3760,6 +3761,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "flex": 1,
                               "justifyContent": "center",
                               "minHeight": 44,
+                              "minWidth": 44,
                               "paddingHorizontal": 4,
                               "transform": [
                                 {
@@ -3833,6 +3835,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "flex": 1,
                               "justifyContent": "center",
                               "minHeight": 44,
+                              "minWidth": 44,
                               "paddingHorizontal": 4,
                               "transform": [
                                 {
@@ -3906,6 +3909,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "flex": 1,
                               "justifyContent": "center",
                               "minHeight": 44,
+                              "minWidth": 44,
                               "paddingHorizontal": 4,
                               "transform": [
                                 {
@@ -7800,6 +7804,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "flex": 1,
                       "justifyContent": "center",
                       "minHeight": 44,
+                      "minWidth": 44,
                       "paddingHorizontal": 4,
                       "transform": [
                         {
@@ -7873,6 +7878,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "flex": 1,
                       "justifyContent": "center",
                       "minHeight": 44,
+                      "minWidth": 44,
                       "paddingHorizontal": 4,
                       "transform": [
                         {
@@ -7946,6 +7952,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "flex": 1,
                       "justifyContent": "center",
                       "minHeight": 44,
+                      "minWidth": 44,
                       "paddingHorizontal": 4,
                       "transform": [
                         {
@@ -8019,6 +8026,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "flex": 1,
                       "justifyContent": "center",
                       "minHeight": 44,
+                      "minWidth": 44,
                       "paddingHorizontal": 4,
                       "transform": [
                         {

@@ -302,7 +302,7 @@ export function GameResults({
       {/* Change 076 (lock section 1): the artifact is the immersive stage —
           charcoal panel, white type, the played board as the still. */}
       <View
-        style={[styles.stageArtifact, { backgroundColor: theme.stage }]}
+        style={[styles.stageArtifact, { backgroundColor: theme.stage, borderColor: theme.stageBorder }]}
         testID={testId(gameId, 'result-artifact')}
         accessibilityLiveRegion="polite">
         {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
@@ -454,7 +454,6 @@ const styles = StyleSheet.create({
     borderRadius: Radii.large,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.24)',
   },
   resultBody: {
     padding: Spacing.three,

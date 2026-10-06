@@ -1,4 +1,35 @@
-# Validation Evidence
+# Durable Validation Record
+
+## Campaign 076 — Product-Wide UI/UX Reboot (VALIDATED, 2026-10-06)
+
+**Verdict:** `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`. Full openspec
+apply (82/82 tasks) of `openspec/changes/076-product-wide-ui-ux-reboot/`.
+Visual-only change set on the protected contracts; terminal release build
+`14cb165b…` (+ review-fix build `0556520f…`).
+
+**Counts (measured at the terminal commits):** full jest 616 suites / 7,210
+tests / 5 snapshots, 0 failures; typecheck clean; `expo lint` 0; OpenSpec
+strict 60/60; repo-state/task-ownership/offline/secrets/provenance/workflows/
+runtime-QA-contract/affected-sync/expo-alignment/registry validators all PASS;
+web export succeeded.
+
+**Device evidence:** old-build baseline 272 captures (APK `d631ab9a…`);
+after-build: 20 route captures + 173 game captures + 90 canonical matrix
+surfaces (30 surfaces × default/compact/fs2 × light/dark — the harness grew
+from 11 to 15 surfaces during the review fixes); a11y audits 0 violations
+after the app-node scoping and rail-clip classification fixes; 42/42 games
+individually played; full first-run workout journey + SQLite audit (integrity
+ok, schema v13, 0 FK, exactly-once ledger, 0 duplicate ratings, 0
+FATAL/ANR). ARTEMIS Flash smoke PASS (`web_1791241358_8673fd7b`); ARTEMIS Pro
+lane BLOCKED on LLM provider capacity (3 attempts: 503/429/180s) with the
+deterministic emulator-local ADB fallback lane executed (design decision 4).
+
+**Honest boundaries:** iOS NOT VALIDATED (no host); 5 per-game state frames
+NOT CAPTURED with cause (tutorial demos on release builds); ARTEMIS Pro
+controller-led journeys pending provider capacity. Full record:
+`openspec/changes/076-product-wide-ui-ux-reboot/evidence/WAVE14_EVIDENCE.md`.
+
+---
 
 Evidence policy: for every meaningful wave, append concise evidence containing
 date/time, commit or working-state reference, changed subsystem, checks
@@ -3537,7 +3568,6 @@ Full Jest on the unvalidated 010 wave: **12 failed suites / 32 failed tests /
 - Fast validators (repo-state / registry --check / provenance --check /
   task-ownership / offline --check): PASS at closure commit
 
-
 # Campaign 012 closeout — parent device QA + defect cluster (2026-08-23)
 
 Environment: AVD CRBABot_API_36 (API 36, cold boot -no-snapshot, 3072MB),
@@ -4097,7 +4127,6 @@ platform limitations remain explicitly classified and are carried into 016.
   present, but this checkpoint makes no current-head persistence or recovery
   PASS claim.
 
-
 - Current-head static/repository gates passed: repo-state, ownership, OpenSpec
   3/3, registry, provenance, and offline boundary. `npm run typecheck` and
   `npm run lint` passed. Web export passed with **20 static routes** and Expo
@@ -4466,7 +4495,6 @@ toolchain limitation, not a product test failure.
 - These conditions are external/manual, not repository defects. The
   implementation is release-candidate quality for the defined offline-first
   local product target.
-
 
 ### Phase 17 — current-head CI (historical pre-closure heads)
 
