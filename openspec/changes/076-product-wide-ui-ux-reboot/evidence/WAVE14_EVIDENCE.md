@@ -124,3 +124,17 @@ the standing boundary.
 | Spec High — discovery order | SuggestedNext moved BELOW the browse grid; filters in the first viewport | games.tsx; re-captured route evidence |
 | Spec High — board media | `board-stills.tsx` GameBoardStill: per-game genuine board grammar (20 still types covering 42 ids) wired into GameWorldArt behind the family-motif fallback; dark+light verified on device | `board-stills.tsx`; `stills-*.png` captures |
 | Spec Medium — coverage/state gaps | harness grown 11→15 surfaces (progress-domain/game + recovery routes; query-param routes fixed); 90/90 matrix captures; progress-rail tone success; persist-error precedes facts | `after-matrix-*/`; `session-header.tsx`; `results.tsx` |
+
+## Review round-2/3 response record (frontier-model re-review, addressed 2026-10-06)
+
+| Finding | Resolution | Evidence |
+| --- | --- | --- |
+| Standards High — Games layout (SuggestedNext nested inside the rail) | Un-nested: the rail renders the filter chips only; SuggestedNext renders after the catalog grid in the fragment; the first viewport shows search, rail, and grid tiles | games.tsx (SuggestedNext after the grid close); `stills-games-grid.png` device capture |
+| Standards High — Board-still layout (absolute-origin overlap + reversed aspect ratio) | Box rewritten: flow layout by default (no absolute-origin default), `abs` opt-in for scatter/line stills; `ar` values converted to the RN convention (width/height); grids rebuilt as explicit 3-row structures | board-stills.tsx; `stills-detail-memory.png` (lit 3×3), `stills-detail-odd-one-out.png` (target+options) |
+| Standards High — False capture pass (launcher frames + empty recovery markers) | Harness: foreground-package verification before every capture (cold retry then skip), recovery surfaces given real expected markers (`*-title`/`*-message`), skipped captures FAIL the run (exit 1) | ui-capture.mjs; `after-matrix-*/manifest.json` |
+| Standards Medium — False a11y pass (launcher-only + unlabelled rail-edge) | a11y-audit: app-node scoping (foreign-package nodes skipped); rail-edge clips classified as scroll-reachable and counted separately | a11y-audit.mjs; 0 violations across 90 refreshed captures |
+| Standards Medium — deep-link Retry inert | `onRetry` default navigates to the app root (re-runs the classified bootstrap) instead of a no-op | bootstrap-recovery.tsx (deep-link envelope fix, crash verified fixed on device) |
+| Spec High — Discovery order | SuggestedNext renders after the catalog grid (verified: search → rail → grid tiles on arrival) | games.tsx; device dump showing rail→grid order |
+| Spec High — Release gate | 9 ARTEMIS Pro attempts across two days (429-dominant, 503, 180s timeouts); Flash smoke PASS; deterministic ADB lane executed all stateful journeys; boundary prominently recorded | WAVE14_EVIDENCE.md; per-attempt traces in qa-artifacts |
+| Spec Medium — Image totals | 188 committed images with hashes; exact per-state counts (F 40/42, P 38/42, A 42/42, R 42/42) with per-game causes; Odd One Out and Number Line feedback frames recaptured as in-round feedback | `after-captures-games/index.json`; GAME_ASSESSMENT.md |
+| Spec Medium — fs2 clips | progress-domain All chip present in the fs2 hierarchy (window-control constraint); Progress link row 73dp at fs2 (above floor) | `after-matrix-fs2/font-scale-2/light/progress-domain.xml` |
