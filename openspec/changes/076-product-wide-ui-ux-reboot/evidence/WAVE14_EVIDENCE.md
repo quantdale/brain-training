@@ -52,12 +52,15 @@ to single actions.
   (`✅ Automation ... is success ✅`; trace-step compilation was degraded by
   transient Google 503s during step summarization — the automation itself
   succeeded).
-- **Pro stateful journeys: BLOCKED (LLM provider capacity).** Three attempts
-  (`076-pro-first-run-workout`, `-retry`, `-retry2`) each failed inside the
-  ARTEMIS operator on provider grounds — 503 UNAVAILABLE, 429 Too Many
-  Requests, and `TimeoutError: LLM call timed out after 180 seconds` — the
-  same Google capacity events observed throughout the day. Recorded BLOCKED,
-  not worked around with host-input automation.
+- **Pro stateful journeys: BLOCKED (LLM provider capacity).** Seven attempts
+  across 2026-10-05/06 (`076-pro-first-run-workout`, `-retry`, `-retry2`,
+  `-attempt4` … `-attempt7`, including 10–30-minute provider cool-downs before
+  retries 5–7) each failed inside the ARTEMIS operator on provider grounds —
+  dominated by 429 Too Many Requests (30+ events in the final attempt alone),
+  503 UNAVAILABLE, and `TimeoutError: LLM call timed out after 180 seconds`.
+  The provider (Google capacity) showed the same saturation all day on this
+  host. Recorded BLOCKED across 7 evidence-backed attempts; NOT worked around
+  with host-input automation masquerading as controller-led journeys.
 - **Fallback lane (per design decision 4):** the equivalent stateful journeys
   were executed deterministically by the direct emulator-local ADB lane
   (no host input): full first-run workout (fresh install state → 4 legs with
