@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "076-product-wide-ui-ux-reboot",
-  "lastCampaign": "055-signal-arcade-desirability",
+  "activeCampaign": null,
+  "lastCampaign": "076-product-wide-ui-ux-reboot",
   "lastCampaignStatus": "VALIDATED",
-  "lastCampaignVerdict": "CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE",
+  "lastCampaignVerdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

@@ -1,11 +1,11 @@
-# ACTIVE — Campaign 076: Product-Wide UI/UX Reboot
+# Campaign 076: Product-Wide UI/UX Reboot (VALIDATED — COMPLETE)
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
 **Campaign id:** `076-product-wide-ui-ux-reboot`
 **Predecessor:** Phase 10 terminal certification (post-075 convergence; all 46 audit findings dispositioned, 0 open)
 **Mode:** day
 **Start SHA:** `b6654fb` (proposal head). Explore/release baseline captured at source `d3d0b9926a44c039d7fd0d29e1376586afaa897b`, release APK SHA-256 `d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9` on `braintraining-ui35` / `emulator-5554`.
-**Change:** `openspec/changes/076-product-wide-ui-ux-reboot` (ACTIVE — openspec apply in progress)
+**Change:** `openspec/changes/076-product-wide-ui-ux-reboot` (VALIDATED)
 **Authorization:** owner goal directive — perform openspec apply on `openspec/changes/076-product-wide-ui-ux-reboot/` until every task in its `tasks.md` is complete or an honestly BLOCKED condition is durably recorded. Execution prompt: `.agent/EXECUTION_PROMPT.md`.
 
 ## Mission
@@ -39,6 +39,20 @@ contracts.
 6. **Convergence/certification** — 42/42 device board review, theme/size
    matrices, ARTEMIS journeys, impact-map gates, release APK, iOS status,
    final coverage manifest + visual decision report, durable state, push (14.x).
+
+## Terminal result
+
+`CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED` — all 82 tasks executed:
+baseline (272 old-build captures), three-prototype selection gate (Training
+Studio, REFERENCE_LOCK), shared compositional contract (tokens/stage panel/
+staged results), route redesigns (all 17 routes), 42/42 games canary-
+disciplined and individually played/captured on the converged release build
+(`14cb165b…`), canonical matrices 66/66 PASS, a11y audits clean, ARTEMIS
+Flash smoke PASS (Pro lane provider-BLOCKED with the deterministic ADB
+fallback executed), repo gates + validators + full jest (616 suites / 7,210
+tests) green, iOS honestly NOT VALIDATED, no abandoned worktrees. Terminal
+evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
+(WAVE14_EVIDENCE.md + per-wave records).
 
 ## Progress log
 

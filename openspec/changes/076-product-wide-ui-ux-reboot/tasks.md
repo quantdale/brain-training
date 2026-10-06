@@ -79,21 +79,21 @@
 
 ## 10. Math game modules
 
-- [ ] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
-- [ ] 10.2 Redesign and individually play/capture `math-fast-math` states.
-- [ ] 10.3 Redesign and individually play/capture `math-missing-operator` states.
-- [ ] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
-- [ ] 10.5 Redesign and individually play/capture `math-value-ordering` states.
+- [x] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
+- [x] 10.2 Redesign and individually play/capture `math-fast-math` states.
+- [x] 10.3 Redesign and individually play/capture `math-missing-operator` states.
+- [x] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
+- [x] 10.5 Redesign and individually play/capture `math-value-ordering` states.
 
 ## 11. Memory game modules
 
-- [ ] 11.1 Redesign and individually play/capture `memory` active, feedback, pause/end states (canary acceptance included).
-- [ ] 11.2 Redesign and individually play/capture `memory-grid-recall` states.
-- [ ] 11.3 Redesign and individually play/capture `memory-pair-recall` states.
-- [ ] 11.4 Redesign and individually play/capture `memory-pattern-tap-back` states.
-- [ ] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
-- [ ] 11.6 Redesign and individually play/capture `memory-running-order` states.
-- [ ] 11.7 Redesign and individually play/capture `memory-sequence-memory` states.
+- [x] 11.1 Redesign and individually play/capture `memory` active, feedback, pause/end states (canary acceptance included).
+- [x] 11.2 Redesign and individually play/capture `memory-grid-recall` states.
+- [x] 11.3 Redesign and individually play/capture `memory-pair-recall` states.
+- [x] 11.4 Redesign and individually play/capture `memory-pattern-tap-back` states.
+- [x] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
+- [x] 11.6 Redesign and individually play/capture `memory-running-order` states.
+- [x] 11.7 Redesign and individually play/capture `memory-sequence-memory` states.
 
 ## 12. Spatial game modules
 

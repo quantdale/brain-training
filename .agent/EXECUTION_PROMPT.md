@@ -1,7 +1,7 @@
 # Execution Prompt — Campaign 076: Product-Wide UI/UX Reboot
 
-**Status:** ACTIVE
-**Change:** `076-product-wide-ui-ux-reboot` (ACTIVE — openspec apply in progress)
+**Status:** VALIDATED — `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
+**Change:** `076-product-wide-ui-ux-reboot` (VALIDATED)
 **Start-SHA:** `b6654fb` (proposal head; Explore baseline `d3d0b99`)
 **Target-Branch:** `main`
 **Predecessor:** Phase 10 terminal certification (`f813e6a` / `b6654fb` docs)
