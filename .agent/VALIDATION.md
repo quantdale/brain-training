@@ -18,7 +18,7 @@ checking every screenshot's actual state or final APK binding.
 | Individual game-state visual review | **NOT VALIDATED:** retained 172-image hash index yields 39/42 A, 27/42 F, 38/42 P, 42/42 R; 22/168 core states missing or rejected. `verify-game-evidence.mjs` confirms all retained/rejected SHA-256s and reports `--require-complete` FAIL (22 gaps); `GAME_ASSESSMENT.md` lists each. Older mixed-build frames cannot certify final shared-button rendering. |
 | ARTEMIS | Flash smoke PASS; nine Pro attempts provider-**BLOCKED** (429/503/180s); direct ADB fallback does not satisfy controller-led acceptance. |
 | iOS | **NOT VALIDATED** (no macOS/Xcode host). |
-| Committed proof | Historical game files previously committed; corrected index and final-build eight focused frames/earlier 90-route matrix require commit then `--require-committed` verification. Until then local evidence only. |
+| Committed proof | PASS at `bc801e3`: both capture manifests and the corrected game index, including all retained/rejected PNGs, passed `--require-committed` with hashes against HEAD. This proves bytes/provenance, **not** final-build matrix or missing game-state semantics. |
 
 No current 076 release verdict is green; do not inherit the former terminal
 counts below as evidence for the final APK. A blocker checkpoint may be pushed

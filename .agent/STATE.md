@@ -14,6 +14,10 @@ vs iOS 44pt targets, app-owned accessibility audit and fail-closed capture
 validation. Full Jest 617 passed / 4 skipped suites and 7,218 passed /
 5 skipped tests, typecheck/lint PASS; repo-state and strict OpenSpec
 validation PASS after the evidence correction (60/60 strict items).
+At commit `bc801e3`, the historical 90/90 matrix, eight final-build detail
+pairs and 172 retained/16 rejected game frames passed committed-hash
+verification; completeness remains 146/168 core game states and no final
+90-route proof.
 See `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md` and
 `openspec/changes/076-product-wide-ui-ux-reboot/evidence/GAME_ASSESSMENT.md`.
 Historical records below are not current release acceptance.

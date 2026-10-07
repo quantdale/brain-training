@@ -33,8 +33,11 @@
   runtime-QA/affected-sync/expo-alignment/registry PASS and OpenSpec strict
   **60/60** PASS. The game-index integrity verifier reports 172/172 hashed
   retained frames + 16 quarantined frames; its `--require-complete` mode
-  correctly FAILS for 22 missing game states. A release APK was built and
-  installed, but that is not device acceptance.
+  correctly FAILS for 22 missing game states. At checkpoint `bc801e3` both
+  capture manifests and the game index (all retained/rejected PNGs) passed
+  `--require-committed`; this verifies Git identity, not final-build/game-state
+  acceptance. A release APK was built and installed, but that is not device
+  acceptance.
 
 The former 14.x checklist and review tables below reflect what was claimed at
 its earlier checkpoint. Where they conflict with this correction and
