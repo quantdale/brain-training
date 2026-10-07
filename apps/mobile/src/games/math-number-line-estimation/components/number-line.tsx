@@ -131,7 +131,7 @@ export function NumberLine({
     : `Number line from ${lineMin} to ${lineMax}. A flag marks the target. Tap where you think its value is.`;
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrap} testID={testId(GAME_ID, 'number-line-wrap')}>
       <View style={styles.labelsRow}>
         <Text style={[styles.label, { color: theme.textSecondary }]} testID={testId(GAME_ID, 'line-label-min')}>
           {lineMin}
@@ -205,6 +205,11 @@ export function NumberLine({
 const styles = StyleSheet.create({
   wrap: {
     gap: Spacing.one,
+    // Must span its container: inside the centered feedback card this wrapper
+    // would otherwise shrink-wrap to its content and collapse the line track
+    // (absolute-positioned children add no intrinsic width) — device-captured
+    // defect where the resolved number line rendered as a ~60px pill.
+    alignSelf: 'stretch',
   },
   labelsRow: {
     flexDirection: 'row',

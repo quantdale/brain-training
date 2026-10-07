@@ -56,6 +56,17 @@ const DOMAIN_BY_CATEGORY: Record<string, DomainName> = {
   Spatial: 'spatial',
 };
 
+/**
+ * HUD score display format: an integer string, matching the board readout
+ * (AnimatedNumber rounds by default). Game score math may legitimately
+ * produce floats (e.g. fractional speed bonuses); the raw float once leaked
+ * into the stage HUD as "Score 144.1511312699999" on device. Non-numeric
+ * strings pass through untouched.
+ */
+export function formatHudScore(score: string): string {
+  return /^-?\d+(\.\d+)?$/.test(score) ? String(Math.round(Number(score))) : score;
+}
+
 function domainTone(category: string | undefined): DomainName | null {
   if (category === undefined) return null;
   return DOMAIN_BY_CATEGORY[category] ?? null;
@@ -378,7 +389,7 @@ export function GameHost({
             <SessionHeader
               onStage
               round={typeof header === 'string' ? header : undefined}
-              score={score === undefined ? undefined : `Score ${score}`}
+              score={score === undefined ? undefined : `Score ${formatHudScore(score)}`}
               scoreTestID={testId(gameId, 'score')}
               progress={roundProgress}
               trailing={
