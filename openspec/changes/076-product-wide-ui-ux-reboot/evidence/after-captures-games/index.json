@@ -1,14 +1,10 @@
 {
-  "build": "release APK 0556520f9cc7cf4a (game-play wave) + review-fix builds",
-  "count": 188,
+  "build": "Historical game-play/review-fix APKs (mixed captures; no per-file APK binding). NOT final-build certification for c3b3e4d9.",
+  "count": 172,
   "images": [
     {
       "file": "after-attention-odd-one-out-active.png",
       "sha256": "dbb66df15a47a28b3497d48e35a04c3cc2a2d0712ec7f9bd105cf9734457f582"
-    },
-    {
-      "file": "after-attention-odd-one-out-feedback.png",
-      "sha256": "a32dd23c489e6ec328f9f7cbe90cdc29c66910ac81852cf8e710cfeed0cce7fe"
     },
     {
       "file": "after-attention-odd-one-out-pause.png",
@@ -23,20 +19,12 @@
       "sha256": "7affcc1431e34cfbceeb7ed74bf28784489fc0335d19a72503cccec24c0fe457"
     },
     {
-      "file": "after-attention-sustained-vigilance-feedback.png",
-      "sha256": "e9191cf69da2ecac01f92ea6b7b121ae874b8bf2e885863de21bbb7cf5b28d58"
-    },
-    {
       "file": "after-attention-sustained-vigilance-result.png",
       "sha256": "bc1ce67cb86ab072259c08e622545056d9a8efd9c0059e64d605a96762d59378"
     },
     {
       "file": "after-attention-symbol-tracker-active.png",
       "sha256": "ca653e4a6efef6d70cf0bf1a0e625da74a342a5e1310a5ee0191a443c2f56419"
-    },
-    {
-      "file": "after-attention-symbol-tracker-feedback.png",
-      "sha256": "c2549d850a0a6a1ab381196050d12c6b1bdbebec4e843e4845e72986b6e3c7c4"
     },
     {
       "file": "after-attention-symbol-tracker-pause.png",
@@ -67,10 +55,6 @@
       "sha256": "0d206b54f43013b43ec3c07f077a8a3bd89cebd979d062482df09ad146dc989d"
     },
     {
-      "file": "after-attention-visual-search-feedback.png",
-      "sha256": "bb3026916785b06e1d3e02fea9bd51f9b6820317b11e23fbc39a473ec6873508"
-    },
-    {
       "file": "after-attention-visual-search-pause.png",
       "sha256": "e094bf71ee582c7b783acccd6827c63ad95ddc13f38c134d00933c0a3c0151a7"
     },
@@ -93,10 +77,6 @@
     {
       "file": "after-flexibility-card-sort-result.png",
       "sha256": "0485632db05a4334ce19fb5afda8001e7e167d5e07dcde0dd960a7d0e39f7d2a"
-    },
-    {
-      "file": "after-flexibility-color-stroop-active.png",
-      "sha256": "be99eb28c09515c5fbfd41bdadeef3642f9f9aa42c2a6c12735a897e328e1c3d"
     },
     {
       "file": "after-flexibility-color-stroop-feedback.png",
@@ -147,10 +127,6 @@
       "sha256": "531520dd903d9e61be2661eeddd78a862f350eba79247c1ef2cae057b217921c"
     },
     {
-      "file": "after-flexibility-task-switch-feedback.png",
-      "sha256": "70f5ec8895b17851a1542214d8995f757fc26028412c37275092df31a212612a"
-    },
-    {
       "file": "after-flexibility-task-switch-pause.png",
       "sha256": "87365f3a70a4f9b2fa8f8a80776e70c2e1ceb594f5dee5051b7d542bfaba557c"
     },
@@ -199,10 +175,6 @@
       "sha256": "c88ba5388260486eb88361511fdcffe78a0f3762a7cb6a2ef6f7b7491a8811cf"
     },
     {
-      "file": "after-language-word-chain-feedback.png",
-      "sha256": "8d5ca77d9cceba71d86cf3df0ee40ff175e4263cc0a94e37273b4c16d31a47e0"
-    },
-    {
       "file": "after-language-word-chain-pause.png",
       "sha256": "fe887a7a04f2debb3bb90be429274c1e09a93e7c448f59bc841ac01e90588115"
     },
@@ -227,10 +199,6 @@
       "sha256": "62764b0f940ffdb3b27de840b43d7d3af881305d7c8543ac84838a8246df791f"
     },
     {
-      "file": "after-language-word-scramble-feedback.png",
-      "sha256": "2dbe322224efe54a835e945974305966b089c8549d908d9aaadeb03861e22a31"
-    },
-    {
       "file": "after-language-word-scramble-pause.png",
       "sha256": "b8c78bb9d65156f80b21962242f7f7cea1e9c9eaf1fa0beda3afd9738cdb570e"
     },
@@ -240,10 +208,6 @@
     },
     {
       "file": "after-logic-code-cracker-active.png",
-      "sha256": "112b04a9c68adf7c8e8e623c5eb92d1fe14fd33d087cd0a103d142d7c57fd09a"
-    },
-    {
-      "file": "after-logic-code-cracker-feedback.png",
       "sha256": "351a7a791dbb2ae0b9cbc740ea0bffe5ad6da2e1e86760a247b0833d7b0f2d8a"
     },
     {
@@ -347,10 +311,6 @@
       "sha256": "0d8f30bc7b45e5ae1c38a969b42935629c64847b34be767ab91ea9191ec30afd"
     },
     {
-      "file": "after-math-fast-math-feedback.png",
-      "sha256": "022e62d57d9e078ef91df368350794bd48c74e58fea68fe8aa71d47c60327d12"
-    },
-    {
       "file": "after-math-fast-math-pause.png",
       "sha256": "9d5f9002ebdedbffbf2c674103483169c00a1348e4714a31842359bcdbcb7899"
     },
@@ -379,10 +339,6 @@
       "sha256": "fc290383dfe9240d7bffe33fb8e4878d0a1288c31662836cbeaca4c83041cfee"
     },
     {
-      "file": "after-math-number-line-estimation-feedback.png",
-      "sha256": "d3a8dc318a5aff8a47ce1a7c5254986d6b78d74f0bd501dea602f2d5ab4feaa9"
-    },
-    {
       "file": "after-math-number-line-estimation-pause.png",
       "sha256": "2c7da27607d00a88d73fb32f493f58098ebea5250613abd21db9a2ad31827af9"
     },
@@ -393,10 +349,6 @@
     {
       "file": "after-math-value-ordering-active.png",
       "sha256": "ccccb717d4c9d649def603d9ad43dcf30424cb3786b34b73a20e11ce2bf8b2f2"
-    },
-    {
-      "file": "after-math-value-ordering-feedback.png",
-      "sha256": "b10e7d3b762518b4fe8cc5d112c0bc946fad99e345de962d9b0c8b6ba357ef0a"
     },
     {
       "file": "after-math-value-ordering-pause.png",
@@ -475,10 +427,6 @@
       "sha256": "79f1094ff81d8e49d19e2374a24baf5b12b0723d2cb3ee58fa4036f9522a7481"
     },
     {
-      "file": "after-memory-prospective-cue-active.png",
-      "sha256": "1dc71d1b08e5200833285fc48c401256bc2aae3bd3a51a61600f81638442d82e"
-    },
-    {
       "file": "after-memory-prospective-cue-feedback.png",
       "sha256": "332fa99db77b86ed4f7d40a45343d39c67340a20312bf0680ccf41d3fd6d9855"
     },
@@ -497,10 +445,6 @@
     {
       "file": "after-memory-running-order-active.png",
       "sha256": "557df55e1b702ab46dba31843207fc5d47a3cb657dd6907ac7837b52b455a093"
-    },
-    {
-      "file": "after-memory-running-order-feedback.png",
-      "sha256": "0ff750769239f951d9cd3d1cf7c2b2f3853cebf684f42c06bd7de6efc2ea987d"
     },
     {
       "file": "after-memory-running-order-pause.png",
@@ -565,10 +509,6 @@
     {
       "file": "after-spatial-grid-nav-active.png",
       "sha256": "ed5b791ce07031e56f0d310979071bdb1ce8bbcd54d7a35b7cd953857b9b6d85"
-    },
-    {
-      "file": "after-spatial-grid-nav-feedback.png",
-      "sha256": "6aa24e99a74f97a4d6f2762ad877e97e61a7ff09f8ae888fc4906e6343e77aaa"
     },
     {
       "file": "after-spatial-grid-nav-pause.png",
@@ -653,10 +593,6 @@
     {
       "file": "after-speed-order-sweep-result.png",
       "sha256": "0e2366b673771b6aec5a5175f6f57e47cff9f4afc1684582eff512fd5fca7267"
-    },
-    {
-      "file": "after-speed-quick-compare-active.png",
-      "sha256": "fe6afd0eceb229bd2188dc223bea7da91a6b23ee42e95a1244e1d5ce544f2d09"
     },
     {
       "file": "after-speed-quick-compare-feedback.png",
@@ -754,5 +690,26 @@
       "file": "after-workout-leg4-intro.png",
       "sha256": "68fc1e2385d0fa220afa31d21b564b9ecb0f61e878eb4be932cbc380d9f542c7"
     }
+  ],
+  "excluded": [
+    { "file": "rejected/after-attention-odd-one-out-feedback.png", "sha256": "a32dd23c489e6ec328f9f7cbe90cdc29c66910ac81852cf8e710cfeed0cce7fe", "reason": "Active option board; no feedback." },
+    { "file": "rejected/after-attention-sustained-vigilance-feedback.png", "sha256": "e9191cf69da2ecac01f92ea6b7b121ae874b8bf2e885863de21bbb7cf5b28d58", "reason": "Already at saved result; no in-round feedback." },
+    { "file": "rejected/after-attention-symbol-tracker-feedback.png", "sha256": "c2549d850a0a6a1ab381196050d12c6b1bdbebec4e843e4845e72986b6e3c7c4", "reason": "Selected board before Check answer; no feedback." },
+    { "file": "rejected/after-attention-visual-search-feedback.png", "sha256": "bb3026916785b06e1d3e02fea9bd51f9b6820317b11e23fbc39a473ec6873508", "reason": "Active search board; no feedback." },
+    { "file": "rejected/after-flexibility-color-stroop-active.png", "sha256": "be99eb28c09515c5fbfd41bdadeef3642f9f9aa42c2a6c12735a897e328e1c3d", "reason": "Time's up feedback, not active play." },
+    { "file": "rejected/after-flexibility-task-switch-feedback.png", "sha256": "70f5ec8895b17851a1542214d8995f757fc26028412c37275092df31a212612a", "reason": "Active parity board; no feedback." },
+    { "file": "rejected/after-language-word-chain-feedback.png", "sha256": "8d5ca77d9cceba71d86cf3df0ee40ff175e4263cc0a94e37273b4c16d31a47e0", "reason": "Active word selection; no feedback." },
+    { "file": "rejected/after-language-word-scramble-feedback.png", "sha256": "2dbe322224efe54a835e945974305966b089c8549d908d9aaadeb03861e22a31", "reason": "Choice selected but not submitted; no feedback." },
+    { "file": "rejected/after-logic-code-cracker-active.png", "sha256": "112b04a9c68adf7c8e8e623c5eb92d1fe14fd33d087cd0a103d142d7c57fd09a", "reason": "Get-ready screen, not active guessing. A real active frame was reclassified from the mislabeled feedback capture." },
+    { "file": "rejected/after-math-fast-math-feedback.png", "sha256": "022e62d57d9e078ef91df368350794bd48c74e58fea68fe8aa71d47c60327d12", "reason": "Active answer keypad; no feedback." },
+    { "file": "rejected/after-math-number-line-estimation-feedback.png", "sha256": "d3a8dc318a5aff8a47ce1a7c5254986d6b78d74f0bd501dea602f2d5ab4feaa9", "reason": "Unanswered active number line; no feedback." },
+    { "file": "rejected/after-math-value-ordering-feedback.png", "sha256": "b10e7d3b762518b4fe8cc5d112c0bc946fad99e345de962d9b0c8b6ba357ef0a", "reason": "Active ordering board; no feedback." },
+    { "file": "rejected/after-memory-prospective-cue-active.png", "sha256": "1dc71d1b08e5200833285fc48c401256bc2aae3bd3a51a61600f81638442d82e", "reason": "Pre-stream Start screen, not active detection." },
+    { "file": "rejected/after-memory-running-order-feedback.png", "sha256": "0ff750769239f951d9cd3d1cf7c2b2f3853cebf684f42c06bd7de6efc2ea987d", "reason": "Unanswered recall board; no feedback." },
+    { "file": "rejected/after-spatial-grid-nav-feedback.png", "sha256": "6aa24e99a74f97a4d6f2762ad877e97e61a7ff09f8ae888fc4906e6343e77aaa", "reason": "Active grid/instructions before answer; no feedback." },
+    { "file": "rejected/after-speed-quick-compare-active.png", "sha256": "fe6afd0eceb229bd2188dc223bea7da91a6b23ee42e95a1244e1d5ce544f2d09", "reason": "Timed-out Too slow feedback, not active response." }
+  ],
+  "reclassified": [
+    { "file": "after-logic-code-cracker-active.png", "from": "after-logic-code-cracker-feedback.png", "reason": "Captured guessing controls; no submitted feedback." }
   ]
 }

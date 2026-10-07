@@ -9,7 +9,7 @@
  *   - `danger`    destructive; always paired with a confirm affordance
  *   - `success`   confirm/completion actions
  *
- * Sizes keep the 44 dp interaction floor (`sm` reaches it through hit slop).
+ * Sizes keep the platform interaction floor (Android 48dp, iOS 44pt).
  * A `sublabel` turns the button into the reference two-line CTA
  * ("Keep reading / The Time Machine") without a second component.
  *
@@ -79,7 +79,7 @@ export interface ButtonProps {
 export type ButtonComponentProps = ButtonProps &
   Omit<PressableProps, keyof ButtonProps | 'style' | 'children' | 'hitSlop' | 'onPressIn' | 'onPressOut'>;
 
-// Every size is a real 44 dp target: the compact size exists to be denser
+// Every size meets the platform target: the compact size exists to be denser
 // (smaller text and padding), not to be harder to hit.
 const HEIGHT: Record<ButtonSize, number> = { sm: MIN_TOUCH_TARGET, md: 48, lg: 56 };
 const LABEL_TYPE: Record<ButtonSize, 'bodySmall' | 'body' | 'bodyLarge'> = {
@@ -110,7 +110,7 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
 
 /**
  * Full-width-able action button. Press feedback comes from {@link Tappable}, so
- * haptics, reduced motion and the 44 dp floor are inherited rather than
+ * haptics, reduced motion and the platform target are inherited rather than
  * re-implemented.
  */
 export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonComponentProps>(function Button(

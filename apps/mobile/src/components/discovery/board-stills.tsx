@@ -14,7 +14,6 @@
  */
 
 import { View, StyleSheet } from 'react-native';
-import type { ViewStyle } from 'react-native';
 
 export interface BoardStillColors {
   base: string;
@@ -104,10 +103,10 @@ function MemoryGridStill({ colors, variant }: { colors: BoardStillColors; varian
 function TargetOptionsStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, { paddingHorizontal: '8%', paddingTop: '6%' }]}>
-      <Box w={40} ar={ 1.053 } color={colors.base} radius={6} border={colors.ink} />
-      <View style={[st.row, { position: 'absolute', left: '8%', right: '8%', top: '52%' }]}>
+      <Box w={20} ar={1} color={colors.base} radius={6} border={colors.ink} />
+      <View style={[st.row, { position: 'absolute', left: '8%', right: '8%', top: '52%', justifyContent: 'space-between' }]}>
         {[0, 1, 2, 3].map((i) => (
-          <Box key={i} w={22} ar={ 0.647 } color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={5}  opacity={i === 1 ? 1 : 0.75} />
+          <Box key={i} w={21} ar={0.9} color={i === 1 ? colors.base : 'transparent'} border={colors.ink} radius={5} opacity={i === 1 ? 1 : 0.75} />
         ))}
       </View>
     </View>
@@ -125,7 +124,7 @@ function SearchFieldStill({ colors, variant }: { colors: BoardStillColors; varia
       {dots.map((d, i) => (
         <Box key={i} w={9} ar={ 0.75 } color={i === (variant % dots.length) ? colors.base : colors.secondary} radius={3} opacity={i === (variant % dots.length) ? 1 : 0.5} abs={{ x: d.x, y: d.y }} />
       ))}
-      <Box w={26} ar={ 0.765 } color="transparent" radius={12} border={colors.base} opacity={0.9} />
+      <Box w={26} ar={1} color="transparent" radius={100} border={colors.base} opacity={0.9} abs={{ x: 38, y: 25 }} />
     </View>
   );
 }
@@ -170,10 +169,10 @@ function EquationStill({ colors }: { colors: BoardStillColors }) {
 function NumberLineStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box w={80} ar={ 20.0 } color={colors.ink} radius={2} />
-      <Box w={7} ar={ 0.233 } color={colors.base} radius={2} border={colors.ink} />
+      <Box w={80} ar={20} color={colors.ink} radius={2} abs={{ x: 10, y: 58 }} />
+      <Box w={7} ar={0.5} color={colors.base} radius={2} border={colors.ink} abs={{ x: 49, y: 42 }} />
       {[14, 38, 62, 86].map((x, i) => (
-        <Box key={i} w={2} ar={ 0.2 } color={colors.ink} opacity={0.7} abs={{ x: x - 1, y: 54 }} />
+        <Box key={i} w={2} ar={0.33} color={colors.ink} opacity={0.7} abs={{ x: x - 1, y: 56 }} />
       ))}
     </View>
   );
@@ -280,9 +279,9 @@ function PathGridStill({ colors, variant }: { colors: BoardStillColors; variant:
 function CompassStill({ colors }: { colors: BoardStillColors }) {
   return (
     <View style={[st.fill, st.center]}>
-      <Box w={48} ar={ 0.75 } color="transparent" radius={30} border={colors.base} />
-      <Box w={6} ar={ 0.2 } color={colors.base} radius={3} />
-      <Box w={20} ar={ 1.667 } color={colors.secondary} radius={3} />
+      <Box w={48} ar={1} color="transparent" radius={100} border={colors.base} abs={{ x: 26, y: 8 }} />
+      <Box w={6} ar={0.17} color={colors.base} radius={3} abs={{ x: 47, y: 20 }} />
+      <Box w={20} ar={1.667} color={colors.secondary} radius={3} abs={{ x: 40, y: 59 }} />
     </View>
   );
 }
@@ -318,11 +317,9 @@ function SweepStill({ colors }: { colors: BoardStillColors }) {
 /** Vigilance signal bars (sustained vigilance). */
 function VigilanceStill({ colors }: { colors: BoardStillColors }) {
   return (
-    <View style={[st.fill, st.center, { flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: '70%' }]}>
-      {[0.5, 0.8, 0.35, 0.9, 0.6].map((h, i) => (
-        <View key={i} style={{ flex: 1, alignSelf: 'stretch' }}>
-          <Box w={100} ar={0.34 + (i % 2) * 0.12} color={i === 3 ? colors.base : colors.secondary} radius={2} opacity={i === 3 ? 1 : 0.55} />
-        </View>
+    <View style={[st.fill, { flexDirection: 'row', alignItems: 'flex-end', gap: 6, paddingHorizontal: '20%', paddingVertical: '9%' }]}>
+      {[0.5, 0.8, 0.35, 0.9, 0.6].map((height, i) => (
+        <View key={i} style={{ flex: 1, height: `${height * 100}%`, backgroundColor: i === 3 ? colors.base : colors.secondary, borderRadius: 2, opacity: i === 3 ? 1 : 0.55 }} />
       ))}
     </View>
   );

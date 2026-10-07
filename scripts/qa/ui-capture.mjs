@@ -29,8 +29,11 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+
+import { captureIssues, contentColorCount, inspectPng, routeArrived } from './capture-validation.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
@@ -48,6 +51,22 @@ const SURFACES = [
     settleMs: 2500,
     expects: ['game-detail-title', 'game-detail-loading', 'game-detail-error'],
   },
+  // Focused visual checks for four different still grammars; not part of the
+  // default 15-route matrix. The title prevents a stale Memory route from
+  // masquerading as an individually reviewed game detail.
+  ...[
+    ['odd-one-out', 'attention-odd-one-out', 'Odd One Out'],
+    ['number-line', 'math-number-line-estimation', 'Number Line'],
+    ['coordinate-turn', 'spatial-coordinate-turn', 'Coordinate Turn'],
+    ['equation-builder', 'math-equation-builder', 'Equation Builder'],
+  ].map(([suffix, gameId, title]) => ({
+    id: `game-detail-${suffix}`,
+    route: `/game-detail/${gameId}`,
+    settleMs: 2500,
+    expects: ['game-detail-title'],
+    expectedText: title,
+    default: false,
+  })),
   { id: 'progress', route: '/progress', settleMs: 2500, expects: ['progress-window-selector'] },
   {
     id: 'progress-activity',
@@ -103,12 +122,14 @@ const SURFACES = [
     route: '/storage-unavailable',
     settleMs: 2000,
     expects: ['storage-unavailable-title', 'storage-unavailable-message'],
+    expectAll: true,
   },
   {
     id: 'bootstrap-recovery',
     route: '/bootstrap-recovery',
     settleMs: 4500,
     expects: ['bootstrap-recovery-title', 'bootstrap-recovery-message'],
+    expectAll: true,
   },
 ];
 
@@ -129,7 +150,7 @@ function parseArgs(argv) {
   const options = {
     device: process.env.QA_DEVICE ?? null,
     out: 'qa-artifacts/ui-capture',
-    surfaces: SURFACES.map((s) => s.id),
+    surfaces: SURFACES.filter((s) => s.default !== false).map((s) => s.id),
     profiles: ['default'],
     themes: ['light'],
     scheme: process.env.QA_SCHEME ?? 'braintraining',
@@ -150,7 +171,7 @@ function parseArgs(argv) {
     else if (arg === '--settle-ms') options.settleMs = Number(next());
     else if (arg === '--list') options.list = true;
     else if (arg === '--help' || arg === '-h') {
-      console.log(readFileSync(new URL(import.meta.url), 'utf8').split('*/')[0]);
+      console.log('Usage: node scripts/qa/ui-capture.mjs --out <fresh-dir> [--device <serial>] [--surfaces home,games] [--profile compact] [--theme light,dark] [--list]');
       process.exit(0);
     } else {
       console.error(`Unknown argument: ${arg}`);
@@ -158,6 +179,11 @@ function parseArgs(argv) {
     }
   }
   if (options.list) options.profiles = ['default'];
+  for (const [name, selection] of [['surface', options.surfaces], ['profile', options.profiles], ['theme', options.themes]]) {
+    if (selection.length === 0 || new Set(selection).size !== selection.length) {
+      throw new Error(`No empty or duplicate ${name} selections are allowed`);
+    }
+  }
   return options;
 }
 
@@ -175,7 +201,7 @@ function resolveDevice(explicit) {
 }
 
 function adb(device, args, options = {}) {
-  return execFileSync('adb', ['-s', device, ...args], { encoding: options.binary ? 'buffer' : 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  return execFileSync('adb', ['-s', device, ...args], { encoding: options.binary ? 'buffer' : 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 30_000 });
 }
 
 /** Wake the device — a sleeping screen captures as solid black. */
@@ -241,7 +267,15 @@ function relaunchApp(device, pkg) {
     /* force-stop is best effort */
   }
   try {
-    adb(device, ['shell', 'monkey', '-p', pkg, '-c', 'android.intent.category.LAUNCHER', '1']);
+    // Resolve the app's launcher activity then start that component directly.
+    // Implicit `am start -p <package>` does not resolve on this AVD; Monkey's
+    // repeated launcher cycle exposed a system launcher ANR in the failed
+    // 076 final-matrix attempt. This avoids relying on the host desktop.
+    const resolver = adb(device, ['shell', 'cmd', 'package', 'resolve-activity', '--brief',
+      '-a', 'android.intent.action.MAIN', '-c', 'android.intent.category.LAUNCHER', '-p', pkg]);
+    const component = resolver.split(/\r?\n/).map((line) => line.trim()).find((line) => line.startsWith(`${pkg}/`));
+    if (!component) throw new Error(`No launcher activity for ${pkg}`);
+    adb(device, ['shell', 'am', 'start', '-n', component]);
   } catch {
     /* the deep link below still starts the activity */
   }
@@ -282,7 +316,7 @@ function openRoute(device, scheme, route, pkg) {
 function capturePng(device, path) {
   const buffer = adb(device, ['exec-out', 'screencap', '-p'], { binary: true });
   writeFileSync(path, buffer);
-  return buffer.length;
+  return { bytes: buffer.length, ...inspectPng(buffer) };
 }
 
 function dumpHierarchy(device, path) {
@@ -290,10 +324,18 @@ function dumpHierarchy(device, path) {
     adb(device, ['shell', 'uiautomator', 'dump', '--compressed', '/sdcard/qa-capture.xml']);
     const xml = adb(device, ['shell', 'cat', '/sdcard/qa-capture.xml']);
     writeFileSync(path, xml);
-    return xml.length;
+    return Buffer.byteLength(xml, 'utf8');
   } catch {
     return 0;
   }
+}
+
+function foregroundPackage(device) {
+  return (adb(device, ['shell', 'dumpsys', 'window']).match(/mCurrentFocus=Window\{[^}]* ([^\s}/]+)/) || [])[1] ?? '';
+}
+
+function fileSha256(path) {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
 /** Presence report for the testIDs a surface is expected to expose. */
@@ -306,9 +348,15 @@ function appBuildInfo(device, pkg) {
     const dump = adb(device, ['shell', 'dumpsys', 'package', pkg]);
     const version = /versionName=([^\s]+)/.exec(dump)?.[1] ?? 'unknown';
     const updated = /lastUpdateTime=([^\n]+)/.exec(dump)?.[1]?.trim() ?? 'unknown';
-    return { version, lastUpdateTime: updated };
+    // Hash the installed base APK itself; a source Git SHA alone does not
+    // identify the binary actually rendering a screenshot on this device.
+    const apkPath = /package:([^\s]+)/.exec(adb(device, ['shell', 'pm', 'path', pkg]))?.[1];
+    const apkSha256 = apkPath
+      ? /^([a-f\d]{64})\b/.exec(adb(device, ['shell', 'sha256sum', apkPath]))?.[1] ?? null
+      : null;
+    return { version, lastUpdateTime: updated, apkSha256 };
   } catch {
-    return { version: 'unknown', lastUpdateTime: 'unknown' };
+    return { version: 'unknown', lastUpdateTime: 'unknown', apkSha256: null };
   }
 }
 
@@ -321,19 +369,18 @@ function appBuildInfo(device, pkg) {
  * produced black screenshots filed as evidence, so batch start waits for a
  * mounted tree AND a non-uniform framebuffer.
  */
-async function waitForWarm(device, timeoutMs = 90_000) {
+async function waitForWarm(device, pkg, timeoutMs = 90_000) {
   const started = Date.now();
   let sawTree = false;
   while (Date.now() - started < timeoutMs) {
     try {
       adb(device, ['shell', 'uiautomator', 'dump', '--compressed', '/sdcard/qa-warm.xml']);
       const xml = adb(device, ['shell', 'cat', '/sdcard/qa-warm.xml']);
-      // Any text node means the RN tree mounted (the pre-JS root has none).
-      if (/text="[^"]+"/.test(xml)) {
+      // An ANR or launcher tree can expose text and colorful pixels too;
+      // only an app-owned foreground tree is a warm app frame.
+      if (xml.includes(`package="${pkg}"`) && foregroundPackage(device) === pkg && /text="[^"]+"/.test(xml)) {
         sawTree = true;
-        if (frameColorCount(device) > 2) {
-          return true;
-        }
+        if (frameColorCount(device) > 2) return true;
       }
     } catch {
       /* the dump tool can fail while the activity restarts; retry */
@@ -346,22 +393,11 @@ async function waitForWarm(device, timeoutMs = 90_000) {
 }
 
 /**
- * Count distinct sampled colours in a raw framebuffer capture. `screencap -p`
- * can return a valid PNG of a black window (the app surface is lost while the
- * activity re-renders), which the old size-based blank check missed; sampling
- * the raw pixels catches "the frame exists but is uniform".
+ * Sample decoded screenshot pixels, excluding the system bars. A PNG of a
+ * blank app viewport is not evidence just because the status icons have color.
  */
 function frameColorCount(device) {
-  const raw = adb(device, ['exec-out', 'screencap'], { binary: true });
-  const unique = new Set();
-  // Header is 12-16 bytes; stride ~one sample per 128x128 px block.
-  for (let offset = 16; offset + 3 < raw.length; offset += 128 * 128 * 4) {
-    unique.add(`${raw[offset]},${raw[offset + 1]},${raw[offset + 2]}`);
-    if (unique.size > 4) {
-      return unique.size;
-    }
-  }
-  return unique.size;
+  return contentColorCount(adb(device, ['exec-out', 'screencap', '-p'], { binary: true }));
 }
 
 async function main() {
@@ -372,6 +408,13 @@ async function main() {
       console.log(`  ${s.id} — ${s.route} — ${(s.expects ?? []).join(', ') || '(none)'}`);
     }
     return;
+  }
+  // An evidence run is immutable. A focused recapture must have a fresh --out,
+  // never silently replace an earlier complete matrix with one screenshot.
+  const outRoot = resolve(ROOT, options.out);
+  if (existsSync(outRoot) && readdirSync(outRoot).length > 0) {
+    console.error(`[BLOCKED] ${outRoot} already contains evidence; choose a fresh --out`);
+    process.exit(2);
   }
   const device = resolveDevice(options.device);
   if (!device) {
@@ -390,7 +433,6 @@ async function main() {
     process.exit(2);
   }
 
-  const outRoot = resolve(ROOT, options.out);
   const manifest = {
     capturedAt: new Date().toISOString(),
     device,
@@ -399,10 +441,14 @@ async function main() {
     scheme: options.scheme,
     profiles: options.profiles,
     themes: options.themes,
+    requestedSurfaces: options.surfaces,
+    expectedCount: options.surfaces.length * options.profiles.length * options.themes.length,
     surfaces: [],
     skipped: [],
   };
 
+  let abortReason = null;
+  try {
   wake(device);
   for (const theme of options.themes) {
     applyTheme(device, theme);
@@ -410,11 +456,11 @@ async function main() {
       applyProfile(device, profileName);
       relaunchApp(device, options.pkg);
       await sleep(4000);
-      const warmed = await waitForWarm(device);
-      if (!warmed) {
-        console.error(`[WARN] app did not warm within 90s for ${profileName}/${theme}`);
-      } else if (warmed === 'tree-only') {
-        console.error(`[WARN] app tree mounted but frame stayed black for ${profileName}/${theme}`);
+      const warmed = await waitForWarm(device, options.pkg);
+      if (warmed !== true) {
+        abortReason = `app-owned foreground did not warm for ${profileName}/${theme} (${warmed || 'no tree'})`;
+        console.error(`[BLOCKED] ${abortReason}; stopping this run instead of filing launcher frames`);
+        break;
       }
       for (const surfaceId of options.surfaces) {
         const surface = SURFACES.find((s) => s.id === surfaceId);
@@ -432,18 +478,19 @@ async function main() {
         // 076 review fix: verify the app OWNS the foreground before
         // capturing. A dropped deep link can leave the launcher in front;
         // those frames are launcher evidence, never app evidence.
-        const focus = (adb(device, ['shell', 'dumpsys', 'window']).match(/mCurrentFocus=Window\{[^}]* ([^\s}/]+)/) || [])[1] ?? '';
-        if (!focus.includes(options.pkg)) {
+        const focus = foregroundPackage(device);
+        if (focus !== options.pkg) {
           console.log(`FOREGROUND-MISS ${profileName}/${theme}/${surface.id} (${focus}) - cold retry`);
           relaunchApp(device, options.pkg);
           await sleep(4000);
           openRoute(device, options.scheme, surface.route, options.pkg);
           await sleep(surface.settleMs + options.settleMs);
-          const focus2 = (adb(device, ['shell', 'dumpsys', 'window']).match(/mCurrentFocus=Window\{[^}]* ([^\s}/]+)/) || [])[1] ?? '';
-          if (!focus2.includes(options.pkg)) {
+          const focus2 = foregroundPackage(device);
+          if (focus2 !== options.pkg) {
             manifest.skipped.push({ surface: surface.id, profile: profileName, theme, reason: `foreground=${focus2 || 'unknown'}` });
             console.log(`FOREGROUND-FAIL ${profileName}/${theme}/${surface.id} - skipped`);
-            continue;
+            abortReason = `app lost foreground for ${profileName}/${theme}/${surface.id}`;
+            break;
           }
         }
         wake(device);
@@ -457,25 +504,30 @@ async function main() {
         // retry once from a cold start so the URL becomes the initial intent,
         // and record honestly when the surface never arrived.
         let bytes = 0;
+        let contentColors = 0;
         let xmlBytes = 0;
         let xml = '';
         let uniform = false;
-        let routeVerified = true;
+        let corruptChrome = false;
+        let routeVerified = false;
         let reopenedCold = false;
         const markers = surface.expects ?? [];
         for (let attempt = 0; attempt < 3; attempt += 1) {
-          bytes = capturePng(device, pngPath);
+          const shot = capturePng(device, pngPath);
+          bytes = shot.bytes;
+          contentColors = shot.colors;
           xmlBytes = dumpHierarchy(device, xmlPath);
           xml = xmlBytes > 0 ? readFileSync(xmlPath, 'utf8') : '';
-          uniform = frameColorCount(device) <= 2;
-          if (uniform) {
+          uniform = contentColors <= 2;
+          corruptChrome = shot.statusBarDiscontinuity;
+          if (uniform || corruptChrome) {
             await sleep(4000);
             continue;
           }
           // A missing hierarchy dump is a dump failure, not route evidence:
           // only judge arrival when the dump actually produced a tree.
-          routeVerified =
-            markers.length === 0 || xmlBytes === 0 || markers.some((m) => xml.includes(m));
+          routeVerified = xmlBytes > 0 && routeArrived(xml, options.pkg, markers, surface.expectAll) &&
+            (!surface.expectedText || xml.includes(`text="${surface.expectedText}"`));
           if (routeVerified || attempt === 2) {
             break;
           }
@@ -495,6 +547,7 @@ async function main() {
           await sleep(600);
         }
         const testIds = testIdsPresent(xml, ['home-title', 'tab-home', 'games-title', 'progress-window-selector', 'profile-identity']);
+        const foregroundVerified = foregroundPackage(device) === options.pkg;
 
         // A uniform screen is the failure mode this harness exists to detect:
         // a blank frame, a lost app surface, or the storage-error boundary all
@@ -504,22 +557,30 @@ async function main() {
         const recoverySurface =
           surface.id === 'storage-unavailable' || surface.id === 'bootstrap-recovery';
         const renderedErrorBoundary = /Storage Unavailable/.test(xml) && !recoverySurface;
-        const blank = uniform || renderedErrorBoundary || (bytes < 40_000 && xmlBytes === 0);
+        const blank = uniform || corruptChrome || renderedErrorBoundary || xmlBytes === 0 || bytes === 0;
         const entry = {
           surface: surface.id,
           route: surface.route,
+          expectedMarkers: markers,
+          expectedText: surface.expectedText ?? null,
+          expectAll: surface.expectAll ?? false,
           profile: profileName,
           theme,
-          png: pngPath.replace(ROOT, '').replace(/\\/g, '/'),
-          xml: xmlBytes > 0 ? xmlPath.replace(ROOT, '').replace(/\\/g, '/') : null,
+          png: relative(ROOT, pngPath).replace(/\\/g, '/'),
+          xml: xmlBytes > 0 ? relative(ROOT, xmlPath).replace(/\\/g, '/') : null,
           pngBytes: bytes,
+          contentColors,
           xmlBytes,
+          pngSha256: fileSha256(pngPath),
+          xmlSha256: xmlBytes > 0 ? fileSha256(xmlPath) : null,
           deepLinkStarted: opened,
+          foregroundVerified,
           routeVerified,
           ...(routeVerified ? null : { routeMismatch: true, routeRetriedCold: reopenedCold }),
           testIdsPresent: testIds,
           blank,
           ...(uniform ? { blankReason: 'uniform-frame' } : null),
+          ...(corruptChrome ? { blankReason: 'status-bar-discontinuity' } : null),
           ...(renderedErrorBoundary ? { blankReason: 'storage-error-boundary' } : null),
         };
         manifest.surfaces.push(entry);
@@ -532,40 +593,32 @@ async function main() {
         console.log(
           `${statusLabel}${routeNote} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`,
         );
+        if (blank || !routeVerified || !foregroundVerified) {
+          abortReason = `invalid frame for ${profileName}/${theme}/${surface.id}`;
+          break;
+        }
       }
+      if (abortReason) break;
+    }
+    if (abortReason) break;
+  }
+  } finally {
+    try { resetProfile(device); } catch (error) {
+      abortReason = `${abortReason ?? 'capture interrupted'}; display reset failed: ${error.message}`;
     }
   }
-
-  resetProfile(device);
+  manifest.aborted = abortReason;
   const manifestPath = join(outRoot, 'manifest.json');
   mkdirSync(outRoot, { recursive: true });
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`\nManifest: ${manifestPath}`);
 
-  const blanks = manifest.surfaces.filter((s) => s.blank);
-  const mismatched = manifest.surfaces.filter((s) => s.routeMismatch);
-  if (blanks.length > 0 || mismatched.length > 0) {
-    if (blanks.length > 0) {
-      console.error(`[FAIL] ${blanks.length} blank capture(s): ${blanks.map((b) => b.surface).join(', ')}`);
-    }
-    if (mismatched.length > 0) {
-      console.error(
-        `[FAIL] ${mismatched.length} surface(s) never arrived (dropped deep link): ${mismatched.map((m) => m.surface).join(', ')}`,
-      );
-    }
+  const issues = captureIssues(manifest);
+  if (issues.length > 0) {
+    console.error(`[FAIL] ${issues.length} capture matrix issue(s):\n${issues.join('\n')}`);
     process.exit(1);
   }
-  // 076 review fix: skipped captures (foreground misses) must fail the
-  // run - a [PASS] over an incomplete set is a false certification.
-  if (manifest.skipped.length > 0) {
-    console.error(
-      `[FAIL] ${manifest.skipped.length} skipped capture(s): ${manifest.skipped
-        .map((s) => `${s.profile}/${s.theme}/${s.surface}`)
-        .join(', ')}`,
-    );
-    process.exit(1);
-  }
-  console.log(`[PASS] ${manifest.surfaces.length} surface capture(s)`);
+  console.log(`[PASS] ${manifest.surfaces.length}/${manifest.expectedCount} surface capture(s)`);
 }
 
 await main();

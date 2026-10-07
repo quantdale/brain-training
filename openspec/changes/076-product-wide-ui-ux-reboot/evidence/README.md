@@ -1,4 +1,25 @@
-# Explore-stage device baseline (partial; not a certification)
+# Campaign 076 evidence index (release acceptance BLOCKED)
+
+Read `GAME_ASSESSMENT.md` and `WAVE14_EVIDENCE.md` **first**. The corrected
+`after-captures-games/index.json` retains 172 SHA-256-pinned screenshots;
+16 misleading captures are quarantined in `after-captures-games/rejected/`
+with explicit reasons. Only 146/168 per-game A/F/P/R states depict their
+claimed state. The 90/90 app-owned route matrix in
+`after-captures-matrix-00024954/` belongs to APK `00024954…` and is not
+final-build acceptance. The later `after-board-stills-c3b3e4d9/` contains
+8/8 valid focused light/dark detail pairs for APK `c3b3e4d9…`, not a full
+matrix. Both manifests and per-file PNG/XML hashes can be checked via
+`node scripts/qa/verify-capture-evidence.mjs --manifest <path>`; after a
+commit use `--require-committed` for provenance. Game index hashes,
+quarantined PNGs and the exact 22 missing states are reproducible with
+`node scripts/qa/verify-game-evidence.mjs --index openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-captures-games/index.json`.
+`--require-complete` intentionally fails until all 168 per-game states
+have genuine frames; `--require-committed` checks Git identity, not visuals. The final-build full-matrix
+attempt aborted on launcher/SystemUI ANRs and remains outside Git.
+ARTEMIS Pro is provider-BLOCKED; iOS NOT VALIDATED. Historical capture names
+and old wave PASS tables cannot supersede these release boundaries.
+
+## Explore-stage device baseline (partial; not a certification)
 
 Source `d3d0b9926a44c039d7fd0d29e1376586afaa897b`, installed release APK SHA-256 `d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9`, dedicated Android emulator `braintraining-ui35` (`emulator-5554`, 1080×2400 px), app `com.braintraining.app`. `before/index.json` hashes all 20 preserved screenshots. Original per-screen accessibility XML and the most recent capture manifest remain locally in ignored `qa-artifacts/ui-reboot/before-d3d0b99/`; the capture script overwrote the root manifest during the font-scale-2 pass, so default-theme route-verification metadata is **not** preserved here. Do not treat default-theme route verification as an automated PASS.
 

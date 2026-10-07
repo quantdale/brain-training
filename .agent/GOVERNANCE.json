@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "076-product-wide-ui-ux-reboot",
   "lastCampaign": "076-product-wide-ui-ux-reboot",
-  "lastCampaignStatus": "VALIDATED",
-  "lastCampaignVerdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED",
+  "lastCampaignStatus": "REOPENED",
+  "lastCampaignVerdict": "CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

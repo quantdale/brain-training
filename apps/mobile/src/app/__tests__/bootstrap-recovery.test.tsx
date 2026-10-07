@@ -19,6 +19,7 @@ import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { View } from 'react-native';
 
 import RootLayout from '@/app/_layout';
+import BootstrapRecovery from '@/app/bootstrap-recovery';
 import { expectConsoleNoise, rootLayoutRoutes } from '@/test-utils';
 
 /** Test-controlled stage switches (hoisted-safe `mock` prefix). */
@@ -90,6 +91,19 @@ beforeEach(() => {
 });
 
 describe('classified bootstrap recovery (Campaign 053)', () => {
+  it('gives direct deep links a working, honestly labelled route home', async () => {
+    await renderRouter(
+      {
+        index: () => <View testID="direct-home" />,
+        'bootstrap-recovery': () => <BootstrapRecovery />,
+      },
+      { initialUrl: '/bootstrap-recovery' },
+    );
+
+    expect(await screen.findByTestId('bootstrap-recovery-title')).toHaveTextContent('Ready to Train');
+    await fireEvent.press(screen.getByTestId('bootstrap-recovery-retry'));
+    expect(await screen.findByTestId('direct-home')).toBeOnTheScreen();
+  });
   it('shows the progression recovery screen when progression initialization fails', async () => {
     mockBootstrapState.progressionFails = true;
     // The injected foundational failure logs its classified diagnostic by

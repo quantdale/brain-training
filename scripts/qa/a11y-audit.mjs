@@ -5,7 +5,7 @@
  * `ui-capture.mjs` writes a hierarchy dump next to every screenshot. This tool
  * turns those dumps into measurements the campaign can be judged against:
  *
- *   - interactive nodes smaller than the 44×44 dp contract
+ *   - interactive nodes smaller than the Android 48×48 dp contract
  *     (px bounds converted with the capture density),
  *   - interactive nodes with no accessible name (no text, no content-desc),
  *   - non-interactive ImageViews / Views that are exposed to assistive tech
@@ -26,7 +26,7 @@
  *
  * Usage:
  *   node scripts/qa/a11y-audit.mjs --dir qa-artifacts/campaign024/after
- *   node scripts/qa/a11y-audit.mjs --dir <dir> --density 420 --json
+ *   node scripts/qa/a11y-audit.mjs --dir <dir> --density 420 --package com.braintraining.app --json
  *
  * Exit codes: 0 no violation · 1 violations found · 2 BLOCKED (no dumps).
  */
@@ -34,15 +34,16 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-const MIN_TARGET_DP = 44;
+const MIN_TARGET_DP = 48;
 
 function parseArgs(argv) {
-  const options = { dir: 'qa-artifacts/ui-capture', density: 420, json: false, out: null };
+  const options = { dir: 'qa-artifacts/ui-capture', density: 420, pkg: 'com.braintraining.app', json: false, out: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = () => argv[++i];
     if (arg === '--dir') options.dir = next();
     else if (arg === '--density') options.density = Number(next());
+    else if (arg === '--package') options.pkg = next();
     else if (arg === '--out') options.out = next();
     else if (arg === '--json') options.json = true;
     else {
@@ -120,12 +121,18 @@ function boundsBottom(bounds) {
   return match ? Number(match[4]) : null;
 }
 
-/** Minimal attribute reader for uiautomator's flat `<node …>` elements. */
+/** Preserve ancestry: only a descendant of a horizontal rail can be rail-clipped. */
 function nodes(xml) {
   const out = [];
-  for (const tag of xml.match(/<node\b[^>]*>/g) ?? []) {
-    const attr = (name) => new RegExp(`${name}="([^"]*)"`).exec(tag)?.[1] ?? '';
-    out.push({
+  const ancestors = [];
+  for (const tag of xml.match(/<\/?node\b[^>]*>/g) ?? []) {
+    if (tag.startsWith('</')) {
+      ancestors.pop();
+      continue;
+    }
+    const attr = (name) => new RegExp(`(?:\\s)${name}="([^"]*)"`).exec(tag)?.[1] ?? '';
+    const node = {
+      package: attr('package'),
       className: attr('class'),
       text: attr('text'),
       contentDesc: attr('content-desc'),
@@ -135,7 +142,10 @@ function nodes(xml) {
       checkable: attr('checkable') === 'true',
       scrollable: attr('scrollable') === 'true',
       bounds: attr('bounds'),
-    });
+      railBounds: ancestors.findLast((parent) => parent.scrollable && /HorizontalScrollView/.test(parent.className))?.bounds ?? null,
+    };
+    out.push(node);
+    if (!tag.endsWith('/>')) ancestors.push(node);
   }
   return out;
 }
@@ -160,27 +170,28 @@ function main() {
     process.exit(2);
   }
 
+  if (!Number.isFinite(options.density) || options.density <= 0 || !options.pkg) {
+    console.error('[BLOCKED] positive --density and a non-empty --package are required');
+    process.exit(2);
+  }
   const scale = options.density / 160;
-  const report = { dir: root, density: options.density, surfaces: [], violations: [], occluded: [] };
+  const report = { dir: root, density: options.density, package: options.pkg, surfaces: [], violations: [], occluded: [] };
 
   for (const dump of dumps) {
     const surface = dump.slice(root.length + 1).replace(/\\/g, '/').replace(/\.xml$/, '');
-    // 076 review fix: with an on-device accessibility service (e.g. the
-    // ARTEMIS helper) installed, uiautomator dumps leak OTHER windows'
-    // nodes (launcher widget hosts). An app a11y audit scores app-owned
-    // nodes only - anything carrying a foreign package prefix is skipped.
+    // resource-id may be empty on both app controls and launcher widgets.
+    // The uiautomator `package` attribute is the ownership boundary.
     const allNodes = nodes(readFileSync(dump, 'utf8'));
-    // Horizontally scrollable containers (filter rails etc.): a node
-    // clipped by one is scroll-REACHABLE, not undersized (076 review).
-    const hScrollBounds = allNodes
-      .filter((n) => n.scrollable)
-      .map((n) => n.bounds);
-    const parsed = allNodes.filter((n) =>
-      !n.resourceId.startsWith('com.google.android') &&
-      !n.resourceId.startsWith('com.android.systemui') &&
-      !n.resourceId.startsWith('android.')
-    );
+    const parsed = allNodes.filter((n) => n.package === options.pkg);
+    if (parsed.length === 0) {
+      report.surfaces.push({ surface, interactive: 0, labelled: 0, undersized: [], unlabelled: [], occluded: [] });
+      report.violations.push({ surface, kind: 'missing-app-hierarchy', label: `no nodes owned by ${options.pkg}` });
+      continue;
+    }
     const interactive = parsed.filter(isInteractive);
+    if (interactive.length === 0) {
+      report.violations.push({ surface, kind: 'no-interactive-evidence', label: 'app tree has no controls to audit' });
+    }
     const labelled = interactive.filter((n) => n.contentDesc.length > 0 || n.text.length > 0);
     const undersized = [];
     const unlabelled = [];
@@ -192,6 +203,9 @@ function main() {
       if (!size) continue;
       const bottom = boundsBottom(node.bounds);
       const top = boundsTop(node.bounds);
+      if (node.contentDesc.length === 0 && node.text.length === 0) {
+        unlabelled.push({ className: node.className, bounds: node.bounds });
+      }
       // A node that starts INSIDE the visible viewport but whose bottom pins to
       // its edge is partially scrolled out of view; its visible bounds are not
       // its laid-out size. Nodes below the viewport (the tab bar itself) are
@@ -199,7 +213,7 @@ function main() {
       if (
         top !== null &&
         bottom !== null &&
-        top < viewport.bottom - 1 &&
+        top < viewport.bottom &&
         bottom >= viewport.bottom - 1
       ) {
         occluded.push({
@@ -211,25 +225,13 @@ function main() {
       }
       const widthDp = size.width / scale;
       const heightDp = size.height / scale;
-      // A node clipped by a horizontally scrollable ancestor's edge is
-      // reachable by scrolling the rail - unmeasured, like occlusion.
-      const railClipped = hScrollBounds.some((b) => {
-        const m = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(b);
-        if (!m) return false;
-        const railL = Number(m[1]);
-        const railR = Number(m[3]);
-        const railT = Number(m[2]);
-        const railB = Number(m[4]);
-        const [nl, nt, nr, nb] = [Number(m[1])];
-        void nl; void nt; void railT; void railB;
-        const nm = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.bounds);
-        if (!nm) return false;
-        const nodeL = Number(nm[1]);
-        const nodeR = Number(nm[3]);
-        const nodeT = Number(nm[2]);
-        const nodeB = Number(nm[4]);
-        return nodeT >= railT && nodeB <= railB && (nodeR > railR - 2 || nodeL < railL + 2);
-      });
+      // Only the actual horizontal scroll ANCESTOR can hide a control's
+      // width. Nearby rails must not excuse unrelated undersized controls.
+      const rail = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.railBounds ?? '');
+      const nb = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.bounds);
+      const railClipped = rail && nb &&
+        Number(nb[2]) >= Number(rail[2]) && Number(nb[4]) <= Number(rail[4]) &&
+        (Number(nb[3]) >= Number(rail[3]) - 2 || Number(nb[1]) <= Number(rail[1]) + 2);
       if (railClipped && heightDp + 0.5 >= MIN_TARGET_DP) {
         occluded.push({
           label: node.contentDesc || node.text || node.resourceId || node.className,
@@ -245,9 +247,6 @@ function main() {
           heightDp: Math.round(heightDp),
         });
       }
-      if (node.contentDesc.length === 0 && node.text.length === 0) {
-        unlabelled.push({ className: node.className, bounds: node.bounds });
-      }
     }
 
     const entry = {
@@ -260,7 +259,7 @@ function main() {
     };
     report.surfaces.push(entry);
     for (const violation of undersized) {
-      report.violations.push({ surface, kind: 'target<44dp', ...violation });
+      report.violations.push({ surface, kind: 'target<48dp', ...violation });
     }
     for (const violation of unlabelled) {
       report.violations.push({ surface, kind: 'unlabelled-interactive', ...violation });
@@ -285,7 +284,7 @@ function main() {
           `occluded=${surface.occluded.length}`,
       );
       for (const node of surface.undersized.slice(0, 5)) {
-        console.log(`        <44dp: ${node.label} (${node.widthDp}x${node.heightDp} dp)`);
+        console.log(`        <48dp: ${node.label} (${node.widthDp}x${node.heightDp} dp)`);
       }
       for (const node of surface.unlabelled.slice(0, 5)) {
         console.log(`        unlabelled: ${node.className} ${node.bounds}`);

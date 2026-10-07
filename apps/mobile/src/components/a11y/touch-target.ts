@@ -10,8 +10,10 @@
  * primitives import from this leaf path.
  */
 
-/** Minimum interactive control height in dp/pt (WCAG 2.5.5 / HIG / Material). */
-export const MIN_TOUCH_TARGET = 44;
+import { Platform } from 'react-native';
+
+/** Material's 48dp on Android; HIG's 44pt on iOS. */
+export const MIN_TOUCH_TARGET = Platform.select({ android: 48, default: 44 });
 
 /**
  * Style fragment that lifts a pill/text button to the minimum touch target

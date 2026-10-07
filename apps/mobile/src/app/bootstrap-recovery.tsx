@@ -11,16 +11,18 @@
  * without leaking implementation detail; the error message stays available
  * as selectable diagnostic detail.
  */
+import { router } from 'expo-router';
+
 import { RecoveryScreen } from '@/components/recovery-screen';
 import type { FoundationalBootstrapStage } from '@/bootstrap/run-bootstrap';
 
 export interface BootstrapRecoveryProps {
   /** The foundational non-storage stage that failed. */
-  stage: Exclude<FoundationalBootstrapStage, 'database'>;
+  stage?: Exclude<FoundationalBootstrapStage, 'database'>;
   /** The stage error, surfaced as a diagnostic detail. */
-  error: Error | null;
+  error?: Error | null;
   /** Re-attempts the full classified bootstrap pipeline. */
-  onRetry: () => void;
+  onRetry?: () => void;
 }
 
 const STEPS = [
@@ -29,7 +31,7 @@ const STEPS = [
   'Your saved data is stored safely on device; nothing is deleted by this error.',
 ];
 
-const STAGE_COPY: Record<BootstrapRecoveryProps['stage'], { title: string; message: string }> = {
+const STAGE_COPY: Record<Exclude<FoundationalBootstrapStage, 'database'>, { title: string; message: string }> = {
   'catalog-registry': {
     title: 'Games Unavailable',
     message:
@@ -45,24 +47,26 @@ const STAGE_COPY: Record<BootstrapRecoveryProps['stage'], { title: string; messa
 export default function BootstrapRecovery({
   stage = 'catalog-registry',
   error = null,
-  onRetry = () => undefined,
+  onRetry,
 }: BootstrapRecoveryProps) {
-  // Deep-link envelope (076 review fix): the route is reachable directly
-  // (braintraining://bootstrap-recovery) where no shellState props exist —
-  // render the catalog-registry copy with a no-op retry instead of crashing
-  // on STAGE_COPY[undefined]. The shell flow still passes the real stage.
-  const copy = STAGE_COPY[stage] ?? STAGE_COPY['catalog-registry'];
+  // The root shell passes a real bootstrap retry on failure. A direct deep
+  // link has no failed stage to re-run: show an honest route-only state and
+  // return to Home instead of presenting a dead "Retry" button.
+  const routeOnly = !onRetry;
+  const copy = routeOnly
+    ? { title: 'Ready to Train', message: 'No startup issue is active. Return to Home to continue training.' }
+    : STAGE_COPY[stage] ?? STAGE_COPY['catalog-registry'];
   return (
     <RecoveryScreen
       testIDPrefix="bootstrap-recovery"
       title={copy.title}
       message={copy.message}
-      steps={STEPS}
+      steps={routeOnly ? ['Return to Home to continue training.'] : STEPS}
       detail={error ? error.message : null}
-      retryLabel="Retry"
-      retryAccessibilityLabel="Retry app initialization"
-      retryHint="Re-attempts the initialization stage that failed"
-      onRetry={onRetry}
+      retryLabel={routeOnly ? 'Go to Home' : 'Retry'}
+      retryAccessibilityLabel={routeOnly ? 'Go to Home' : 'Retry app initialization'}
+      retryHint={routeOnly ? 'Opens the training Home screen' : 'Re-attempts the initialization stage that failed'}
+      onRetry={onRetry ?? (() => router.replace('/'))}
     />
   );
 }

@@ -1,6 +1,33 @@
 # Durable Validation Record
 
-## Campaign 076 — Product-Wide UI/UX Reboot (VALIDATED, 2026-10-06)
+## Current review correction — 2026-10-07, Campaign 076 ACTIVE, release acceptance BLOCKED
+
+This section **supersedes the former VALIDATED declaration below**. The
+previous 076 close relied on counted filenames and script status without
+checking every screenshot's actual state or final APK binding.
+
+| Gate | Measured result / boundary |
+| --- | --- |
+| Typecheck and lint | PASS on current review-fix tree. |
+| Full Jest | PASS: 617 passed / 4 skipped suites; 7,218 passed / 5 skipped tests; 5 snapshots. Governed skip validator accepted classified skips. |
+| QA Node tests | PASS: 10/10 (capture/a11y and game-index fail-closed regressions). |
+| Repository/OpenSpec | PASS after governance correction: repo-state ACTIVE 076, task ownership/offline/secrets/provenance/workflows/runtime-QA/affected-sync/expo-alignment/registry checks, OpenSpec `validate --all --strict` 60/60. |
+| Historical 90-route matrix | PASS: 90/90 immutable app-owned PNG/XML pairs for **APK `00024954…` only**; six re-run a11y audits 0 violations over 90 XMLs at 48dp Android, with 34 occluded nodes separately excluded as unmeasurable. Not a final-build/game-control pass. |
+| Final `c3b3e4d9…` detail samples | PASS: 8/8 immutable app-owned light/dark PNG/XML pairs for four named details. Not a full matrix. |
+| Final-build 90-route matrix | **BLOCKED:** 1,800-second attempt encountered launcher/SystemUI ANRs and a null root node; partial run quarantined outside Git. No complete final-build matrix. |
+| Individual game-state visual review | **NOT VALIDATED:** retained 172-image hash index yields 39/42 A, 27/42 F, 38/42 P, 42/42 R; 22/168 core states missing or rejected. `verify-game-evidence.mjs` confirms all retained/rejected SHA-256s and reports `--require-complete` FAIL (22 gaps); `GAME_ASSESSMENT.md` lists each. Older mixed-build frames cannot certify final shared-button rendering. |
+| ARTEMIS | Flash smoke PASS; nine Pro attempts provider-**BLOCKED** (429/503/180s); direct ADB fallback does not satisfy controller-led acceptance. |
+| iOS | **NOT VALIDATED** (no macOS/Xcode host). |
+| Committed proof | Historical game files previously committed; corrected index and final-build eight focused frames/earlier 90-route matrix require commit then `--require-committed` verification. Until then local evidence only. |
+
+No current 076 release verdict is green; do not inherit the former terminal
+counts below as evidence for the final APK. A blocker checkpoint may be pushed
+only with this explicit classification, a buildable tree, and clean working
+state after commit. See `.agent/KNOWN_ISSUES.md` and change `WAVE14_EVIDENCE.md`.
+
+## Former Campaign 076 close (2026-10-06; superseded by the review correction)
+
+### Historical report: Product-Wide UI/UX Reboot (premature VALIDATED)
 
 **Verdict:** `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`. Full openspec
 apply (82/82 tasks) of `openspec/changes/076-product-wide-ui-ux-reboot/`.

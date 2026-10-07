@@ -1,6 +1,6 @@
 # Change 076 — Product-Wide UI/UX Reboot (Execution Entrypoint)
 
-**Status:** VALIDATED — `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
+**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` (former terminal verdict withdrawn)
 **Change:** `076-product-wide-ui-ux-reboot`
 **Start SHA:** `b6654fb` (proposal head)
 **Baseline SHA:** `d3d0b9926a44c039d7fd0d29e1376586afaa897b` (release APK
@@ -62,13 +62,17 @@ ARTEMIS-led Android journeys, and a final visibly transformed release APK.
    iOS status, final coverage manifest + visual decision report, durable
    state and push (14.1–14.8)
 
-## Terminal result
+## Review correction — outstanding release acceptance
 
-`CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED` (2026-10-06): all 82 tasks
-executed; terminal release build `14cb165b…` (+ review-fix build
-`0556520f…`); device certification and per-wave evidence in `evidence/`
-(WAVE14_EVIDENCE.md, GAME_ASSESSMENT.md, WAVE45_EVIDENCE.md,
-WAVE3_EVIDENCE.md, BEFORE_MANIFEST.md, REFERENCE_LOCK.md,
-proto-scorecard.md). Honest boundaries: ARTEMIS Pro lane provider-BLOCKED
-(deterministic ADB fallback executed), iOS NOT VALIDATED, 5 per-game state
-frames NOT CAPTURED with cause (GAME_ASSESSMENT.md).
+The 2026-10-06 VALIDATED declaration was premature and is superseded.
+Per-frame visual audit yields **39/42 A, 27/42 F, 38/42 P, 42/42 R**;
+22 of 168 core state frames are NOT VALIDATED (`evidence/GAME_ASSESSMENT.md`).
+A verified 90/90 route/theme/profile matrix exists only for APK
+`00024954…`; the later final-board-still APK `c3b3e4d9…` has 8/8
+focused detail stills, while its full-matrix attempt aborted amid system
+ANRs. ARTEMIS Flash smoke passed, but all nine Pro attempts were
+provider-BLOCKED: direct ADB does not satisfy controller-led acceptance.
+iOS is NOT VALIDATED. Task 14.4 and other unchecked tasks remain open; do not
+promote the change to VALIDATED on source/test passes or historical screenshots.
+Historical wave results are recorded in `evidence/WAVE14_EVIDENCE.md` but
+are not proof of these outstanding final-build gates.

@@ -1,6 +1,24 @@
 # Durable Project State
 
-**Last update:** 2026-10-04 (wave 3) — **MASTER_PLAN Phase 10 COMPLETE**: the terminal certification ledger (`docs/redesign/evidence/phase10-terminal-certification/TERMINAL_CERTIFICATION.md`, tree `f813e6a`) dispositioned all 46 audit findings (43 closed — 16 with device confirmations — 3 Phase 9 optional-not-executed, 0 open) over the full measured matrix (614+4 suites / 7,203+5 tests / 0 failures; typecheck/lint/jest-signal/10 validators/OpenSpec 59/59; 5/5 opt-in probes with baselines written; the device pass over the changed journeys IS the 2026-10-03/04 device-lane closure). No successor campaign is open; future work is owner-directed. Previous update (wave 2, same day) — **071 fully closed + Phase 9 coverage floors**: the three primitive suites (Confetti/StateCard/SectionGrid, 19 tests) closed 071 §6.1; the 071 device checks (§7.3 disabled-option announcement `enabled="false"`, §7.4 a11y audit **0 violations at default AND font-scale 2.0** over home/games/progress/profile) closed §7.3–§7.4; Phase 9's coverage-thresholds/per-module-floors item landed as `coverageThreshold` (global + per-tree over db/data-portability/workout/rating/quests, one point below measured baselines) enforced by `npm run test:coverage` (measured **PASS: 614 suites / 7,203 tests / 5 snapshots, 0 failures**) and a weekly scheduled `coverage-floors` CI job (`GOVERNANCE.greenMain.scheduledOnlyGates`); the remaining Phase 9 items are dispositioned optional-not-executed in `docs/MASTER_PLAN.md` §9. Previous update (wave 1, same day) — **device-lane closure for changes 070/072/073/074**:
+**Current review checkpoint — 2026-10-07, 076 REOPENED (release acceptance BLOCKED):**
+The earlier `VALIDATED` declaration was withdrawn after per-file visual audit.
+The game index contains 172 retained hashed PNGs; only A 39/42, F 27/42,
+P 38/42 and R 42/42 depict the named state (22/168 core gaps). Earlier
+verified 90/90 route matrix is tied to APK `00024954…`, not final
+`c3b3e4d9…`; its 8/8 named detail stills cannot replace the matrix. The
+final-build full-matrix attempt aborted on system launcher/SystemUI ANRs;
+AVD stopped. ARTEMIS Pro journeys provider-BLOCKED (nine attempts), Flash
+smoke PASS, direct ADB fallback supplementary only; iOS NOT VALIDATED.
+Source fixes include bootstrap Retry, board-still geometry, Android 48dp
+vs iOS 44pt targets, app-owned accessibility audit and fail-closed capture
+validation. Full Jest 617 passed / 4 skipped suites and 7,218 passed /
+5 skipped tests, typecheck/lint PASS; repo-state and strict OpenSpec
+validation PASS after the evidence correction (60/60 strict items).
+See `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md` and
+`openspec/changes/076-product-wide-ui-ux-reboot/evidence/GAME_ASSESSMENT.md`.
+Historical records below are not current release acceptance.
+
+**Previous historical update:** 2026-10-04 (wave 3) — **MASTER_PLAN Phase 10 COMPLETE**: the terminal certification ledger (`docs/redesign/evidence/phase10-terminal-certification/TERMINAL_CERTIFICATION.md`, tree `f813e6a`) dispositioned all 46 audit findings (43 closed — 16 with device confirmations — 3 Phase 9 optional-not-executed, 0 open) over the full measured matrix (614+4 suites / 7,203+5 tests / 0 failures; typecheck/lint/jest-signal/10 validators/OpenSpec 59/59; 5/5 opt-in probes with baselines written; the device pass over the changed journeys IS the 2026-10-03/04 device-lane closure). No successor campaign is open; future work is owner-directed. Previous update (wave 2, same day) — **071 fully closed + Phase 9 coverage floors**: the three primitive suites (Confetti/StateCard/SectionGrid, 19 tests) closed 071 §6.1; the 071 device checks (§7.3 disabled-option announcement `enabled="false"`, §7.4 a11y audit **0 violations at default AND font-scale 2.0** over home/games/progress/profile) closed §7.3–§7.4; Phase 9's coverage-thresholds/per-module-floors item landed as `coverageThreshold` (global + per-tree over db/data-portability/workout/rating/quests, one point below measured baselines) enforced by `npm run test:coverage` (measured **PASS: 614 suites / 7,203 tests / 5 snapshots, 0 failures**) and a weekly scheduled `coverage-floors` CI job (`GOVERNANCE.greenMain.scheduledOnlyGates`); the remaining Phase 9 items are dispositioned optional-not-executed in `docs/MASTER_PLAN.md` §9. Previous update (wave 1, same day) — **device-lane closure for changes 070/072/073/074**:
 the four OpenSpec tasks recorded as "NOT VALIDATED — device lane not available"
 (070 §7.4 backup transport atomicity; 072 §7.3–§7.5 failed-read/push→replace/
 Progress reflection; 073 §6.3–§6.5 crafted mid-window reconciliation, complete→
@@ -26,12 +44,12 @@ verified durable; ARTEMIS Flash remained BLOCKED (`MissingSessionID`) and the
 journey ran on the direct emulator-local ADB lane. Evidence:
 `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`. Previous update: 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `076-product-wide-ui-ux-reboot`
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
-**Active work:** none. Completed: OpenSpec change `076-product-wide-ui-ux-reboot` (VALIDATED, verdict `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`, terminal build `14cb165b…`) — full evidence in the change's evidence/ dir. Earlier completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
+**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` reopened for evidence/certification correction; blocked gates explicitly retained in the change's evidence/ dir. Earlier completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
 **Last campaign:** `076-product-wide-ui-ux-reboot`
-**Last campaign status:** VALIDATED
-**Last campaign verdict:** `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
+**Last campaign status:** REOPENED
+**Last campaign verdict:** `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 
 ## FINAL CLOSURE — PUBLIC-REPO FINAL RECERTIFICATION (2026-10-02)
 

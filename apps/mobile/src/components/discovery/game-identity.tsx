@@ -12,6 +12,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 import type { GameDefinition } from '@/sdk';
 import { ArcadePalette, Radii, Spacing, type ColorTheme } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
+import { GameBoardStill } from './board-stills';
 
 /** The eight mechanic families used by the catalog-wide identity system. */
 export type GameIdentityFamily =
@@ -604,6 +605,8 @@ function variantFor(id: string): number {
 function worldColors(theme: ColorTheme, category: string) {
   const key = DOMAIN_THEME_KEYS[category] ?? 'accent';
   const staticKey = DOMAIN_BY_CATEGORY[category] ?? 'coral';
+  // SAFETY: ColorTheme values at these domain-key slots are CSS color strings;
+  // unknown category keys fall back to the explicitly typed accent colors.
   const record = theme as unknown as Record<string, string>;
   return {
     base: record[key] ?? theme.accent,
@@ -777,8 +780,6 @@ function WorldMotif({
  */
 // Change 076 review fix: genuine per-game board stills (lock section 4) —
 // the still now mirrors the game's actual board grammar, not a family motif.
-import { GameBoardStill } from './board-stills';
-
 export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps) {
   const theme = useTheme();
   const colors = worldColors(theme, game.primaryCategory);
@@ -788,6 +789,7 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
   const height = size === 'stage' ? 180 : size === 'hero' ? 120 : 112;
   const scale = height / 112;
   const variant = variantFor(game.id);
+  const boardStill = GameBoardStill({ gameId: game.id, colors, variant, scale });
 
   return (
     <View
@@ -797,7 +799,15 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
       style={[styles.world, { height, backgroundColor: colors.soft, borderColor: colors.base }]}>
       <View style={[styles.worldCorner, { backgroundColor: colors.base }]} />
       <View style={[styles.worldCornerSecondary, { backgroundColor: colors.secondary }]} />
-      {GameBoardStill({ gameId: game.id, colors, variant, scale }) ?? (
+      {boardStill ? (
+        <View style={styles.boardStillCenter}>
+          {/* Board geometry is height-bounded. Percent-width boxes in a full-width
+              detail stage otherwise grow taller than the 180dp art frame. */}
+          <View style={{ width: 150 * scale, height }}>
+            {boardStill}
+          </View>
+        </View>
+      ) : (
         <WorldMotif family={identity.family} colors={colors} variant={variant} scale={scale} />
       )}
       <View style={[styles.worldBadge, { backgroundColor: colors.base }]}>
@@ -896,6 +906,11 @@ const styles = StyleSheet.create({
   },
   transformInner: {
     borderRadius: Radii.extraSmall,
+  },
+  boardStillCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   world: {
     position: 'relative',

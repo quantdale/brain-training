@@ -1,0 +1,212 @@
+{
+  "capturedAt": "2026-10-07T02:41:18.780Z",
+  "device": "emulator-5554",
+  "package": "com.braintraining.app",
+  "build": {
+    "version": "0.1.0",
+    "lastUpdateTime": "2026-10-07 02:35:08",
+    "apkSha256": "c3b3e4d95f31f73a80dc02f4f05843fae5ecb0e44ca274cfb11044ed7f2a5b50"
+  },
+  "scheme": "braintraining",
+  "profiles": [
+    "default"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "requestedSurfaces": [
+    "game-detail-odd-one-out",
+    "game-detail-number-line",
+    "game-detail-coordinate-turn",
+    "game-detail-equation-builder"
+  ],
+  "expectedCount": 8,
+  "surfaces": [
+    {
+      "surface": "game-detail-odd-one-out",
+      "route": "/game-detail/attention-odd-one-out",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Odd One Out",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "light",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-odd-one-out.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-odd-one-out.xml",
+      "pngBytes": 186388,
+      "contentColors": 5,
+      "xmlBytes": 31360,
+      "pngSha256": "a97a30a92dff865e09f5c97a1bc6138e2bbeb4ca3f5931dbaef0428fcbe8d9d6",
+      "xmlSha256": "ada2d75b5373ec7f3ad8cc3f4184718304f7c48d0976f8690d7ee0c3a523b895",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-number-line",
+      "route": "/game-detail/math-number-line-estimation",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Number Line",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "light",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-number-line.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-number-line.xml",
+      "pngBytes": 182681,
+      "contentColors": 5,
+      "xmlBytes": 31358,
+      "pngSha256": "7d0411895c1a0019b99de36232eb9e5e85eae561012293fcbb0cc164cd332c7e",
+      "xmlSha256": "56f7356b090904db8888fc7132bafd6d94ef554de54a34f00197697f1cc62b8d",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-coordinate-turn",
+      "route": "/game-detail/spatial-coordinate-turn",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Coordinate Turn",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "light",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-coordinate-turn.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-coordinate-turn.xml",
+      "pngBytes": 193379,
+      "contentColors": 5,
+      "xmlBytes": 31358,
+      "pngSha256": "3f591733bcd9c30d43bcf23299d26a3f38673d96a0390a2293982d535fb4c823",
+      "xmlSha256": "1b2aeeeb0349d76532dd0cdd3a56993fffb471a4d38677eca3859cce6b7b0c99",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-equation-builder",
+      "route": "/game-detail/math-equation-builder",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Equation Builder",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "light",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-equation-builder.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/light/game-detail-equation-builder.xml",
+      "pngBytes": 185375,
+      "contentColors": 5,
+      "xmlBytes": 31368,
+      "pngSha256": "371f22b88995cf36cf46a0ee7142f7ac25d34fb0073818380cc3f79c22ac25a1",
+      "xmlSha256": "e11bc2e5bf8b40fb5fdfe377d0002a2d161ed0b672339cbf75626b2a8fbfe229",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-odd-one-out",
+      "route": "/game-detail/attention-odd-one-out",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Odd One Out",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "dark",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-odd-one-out.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-odd-one-out.xml",
+      "pngBytes": 177593,
+      "contentColors": 5,
+      "xmlBytes": 31360,
+      "pngSha256": "b9f1224b6a6ff11687eb196c19e477876eaa6a8abe2ec998ac063aae12a9de5a",
+      "xmlSha256": "ada2d75b5373ec7f3ad8cc3f4184718304f7c48d0976f8690d7ee0c3a523b895",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-number-line",
+      "route": "/game-detail/math-number-line-estimation",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Number Line",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "dark",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-number-line.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-number-line.xml",
+      "pngBytes": 173483,
+      "contentColors": 5,
+      "xmlBytes": 31358,
+      "pngSha256": "b446dffd8d9458b6c740a2097823ea9ed9979b46912cf0baae5e1dd7ae6efded",
+      "xmlSha256": "56f7356b090904db8888fc7132bafd6d94ef554de54a34f00197697f1cc62b8d",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-coordinate-turn",
+      "route": "/game-detail/spatial-coordinate-turn",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Coordinate Turn",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "dark",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-coordinate-turn.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-coordinate-turn.xml",
+      "pngBytes": 183053,
+      "contentColors": 5,
+      "xmlBytes": 31358,
+      "pngSha256": "48cacc829296cb7bee4c5aa09c7447f0f8ed925e19f774255a9d4f45b4eb7299",
+      "xmlSha256": "1b2aeeeb0349d76532dd0cdd3a56993fffb471a4d38677eca3859cce6b7b0c99",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    },
+    {
+      "surface": "game-detail-equation-builder",
+      "route": "/game-detail/math-equation-builder",
+      "expectedMarkers": [
+        "game-detail-title"
+      ],
+      "expectedText": "Equation Builder",
+      "expectAll": false,
+      "profile": "default",
+      "theme": "dark",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-equation-builder.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/after-board-stills-c3b3e4d9/default/dark/game-detail-equation-builder.xml",
+      "pngBytes": 178131,
+      "contentColors": 5,
+      "xmlBytes": 31368,
+      "pngSha256": "bb2ae875bc3e37be2876dc860ff857f85e58ac154d7175cbb52bcc9140c7ed66",
+      "xmlSha256": "e11bc2e5bf8b40fb5fdfe377d0002a2d161ed0b672339cbf75626b2a8fbfe229",
+      "deepLinkStarted": true,
+      "foregroundVerified": true,
+      "routeVerified": true,
+      "testIdsPresent": [],
+      "blank": false
+    }
+  ],
+  "skipped": []
+}

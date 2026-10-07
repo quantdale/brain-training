@@ -1,11 +1,11 @@
-# Campaign 076: Product-Wide UI/UX Reboot (VALIDATED — COMPLETE)
+# Campaign 076: Product-Wide UI/UX Reboot (REOPENED — release acceptance blocked)
 
-**Status:** VALIDATED — `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
+**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 **Campaign id:** `076-product-wide-ui-ux-reboot`
 **Predecessor:** Phase 10 terminal certification (post-075 convergence; all 46 audit findings dispositioned, 0 open)
 **Mode:** day
 **Start SHA:** `b6654fb` (proposal head). Explore/release baseline captured at source `d3d0b9926a44c039d7fd0d29e1376586afaa897b`, release APK SHA-256 `d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9` on `braintraining-ui35` / `emulator-5554`.
-**Change:** `openspec/changes/076-product-wide-ui-ux-reboot` (VALIDATED)
+**Change:** `openspec/changes/076-product-wide-ui-ux-reboot` (ACTIVE)
 **Authorization:** owner goal directive — perform openspec apply on `openspec/changes/076-product-wide-ui-ux-reboot/` until every task in its `tasks.md` is complete or an honestly BLOCKED condition is durably recorded. Execution prompt: `.agent/EXECUTION_PROMPT.md`.
 
 ## Mission
@@ -40,7 +40,25 @@ contracts.
    matrices, ARTEMIS journeys, impact-map gates, release APK, iOS status,
    final coverage manifest + visual decision report, durable state, push (14.x).
 
-## Terminal result
+## Current review correction (supersedes the former terminal claim below)
+
+The former `VALIDATED` verdict was withdrawn after inspecting the actual
+per-game images and APK bindings. The historical game index now retains
+**172** hashed images, but only **39/42 active**, **27/42 feedback**,
+**38/42 pause** and **42/42 result** frames depict their claimed states.
+Twenty-two state frames remain NOT VALIDATED (see `evidence/GAME_ASSESSMENT.md`).
+The verified 90/90 route matrix is tied to APK `00024954…`, not final
+`c3b3e4d9…`. An attempted final-build matrix aborted amid Android
+launcher/SystemUI ANRs; it is not filed evidence. Eight final-build detail
+stills passed, not the full route matrix. ARTEMIS Flash smoke passed, but
+nine Pro attempts were provider-BLOCKED and ADB fallback is not Pro
+acceptance. iOS remains NOT VALIDATED. Touch-target source/tests use 48dp
+Android and 44pt iOS; final per-game device measurement remains open.
+**Do not mark 076 validated until these gaps are closed.** The AVD is
+currently stopped after the ANRs; attempt a stable dedicated AVD when
+resources allow and record the exact BLOCKED gate if instability persists.
+
+## Former terminal result (2026-10-06; superseded, not acceptance evidence)
 
 `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED` — all 82 tasks executed:
 baseline (272 old-build captures), three-prototype selection gate (Training

@@ -33,7 +33,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import { render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { Platform, Text } from 'react-native';
 
 import { MIN_TOUCH_TARGET, MinTouchTarget } from '@/components/a11y';
 import { Tappable } from '@/components/ui/tappable';
@@ -137,7 +137,7 @@ describe('Tappable accessibility-state composition (Change 071 §1)', () => {
 
 describe('touch target: exactly one definition (Change 071 §2)', () => {
   it('has one canonical numeric constant', () => {
-    expect(MIN_TOUCH_TARGET).toBe(44);
+    expect(MIN_TOUCH_TARGET).toBe(Platform.OS === 'android' ? 48 : 44);
   });
 
   it('has one style fragment derived from the same number', () => {
@@ -151,7 +151,8 @@ describe('touch target: exactly one definition (Change 071 §2)', () => {
     // This used to be an independent literal. Deriving it means the helper can
     // never compute slop against a different target than the styles enforce.
     expect(MIN_TOUCH_TARGET_SIZE).toBe(MIN_TOUCH_TARGET);
-    expect(hitSlopToTouchTarget(24)).toEqual({ top: 10, bottom: 10, left: 10, right: 10 });
+    const slop = Math.ceil((MIN_TOUCH_TARGET - 24) / 2);
+    expect(hitSlopToTouchTarget(24)).toEqual({ top: slop, bottom: slop, left: slop, right: slop });
     expect(hitSlopToTouchTarget(MIN_TOUCH_TARGET)).toBeNull();
   });
 
@@ -165,7 +166,8 @@ describe('touch target: exactly one definition (Change 071 §2)', () => {
     for (const file of kitSources(SRC_ROOT)) {
       const lines = readFileSync(file, 'utf8').split('\n');
       lines.forEach((line) => {
-        if (/(MinTouchTarget|MIN_TOUCH_TARGET)[A-Za-z_]*\s*(:[^=]*)?=\s*44\b/.test(line)) {
+        if (/MIN_TOUCH_TARGET\s*=\s*Platform\.select\(\{ android: 48, default: 44 \}\)/.test(line) ||
+            /(MinTouchTarget|MIN_TOUCH_TARGET)[A-Za-z_]*\s*(:[^=]*)?=\s*(44|48)\b/.test(line)) {
           declarations.push(path.relative(SRC_ROOT, file).split(path.sep).join('/'));
         }
       });

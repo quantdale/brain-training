@@ -1,6 +1,50 @@
-# Wave 14 — Convergence, device certification and release (tasks 14.1–14.8)
+# Wave 14 — Convergence and review correction (release acceptance BLOCKED)
 
-**Terminal build:** release APK SHA-256 prefix `14cb165b05d2f234` (waves 6–13
+## Current evidence classification — 2026-10-07 (supersedes the former close claims below)
+
+- **Game-state visual audit:** `GAME_ASSESSMENT.md` and the corrected
+  `after-captures-games/index.json` contain 172 retained hashed PNGs; the
+  actual 42-game matrix is **A 39/42 · F 27/42 · P 38/42 · R 42/42**.
+  Twenty-two core state frames are NOT VALIDATED; 16 misleading or
+  non-state frames are quarantined under `after-captures-games/rejected/`.
+  `after-game-status.jsonl` script outcomes are not image review.
+- **Route/theme/profile captures:** the immutable **90/90** PNG/XML matrix
+  at `after-captures-matrix-00024954/` verifies APK SHA-256
+  `00024954f7b25db31a87846afc901edcbd221c2a964908e4be4799001e3dd195`,
+  **not** the final board-still build. Re-running six audits on the filed XMLs
+  (density 420; compact 320) measured 0 violations across 90 surfaces at the
+  48dp Android floor; **34 occluded nodes** were separately excluded as
+  unmeasurable. This does not measure all in-game controls. Final-build
+  APK SHA-256 `c3b3e4d95f31f73a80dc02f4f05843fae5ecb0e44ca274cfb11044ed7f2a5b50`
+  has 8/8 verified light/dark detail PNG/XML pairs for four named games at
+  `after-board-stills-c3b3e4d9/`, **not** the full matrix. A 1,800-second
+  final-build matrix attempt aborted amid system launcher/SystemUI ANRs and
+  a null accessibility root; the incomplete attempt was moved to ignored
+  `qa-artifacts/076-ui-reboot/failed-matrix-c3b3e4d9/` with log and diagnosis,
+  not filed as PASS. Final-build matrix is **BLOCKED**, not 90/90 certified.
+- **Controller/release boundary:** ARTEMIS Flash smoke passed; **nine** Pro
+  attempts were provider-BLOCKED (429/503/180s). The direct ADB workout/SQLite
+  lane is supplementary, not controller-led acceptance. iOS is NOT VALIDATED.
+- **Source checks:** typecheck, lint and Jest **617 passed / 4 skipped suites,
+  7,218 passed / 5 skipped tests, 5 snapshots**; classified skips accepted
+  by `validate-jest-signal`. QA Node tests 10/10; both local capture manifests
+  verified immutable and app-owned. After governance reconciliation, repo-state
+  PASS (active 076), task ownership/offline/secrets/provenance/workflows/
+  runtime-QA/affected-sync/expo-alignment/registry PASS and OpenSpec strict
+  **60/60** PASS. The game-index integrity verifier reports 172/172 hashed
+  retained frames + 16 quarantined frames; its `--require-complete` mode
+  correctly FAILS for 22 missing game states. A release APK was built and
+  installed, but that is not device acceptance.
+
+The former 14.x checklist and review tables below reflect what was claimed at
+its earlier checkpoint. Where they conflict with this correction and
+`GAME_ASSESSMENT.md`, **the correction is authoritative**. Do not label
+Campaign 076 VALIDATED until the remaining per-game, final-build matrix,
+ARTEMIS Pro and iOS boundaries are satisfied or honestly dispositioned.
+
+## Earlier wave checkpoint (historical, not final-build acceptance)
+
+**Wave build:** release APK SHA-256 prefix `14cb165b05d2f234` (waves 6–13
 tree), installed and verified on `braintraining-ui35` / `emulator-5554`
 (Android 15, 1080×2400 @ 420dpi). Old-build baseline preserved: APK
 `d631ab9a…` + 272 before-captures.
@@ -17,32 +61,28 @@ tree), installed and verified on `braintraining-ui35` / `emulator-5554`
   (below), release build succeeded, installed build launches (verified by the
   device passes below and the ARTEMIS Flash smoke).
 
-## 14.2 — 42/42 active-board device verification
+## 14.2 — Game boards: PARTIAL, not 42/42 certified
 
-All 42 games were individually played on the converged release build
-(`after-game-status.jsonl` + `after-captures-games/` — 173 images): per game
-the tutorial/intro, active board on the stage panel, pause overlay, in-round
-feedback, and the staged result artifact were captured; 42/42 verdicts
-`ok` (four required dedicated completion drivers: memory-pair-recall,
-memory-running-order, logic-code-cracker, spatial-transform-match — all
-closed `ok`). Boards visibly speak their domain hues (e.g. spatial-transform-
-match's green pattern grids, memory's pink reveals) with the CTA red reserved
-to single actions.
+All 42 driver runs reported `ok`, but visual inspection of the retained
+individual screenshots rejects several mislabeled frames. Of 168 desired
+A/F/P/R game states only 146 depict the named state. The full per-game
+assessment and missing-state reasons are in `GAME_ASSESSMENT.md`; an automated
+run's outcome cannot substitute for inspecting its filed PNG.
 
-## 14.3 — Theme/size matrices and accessibility
+## 14.3 — Theme/size matrices and accessibility: earlier-build only
 
-- Canonical 11-surface harness: **22/22 PASS** at default light/dark, **22/22**
-  at compact (720×1600@320), **22/22** at font-scale-2 light/dark
-  (`after-matrix-{default,compact,fs2}/manifest.json`).
+- Historical 11-surface harness: 66/66 were reported at default/compact/fs2.
+  The later verified 15-surface **90/90** matrix is for APK `00024954…`.
+  Neither certifies the final `c3b3e4d9…` build (8 focused detail stills only).
 - Accessibility audits (`scripts/qa/a11y-audit.mjs`): default **0 violations**,
   font-scale-2 **0 violations**, compact: 0 real violations — 2 flagged
   `undersized` nodes are capture-edge clips of the below-fold streak-buy
   row: on-device scroll verification measured `streak-buy-recovery` at
-  **114px ≈ 51dp** (≥44dp floor) when scrolled into view (scroll is allowed
+  **114px ≈ 51dp** (≥48dp Android floor) when scrolled into view (scroll is allowed
   per the product-experience spec); 14 further `occluded (screen-edge/tab-bar)`
   nodes excluded as unmeasurable by the auditor.
-- 20 route-level after captures (`after-captures-wave45/`) + 173 game
-  captures (`after-captures-games/`).
+- The older 20 route-level captures and the corrected 172-image game index
+  are historical supplementary evidence, not final-build acceptance.
 
 ## 14.4 — ARTEMIS runtime journeys
 
@@ -59,8 +99,8 @@ to single actions.
   dominated by 429 Too Many Requests (30+ events in the final attempt alone),
   503 UNAVAILABLE, and `TimeoutError: LLM call timed out after 180 seconds`.
   The provider (Google capacity) showed the same saturation all day on this
-  host. Recorded BLOCKED across 7 evidence-backed attempts; NOT worked around
-  with host-input automation masquerading as controller-led journeys.
+  host. Recorded BLOCKED across **nine** attempts; NOT worked around
+  with host-input automation or direct ADB masquerading as controller-led journeys.
 - **Fallback lane (per design decision 4):** the equivalent stateful journeys
   were executed deterministically by the direct emulator-local ADB lane
   (no host input): full first-run workout (fresh install state → 4 legs with
@@ -95,21 +135,19 @@ the standing boundary.
 - Visual decision: **Training Studio** selected from three on-device
   prototypes (scorecard 8.63 vs 8.45 vs 7.63) — `REFERENCE_LOCK.md`,
   `proto-scorecard.md`.
-- Coverage: every player-facing route + all 42 games with matched before
-  (`d631ab9a…`) / after (`14cb165b…`) captures; theme/size/recovery matrices;
-  per-game manifests. Residual debt (recorded, non-blocking): ARTEMIS Pro
-  lane provider-BLOCKED (fallback lane used), iOS NOT VALIDATED, the
-  capture-edge measurement artifact documented in 14.3, and the pre-existing
-  manual boundaries (human TalkBack quality, physical/OEM devices, store
-  signing) carried from prior campaigns.
-- No game missing: 42/42 device-verified; no route unreviewed (17/17 routes
-  in the inventories + matrices).
+- Coverage is **partial**: 22 missing/invalid individual game-state frames;
+  no complete final-build route matrix. ARTEMIS Pro provider-BLOCKED is a
+  release boundary even though the direct ADB lane exercised a workout;
+  iOS NOT VALIDATED. Human TalkBack quality, physical/OEM devices and store
+  signing remain separate manual boundaries. No 42/42 game-state or
+  final-build route verdict can be issued from these inputs.
 
-## 14.8 — Durable state
+## 14.8 — Durable state: reopened
 
-- `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `change.json`, this file,
-  and the OpenSpec tasks ledger updated at the close; work committed and
-  pushed to `origin/main`; no abandoned worktrees or branches.
+- Former terminal `VALIDATED` status withdrawn; governance, tasks, change
+  metadata and blocker register must retain 076 as ACTIVE until acceptance
+  evidence exists. This review-fix checkpoint must be committed and pushed
+  without claiming green release acceptance.
 
 ## Review-response record (frontier-model review, addressed 2026-10-06)
 
@@ -136,5 +174,5 @@ the standing boundary.
 | Standards Medium — deep-link Retry inert | `onRetry` default navigates to the app root (re-runs the classified bootstrap) instead of a no-op | bootstrap-recovery.tsx (deep-link envelope fix, crash verified fixed on device) |
 | Spec High — Discovery order | SuggestedNext renders after the catalog grid (verified: search → rail → grid tiles on arrival) | games.tsx; device dump showing rail→grid order |
 | Spec High — Release gate | 9 ARTEMIS Pro attempts across two days (429-dominant, 503, 180s timeouts); Flash smoke PASS; deterministic ADB lane executed all stateful journeys; boundary prominently recorded | WAVE14_EVIDENCE.md; per-attempt traces in qa-artifacts |
-| Spec Medium — Image totals | 188 committed images with hashes; exact per-state counts (F 40/42, P 38/42, A 42/42, R 42/42) with per-game causes; Odd One Out and Number Line feedback frames recaptured as in-round feedback | `after-captures-games/index.json`; GAME_ASSESSMENT.md |
+| Spec Medium — Image totals | **Superseded:** full frame review rejects those two purported feedback frames and fourteen more; corrected index retains 172 hashes with A 39/42, F 27/42, P 38/42, R 42/42 | `after-captures-games/index.json`; GAME_ASSESSMENT.md |
 | Spec Medium — fs2 clips | progress-domain All chip present in the fs2 hierarchy (window-control constraint); Progress link row 73dp at fs2 (above floor) | `after-matrix-fs2/font-scale-2/light/progress-domain.xml` |

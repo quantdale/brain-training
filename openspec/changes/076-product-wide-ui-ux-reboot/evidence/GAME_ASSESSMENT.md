@@ -1,89 +1,84 @@
-# Per-game visual assessment manifest (076 review fix — tasks 6.1–13.5)
+# Game-state evidence audit — Campaign 076 (review correction)
 
-**After build:** release APK `0556520f9cc7cf4a` (board-still wave) /
-`14cb165b05d2f234` (game-play wave) — code-identical for game surfaces except
-the board-still layer added in the review fix. **Device:**
-`braintraining-ui35` / `emulator-5554`.
+**Status: NOT VALIDATED for full 42-game/final-build certification.** These are
+historical Android captures from the game-play/review-fix waves (including APK
+`0556520f…`); `after-captures-games/index.json` does **not** bind each PNG to an
+exact APK. The final board-still build is `c3b3e4d95f31f73a80dc02f4f05843fae5ecb0e44ca274cfb11044ed7f2a5b50`.
+Changed shared button/touch presentation and board-still identity cannot be
+certified by these earlier screenshots. The previous 42/42 `ok` driver status
+in `after-game-status.jsonl` records completion of scripts, **not** a truthful
+state-label or visual verdict.
 
-Every game was individually played on the converged build (42/42 `ok` in
-`after-game-status.jsonl`) and individually assessed from its device captures
-(`after-captures-games/`, this wave's `stills-*` + gap-fill frames). Per game:
-**Leg** = board legibility (domain-hue states, contrast on the stage panel),
-**Ctrl** = controls reachable/labelled ≥44dp, **Act** = primary-action
-placement (one red action, in-viewport), **States** = captured state frames
-(A=active, F=feedback, P=pause, R=result; exact frame counts in
-`after-captures-games/index.json`).
+I opened contact sheets of **all 42 active, 40 originally labelled feedback,
+38 pause and 42 result frames** and compared each frame to its claimed state.
+Only actual state-bearing, SHA-256-matched PNGs are listed below. `A` = playable
+active board, `F` = in-round scored/timeout feedback, `P` = Paused overlay,
+`R` = saved result; `—` means **NOT VALIDATED**, never inferred from a test,
+shared shell, adjacent game, or mislabeled capture. Contact sheets are local
+review aids under ignored `qa-artifacts/076-ui-reboot/`; the individual retained
+PNGs are in `after-captures-games/`. `rejected/` retains disqualified PNGs
+with reasons and hashes in the index. One Code Cracker guessing frame was
+reclassified from a mislabeled feedback file to its genuine active state.
 
-| Game | Leg | Ctrl | Act | States | Notes |
+| Game | A | F | P | R | Individual observation / gap |
 | --- | --- | --- | --- | --- | --- |
-| attention-odd-one-out | PASS | PASS | PASS | A F R (P gap-fill pending) | target+options still matches board grammar |
-| attention-sustained-vigilance | PASS | PASS | PASS | A F R | signal bars = info instrument |
-| attention-symbol-tracker | PASS | PASS | PASS | A F P R | tracker cells domain-hue |
-| attention-target-count | PASS | PASS | PASS | A F R | count dots domain-hue |
-| attention-visual-search | PASS | PASS | PASS | A F R | search field + lens still |
-| flexibility-card-sort | PASS | PASS | PASS | A F P R | rule banner + card row |
-| flexibility-color-stroop | PASS | PASS | PASS | A F P R | |
-| flexibility-cue-shift | PASS | PASS | PASS | A F P R | |
-| flexibility-rule-flip | PASS | PASS | PASS | A F P R | |
-| flexibility-task-switch | PASS | PASS | PASS | A F P R | task banner staged |
-| language-context-fit | PASS | PASS | PASS | A F R | |
-| language-sentence-builder | PASS | PASS | PASS | A F P R | word chips language-hue |
-| language-word-chain | PASS | PASS | PASS | A F R | active-blank border domain-hue |
-| language-word-match | PASS | PASS | PASS | A F R | |
-| language-word-scramble | PASS | PASS | PASS | A F P R | letter tiles |
-| logic-code-cracker | PASS | PASS | PASS | A F R (P pending) | clue grid + color pegs neutral |
-| logic-deduction-table | PASS | PASS | PASS | A F P R | deduction grid logic-hue |
-| logic-next-sequence | PASS | PASS | PASS | A F P R | sequence chips logic-hue |
-| logic-order-path | PASS | PASS | PASS | A F P R | |
-| logic-rule-grid | PASS | PASS | PASS | A F P R | tutorial answer logic-hue |
-| math-equation-builder | PASS | PASS | PASS | A R (F/P: tutorial demo blocks scripted dismissal — see gaps) | urgent timer stageWarn 6.6:1 on stage; number keys neutral; Submit sole red |
-| math-fast-math | PASS | PASS | PASS | A F P R | timer bar info instrument |
-| math-missing-operator | PASS | PASS | PASS | A F R | slot highlight math-hue |
-| math-number-line-estimation | PASS | PASS | PASS | A F R | flag math-hue |
-| math-value-ordering | PASS | PASS | PASS | A F R | value bars math-hue |
-| memory | PASS | PASS | PASS | A F P R | revealed = memory hue (was CTA red) |
-| memory-grid-recall | PASS | PASS | PASS | A F P R | selection dots memory-hue |
-| memory-pair-recall | PASS | PASS | PASS | A F P R | response palette neutral |
-| memory-pattern-tap-back | PASS | PASS | PASS | A F P R | |
-| memory-prospective-cue | PASS | PASS | PASS | A F P R | stream chips memory-hue |
-| memory-running-order | PASS | PASS | PASS | A F P R | |
-| memory-sequence-memory | PASS | PASS | PASS | A F R (P gap-fill pending) | |
-| spatial-coordinate-turn | PASS | PASS | PASS | A F P R | compass needle spatial-hue |
-| spatial-fold-match | PASS | PASS | PASS | A F P R | fold cells spatial-hue |
-| spatial-grid-nav | PASS | PASS | PASS | A F P R | marker spatial-hue |
-| spatial-mental-rotation | PASS | PASS | PASS | A F P R | timer bar info |
-| spatial-transform-match | PASS | PASS | PASS | A F R | pattern grids spatial-hue; options below-fold handled by scroll driver |
-| speed-color-match | PASS | PASS | PASS | A F P R | swatch buttons neutral |
-| speed-order-sweep | PASS | PASS | PASS | A F R | window bar info; cleared tokens speed-hue |
-| speed-quick-compare | PASS | PASS | PASS | A F P R | |
-| speed-reaction-time | PASS | PASS | PASS | A F R | GO=success / HOLD=danger disambiguated |
-| speed-tap-rush | PASS | PASS | PASS | A F P R (F gap-fill pending) | target speed-hue |
+| attention-odd-one-out | ✓ | — | ✓ | ✓ | Distinct target in selectable grid; supposed feedback shows unanswered grid. |
+| attention-sustained-vigilance | ✓ | — | — | ✓ | GO/hold instrument present; supposed feedback is already a saved result. |
+| attention-symbol-tracker | ✓ | — | ✓ | ✓ | Tracker cells and Check answer; supposed feedback only shows a selection. |
+| attention-target-count | ✓ | ✓ | ✓ | ✓ | Count grid and scored incorrect-answer card visible. |
+| attention-visual-search | ✓ | — | ✓ | ✓ | Search grid present; supposed feedback still shows active board. |
+| flexibility-card-sort | ✓ | ✓ | ✓ | ✓ | Card options and marked correct/wrong answer. |
+| flexibility-color-stroop | — | ✓ | ✓ | ✓ | Supposed active screenshot is Time's up, not a response window. |
+| flexibility-cue-shift | ✓ | ✓ | ✓ | ✓ | Rule/shape cards and marked feedback. |
+| flexibility-rule-flip | ✓ | ✓ | ✓ | ✓ | Rule cue and marked card feedback. |
+| flexibility-task-switch | ✓ | — | ✓ | ✓ | Parity choices visible; supposed feedback still awaits an answer. |
+| language-context-fit | ✓ | ✓ | — | ✓ | Sentence options and scored choice; pause not retained. |
+| language-sentence-builder | ✓ | ✓ | ✓ | ✓ | Word-order tokens and failed-order explanation. |
+| language-word-chain | ✓ | — | ✓ | ✓ | Chain options visible; supposed feedback has no scored answer. |
+| language-word-match | ✓ | ✓ | — | ✓ | Synonym options and marked answer; pause not retained. |
+| language-word-scramble | ✓ | — | ✓ | ✓ | Choice selected but not submitted in supposed feedback. |
+| logic-code-cracker | ✓ | — | ✓ | ✓ | Guessing controls reclassified from feedback; actual feedback not retained. |
+| logic-deduction-table | ✓ | ✓ | ✓ | ✓ | Clues/table and scored answer. |
+| logic-next-sequence | ✓ | ✓ | ✓ | ✓ | Sequence choices and marked next term. |
+| logic-order-path | ✓ | ✓ | ✓ | ✓ | Ordering clues and solution feedback. |
+| logic-rule-grid | ✓ | ✓ | ✓ | ✓ | Deduction grid and scored symbol. |
+| math-equation-builder | ✓ | — | — | ✓ | Expression keyboard visible; no feedback/pause frame. |
+| math-fast-math | ✓ | — | ✓ | ✓ | Answer keypad visible; supposed feedback still awaits input. |
+| math-missing-operator | ✓ | ✓ | ✓ | ✓ | Operator slot and corrected answer. |
+| math-number-line-estimation | ✓ | — | ✓ | ✓ | Number-line flag visible; supposed feedback shows unanswered line. |
+| math-value-ordering | ✓ | — | ✓ | ✓ | Values awaiting ordering in both active and supposed feedback. |
+| memory | ✓ | ✓ | ✓ | ✓ | Recall grid and wrong-tap feedback. |
+| memory-grid-recall | ✓ | ✓ | ✓ | ✓ | Recall grid and correct-cell feedback. |
+| memory-pair-recall | ✓ | ✓ | ✓ | ✓ | Pair options and previous-answer feedback panel. |
+| memory-pattern-tap-back | ✓ | ✓ | ✓ | ✓ | Grid recall and marked wrong tap. |
+| memory-prospective-cue | — | ✓ | ✓ | ✓ | Supposed active capture is pre-stream Start; timed-out stream is feedback. |
+| memory-running-order | ✓ | — | ✓ | ✓ | Recall tokens visible; supposed feedback still awaits Submit. |
+| memory-sequence-memory | ✓ | ✓ | ✓ | ✓ | Colored recall pads and wrong-tap feedback. |
+| spatial-coordinate-turn | ✓ | ✓ | ✓ | ✓ | Compass prompt followed by marked direction answer. |
+| spatial-fold-match | ✓ | ✓ | ✓ | ✓ | Fold grids and marked correct/wrong choices. |
+| spatial-grid-nav | ✓ | — | ✓ | ✓ | Navigation grid/instructions; supposed feedback is unanswered grid. |
+| spatial-mental-rotation | ✓ | ✓ | ✓ | ✓ | Target/candidate shapes and scored same/different response. |
+| spatial-transform-match | ✓ | ✓ | ✓ | ✓ | Transformation grids and marked options (scroll needed for bottom). |
+| speed-color-match | ✓ | ✓ | ✓ | ✓ | Swatch options and explicit Missed state. |
+| speed-order-sweep | ✓ | ✓ | ✓ | ✓ | Number sweep grid and Time's up response. |
+| speed-quick-compare | — | ✓ | ✓ | ✓ | Supposed active capture already says Timed out/Too slow. |
+| speed-reaction-time | ✓ | ✓ | ✓ | ✓ | GO target and No reaction feedback. |
+| speed-tap-rush | ✓ | — | ✓ | ✓ | Tap target shown; no scored feedback retained. |
 
-## Exact frame-coverage totals (honest, from the committed index)
+**Core per-game coverage after visual classification:** A **39/42**, F
+**27/42**, P **38/42**, R **42/42** (146/168 desired states).
+`index.json` contains **172 retained PNGs** (the 146 per-game states plus
+26 workout/other captures) and 16 quarantined/disqualified frames; filenames
+or script status alone must not upgrade these counts. Missing core states:
+3 A, 15 F, 4 P. The eight previously identified F/P holes across seven games were only the
+first pass; inspecting every screenshot exposed 14 more state-label gaps.
 
-- **Active:** 42/42 · **Result:** 42/42 · **Feedback:** 40/42 · **Pause:**
-  38/42 (188 committed images). Missing frames and cause:
-  `math-equation-builder` (F+P) and `speed-tap-rush` (F) — first-play tutorial
-  demos whose scripted dismissal requires game-specific sequences on a release
-  build (no QA hooks); 3 pause frames (`attention-sustained-vigilance`,
-  `language-context-fit`, `language-word-match`) — the pause tap raced the
-  round transition in the gap-fill pass. These frames are
-  `NOT CAPTURED (cause recorded)` — not inferred or synthesized; the states
-  themselves are unit-pinned and the tutorial demos were played interactively
-  in the wave-6–13 runs.
-
-## Cross-game assessment conclusions
-
-- All 42 boards speak their domain hue for state; the CTA red appears only on
-  the single primary action per game (verified in the stage-panel captures).
-- All staged chips read in stageInk; the instrument strip + stage panel frame
-  is uniform across all 42 (inherited from the wave-3 shared chrome).
-- Controls: every interactive element ≥44dp in the default matrix (compact
-  findings fixed: window-control constraint, segmented min-width, profile
-  itemActions minHeight); the compact games-rail clips are scroll-reachable
-  (rail-edge class). The compact profile's below-fold `streak-buy-recovery`
-  button measures 1px in the unscrolled dump (visible-portion clip at the
-  scroll boundary) and 51dp scrolled into view — same artifact class as the
-  screen-edge exclusions, not a layout defect.
-- Action placement: one red primary per viewport on every game intro and
-  result; pause/resume reachable in the strip at all three profiles.
+**Visual-only interpretation:** playable boards that actually appear in the
+retained frames have discernible primary actions and mechanic-specific forms;
+this is not a measured game-by-game touch, large-text, theme or ARTEMIS
+acceptance test. The earlier 90-frame `00024954…` route matrix (0 a11y
+violations on six audits, 48dp Android criterion) does not measure every game
+control or certify the later `c3b3e4d9…` APK. Android requires **48dp**, iOS
+**44pt**; individual game control sizes on final build remain NOT VALIDATED.
+Source/test fixes and historical snapshots cannot close the 22 missing
+state frames, final-build matrix, provider-blocked ARTEMIS Pro, or iOS.

@@ -8,7 +8,7 @@
  * import cycle back through game-ui.
  *
  * Contents:
- * - touch-target: the 44 dp minimum control contract (shell-wide). This is the
+ * - touch-target: the Android 48dp / iOS 44pt minimum control contract. This is the
  *   ONE canonical definition of the minimum; the former theme export and the
  *   platform literal were removed in Change 071.
  * - font-scale: the dynamic-type cap (`MAX_FONT_SCALE`, the real value — see

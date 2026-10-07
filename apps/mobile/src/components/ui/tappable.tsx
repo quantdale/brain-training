@@ -5,7 +5,7 @@
  * It exists so the interaction contract cannot drift per screen:
  *   - press feedback (scale + pressed styling) on every control,
  *   - a sensory-gated selection haptic,
- *   - a ≥44 dp interaction area even for visually small controls,
+ *   - a ≥48dp Android / ≥44pt iOS interaction area even for small controls,
  *   - reduced-motion compliance,
  *   - an accessibility role by default.
  *

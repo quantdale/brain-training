@@ -47,31 +47,31 @@
 
 ## 6. Attention game modules (own only each named game's directory)
 
-- [x] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
-- [x] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
-- [x] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
+- [ ] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
+- [ ] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
+- [ ] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
 - [x] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
-- [x] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
+- [ ] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
 
 ## 7. Flexibility game modules
 
 - [x] 7.1 Redesign and individually play/capture `flexibility-card-sort` active, feedback, pause/end states.
-- [x] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
+- [ ] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
 - [x] 7.3 Redesign and individually play/capture `flexibility-cue-shift` states.
 - [x] 7.4 Redesign and individually play/capture `flexibility-rule-flip` states.
-- [x] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
+- [ ] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
 
 ## 8. Language game modules
 
-- [x] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
+- [ ] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
 - [x] 8.2 Redesign and individually play/capture `language-sentence-builder` states.
-- [x] 8.3 Redesign and individually play/capture `language-word-chain` states.
-- [x] 8.4 Redesign and individually play/capture `language-word-match` states.
-- [x] 8.5 Redesign and individually play/capture `language-word-scramble` states.
+- [ ] 8.3 Redesign and individually play/capture `language-word-chain` states.
+- [ ] 8.4 Redesign and individually play/capture `language-word-match` states.
+- [ ] 8.5 Redesign and individually play/capture `language-word-scramble` states.
 
 ## 9. Logic game modules
 
-- [x] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
+- [ ] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
 - [x] 9.2 Redesign and individually play/capture `logic-deduction-table` states.
 - [x] 9.3 Redesign and individually play/capture `logic-next-sequence` states.
 - [x] 9.4 Redesign and individually play/capture `logic-order-path` states.
@@ -79,11 +79,11 @@
 
 ## 10. Math game modules
 
-- [x] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
-- [x] 10.2 Redesign and individually play/capture `math-fast-math` states.
+- [ ] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
+- [ ] 10.2 Redesign and individually play/capture `math-fast-math` states.
 - [x] 10.3 Redesign and individually play/capture `math-missing-operator` states.
-- [x] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
-- [x] 10.5 Redesign and individually play/capture `math-value-ordering` states.
+- [ ] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
+- [ ] 10.5 Redesign and individually play/capture `math-value-ordering` states.
 
 ## 11. Memory game modules
 
@@ -91,15 +91,15 @@
 - [x] 11.2 Redesign and individually play/capture `memory-grid-recall` states.
 - [x] 11.3 Redesign and individually play/capture `memory-pair-recall` states.
 - [x] 11.4 Redesign and individually play/capture `memory-pattern-tap-back` states.
-- [x] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
-- [x] 11.6 Redesign and individually play/capture `memory-running-order` states.
+- [ ] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
+- [ ] 11.6 Redesign and individually play/capture `memory-running-order` states.
 - [x] 11.7 Redesign and individually play/capture `memory-sequence-memory` states.
 
 ## 12. Spatial game modules
 
 - [x] 12.1 Redesign and individually play/capture `spatial-coordinate-turn` active, feedback, pause/end states.
 - [x] 12.2 Redesign and individually play/capture `spatial-fold-match` states.
-- [x] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
+- [ ] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
 - [x] 12.4 Redesign and individually play/capture `spatial-mental-rotation` states.
 - [x] 12.5 Redesign and individually play/capture `spatial-transform-match` states.
 
@@ -107,17 +107,17 @@
 
 - [x] 13.1 Redesign and individually play/capture `speed-color-match` active, feedback, pause/end states.
 - [x] 13.2 Redesign and individually play/capture `speed-order-sweep` states.
-- [x] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
+- [ ] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
 - [x] 13.4 Redesign and individually play/capture `speed-reaction-time` states.
-- [x] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
+- [ ] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
 
 ## 14. Convergence, device certification and release
 
 - [x] 14.1 Reconcile all eight game-domain patches centrally; shared theme/registries/navigation have one writer, no temporary worktrees or orphan branches, maintain a buildable `main`.
-- [x] 14.2 Compare screenshots for 42/42 active boards and applicable feedback/result states on device, with legibility, distinct mechanics, labels/touch and action placement recorded individually.
-- [x] 14.3 Review matched route and representative game before/after matrices for default light/dark, dark/light 2× text, compact/large layouts and reduced-motion, correcting clipping, low contrast or hidden actions.
-- [x] 14.4 Run ARTEMIS Flash smoke and Pro first-run, daily workout, resume, game result, workout completion, diagnostic and error-recovery journeys; inspect traces and fix Critical/High findings.
+- [ ] 14.2 Compare screenshots for 42/42 active boards and applicable feedback/result states on device, with legibility, distinct mechanics, labels/touch and action placement recorded individually.
+- [ ] 14.3 Review matched route and representative game before/after matrices for default light/dark, dark/light 2× text, compact/large layouts and reduced-motion, correcting clipping, low contrast or hidden actions.
+- [ ] 14.4 Run ARTEMIS Flash smoke and Pro first-run, daily workout, resume, game result, workout completion, diagnostic and error-recovery journeys; inspect traces and fix Critical/High findings.
 - [x] 14.5 Run required impact-map checks, type/lint/tests and release APK build/install/start; verify unchanged scoring, version metadata, progression, persistence, backup/restore and offline behavior.
 - [x] 14.6 Check iOS layout/runtime independently if available; mark PASS, NOT VALIDATED or BLOCKED with concrete evidence, never infer PASS from Android.
-- [x] 14.7 Publish final scrubbed coverage manifest and visual decision report: per-game/route status, 3-direction scorecard/reference lock, matched images, APK SHA, residual debt and explicit NOT VALIDATED/BLOCKED gaps. Do not claim completion with any game missing.
-- [x] 14.8 Update durable `.agent/` campaign/state/validation/issues at meaningful checkpoints, commit and push coherent buildable work to `origin/main`, and verify no abandoned worktrees.
+- [ ] 14.7 Publish final scrubbed coverage manifest and visual decision report: per-game/route status, 3-direction scorecard/reference lock, matched images, APK SHA, residual debt and explicit NOT VALIDATED/BLOCKED gaps. Do not claim completion with any game missing.
+- [ ] 14.8 Update durable `.agent/` campaign/state/validation/issues at meaningful checkpoints, commit and push coherent buildable work to `origin/main`, and verify no abandoned worktrees.

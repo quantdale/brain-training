@@ -1,5 +1,31 @@
 # Known Issues / Blockers
 
+## Campaign 076 release acceptance — OPEN / BLOCKED (review correction)
+
+- **High, device gate:** final APK SHA-256 `c3b3e4d9…` has 8/8 verified
+  focused detail stills, but the required 90-route/theme/profile matrix
+  aborted after 1,800 seconds due to dedicated AVD launcher/SystemUI ANRs
+  and a null accessibility root. Earlier verified 90/90 captures belong to
+  `00024954…` and cannot certify final rendering. The AVD is stopped. Restore
+  a stable dedicated AVD without hijacking host input; otherwise keep this
+  gate BLOCKED. Diagnostics in ignored `qa-artifacts/076-ui-reboot/`.
+- **High, missing visual proof:** image-by-image audit of 42 games disqualified
+  16 mislabeled/non-state frames (preserved under `rejected/` with hashes).
+  Retained per-game evidence: A 39/42, F 27/42, P 38/42, R 42/42;
+  **22/168** core state frames NOT VALIDATED. No state is inferred from
+  a unit test or another game; see `GAME_ASSESSMENT.md` for individual gaps.
+  Old mixed-build frames also cannot certify final shared-button changes.
+- **Release boundary, external provider:** ARTEMIS Flash smoke PASS, but all
+  nine Pro attempts provider-BLOCKED by 429/503/180s. Direct ADB workouts
+  and SQLite audit are supplementary only, not ARTEMIS Pro acceptance.
+- **iOS:** NOT VALIDATED; no macOS/Xcode host. Source changes establish 48dp
+  Android and 44pt iOS touch floors, not iOS runtime confirmation.
+- **Resolution:** do not restore the withdrawn `VALIDATED` verdict or check
+  14.2/14.3/14.4/14.7 while these gates remain missing. Re-run a complete
+  final-build device matrix, file genuine per-game states and provider-led
+  Pro traces; verify hashes, build identity and committed paths. Escalate
+  provider/AVD limitations as exact BLOCKED conditions, not PASS.
+
 ## R1 CLOSED — GitHub Actions runner allocation restored (2026-10-02)
 
 **R1: CLOSED.** The billing-era blocker (jobs never started, `runner_id: 0`,

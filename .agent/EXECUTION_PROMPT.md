@@ -1,7 +1,7 @@
 # Execution Prompt — Campaign 076: Product-Wide UI/UX Reboot
 
-**Status:** VALIDATED — `CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED`
-**Change:** `076-product-wide-ui-ux-reboot` (VALIDATED)
+**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` (former VALIDATED verdict withdrawn after evidence review)
+**Change:** `076-product-wide-ui-ux-reboot` (ACTIVE)
 **Start-SHA:** `b6654fb` (proposal head; Explore baseline `d3d0b99`)
 **Target-Branch:** `main`
 **Predecessor:** Phase 10 terminal certification (`f813e6a` / `b6654fb` docs)
@@ -28,6 +28,15 @@ or an honestly BLOCKED condition is durably recorded.
   have one writer; swarm packets own disjoint route/game directories only.
 - Task-ownership: `.agent/task-ownership.json` binds parallel packets per
   wave; coders never edit orchestrator-only surfaces.
+
+## Current checkpoint / outstanding acceptance
+
+After review, 22/168 individual core game-state frames have no valid visual
+proof; the final-build 90-route capture matrix aborted amid launcher/SystemUI
+ANRs; ARTEMIS Pro journeys remain provider-BLOCKED after nine attempts;
+iOS remains NOT VALIDATED. Reconcile these without substituting ADB for Pro or
+old-build captures for the final APK. See `evidence/GAME_ASSESSMENT.md`,
+`evidence/WAVE14_EVIDENCE.md` and `.agent/KNOWN_ISSUES.md`.
 
 ## Waves
 

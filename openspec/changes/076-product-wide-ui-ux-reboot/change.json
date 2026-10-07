@@ -1,6 +1,6 @@
 {
   "id": "076-product-wide-ui-ux-reboot",
-  "status": "VALIDATED",
+  "status": "ACTIVE",
   "predecessor": "phase10-terminal-certification",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -23,7 +23,7 @@
   },
   "fullHardening": false,
   "reviewConsumption": "Consumes the Explore-stage release baseline (evidence/before/: 20 device PNGs + index.json with APK/device hashes) and the proposal's Refero research (three style references, two product screens, two flows). Historical redesign certificates are context, not acceptance evidence for this reboot.",
-  "validatedAt": "2026-10-06",
-  "validationNote": "Full openspec apply executed: waves 0-14. Baseline (272 old-build captures on d631ab9a), three prototype directions scored on device (Training Studio selected, REFERENCE_LOCK), tokens re-authored (contrast+lock tests), Card stage variant, session stage panel + staged results, all 42 games canary-disciplined (domain-hue states, staged chips, 0 red board-state uses) and individually played/captured on the converged release build (14cb165b), full workout journey + SQLite audit PASS (integrity ok, v13, 0 FK, exactly-once ledger), canonical matrices 66/66 PASS (default/compact/fs2 x light/dark), a11y audits (0 real violations; compact flags verified as capture-edge artifacts at 51dp scrolled), ARTEMIS Flash smoke PASS, Pro lane BLOCKED on LLM provider capacity (3 attempts, 503/429/180s) with the deterministic emulator-local ADB fallback lane executed, iOS NOT VALIDATED (no host), repo gates + validators all PASS, full jest 616 suites / 7210 tests / 0 failures. Residual non-blocking debt recorded in WAVE14_EVIDENCE.md.",
-  "verdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED"
+  "formerVerdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED (withdrawn after per-frame review)",
+  "validationNote": "Release acceptance BLOCKED: 22/168 individual game-state frames lack valid visual evidence; verified 90/90 route matrix is for earlier APK 00024954, while the final c3b3e4d9 matrix aborted amid system ANRs; ARTEMIS Flash smoke passed but nine Pro attempts were provider-BLOCKED and ADB fallback is not controller-led acceptance; iOS NOT VALIDATED. See GAME_ASSESSMENT.md and WAVE14_EVIDENCE.md. Source/tests and focused final-build detail stills do not certify the missing gates.",
+  "verdict": "CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED"
 }
