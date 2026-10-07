@@ -1,6 +1,6 @@
 # Dependency Audit Triage
 
-**Date:** 2026-09-30 (Campaign 069 `brace-expansion` toolchain review; the
+**Date:** 2026-10-07 (Campaign 076 repository-integrity remediation; the
 2026-09-19 Campaign 054 refresh below remains the count/severity baseline and
 supersedes the 2026-08-31 Campaign 020 refresh, the 2026-08-24 Campaign 013
 audit, and the 2026-08-18 006R audit)
@@ -11,6 +11,52 @@ dependency adds findings)
 offline-first product
 **Result:** **19 vulnerabilities (15 moderate, 4 high)** — reduced from 20
 (15 moderate, 5 high) by the Campaign 054 in-range `js-yaml` remediation.
+
+## Campaign 076 — Repository Integrity red-gate remediation (2026-10-07)
+
+GitHub Actions `Repository Integrity` was red on `main` with four
+unallowlisted production advisories. Dispositions:
+
+1. **shell-quote GHSA-pqg4-j6r4-53mv (CRITICAL) — remediated, not
+   allowlisted.** Chain: react-native@0.86.3 → react-devtools-core@6.1.5 →
+   shell-quote@1.10.0 (advisory range `>=1.8.4 <1.11.0`). The parent spec
+   (`^1.6.1`) accepts the fixed line, so a plain lockfile update to
+   **shell-quote@1.12.0** (`npm update shell-quote`) removed the advisory
+   without an override or 1st-party change. Zero first-party imports of
+   shell-quote in `apps/mobile/src`; the runtime-bundle non-exclusion is
+   additionally checked in the Campaign 076 final-gate pass on a fresh
+   `expo export --platform web` artifact. Re-running the audit confirms the
+   finding is gone.
+2. **source-map-js GHSA-68fv-2mgg-jv7q (HIGH) — remediated, not
+   allowlisted.** Chain: expo@57.0.24 → `@expo/metro-config` → postcss@8.5.28 →
+   source-map-js@1.2.1 (advisory range `<1.2.2`). Parent spec `^1.2.1`
+   accepts the fix; lockfile update to **source-map-js@1.2.2**
+   (`npm update source-map-js`) removed the advisory. Zero first-party
+   imports.
+3. **braces GHSA-vfj7-8cjw-p6xm (HIGH) — accepted, build-dev-toolchain.**
+   Advisory range `<=3.0.3` equals the latest published braces release — no
+   fixed version exists and the only npm-offered fix is a jest@30
+   semver-major upgrade. Reproduced reachability (`npm ls braces --omit=dev`):
+   expo@57.0.24 → `@expo/cli` → `@expo/metro-file-map` →
+   micromatch@4.0.8 → braces@3.0.3 (build-machine Metro pattern expansion)
+   plus the Jest 29 test harness (`@jest/core` → micromatch). Zero
+   first-party imports of braces/micromatch; never bundled/shipped.
+   Exit: upstream braces fix or the next Expo/Metro upgrade.
+4. **sprintf-js GHSA-hp3w-g68c-fv3c (MODERATE) — accepted,
+   build-dev-toolchain.** Advisory range `<=1.1.3` again equals the latest
+   release. Reproduced reachability (`npm ls sprintf-js --omit=dev`):
+   react-native@0.86.3 → `@react-native/jest-preset` → babel-jest →
+   babel-plugin-istanbul → `@istanbuljs/load-nyc-config` → js-yaml@3.15.2 →
+   argparse@1.0.10 → sprintf-js@1.0.3 — coverage-config loading in the test
+   toolchain only (istanbul is exercised only when Jest coverage is enabled
+   on the developer/CI machine). Zero first-party imports.
+   Exit: upstream release or the next Expo/Jest toolchain upgrade.
+
+Machine-readable dispositions added to
+`scripts/certification/dependency-audit-allowlist.json` (10 entries,
+`reviewedAt: 2026-10-07`). Gate result: **PASS — 10 accepted, 0
+unallowlisted moderate+ findings; self-test 41/41.** The CRITICAL finding
+was genuinely fixed in-lockfile, not suppressed.
 
 ## Campaign 054 remediation applied
 
@@ -107,9 +153,11 @@ The machine-readable dispositions are in
   GHSA-6j4f-fj2g-mc7p — `build-dev-toolchain` (Campaign 069 review above; the
   exit condition that retires them is stated there).
 
-`node scripts/validate-dependency-audit.mjs` reports PASS with these 7
-accepted advisories and no unallowlisted moderate+ production findings; its
-self-test passes 41/41.
+`node scripts/validate-dependency-audit.mjs` reports PASS with these 10
+accepted advisories (the original 7 plus the 2026-10-07 braces and
+sprintf-js reviews; shell-quote and source-map-js were removed entirely by
+the Campaign 076 lockfile updates) and no unallowlisted moderate+
+production findings; its self-test passes 41/41.
 
 **Note on the 2026-09-19 count above:** 19 vulnerabilities (15 moderate,
 4 high) was the pre-069 `npm audit` count. The three `brace-expansion`

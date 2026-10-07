@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-02",
+  "reviewedAt": "2026-10-07",
   "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived.",
   "allowlist": [
     {
@@ -48,6 +48,20 @@
       "classification": "build-dev-toolchain",
       "rationale": "Uncontrolled recursion in parseCommaParts causing stack exhaustion (high). Same toolchain-only reachability as the two sibling brace-expansion advisories: brace-expansion@1.1.18 via jest/@jest/core -> glob@7.2.3 -> minimatch@3.1.5, and brace-expansion@5.0.9 via expo@57.0.24 -> @expo/fingerprint@0.20.13 -> minimatch@10.2.6 (Expo CLI fingerprinting). Neither parser is reachable from first-party runtime code; the vulnerable code never ships.",
       "tracking": ".agent/DEPENDENCY_AUDIT.md -> Campaign 069 brace-expansion toolchain review (reviewed 2026-09-30)"
+    },
+    {
+      "package": "braces",
+      "advisory": "GHSA-vfj7-8cjw-p6xm",
+      "classification": "build-dev-toolchain",
+      "rationale": "Stack-exhaustion DoS on deeply nested patterns (high; advisory range <=3.0.3 equals the latest published braces release, so no fixed version exists and npm audit's only offered fix is a jest@30 semver-major upgrade). Reachability reproduced 2026-10-07 with `npm ls braces --omit=dev`: the production path is expo@57.0.24 -> @expo/cli@57.0.26 -> @expo/metro-file-map@57.0.3 -> micromatch@4.0.8 -> braces@3.0.3, i.e. Metro's file-map pattern expansion running on the developer/CI build machine; the second path is the Jest 29 test harness (@jest/core -> micromatch -> braces). Zero first-party imports of braces/micromatch in apps/mobile/src or scripts; the vulnerable parser has no runtime import path and never ships in the app bundle. By contrast, the separate CRITICAL shell-quote advisory found in the same audit was genuinely remediated in this pass (lockfile update to shell-quote@1.12.0); only this entry needed acceptance because no upstream fix exists. Exit condition: drop when metro/metro-file-map stops depending on the vulnerable braces line (upstream braces release or the next Expo/Metro upgrade) or when npm offers a non-major fixed resolution; review at the next Expo SDK upgrade.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-07 braces toolchain review (Campaign 076 repository-integrity remediation)"
+    },
+    {
+      "package": "sprintf-js",
+      "advisory": "GHSA-hp3w-g68c-fv3c",
+      "classification": "build-dev-toolchain",
+      "rationale": "DoS through unbounded precision specifiers (moderate; advisory range <=1.1.3 equals the latest published sprintf-js release, so no fixed version exists and npm audit's only offered fix is a jest@30 semver-major upgrade). Reachability reproduced 2026-10-07 with `npm ls sprintf-js --omit=dev`: the only production path is react-native@0.86.3 -> @react-native/jest-preset@0.86.3 -> babel-jest@29.7.0 -> babel-plugin-istanbul@6.1.1 -> @istanbuljs/load-nyc-config -> js-yaml@3.15.2 -> argparse@1.0.10 -> sprintf-js@1.0.3, i.e. coverage-config loading inside the test-toolchain (babel-plugin-istanbul is exercised only when Jest coverage is enabled on the developer/CI machine). Zero first-party imports of sprintf-js/argparse/js-yaml in apps/mobile/src or scripts; the vulnerable formatter has no runtime import path and never ships in the app bundle. Exit condition: drop when the shipped jest-expo/istanbul chain no longer resolves the vulnerable sprintf-js line (upstream release or the next Expo/Jest toolchain upgrade); review at the next Expo SDK upgrade.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-07 sprintf-js toolchain review (Campaign 076 repository-integrity remediation)"
     },
     {
       "package": "decode-uri-component",
