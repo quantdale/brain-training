@@ -79,6 +79,11 @@ export const Playfield = memo(function Playfield({
           testID={targetTestID}
           accessibilityLabel="Target"
           accessible
+          // The target is a visual marker, not a control: without this, Android
+          // hit-tests the tap onto this child and reports locationX/Y relative
+          // to it, so the field's normalized hit test computed from those
+          // coordinates misses every on-target tap (device-proven defect).
+          pointerEvents="none"
           style={[
             styles.target,
             {
