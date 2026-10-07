@@ -1,715 +1,871 @@
 {
-  "build": "Historical game-play/review-fix APKs (mixed captures; no per-file APK binding). NOT final-build certification for c3b3e4d9.",
-  "count": 172,
-  "images": [
-    {
-      "file": "after-attention-odd-one-out-active.png",
-      "sha256": "dbb66df15a47a28b3497d48e35a04c3cc2a2d0712ec7f9bd105cf9734457f582"
-    },
-    {
-      "file": "after-attention-odd-one-out-pause.png",
-      "sha256": "d30595bee6ee921d13706df7fd810dbae5533e795674b1c3132b9aa9d9db3ce2"
-    },
-    {
-      "file": "after-attention-odd-one-out-result.png",
-      "sha256": "f723b999daa5c74189eab46ad69eefc1e382a7f1dca2785cff2fd82aaeac12f3"
-    },
-    {
-      "file": "after-attention-sustained-vigilance-active.png",
-      "sha256": "7affcc1431e34cfbceeb7ed74bf28784489fc0335d19a72503cccec24c0fe457"
-    },
-    {
-      "file": "after-attention-sustained-vigilance-result.png",
-      "sha256": "bc1ce67cb86ab072259c08e622545056d9a8efd9c0059e64d605a96762d59378"
-    },
-    {
-      "file": "after-attention-symbol-tracker-active.png",
-      "sha256": "ca653e4a6efef6d70cf0bf1a0e625da74a342a5e1310a5ee0191a443c2f56419"
-    },
-    {
-      "file": "after-attention-symbol-tracker-pause.png",
-      "sha256": "05324031eabceba63d86ac1d5ef68c35e00a237f7ec97b9528c1e83c91eccd91"
-    },
-    {
-      "file": "after-attention-symbol-tracker-result.png",
-      "sha256": "8dd5c6b740a4337776c40535245eeaa84e1dcee66edac8b193362be678411eec"
-    },
-    {
-      "file": "after-attention-target-count-active.png",
-      "sha256": "0c5146c3d0d577b1cc01df8cfae98e0cbd36c566b5193ea39e4894be82033c99"
-    },
-    {
-      "file": "after-attention-target-count-feedback.png",
-      "sha256": "d41d92ff04e21d6b987fb0035755bb634eab914006385967c342a73eee1e15c2"
-    },
-    {
-      "file": "after-attention-target-count-pause.png",
-      "sha256": "b5a27a10904c58f7728b32b7b8e62083601becef686602cdff23b6ba4b62e96b"
-    },
-    {
-      "file": "after-attention-target-count-result.png",
-      "sha256": "ae65173ad85f518013fb1d14e0a5a8a308e4f76fbe54a81b7570bad9905c02d1"
-    },
-    {
-      "file": "after-attention-visual-search-active.png",
-      "sha256": "0d206b54f43013b43ec3c07f077a8a3bd89cebd979d062482df09ad146dc989d"
-    },
-    {
-      "file": "after-attention-visual-search-pause.png",
-      "sha256": "e094bf71ee582c7b783acccd6827c63ad95ddc13f38c134d00933c0a3c0151a7"
-    },
-    {
-      "file": "after-attention-visual-search-result.png",
-      "sha256": "0bbc7d4c9991e11dea2ca2bd5673691fb4ad294da85317d6c5993282d9645846"
-    },
-    {
-      "file": "after-flexibility-card-sort-active.png",
-      "sha256": "64605ebe3b4bcb72a9a76d6f904a326a5c207b135b0d8065a3a0b4483f5a3852"
-    },
-    {
-      "file": "after-flexibility-card-sort-feedback.png",
-      "sha256": "7a327a68a52f02797c15ef343a97b5b64184447b8d9662654aca57a89e0c7c78"
-    },
-    {
-      "file": "after-flexibility-card-sort-pause.png",
-      "sha256": "9c27f5f1a54d8ff7f66c98fb65bf2b9d98c14af116cc592b46b8ba692f8b4341"
-    },
-    {
-      "file": "after-flexibility-card-sort-result.png",
-      "sha256": "0485632db05a4334ce19fb5afda8001e7e167d5e07dcde0dd960a7d0e39f7d2a"
-    },
-    {
-      "file": "after-flexibility-color-stroop-feedback.png",
-      "sha256": "ebc504c65d5aa43a127d0b50863925c5372268f3acf15d441347c8f72fe7eb84"
-    },
-    {
-      "file": "after-flexibility-color-stroop-pause.png",
-      "sha256": "61158380ad5160d90322a9a30bc37b6896f1ba7f01c4fd8b8f3069cb0fd74d08"
-    },
-    {
-      "file": "after-flexibility-color-stroop-result.png",
-      "sha256": "0f6edab1916ea4abf63347532f6c4dda30f33e1d853e676ea14b747eec98093a"
-    },
-    {
-      "file": "after-flexibility-cue-shift-active.png",
-      "sha256": "f91c4c6c57769b4330864ff9af412a9dc9cdfd8b722ac98d5e6596ae920e918a"
-    },
-    {
-      "file": "after-flexibility-cue-shift-feedback.png",
-      "sha256": "b3d93ed5619713f0a52a8a72dc8f8d91a568da2d92a007b221b1a8f99f704d34"
-    },
-    {
-      "file": "after-flexibility-cue-shift-pause.png",
-      "sha256": "3ddfd632d99571bee6c26cd09ccb3216a64dcae98d088b0c1494f51eda9eab64"
-    },
-    {
-      "file": "after-flexibility-cue-shift-result.png",
-      "sha256": "ef9b70d6da8cfd658ab8b1696b78b9f6c25e88456feeeadb6371dcf4fe0d4ea6"
-    },
-    {
-      "file": "after-flexibility-rule-flip-active.png",
-      "sha256": "91360e95925537998414aa7f893d4a4739ff7954278624d96460e189264e9e09"
-    },
-    {
-      "file": "after-flexibility-rule-flip-feedback.png",
-      "sha256": "7bc68b9dcbf14612983e3f0ca890a6e93359c4f17466e85245630d8de460a8eb"
-    },
-    {
-      "file": "after-flexibility-rule-flip-pause.png",
-      "sha256": "6d82c2491dda0c45277ee4fb05eb7d12fe6e01c574f9bc68dcc9e4134030ac03"
-    },
-    {
-      "file": "after-flexibility-rule-flip-result.png",
-      "sha256": "86b70c1e4b5f8d358ef7dd994354dd791b7e65f4e7b29a4b56ef2e0d01ff43f0"
-    },
-    {
-      "file": "after-flexibility-task-switch-active.png",
-      "sha256": "531520dd903d9e61be2661eeddd78a862f350eba79247c1ef2cae057b217921c"
-    },
-    {
-      "file": "after-flexibility-task-switch-pause.png",
-      "sha256": "87365f3a70a4f9b2fa8f8a80776e70c2e1ceb594f5dee5051b7d542bfaba557c"
-    },
-    {
-      "file": "after-flexibility-task-switch-result.png",
-      "sha256": "8cb119e0ec01f07e31dd5a52ddfe8e17183f8f20e241e057f53d9bdcb269e77f"
-    },
-    {
-      "file": "after-home-workout-complete.png",
-      "sha256": "6451344b75cb387d1e208cdc491585b0148e3847d5d80f2d4585ffede027386f"
-    },
-    {
-      "file": "after-home-workout-resume.png",
-      "sha256": "2b304542a2f2e11021554c6766a41902316f25e4759045a21bef7ff2d7be56d7"
-    },
-    {
-      "file": "after-language-context-fit-active.png",
-      "sha256": "3727599edd35906bf64bbe42f2ec9e18e518c0c3d73d46696038f24d6d003c4d"
-    },
-    {
-      "file": "after-language-context-fit-feedback.png",
-      "sha256": "f205c6eb299906336238a074d8b27903f9433fca9ec7288fe21a605f4a07ad33"
-    },
-    {
-      "file": "after-language-context-fit-result.png",
-      "sha256": "d08337dafffa5234bc1f168c9ff780eca900555930c482d713cf201d0f3fdc4b"
-    },
-    {
-      "file": "after-language-sentence-builder-active.png",
-      "sha256": "2f1ade4c14afa624fe16425afb6e6cd14626394e768f9e7f4504bf128bc26d12"
-    },
-    {
-      "file": "after-language-sentence-builder-feedback.png",
-      "sha256": "d084d9dea7d01a9c301705b65a2d7599630b9b0e17527247f1d07decfb93db08"
-    },
-    {
-      "file": "after-language-sentence-builder-pause.png",
-      "sha256": "de559b375c9216b2e1d9a1ceb7a34b055e1bfe0662999a5a7f30357ad6b1e0ab"
-    },
-    {
-      "file": "after-language-sentence-builder-result.png",
-      "sha256": "74a7d35481ae1bf54265aed5c66b3be0981287d8c7e6cb1c830eb76ba0d121b3"
-    },
-    {
-      "file": "after-language-word-chain-active.png",
-      "sha256": "c88ba5388260486eb88361511fdcffe78a0f3762a7cb6a2ef6f7b7491a8811cf"
-    },
-    {
-      "file": "after-language-word-chain-pause.png",
-      "sha256": "fe887a7a04f2debb3bb90be429274c1e09a93e7c448f59bc841ac01e90588115"
-    },
-    {
-      "file": "after-language-word-chain-result.png",
-      "sha256": "bd89ab69c65b1c81760e23f0b2cd067c9b80d728e4db77b5ca21cbf702d38311"
-    },
-    {
-      "file": "after-language-word-match-active.png",
-      "sha256": "407a94791399a85cacd000881bb21a9d4a4db5193b69aac574a0c173247431e2"
-    },
-    {
-      "file": "after-language-word-match-feedback.png",
-      "sha256": "60e6206179d5a54526cf476aa75135ae8c53bbc812281347e05597624a532020"
-    },
-    {
-      "file": "after-language-word-match-result.png",
-      "sha256": "150090658933d00f509c468e6fdaa7e3941612af2a44e6df0277280837f1a4e5"
-    },
-    {
-      "file": "after-language-word-scramble-active.png",
-      "sha256": "62764b0f940ffdb3b27de840b43d7d3af881305d7c8543ac84838a8246df791f"
-    },
-    {
-      "file": "after-language-word-scramble-pause.png",
-      "sha256": "b8c78bb9d65156f80b21962242f7f7cea1e9c9eaf1fa0beda3afd9738cdb570e"
-    },
-    {
-      "file": "after-language-word-scramble-result.png",
-      "sha256": "d08ff835724e829c0303e5c6da245514a2d3c848d627e8a4ccf93b5e4d7a2879"
-    },
-    {
-      "file": "after-logic-code-cracker-active.png",
-      "sha256": "351a7a791dbb2ae0b9cbc740ea0bffe5ad6da2e1e86760a247b0833d7b0f2d8a"
-    },
-    {
-      "file": "after-logic-code-cracker-pause.png",
-      "sha256": "17a76703eced6daec821ad47a8b4921c5ff4a7b977bbaabf8c2ed6408873e3ff"
-    },
-    {
-      "file": "after-logic-code-cracker-result.png",
-      "sha256": "0e31fb09432a43915e78f0c9d52f83fcf4c61c85dd0c4aeb82ed90b121efd7f1"
-    },
-    {
-      "file": "after-logic-code-cracker-stuck.png",
-      "sha256": "c49795cdbe33868386b044263852c558fa901c44af1babf15f5047716ae47749"
-    },
-    {
-      "file": "after-logic-deduction-table-active.png",
-      "sha256": "8af941893b85df7852175904ee814801aa77b6e6dc58292855e980f27c89107c"
-    },
-    {
-      "file": "after-logic-deduction-table-feedback.png",
-      "sha256": "b2d771db2353e667278d7d16fc21a9e3417125edd1d99db645f2b1a6da22fa7f"
-    },
-    {
-      "file": "after-logic-deduction-table-pause.png",
-      "sha256": "ccaeeaaa6adc52e0d49d15810658ba36688046e75526276c1153a6d3c1270995"
-    },
-    {
-      "file": "after-logic-deduction-table-result.png",
-      "sha256": "1fa14b7f3996fe38b7f72d24f900f3ac9bcd508c978520d90c6a44e58a398593"
-    },
-    {
-      "file": "after-logic-next-sequence-active.png",
-      "sha256": "6bd0c84edfbd236701780ac5c12bf2edc1f8e12b050076a44d086497d29f66bf"
-    },
-    {
-      "file": "after-logic-next-sequence-feedback.png",
-      "sha256": "52f8312192c58ed0c7163d86b27e951365d3c2da459c4daa319d8ee0d1d8ca57"
-    },
-    {
-      "file": "after-logic-next-sequence-pause.png",
-      "sha256": "5e64cc3c45590c688e66b1dc48192f8f605f79009762815d340c541fc3a10199"
-    },
-    {
-      "file": "after-logic-next-sequence-result.png",
-      "sha256": "cec598fbef2f799a5b5039daf99c547ce0c06e7e44f0afa00bb1ec41edc14551"
-    },
-    {
-      "file": "after-logic-order-path-active.png",
-      "sha256": "f56c42fdb330dcc008ddbd72d2593708acb8a3b033eadb0340cb8baedd1e28b7"
-    },
-    {
-      "file": "after-logic-order-path-feedback.png",
-      "sha256": "f4d33377b59788546a7bc1d125bde699dfba58b0532082c0af9753602e5f4914"
-    },
-    {
-      "file": "after-logic-order-path-pause.png",
-      "sha256": "81bcb58d0386f5e5cd7bddb60e14c29811fcd6f267a89e26ccc9c444937ad489"
-    },
-    {
-      "file": "after-logic-order-path-result.png",
-      "sha256": "2c39c12c274e8ceccf91bbb913d2221af430b8bc39f7dbed57b9cb7a20aeed36"
-    },
-    {
-      "file": "after-logic-rule-grid-active.png",
-      "sha256": "da1ec97beb1d8805687727035f8718863637d06d97305779e84eab14ad6b352a"
-    },
-    {
-      "file": "after-logic-rule-grid-feedback.png",
-      "sha256": "949fdb3aaf15b6b0456ecf41abdbfbadde513d16d4867bbdbb4e32f2672cd3e7"
-    },
-    {
-      "file": "after-logic-rule-grid-pause.png",
-      "sha256": "0c870d2a59710fe204f8d242bb14eb9bef4600b263e85239c3129d6c116d7113"
-    },
-    {
-      "file": "after-logic-rule-grid-result.png",
-      "sha256": "722fd9f740a7b886e229a1fa7e88351892d50a2bb05270b7f11a3bcd40887d2f"
-    },
-    {
-      "file": "after-math-equation-builder-active.png",
-      "sha256": "9fd011c7fdaacd2fac970d821427c6b98e1400ef00c657ff7ff80e61c33750d6"
-    },
-    {
-      "file": "after-math-equation-builder-intro.png",
-      "sha256": "8225964a0aa2ef2874b0deba92a6dc8048167a2809d1663ac7596a5e121874b7"
-    },
-    {
-      "file": "after-math-equation-builder-result.png",
-      "sha256": "bdcab8a62ca20aa63c35707cb2ff1d4c7a90dc4a5ef2ed8bc6aeddfae33885aa"
-    },
-    {
-      "file": "after-math-equation-builder-timeout-waiting.png",
-      "sha256": "ad84b83313c0b8c2add611f0663b88b8c866f24ae57b3b1983e0ffaf0866cd5c"
-    },
-    {
-      "file": "after-math-equation-builder-timeout.png",
-      "sha256": "264d7ffb632b7470bd54a539a677ae83f56e114233c1e62cc135ba78dc572df9"
-    },
-    {
-      "file": "after-math-fast-math-active.png",
-      "sha256": "0d8f30bc7b45e5ae1c38a969b42935629c64847b34be767ab91ea9191ec30afd"
-    },
-    {
-      "file": "after-math-fast-math-pause.png",
-      "sha256": "9d5f9002ebdedbffbf2c674103483169c00a1348e4714a31842359bcdbcb7899"
-    },
-    {
-      "file": "after-math-fast-math-result.png",
-      "sha256": "0221d8b0bb3ad41c78d3777c485b69ca55917f6640f43bf0419d916bdd0d96be"
-    },
-    {
-      "file": "after-math-missing-operator-active.png",
-      "sha256": "84133c6f6663a0c5f9f0d50dc4354c63c743345b0ecdc57e8a3a35eb2ab33ab9"
-    },
-    {
-      "file": "after-math-missing-operator-feedback.png",
-      "sha256": "6cf8bfc315b40740f0eca45358a3bf8fc2ff97b4ab60f6b220213d7368379532"
-    },
-    {
-      "file": "after-math-missing-operator-pause.png",
-      "sha256": "1c451954a91a8c244247178d0d099a410b480f84c04ce2a30e449cf468e5e671"
-    },
-    {
-      "file": "after-math-missing-operator-result.png",
-      "sha256": "7eac8a3cfb7430461eea0bc7dbf633607878392796f8c54c29ef21fa6af4a1af"
-    },
-    {
-      "file": "after-math-number-line-estimation-active.png",
-      "sha256": "fc290383dfe9240d7bffe33fb8e4878d0a1288c31662836cbeaca4c83041cfee"
-    },
-    {
-      "file": "after-math-number-line-estimation-pause.png",
-      "sha256": "2c7da27607d00a88d73fb32f493f58098ebea5250613abd21db9a2ad31827af9"
-    },
-    {
-      "file": "after-math-number-line-estimation-result.png",
-      "sha256": "791aa07c16feab2f27976961833e374020b4527ef63a024834956f0db3067f02"
-    },
-    {
-      "file": "after-math-value-ordering-active.png",
-      "sha256": "ccccb717d4c9d649def603d9ad43dcf30424cb3786b34b73a20e11ce2bf8b2f2"
-    },
-    {
-      "file": "after-math-value-ordering-pause.png",
-      "sha256": "c0724d79b8e714e946158f734e4d13e7674bf094969cf62b313ccb7b8c8d99c8"
-    },
-    {
-      "file": "after-math-value-ordering-result.png",
-      "sha256": "bf57dd66b55756a89d218372af187bf516032129e12827d59c042752ebb51cc3"
-    },
-    {
-      "file": "after-memory-active.png",
-      "sha256": "c94bdf7d20c41eb4db323edd20efdc0247f4513ce864e494dfb050f013fd59b3"
-    },
-    {
-      "file": "after-memory-feedback.png",
-      "sha256": "4aa15a49092116216608e116decd0c6f8c7584a04323d6583748f6b30ea1b6ce"
-    },
-    {
-      "file": "after-memory-grid-recall-active.png",
-      "sha256": "81a05dcf4eb245b98043112f764a661e6c65adfaa29c4e1b701e4588b2f39178"
-    },
-    {
-      "file": "after-memory-grid-recall-feedback.png",
-      "sha256": "42b6582c43762f97a155c44bf9783a9b3b22fa6c868ecfd7de9bd426ace6e633"
-    },
-    {
-      "file": "after-memory-grid-recall-pause.png",
-      "sha256": "2e1145ae0eb726b553e7d5529ea83dd3234213339a322ac1d15ec43f7dbb7d36"
-    },
-    {
-      "file": "after-memory-grid-recall-result.png",
-      "sha256": "fc1c8f80f884a05493a93ff72fabf0efd8393d9f724fca798e3ab8055b798615"
-    },
-    {
-      "file": "after-memory-intro.png",
-      "sha256": "87ba8494dc451d2d6517db87689bf54f91a023a213562f5ea1874f8353d99fce"
-    },
-    {
-      "file": "after-memory-pair-recall-active.png",
-      "sha256": "7158b6298ce07222bbed48d4a7a04c7b7fb6b7801b6ea2a331d6cb03e181b430"
-    },
-    {
-      "file": "after-memory-pair-recall-feedback.png",
-      "sha256": "4386df12495431c0558ef04ced8100ed5d8bceab26e07040cf0ae85b8a27d8c1"
-    },
-    {
-      "file": "after-memory-pair-recall-pause.png",
-      "sha256": "23fa3a835a98fb1c749bdcfaa2a3df954a9f68cad0aa3122b8bc35fbf3570af9"
-    },
-    {
-      "file": "after-memory-pair-recall-result.png",
-      "sha256": "058c98d9ecdcb9bf067cb581ee7002d92d5d3a86fb887f1f35cb0b5d26115492"
-    },
-    {
-      "file": "after-memory-pair-recall-stuck.png",
-      "sha256": "d5d51f35afd40ae12d976763875c8504cdc9b347317c15933bfcd222d0573c72"
-    },
-    {
-      "file": "after-memory-pattern-tap-back-active.png",
-      "sha256": "0378113dacb06303084935a02c0c95256fc5e14071fe80615933c404ad6b39ae"
-    },
-    {
-      "file": "after-memory-pattern-tap-back-feedback.png",
-      "sha256": "4fd6ba4c1c409eec25f25a861ccf5a4edded953c928bca52f5eb4b4302222821"
-    },
-    {
-      "file": "after-memory-pattern-tap-back-pause.png",
-      "sha256": "de3ffbd40723e32dca76d2d759cb2f08d37bb4d82bdbcfc01e81c4b9286e9118"
-    },
-    {
-      "file": "after-memory-pattern-tap-back-result.png",
-      "sha256": "a364592be41733882261887b61d42a681a2f39a40ad77fca0a9ce50e5dc66f6a"
-    },
-    {
-      "file": "after-memory-pause.png",
-      "sha256": "79f1094ff81d8e49d19e2374a24baf5b12b0723d2cb3ee58fa4036f9522a7481"
-    },
-    {
-      "file": "after-memory-prospective-cue-feedback.png",
-      "sha256": "332fa99db77b86ed4f7d40a45343d39c67340a20312bf0680ccf41d3fd6d9855"
-    },
-    {
-      "file": "after-memory-prospective-cue-pause.png",
-      "sha256": "a9424fa2e6cd4b16ac561d66b1a9c7d51502dcfc4c3085c82c6bba2dbd2a1aba"
-    },
-    {
-      "file": "after-memory-prospective-cue-result.png",
-      "sha256": "bfa91d5196174c2072f438f3cb136f6a631348bce69fbb696679f4318c027b47"
-    },
-    {
-      "file": "after-memory-result.png",
-      "sha256": "79b817bb089a59aa45db0cffbd55cf4bcf053dbd84b855c93f8ef05af793b760"
-    },
-    {
-      "file": "after-memory-running-order-active.png",
-      "sha256": "557df55e1b702ab46dba31843207fc5d47a3cb657dd6907ac7837b52b455a093"
-    },
-    {
-      "file": "after-memory-running-order-pause.png",
-      "sha256": "29be1736285675407d6d33ecf1aa36f9b4e4850502b11140318f1b3b1c07afb2"
-    },
-    {
-      "file": "after-memory-running-order-result.png",
-      "sha256": "98850603302c74776bd73b1b45e9f5d5f3332d00d9758344fb9ec96591ba1840"
-    },
-    {
-      "file": "after-memory-running-order-stuck.png",
-      "sha256": "417b463fffcbbdc03a7f95134a6f958d93cc823d008adf6b8009f460e89c06fa"
-    },
-    {
-      "file": "after-memory-sequence-memory-active.png",
-      "sha256": "4af5b9e658e9dc6576140b0b463317f392073be93494c76d405281bd09e27692"
-    },
-    {
-      "file": "after-memory-sequence-memory-feedback.png",
-      "sha256": "3968cf33bbe264ea7c3b4a4c94a7a4371873fb2bfd09e2045f0d76faf43fa323"
-    },
-    {
-      "file": "after-memory-sequence-memory-pause.png",
-      "sha256": "17a961f268fb65d48bcaae8fe049f799f81797768e3f2688ab083f85f6e693c5"
-    },
-    {
-      "file": "after-memory-sequence-memory-result.png",
-      "sha256": "289e0394dea85bff93e986b112989525e94fc024cdee58d6e4084604f01f1829"
-    },
-    {
-      "file": "after-spatial-coordinate-turn-active.png",
-      "sha256": "15a5a05e80d370e54e51e80473a5cdd4cffbd3c112b084bb84422559041a1063"
-    },
-    {
-      "file": "after-spatial-coordinate-turn-feedback.png",
-      "sha256": "93371d004fa278745b4cdf2c3f9ca6324287dc05c99aec45d3ea4289e59b5e92"
-    },
-    {
-      "file": "after-spatial-coordinate-turn-pause.png",
-      "sha256": "5a8a59889195fadf970ae2a7311f40cb03babd8c3b5947ede6c8f522ea009840"
-    },
-    {
-      "file": "after-spatial-coordinate-turn-result.png",
-      "sha256": "4d34cfe9c7692a3d81946ddc12926c1bed1d7539da70685ea097b1ee1da0192d"
-    },
-    {
-      "file": "after-spatial-fold-match-active.png",
-      "sha256": "0ed6c1a80a11953af82c13612283d7fb940f3d6d796d4e05714580212ff4ff96"
-    },
-    {
-      "file": "after-spatial-fold-match-feedback.png",
-      "sha256": "e2f4a1c9113c90255cf9755ff36763d1eeb19c1feb2c23b332d326e5e6f06ab5"
-    },
-    {
-      "file": "after-spatial-fold-match-pause.png",
-      "sha256": "0e18c170faa2e44fe5f3c11a5527308815ac368cf35f6fe82fdf1690db7dfddb"
-    },
-    {
-      "file": "after-spatial-fold-match-result.png",
-      "sha256": "a64c363a045cb824ece640fcb876b714bd783757c8898ee3d93a8ce0d6ea7949"
-    },
-    {
-      "file": "after-spatial-grid-nav-active.png",
-      "sha256": "ed5b791ce07031e56f0d310979071bdb1ce8bbcd54d7a35b7cd953857b9b6d85"
-    },
-    {
-      "file": "after-spatial-grid-nav-pause.png",
-      "sha256": "8cae3893a872993e84138ff9a00db81cd549112902ca04bb67f298710c7f906f"
-    },
-    {
-      "file": "after-spatial-grid-nav-result.png",
-      "sha256": "7f87281dc142259fabe9b40a18657a0a51cf05c2496c3d3add654f45921836c9"
-    },
-    {
-      "file": "after-spatial-mental-rotation-active.png",
-      "sha256": "f61f7ff8c37b0d275247b5cf83f6a7e809726a797d1618f93ffcced365a3dec4"
-    },
-    {
-      "file": "after-spatial-mental-rotation-feedback.png",
-      "sha256": "1933f100ccfc50e6fd278c2bf4002f9dab75cc7a29718ecc1daca1ffbccb70b3"
-    },
-    {
-      "file": "after-spatial-mental-rotation-pause.png",
-      "sha256": "b117f9ed09458e76edc89a0dad4b65340e30233a58315a32abddda3e38444057"
-    },
-    {
-      "file": "after-spatial-mental-rotation-result.png",
-      "sha256": "d9b4ec865fb12533c2e9c4975e60ef110f92ff31a4347ac3b29093859c8e32a0"
-    },
-    {
-      "file": "after-spatial-transform-match-active.png",
-      "sha256": "4dee806f6a0afc752a39bf74342f3c1d616d5be3ff4a0e96016a26443dfb41c4"
-    },
-    {
-      "file": "after-spatial-transform-match-feedback.png",
-      "sha256": "5bb5c22a7f2ec38c916e9579ca9c2d8543f7ccea8c807af817ea9c2c1e417b91"
-    },
-    {
-      "file": "after-spatial-transform-match-pause.png",
-      "sha256": "4dad970598722f8190392d7a5b95b33842f4a8b0c48eb7e0b62f2a53a79b3aed"
-    },
-    {
-      "file": "after-spatial-transform-match-result.png",
-      "sha256": "1da0ce708611eb1147bce2cb69b9a373e0c8ef7606b468ca2ac9737303373764"
-    },
-    {
-      "file": "after-spatial-transform-match-stuck.png",
-      "sha256": "291576872a9d1645297c23fcdb97677fe72c068e4246a161078daae0086bf2e4"
-    },
-    {
-      "file": "after-spatial-transform-match-stuck2.png",
-      "sha256": "7fadd5e03b46c2dff465854f23170c40e2dff9a87924625af1beead5d02d9b77"
-    },
-    {
-      "file": "after-spatial-transform-match-stuck3.png",
-      "sha256": "78990d3e6f15d1ffe4cdb4bca006952a4ab73426c76cb3441694c409ea0f76a6"
-    },
-    {
-      "file": "after-speed-color-match-active.png",
-      "sha256": "e3feff47155ce11cd2aad298f9079c7aed4aeda07b2de4b7c4a6c28342e385a8"
-    },
-    {
-      "file": "after-speed-color-match-feedback.png",
-      "sha256": "6d1f220b0775752e0943d1af5db6aba8b55f1d7419ea8b5a85148fab273938cd"
-    },
-    {
-      "file": "after-speed-color-match-pause.png",
-      "sha256": "dff71f6d4a650723d4acf3b774a43f952d8f4f080d24b10211d5efad94747162"
-    },
-    {
-      "file": "after-speed-color-match-result.png",
-      "sha256": "b840164adbe86f414db29998d935b6820f4d793d1af0b5a88499e5697391002b"
-    },
-    {
-      "file": "after-speed-order-sweep-active.png",
-      "sha256": "df9e77fb2b80e12ef85c24e93bc471bb1359313146917c9d67b3f0c8559d6bc8"
-    },
-    {
-      "file": "after-speed-order-sweep-feedback.png",
-      "sha256": "4507ca001c03b7e9e23e513e23b4323e502ba83df1615a0003af8aa590a0aae4"
-    },
-    {
-      "file": "after-speed-order-sweep-pause.png",
-      "sha256": "bf6cfc2d98b1bb3dcbfedae88b9bd97dcaa02d69b2948b17e56e57475fd43a1b"
-    },
-    {
-      "file": "after-speed-order-sweep-result.png",
-      "sha256": "0e2366b673771b6aec5a5175f6f57e47cff9f4afc1684582eff512fd5fca7267"
-    },
-    {
-      "file": "after-speed-quick-compare-feedback.png",
-      "sha256": "a0ac14653b5498f816747a4afcae26e15da0c6453fb496128a728564f97ec4e7"
-    },
-    {
-      "file": "after-speed-quick-compare-pause.png",
-      "sha256": "a59af9fe3873ab929fd6fbda1c50a57bbbee4b7c7a67a805a2f3969a1bf9fa7f"
-    },
-    {
-      "file": "after-speed-quick-compare-result.png",
-      "sha256": "36915c5c05c76b8cf4b5bb56a6406a9fdf73a03ac78f81b0b1858a78c48a6f1b"
-    },
-    {
-      "file": "after-speed-reaction-time-active.png",
-      "sha256": "6648644b0304b2b12bf258fa0aa2d7d3e8fe0622873c663b2395597ce1ad8701"
-    },
-    {
-      "file": "after-speed-reaction-time-feedback.png",
-      "sha256": "6e8581bd370369fc7d254c895baedf0959f56843857ffc70803b9f0846548097"
-    },
-    {
-      "file": "after-speed-reaction-time-pause.png",
-      "sha256": "791d46a6cc856fed0a01c221cacb7b911bb0226be659cc99e17cce8c6a305207"
-    },
-    {
-      "file": "after-speed-reaction-time-result.png",
-      "sha256": "2c65f4084f11fc9337205f697ecf9463c871fe2a47f0e16d9871a3dff829d818"
-    },
-    {
-      "file": "after-speed-tap-rush-active.png",
-      "sha256": "4cb507862b10b151d627671cd2b60de2094bf8da24e3f373a1d6bd730715c4f6"
-    },
-    {
-      "file": "after-speed-tap-rush-pause.png",
-      "sha256": "98d1628b88c9abad0d88a4635e70ce1e5cca285f576ff6ebcd63dec47247baaf"
-    },
-    {
-      "file": "after-speed-tap-rush-result.png",
-      "sha256": "ae41d3106484a65a810acb9dc2f7535df82587985a3bfdf11c3c9b2dbc4f94e6"
-    },
-    {
-      "file": "after-workout-complete-summary.png",
-      "sha256": "6451344b75cb387d1e208cdc491585b0148e3847d5d80f2d4585ffede027386f"
-    },
-    {
-      "file": "after-workout-leg2-intro.png",
-      "sha256": "2ac51cc8d80442d272bc45317f9d08e488347bbb0aaaf60aea29cbfaa1b1d459"
-    },
-    {
-      "file": "after-workout-leg2-language-word-chain-active.png",
-      "sha256": "733532a886611d8da2bf93cb6cae5f5c25fc9c958d4dd3c8d5ca50e4d3667bd2"
-    },
-    {
-      "file": "after-workout-leg2-language-word-chain-pause.png",
-      "sha256": "e6de2d31d1fa4a04ae0baace2673c47c69af7b6a1e0ae5b86eaa3d895ccd922a"
-    },
-    {
-      "file": "after-workout-leg2-language-word-chain-result.png",
-      "sha256": "e7416bb37661c05b841695b9641ec3b7e053ba4842ddec6dd80bb088175b1341"
-    },
-    {
-      "file": "after-workout-leg3-flexibility-cue-shift-active.png",
-      "sha256": "a9edeb525aa3069b92c8fc768c27fd36ecd50c3f2f8499ecb3a6f1108880d333"
-    },
-    {
-      "file": "after-workout-leg3-flexibility-cue-shift-feedback.png",
-      "sha256": "823c95324dfa24f5641b0ba6dbdfd123b4d80923de293c23c1ba1d3aedccf135"
-    },
-    {
-      "file": "after-workout-leg3-flexibility-cue-shift-pause.png",
-      "sha256": "b86acaba5de66fb20bfda0b48761500c8596ce756e15e35e94a042fe26ed71f0"
-    },
-    {
-      "file": "after-workout-leg3-flexibility-cue-shift-result.png",
-      "sha256": "05ba75021617fecad8177bd5b6280074cf336226625daf4c334dbbcbb7654b79"
-    },
-    {
-      "file": "after-workout-leg3-intro.png",
-      "sha256": "9e647fdd08d60f797b645ebb920ba3c0bd812cbbf9797ffedca517dd4f0b5fba"
-    },
-    {
-      "file": "after-workout-leg4-attention-target-count-active.png",
-      "sha256": "d92c2598bec702c0ef631dbeb1efe15db8509373d137f7b6098bcddeeb0802a8"
-    },
-    {
-      "file": "after-workout-leg4-attention-target-count-pause.png",
-      "sha256": "621324ade906dea19ba068668df59a2c1e1cc6aea2f83a627b5a4e40e6a40426"
-    },
-    {
-      "file": "after-workout-leg4-attention-target-count-result.png",
-      "sha256": "a38dd1978ac8baadf1cf86d5e08d0c423fb96c6401f843b8e039d98e7b20de48"
-    },
-    {
-      "file": "after-workout-leg4-intro.png",
-      "sha256": "68fc1e2385d0fa220afa31d21b564b9ecb0f61e878eb4be932cbc380d9f542c7"
-    }
-  ],
-  "excluded": [
-    { "file": "rejected/after-attention-odd-one-out-feedback.png", "sha256": "a32dd23c489e6ec328f9f7cbe90cdc29c66910ac81852cf8e710cfeed0cce7fe", "reason": "Active option board; no feedback." },
-    { "file": "rejected/after-attention-sustained-vigilance-feedback.png", "sha256": "e9191cf69da2ecac01f92ea6b7b121ae874b8bf2e885863de21bbb7cf5b28d58", "reason": "Already at saved result; no in-round feedback." },
-    { "file": "rejected/after-attention-symbol-tracker-feedback.png", "sha256": "c2549d850a0a6a1ab381196050d12c6b1bdbebec4e843e4845e72986b6e3c7c4", "reason": "Selected board before Check answer; no feedback." },
-    { "file": "rejected/after-attention-visual-search-feedback.png", "sha256": "bb3026916785b06e1d3e02fea9bd51f9b6820317b11e23fbc39a473ec6873508", "reason": "Active search board; no feedback." },
-    { "file": "rejected/after-flexibility-color-stroop-active.png", "sha256": "be99eb28c09515c5fbfd41bdadeef3642f9f9aa42c2a6c12735a897e328e1c3d", "reason": "Time's up feedback, not active play." },
-    { "file": "rejected/after-flexibility-task-switch-feedback.png", "sha256": "70f5ec8895b17851a1542214d8995f757fc26028412c37275092df31a212612a", "reason": "Active parity board; no feedback." },
-    { "file": "rejected/after-language-word-chain-feedback.png", "sha256": "8d5ca77d9cceba71d86cf3df0ee40ff175e4263cc0a94e37273b4c16d31a47e0", "reason": "Active word selection; no feedback." },
-    { "file": "rejected/after-language-word-scramble-feedback.png", "sha256": "2dbe322224efe54a835e945974305966b089c8549d908d9aaadeb03861e22a31", "reason": "Choice selected but not submitted; no feedback." },
-    { "file": "rejected/after-logic-code-cracker-active.png", "sha256": "112b04a9c68adf7c8e8e623c5eb92d1fe14fd33d087cd0a103d142d7c57fd09a", "reason": "Get-ready screen, not active guessing. A real active frame was reclassified from the mislabeled feedback capture." },
-    { "file": "rejected/after-math-fast-math-feedback.png", "sha256": "022e62d57d9e078ef91df368350794bd48c74e58fea68fe8aa71d47c60327d12", "reason": "Active answer keypad; no feedback." },
-    { "file": "rejected/after-math-number-line-estimation-feedback.png", "sha256": "d3a8dc318a5aff8a47ce1a7c5254986d6b78d74f0bd501dea602f2d5ab4feaa9", "reason": "Unanswered active number line; no feedback." },
-    { "file": "rejected/after-math-value-ordering-feedback.png", "sha256": "b10e7d3b762518b4fe8cc5d112c0bc946fad99e345de962d9b0c8b6ba357ef0a", "reason": "Active ordering board; no feedback." },
-    { "file": "rejected/after-memory-prospective-cue-active.png", "sha256": "1dc71d1b08e5200833285fc48c401256bc2aae3bd3a51a61600f81638442d82e", "reason": "Pre-stream Start screen, not active detection." },
-    { "file": "rejected/after-memory-running-order-feedback.png", "sha256": "0ff750769239f951d9cd3d1cf7c2b2f3853cebf684f42c06bd7de6efc2ea987d", "reason": "Unanswered recall board; no feedback." },
-    { "file": "rejected/after-spatial-grid-nav-feedback.png", "sha256": "6aa24e99a74f97a4d6f2762ad877e97e61a7ff09f8ae888fc4906e6343e77aaa", "reason": "Active grid/instructions before answer; no feedback." },
-    { "file": "rejected/after-speed-quick-compare-active.png", "sha256": "fe6afd0eceb229bd2188dc223bea7da91a6b23ee42e95a1244e1d5ce544f2d09", "reason": "Timed-out Too slow feedback, not active response." }
-  ],
-  "reclassified": [
-    { "file": "after-logic-code-cracker-active.png", "from": "after-logic-code-cracker-feedback.png", "reason": "Captured guessing controls; no submitted feedback." }
-  ]
+ "build": "Historical game-play/review-fix APKs (mixed captures; no per-file APK binding) plus 22 final-build gap-state frames bound to APK SHA-256 b2913bca9149eee752704b2529a1ddf13c877b26290b5d576d1be42355fe5d31 (source 4a6fc5349c334b4324e4ea02421ebd06d87c5f64), visually reviewed individually.",
+ "count": 194,
+ "images": [
+  {
+   "file": "after-attention-odd-one-out-active.png",
+   "sha256": "dbb66df15a47a28b3497d48e35a04c3cc2a2d0712ec7f9bd105cf9734457f582"
+  },
+  {
+   "file": "after-attention-odd-one-out-pause.png",
+   "sha256": "d30595bee6ee921d13706df7fd810dbae5533e795674b1c3132b9aa9d9db3ce2"
+  },
+  {
+   "file": "after-attention-odd-one-out-result.png",
+   "sha256": "f723b999daa5c74189eab46ad69eefc1e382a7f1dca2785cff2fd82aaeac12f3"
+  },
+  {
+   "file": "after-attention-sustained-vigilance-active.png",
+   "sha256": "7affcc1431e34cfbceeb7ed74bf28784489fc0335d19a72503cccec24c0fe457"
+  },
+  {
+   "file": "after-attention-sustained-vigilance-result.png",
+   "sha256": "bc1ce67cb86ab072259c08e622545056d9a8efd9c0059e64d605a96762d59378"
+  },
+  {
+   "file": "after-attention-symbol-tracker-active.png",
+   "sha256": "ca653e4a6efef6d70cf0bf1a0e625da74a342a5e1310a5ee0191a443c2f56419"
+  },
+  {
+   "file": "after-attention-symbol-tracker-pause.png",
+   "sha256": "05324031eabceba63d86ac1d5ef68c35e00a237f7ec97b9528c1e83c91eccd91"
+  },
+  {
+   "file": "after-attention-symbol-tracker-result.png",
+   "sha256": "8dd5c6b740a4337776c40535245eeaa84e1dcee66edac8b193362be678411eec"
+  },
+  {
+   "file": "after-attention-target-count-active.png",
+   "sha256": "0c5146c3d0d577b1cc01df8cfae98e0cbd36c566b5193ea39e4894be82033c99"
+  },
+  {
+   "file": "after-attention-target-count-feedback.png",
+   "sha256": "d41d92ff04e21d6b987fb0035755bb634eab914006385967c342a73eee1e15c2"
+  },
+  {
+   "file": "after-attention-target-count-pause.png",
+   "sha256": "b5a27a10904c58f7728b32b7b8e62083601becef686602cdff23b6ba4b62e96b"
+  },
+  {
+   "file": "after-attention-target-count-result.png",
+   "sha256": "ae65173ad85f518013fb1d14e0a5a8a308e4f76fbe54a81b7570bad9905c02d1"
+  },
+  {
+   "file": "after-attention-visual-search-active.png",
+   "sha256": "0d206b54f43013b43ec3c07f077a8a3bd89cebd979d062482df09ad146dc989d"
+  },
+  {
+   "file": "after-attention-visual-search-pause.png",
+   "sha256": "e094bf71ee582c7b783acccd6827c63ad95ddc13f38c134d00933c0a3c0151a7"
+  },
+  {
+   "file": "after-attention-visual-search-result.png",
+   "sha256": "0bbc7d4c9991e11dea2ca2bd5673691fb4ad294da85317d6c5993282d9645846"
+  },
+  {
+   "file": "after-flexibility-card-sort-active.png",
+   "sha256": "64605ebe3b4bcb72a9a76d6f904a326a5c207b135b0d8065a3a0b4483f5a3852"
+  },
+  {
+   "file": "after-flexibility-card-sort-feedback.png",
+   "sha256": "7a327a68a52f02797c15ef343a97b5b64184447b8d9662654aca57a89e0c7c78"
+  },
+  {
+   "file": "after-flexibility-card-sort-pause.png",
+   "sha256": "9c27f5f1a54d8ff7f66c98fb65bf2b9d98c14af116cc592b46b8ba692f8b4341"
+  },
+  {
+   "file": "after-flexibility-card-sort-result.png",
+   "sha256": "0485632db05a4334ce19fb5afda8001e7e167d5e07dcde0dd960a7d0e39f7d2a"
+  },
+  {
+   "file": "after-flexibility-color-stroop-feedback.png",
+   "sha256": "ebc504c65d5aa43a127d0b50863925c5372268f3acf15d441347c8f72fe7eb84"
+  },
+  {
+   "file": "after-flexibility-color-stroop-pause.png",
+   "sha256": "61158380ad5160d90322a9a30bc37b6896f1ba7f01c4fd8b8f3069cb0fd74d08"
+  },
+  {
+   "file": "after-flexibility-color-stroop-result.png",
+   "sha256": "0f6edab1916ea4abf63347532f6c4dda30f33e1d853e676ea14b747eec98093a"
+  },
+  {
+   "file": "after-flexibility-cue-shift-active.png",
+   "sha256": "f91c4c6c57769b4330864ff9af412a9dc9cdfd8b722ac98d5e6596ae920e918a"
+  },
+  {
+   "file": "after-flexibility-cue-shift-feedback.png",
+   "sha256": "b3d93ed5619713f0a52a8a72dc8f8d91a568da2d92a007b221b1a8f99f704d34"
+  },
+  {
+   "file": "after-flexibility-cue-shift-pause.png",
+   "sha256": "3ddfd632d99571bee6c26cd09ccb3216a64dcae98d088b0c1494f51eda9eab64"
+  },
+  {
+   "file": "after-flexibility-cue-shift-result.png",
+   "sha256": "ef9b70d6da8cfd658ab8b1696b78b9f6c25e88456feeeadb6371dcf4fe0d4ea6"
+  },
+  {
+   "file": "after-flexibility-rule-flip-active.png",
+   "sha256": "91360e95925537998414aa7f893d4a4739ff7954278624d96460e189264e9e09"
+  },
+  {
+   "file": "after-flexibility-rule-flip-feedback.png",
+   "sha256": "7bc68b9dcbf14612983e3f0ca890a6e93359c4f17466e85245630d8de460a8eb"
+  },
+  {
+   "file": "after-flexibility-rule-flip-pause.png",
+   "sha256": "6d82c2491dda0c45277ee4fb05eb7d12fe6e01c574f9bc68dcc9e4134030ac03"
+  },
+  {
+   "file": "after-flexibility-rule-flip-result.png",
+   "sha256": "86b70c1e4b5f8d358ef7dd994354dd791b7e65f4e7b29a4b56ef2e0d01ff43f0"
+  },
+  {
+   "file": "after-flexibility-task-switch-active.png",
+   "sha256": "531520dd903d9e61be2661eeddd78a862f350eba79247c1ef2cae057b217921c"
+  },
+  {
+   "file": "after-flexibility-task-switch-pause.png",
+   "sha256": "87365f3a70a4f9b2fa8f8a80776e70c2e1ceb594f5dee5051b7d542bfaba557c"
+  },
+  {
+   "file": "after-flexibility-task-switch-result.png",
+   "sha256": "8cb119e0ec01f07e31dd5a52ddfe8e17183f8f20e241e057f53d9bdcb269e77f"
+  },
+  {
+   "file": "after-home-workout-complete.png",
+   "sha256": "6451344b75cb387d1e208cdc491585b0148e3847d5d80f2d4585ffede027386f"
+  },
+  {
+   "file": "after-home-workout-resume.png",
+   "sha256": "2b304542a2f2e11021554c6766a41902316f25e4759045a21bef7ff2d7be56d7"
+  },
+  {
+   "file": "after-language-context-fit-active.png",
+   "sha256": "3727599edd35906bf64bbe42f2ec9e18e518c0c3d73d46696038f24d6d003c4d"
+  },
+  {
+   "file": "after-language-context-fit-feedback.png",
+   "sha256": "f205c6eb299906336238a074d8b27903f9433fca9ec7288fe21a605f4a07ad33"
+  },
+  {
+   "file": "after-language-context-fit-result.png",
+   "sha256": "d08337dafffa5234bc1f168c9ff780eca900555930c482d713cf201d0f3fdc4b"
+  },
+  {
+   "file": "after-language-sentence-builder-active.png",
+   "sha256": "2f1ade4c14afa624fe16425afb6e6cd14626394e768f9e7f4504bf128bc26d12"
+  },
+  {
+   "file": "after-language-sentence-builder-feedback.png",
+   "sha256": "d084d9dea7d01a9c301705b65a2d7599630b9b0e17527247f1d07decfb93db08"
+  },
+  {
+   "file": "after-language-sentence-builder-pause.png",
+   "sha256": "de559b375c9216b2e1d9a1ceb7a34b055e1bfe0662999a5a7f30357ad6b1e0ab"
+  },
+  {
+   "file": "after-language-sentence-builder-result.png",
+   "sha256": "74a7d35481ae1bf54265aed5c66b3be0981287d8c7e6cb1c830eb76ba0d121b3"
+  },
+  {
+   "file": "after-language-word-chain-active.png",
+   "sha256": "c88ba5388260486eb88361511fdcffe78a0f3762a7cb6a2ef6f7b7491a8811cf"
+  },
+  {
+   "file": "after-language-word-chain-pause.png",
+   "sha256": "fe887a7a04f2debb3bb90be429274c1e09a93e7c448f59bc841ac01e90588115"
+  },
+  {
+   "file": "after-language-word-chain-result.png",
+   "sha256": "bd89ab69c65b1c81760e23f0b2cd067c9b80d728e4db77b5ca21cbf702d38311"
+  },
+  {
+   "file": "after-language-word-match-active.png",
+   "sha256": "407a94791399a85cacd000881bb21a9d4a4db5193b69aac574a0c173247431e2"
+  },
+  {
+   "file": "after-language-word-match-feedback.png",
+   "sha256": "60e6206179d5a54526cf476aa75135ae8c53bbc812281347e05597624a532020"
+  },
+  {
+   "file": "after-language-word-match-result.png",
+   "sha256": "150090658933d00f509c468e6fdaa7e3941612af2a44e6df0277280837f1a4e5"
+  },
+  {
+   "file": "after-language-word-scramble-active.png",
+   "sha256": "62764b0f940ffdb3b27de840b43d7d3af881305d7c8543ac84838a8246df791f"
+  },
+  {
+   "file": "after-language-word-scramble-pause.png",
+   "sha256": "b8c78bb9d65156f80b21962242f7f7cea1e9c9eaf1fa0beda3afd9738cdb570e"
+  },
+  {
+   "file": "after-language-word-scramble-result.png",
+   "sha256": "d08ff835724e829c0303e5c6da245514a2d3c848d627e8a4ccf93b5e4d7a2879"
+  },
+  {
+   "file": "after-logic-code-cracker-active.png",
+   "sha256": "351a7a791dbb2ae0b9cbc740ea0bffe5ad6da2e1e86760a247b0833d7b0f2d8a"
+  },
+  {
+   "file": "after-logic-code-cracker-pause.png",
+   "sha256": "17a76703eced6daec821ad47a8b4921c5ff4a7b977bbaabf8c2ed6408873e3ff"
+  },
+  {
+   "file": "after-logic-code-cracker-result.png",
+   "sha256": "0e31fb09432a43915e78f0c9d52f83fcf4c61c85dd0c4aeb82ed90b121efd7f1"
+  },
+  {
+   "file": "after-logic-code-cracker-stuck.png",
+   "sha256": "c49795cdbe33868386b044263852c558fa901c44af1babf15f5047716ae47749"
+  },
+  {
+   "file": "after-logic-deduction-table-active.png",
+   "sha256": "8af941893b85df7852175904ee814801aa77b6e6dc58292855e980f27c89107c"
+  },
+  {
+   "file": "after-logic-deduction-table-feedback.png",
+   "sha256": "b2d771db2353e667278d7d16fc21a9e3417125edd1d99db645f2b1a6da22fa7f"
+  },
+  {
+   "file": "after-logic-deduction-table-pause.png",
+   "sha256": "ccaeeaaa6adc52e0d49d15810658ba36688046e75526276c1153a6d3c1270995"
+  },
+  {
+   "file": "after-logic-deduction-table-result.png",
+   "sha256": "1fa14b7f3996fe38b7f72d24f900f3ac9bcd508c978520d90c6a44e58a398593"
+  },
+  {
+   "file": "after-logic-next-sequence-active.png",
+   "sha256": "6bd0c84edfbd236701780ac5c12bf2edc1f8e12b050076a44d086497d29f66bf"
+  },
+  {
+   "file": "after-logic-next-sequence-feedback.png",
+   "sha256": "52f8312192c58ed0c7163d86b27e951365d3c2da459c4daa319d8ee0d1d8ca57"
+  },
+  {
+   "file": "after-logic-next-sequence-pause.png",
+   "sha256": "5e64cc3c45590c688e66b1dc48192f8f605f79009762815d340c541fc3a10199"
+  },
+  {
+   "file": "after-logic-next-sequence-result.png",
+   "sha256": "cec598fbef2f799a5b5039daf99c547ce0c06e7e44f0afa00bb1ec41edc14551"
+  },
+  {
+   "file": "after-logic-order-path-active.png",
+   "sha256": "f56c42fdb330dcc008ddbd72d2593708acb8a3b033eadb0340cb8baedd1e28b7"
+  },
+  {
+   "file": "after-logic-order-path-feedback.png",
+   "sha256": "f4d33377b59788546a7bc1d125bde699dfba58b0532082c0af9753602e5f4914"
+  },
+  {
+   "file": "after-logic-order-path-pause.png",
+   "sha256": "81bcb58d0386f5e5cd7bddb60e14c29811fcd6f267a89e26ccc9c444937ad489"
+  },
+  {
+   "file": "after-logic-order-path-result.png",
+   "sha256": "2c39c12c274e8ceccf91bbb913d2221af430b8bc39f7dbed57b9cb7a20aeed36"
+  },
+  {
+   "file": "after-logic-rule-grid-active.png",
+   "sha256": "da1ec97beb1d8805687727035f8718863637d06d97305779e84eab14ad6b352a"
+  },
+  {
+   "file": "after-logic-rule-grid-feedback.png",
+   "sha256": "949fdb3aaf15b6b0456ecf41abdbfbadde513d16d4867bbdbb4e32f2672cd3e7"
+  },
+  {
+   "file": "after-logic-rule-grid-pause.png",
+   "sha256": "0c870d2a59710fe204f8d242bb14eb9bef4600b263e85239c3129d6c116d7113"
+  },
+  {
+   "file": "after-logic-rule-grid-result.png",
+   "sha256": "722fd9f740a7b886e229a1fa7e88351892d50a2bb05270b7f11a3bcd40887d2f"
+  },
+  {
+   "file": "after-math-equation-builder-active.png",
+   "sha256": "9fd011c7fdaacd2fac970d821427c6b98e1400ef00c657ff7ff80e61c33750d6"
+  },
+  {
+   "file": "after-math-equation-builder-intro.png",
+   "sha256": "8225964a0aa2ef2874b0deba92a6dc8048167a2809d1663ac7596a5e121874b7"
+  },
+  {
+   "file": "after-math-equation-builder-result.png",
+   "sha256": "bdcab8a62ca20aa63c35707cb2ff1d4c7a90dc4a5ef2ed8bc6aeddfae33885aa"
+  },
+  {
+   "file": "after-math-equation-builder-timeout-waiting.png",
+   "sha256": "ad84b83313c0b8c2add611f0663b88b8c866f24ae57b3b1983e0ffaf0866cd5c"
+  },
+  {
+   "file": "after-math-equation-builder-timeout.png",
+   "sha256": "264d7ffb632b7470bd54a539a677ae83f56e114233c1e62cc135ba78dc572df9"
+  },
+  {
+   "file": "after-math-fast-math-active.png",
+   "sha256": "0d8f30bc7b45e5ae1c38a969b42935629c64847b34be767ab91ea9191ec30afd"
+  },
+  {
+   "file": "after-math-fast-math-pause.png",
+   "sha256": "9d5f9002ebdedbffbf2c674103483169c00a1348e4714a31842359bcdbcb7899"
+  },
+  {
+   "file": "after-math-fast-math-result.png",
+   "sha256": "0221d8b0bb3ad41c78d3777c485b69ca55917f6640f43bf0419d916bdd0d96be"
+  },
+  {
+   "file": "after-math-missing-operator-active.png",
+   "sha256": "84133c6f6663a0c5f9f0d50dc4354c63c743345b0ecdc57e8a3a35eb2ab33ab9"
+  },
+  {
+   "file": "after-math-missing-operator-feedback.png",
+   "sha256": "6cf8bfc315b40740f0eca45358a3bf8fc2ff97b4ab60f6b220213d7368379532"
+  },
+  {
+   "file": "after-math-missing-operator-pause.png",
+   "sha256": "1c451954a91a8c244247178d0d099a410b480f84c04ce2a30e449cf468e5e671"
+  },
+  {
+   "file": "after-math-missing-operator-result.png",
+   "sha256": "7eac8a3cfb7430461eea0bc7dbf633607878392796f8c54c29ef21fa6af4a1af"
+  },
+  {
+   "file": "after-math-number-line-estimation-active.png",
+   "sha256": "fc290383dfe9240d7bffe33fb8e4878d0a1288c31662836cbeaca4c83041cfee"
+  },
+  {
+   "file": "after-math-number-line-estimation-pause.png",
+   "sha256": "2c7da27607d00a88d73fb32f493f58098ebea5250613abd21db9a2ad31827af9"
+  },
+  {
+   "file": "after-math-number-line-estimation-result.png",
+   "sha256": "791aa07c16feab2f27976961833e374020b4527ef63a024834956f0db3067f02"
+  },
+  {
+   "file": "after-math-value-ordering-active.png",
+   "sha256": "ccccb717d4c9d649def603d9ad43dcf30424cb3786b34b73a20e11ce2bf8b2f2"
+  },
+  {
+   "file": "after-math-value-ordering-pause.png",
+   "sha256": "c0724d79b8e714e946158f734e4d13e7674bf094969cf62b313ccb7b8c8d99c8"
+  },
+  {
+   "file": "after-math-value-ordering-result.png",
+   "sha256": "bf57dd66b55756a89d218372af187bf516032129e12827d59c042752ebb51cc3"
+  },
+  {
+   "file": "after-memory-active.png",
+   "sha256": "c94bdf7d20c41eb4db323edd20efdc0247f4513ce864e494dfb050f013fd59b3"
+  },
+  {
+   "file": "after-memory-feedback.png",
+   "sha256": "4aa15a49092116216608e116decd0c6f8c7584a04323d6583748f6b30ea1b6ce"
+  },
+  {
+   "file": "after-memory-grid-recall-active.png",
+   "sha256": "81a05dcf4eb245b98043112f764a661e6c65adfaa29c4e1b701e4588b2f39178"
+  },
+  {
+   "file": "after-memory-grid-recall-feedback.png",
+   "sha256": "42b6582c43762f97a155c44bf9783a9b3b22fa6c868ecfd7de9bd426ace6e633"
+  },
+  {
+   "file": "after-memory-grid-recall-pause.png",
+   "sha256": "2e1145ae0eb726b553e7d5529ea83dd3234213339a322ac1d15ec43f7dbb7d36"
+  },
+  {
+   "file": "after-memory-grid-recall-result.png",
+   "sha256": "fc1c8f80f884a05493a93ff72fabf0efd8393d9f724fca798e3ab8055b798615"
+  },
+  {
+   "file": "after-memory-intro.png",
+   "sha256": "87ba8494dc451d2d6517db87689bf54f91a023a213562f5ea1874f8353d99fce"
+  },
+  {
+   "file": "after-memory-pair-recall-active.png",
+   "sha256": "7158b6298ce07222bbed48d4a7a04c7b7fb6b7801b6ea2a331d6cb03e181b430"
+  },
+  {
+   "file": "after-memory-pair-recall-feedback.png",
+   "sha256": "4386df12495431c0558ef04ced8100ed5d8bceab26e07040cf0ae85b8a27d8c1"
+  },
+  {
+   "file": "after-memory-pair-recall-pause.png",
+   "sha256": "23fa3a835a98fb1c749bdcfaa2a3df954a9f68cad0aa3122b8bc35fbf3570af9"
+  },
+  {
+   "file": "after-memory-pair-recall-result.png",
+   "sha256": "058c98d9ecdcb9bf067cb581ee7002d92d5d3a86fb887f1f35cb0b5d26115492"
+  },
+  {
+   "file": "after-memory-pair-recall-stuck.png",
+   "sha256": "d5d51f35afd40ae12d976763875c8504cdc9b347317c15933bfcd222d0573c72"
+  },
+  {
+   "file": "after-memory-pattern-tap-back-active.png",
+   "sha256": "0378113dacb06303084935a02c0c95256fc5e14071fe80615933c404ad6b39ae"
+  },
+  {
+   "file": "after-memory-pattern-tap-back-feedback.png",
+   "sha256": "4fd6ba4c1c409eec25f25a861ccf5a4edded953c928bca52f5eb4b4302222821"
+  },
+  {
+   "file": "after-memory-pattern-tap-back-pause.png",
+   "sha256": "de3ffbd40723e32dca76d2d759cb2f08d37bb4d82bdbcfc01e81c4b9286e9118"
+  },
+  {
+   "file": "after-memory-pattern-tap-back-result.png",
+   "sha256": "a364592be41733882261887b61d42a681a2f39a40ad77fca0a9ce50e5dc66f6a"
+  },
+  {
+   "file": "after-memory-pause.png",
+   "sha256": "79f1094ff81d8e49d19e2374a24baf5b12b0723d2cb3ee58fa4036f9522a7481"
+  },
+  {
+   "file": "after-memory-prospective-cue-feedback.png",
+   "sha256": "332fa99db77b86ed4f7d40a45343d39c67340a20312bf0680ccf41d3fd6d9855"
+  },
+  {
+   "file": "after-memory-prospective-cue-pause.png",
+   "sha256": "a9424fa2e6cd4b16ac561d66b1a9c7d51502dcfc4c3085c82c6bba2dbd2a1aba"
+  },
+  {
+   "file": "after-memory-prospective-cue-result.png",
+   "sha256": "bfa91d5196174c2072f438f3cb136f6a631348bce69fbb696679f4318c027b47"
+  },
+  {
+   "file": "after-memory-result.png",
+   "sha256": "79b817bb089a59aa45db0cffbd55cf4bcf053dbd84b855c93f8ef05af793b760"
+  },
+  {
+   "file": "after-memory-running-order-active.png",
+   "sha256": "557df55e1b702ab46dba31843207fc5d47a3cb657dd6907ac7837b52b455a093"
+  },
+  {
+   "file": "after-memory-running-order-pause.png",
+   "sha256": "29be1736285675407d6d33ecf1aa36f9b4e4850502b11140318f1b3b1c07afb2"
+  },
+  {
+   "file": "after-memory-running-order-result.png",
+   "sha256": "98850603302c74776bd73b1b45e9f5d5f3332d00d9758344fb9ec96591ba1840"
+  },
+  {
+   "file": "after-memory-running-order-stuck.png",
+   "sha256": "417b463fffcbbdc03a7f95134a6f958d93cc823d008adf6b8009f460e89c06fa"
+  },
+  {
+   "file": "after-memory-sequence-memory-active.png",
+   "sha256": "4af5b9e658e9dc6576140b0b463317f392073be93494c76d405281bd09e27692"
+  },
+  {
+   "file": "after-memory-sequence-memory-feedback.png",
+   "sha256": "3968cf33bbe264ea7c3b4a4c94a7a4371873fb2bfd09e2045f0d76faf43fa323"
+  },
+  {
+   "file": "after-memory-sequence-memory-pause.png",
+   "sha256": "17a961f268fb65d48bcaae8fe049f799f81797768e3f2688ab083f85f6e693c5"
+  },
+  {
+   "file": "after-memory-sequence-memory-result.png",
+   "sha256": "289e0394dea85bff93e986b112989525e94fc024cdee58d6e4084604f01f1829"
+  },
+  {
+   "file": "after-spatial-coordinate-turn-active.png",
+   "sha256": "15a5a05e80d370e54e51e80473a5cdd4cffbd3c112b084bb84422559041a1063"
+  },
+  {
+   "file": "after-spatial-coordinate-turn-feedback.png",
+   "sha256": "93371d004fa278745b4cdf2c3f9ca6324287dc05c99aec45d3ea4289e59b5e92"
+  },
+  {
+   "file": "after-spatial-coordinate-turn-pause.png",
+   "sha256": "5a8a59889195fadf970ae2a7311f40cb03babd8c3b5947ede6c8f522ea009840"
+  },
+  {
+   "file": "after-spatial-coordinate-turn-result.png",
+   "sha256": "4d34cfe9c7692a3d81946ddc12926c1bed1d7539da70685ea097b1ee1da0192d"
+  },
+  {
+   "file": "after-spatial-fold-match-active.png",
+   "sha256": "0ed6c1a80a11953af82c13612283d7fb940f3d6d796d4e05714580212ff4ff96"
+  },
+  {
+   "file": "after-spatial-fold-match-feedback.png",
+   "sha256": "e2f4a1c9113c90255cf9755ff36763d1eeb19c1feb2c23b332d326e5e6f06ab5"
+  },
+  {
+   "file": "after-spatial-fold-match-pause.png",
+   "sha256": "0e18c170faa2e44fe5f3c11a5527308815ac368cf35f6fe82fdf1690db7dfddb"
+  },
+  {
+   "file": "after-spatial-fold-match-result.png",
+   "sha256": "a64c363a045cb824ece640fcb876b714bd783757c8898ee3d93a8ce0d6ea7949"
+  },
+  {
+   "file": "after-spatial-grid-nav-active.png",
+   "sha256": "ed5b791ce07031e56f0d310979071bdb1ce8bbcd54d7a35b7cd953857b9b6d85"
+  },
+  {
+   "file": "after-spatial-grid-nav-pause.png",
+   "sha256": "8cae3893a872993e84138ff9a00db81cd549112902ca04bb67f298710c7f906f"
+  },
+  {
+   "file": "after-spatial-grid-nav-result.png",
+   "sha256": "7f87281dc142259fabe9b40a18657a0a51cf05c2496c3d3add654f45921836c9"
+  },
+  {
+   "file": "after-spatial-mental-rotation-active.png",
+   "sha256": "f61f7ff8c37b0d275247b5cf83f6a7e809726a797d1618f93ffcced365a3dec4"
+  },
+  {
+   "file": "after-spatial-mental-rotation-feedback.png",
+   "sha256": "1933f100ccfc50e6fd278c2bf4002f9dab75cc7a29718ecc1daca1ffbccb70b3"
+  },
+  {
+   "file": "after-spatial-mental-rotation-pause.png",
+   "sha256": "b117f9ed09458e76edc89a0dad4b65340e30233a58315a32abddda3e38444057"
+  },
+  {
+   "file": "after-spatial-mental-rotation-result.png",
+   "sha256": "d9b4ec865fb12533c2e9c4975e60ef110f92ff31a4347ac3b29093859c8e32a0"
+  },
+  {
+   "file": "after-spatial-transform-match-active.png",
+   "sha256": "4dee806f6a0afc752a39bf74342f3c1d616d5be3ff4a0e96016a26443dfb41c4"
+  },
+  {
+   "file": "after-spatial-transform-match-feedback.png",
+   "sha256": "5bb5c22a7f2ec38c916e9579ca9c2d8543f7ccea8c807af817ea9c2c1e417b91"
+  },
+  {
+   "file": "after-spatial-transform-match-pause.png",
+   "sha256": "4dad970598722f8190392d7a5b95b33842f4a8b0c48eb7e0b62f2a53a79b3aed"
+  },
+  {
+   "file": "after-spatial-transform-match-result.png",
+   "sha256": "1da0ce708611eb1147bce2cb69b9a373e0c8ef7606b468ca2ac9737303373764"
+  },
+  {
+   "file": "after-spatial-transform-match-stuck.png",
+   "sha256": "291576872a9d1645297c23fcdb97677fe72c068e4246a161078daae0086bf2e4"
+  },
+  {
+   "file": "after-spatial-transform-match-stuck2.png",
+   "sha256": "7fadd5e03b46c2dff465854f23170c40e2dff9a87924625af1beead5d02d9b77"
+  },
+  {
+   "file": "after-spatial-transform-match-stuck3.png",
+   "sha256": "78990d3e6f15d1ffe4cdb4bca006952a4ab73426c76cb3441694c409ea0f76a6"
+  },
+  {
+   "file": "after-speed-color-match-active.png",
+   "sha256": "e3feff47155ce11cd2aad298f9079c7aed4aeda07b2de4b7c4a6c28342e385a8"
+  },
+  {
+   "file": "after-speed-color-match-feedback.png",
+   "sha256": "6d1f220b0775752e0943d1af5db6aba8b55f1d7419ea8b5a85148fab273938cd"
+  },
+  {
+   "file": "after-speed-color-match-pause.png",
+   "sha256": "dff71f6d4a650723d4acf3b774a43f952d8f4f080d24b10211d5efad94747162"
+  },
+  {
+   "file": "after-speed-color-match-result.png",
+   "sha256": "b840164adbe86f414db29998d935b6820f4d793d1af0b5a88499e5697391002b"
+  },
+  {
+   "file": "after-speed-order-sweep-active.png",
+   "sha256": "df9e77fb2b80e12ef85c24e93bc471bb1359313146917c9d67b3f0c8559d6bc8"
+  },
+  {
+   "file": "after-speed-order-sweep-feedback.png",
+   "sha256": "4507ca001c03b7e9e23e513e23b4323e502ba83df1615a0003af8aa590a0aae4"
+  },
+  {
+   "file": "after-speed-order-sweep-pause.png",
+   "sha256": "bf6cfc2d98b1bb3dcbfedae88b9bd97dcaa02d69b2948b17e56e57475fd43a1b"
+  },
+  {
+   "file": "after-speed-order-sweep-result.png",
+   "sha256": "0e2366b673771b6aec5a5175f6f57e47cff9f4afc1684582eff512fd5fca7267"
+  },
+  {
+   "file": "after-speed-quick-compare-feedback.png",
+   "sha256": "a0ac14653b5498f816747a4afcae26e15da0c6453fb496128a728564f97ec4e7"
+  },
+  {
+   "file": "after-speed-quick-compare-pause.png",
+   "sha256": "a59af9fe3873ab929fd6fbda1c50a57bbbee4b7c7a67a805a2f3969a1bf9fa7f"
+  },
+  {
+   "file": "after-speed-quick-compare-result.png",
+   "sha256": "36915c5c05c76b8cf4b5bb56a6406a9fdf73a03ac78f81b0b1858a78c48a6f1b"
+  },
+  {
+   "file": "after-speed-reaction-time-active.png",
+   "sha256": "6648644b0304b2b12bf258fa0aa2d7d3e8fe0622873c663b2395597ce1ad8701"
+  },
+  {
+   "file": "after-speed-reaction-time-feedback.png",
+   "sha256": "6e8581bd370369fc7d254c895baedf0959f56843857ffc70803b9f0846548097"
+  },
+  {
+   "file": "after-speed-reaction-time-pause.png",
+   "sha256": "791d46a6cc856fed0a01c221cacb7b911bb0226be659cc99e17cce8c6a305207"
+  },
+  {
+   "file": "after-speed-reaction-time-result.png",
+   "sha256": "2c65f4084f11fc9337205f697ecf9463c871fe2a47f0e16d9871a3dff829d818"
+  },
+  {
+   "file": "after-speed-tap-rush-active.png",
+   "sha256": "4cb507862b10b151d627671cd2b60de2094bf8da24e3f373a1d6bd730715c4f6"
+  },
+  {
+   "file": "after-speed-tap-rush-pause.png",
+   "sha256": "98d1628b88c9abad0d88a4635e70ce1e5cca285f576ff6ebcd63dec47247baaf"
+  },
+  {
+   "file": "after-speed-tap-rush-result.png",
+   "sha256": "ae41d3106484a65a810acb9dc2f7535df82587985a3bfdf11c3c9b2dbc4f94e6"
+  },
+  {
+   "file": "after-workout-complete-summary.png",
+   "sha256": "6451344b75cb387d1e208cdc491585b0148e3847d5d80f2d4585ffede027386f"
+  },
+  {
+   "file": "after-workout-leg2-intro.png",
+   "sha256": "2ac51cc8d80442d272bc45317f9d08e488347bbb0aaaf60aea29cbfaa1b1d459"
+  },
+  {
+   "file": "after-workout-leg2-language-word-chain-active.png",
+   "sha256": "733532a886611d8da2bf93cb6cae5f5c25fc9c958d4dd3c8d5ca50e4d3667bd2"
+  },
+  {
+   "file": "after-workout-leg2-language-word-chain-pause.png",
+   "sha256": "e6de2d31d1fa4a04ae0baace2673c47c69af7b6a1e0ae5b86eaa3d895ccd922a"
+  },
+  {
+   "file": "after-workout-leg2-language-word-chain-result.png",
+   "sha256": "e7416bb37661c05b841695b9641ec3b7e053ba4842ddec6dd80bb088175b1341"
+  },
+  {
+   "file": "after-workout-leg3-flexibility-cue-shift-active.png",
+   "sha256": "a9edeb525aa3069b92c8fc768c27fd36ecd50c3f2f8499ecb3a6f1108880d333"
+  },
+  {
+   "file": "after-workout-leg3-flexibility-cue-shift-feedback.png",
+   "sha256": "823c95324dfa24f5641b0ba6dbdfd123b4d80923de293c23c1ba1d3aedccf135"
+  },
+  {
+   "file": "after-workout-leg3-flexibility-cue-shift-pause.png",
+   "sha256": "b86acaba5de66fb20bfda0b48761500c8596ce756e15e35e94a042fe26ed71f0"
+  },
+  {
+   "file": "after-workout-leg3-flexibility-cue-shift-result.png",
+   "sha256": "05ba75021617fecad8177bd5b6280074cf336226625daf4c334dbbcbb7654b79"
+  },
+  {
+   "file": "after-workout-leg3-intro.png",
+   "sha256": "9e647fdd08d60f797b645ebb920ba3c0bd812cbbf9797ffedca517dd4f0b5fba"
+  },
+  {
+   "file": "after-workout-leg4-attention-target-count-active.png",
+   "sha256": "d92c2598bec702c0ef631dbeb1efe15db8509373d137f7b6098bcddeeb0802a8"
+  },
+  {
+   "file": "after-workout-leg4-attention-target-count-pause.png",
+   "sha256": "621324ade906dea19ba068668df59a2c1e1cc6aea2f83a627b5a4e40e6a40426"
+  },
+  {
+   "file": "after-workout-leg4-attention-target-count-result.png",
+   "sha256": "a38dd1978ac8baadf1cf86d5e08d0c423fb96c6401f843b8e039d98e7b20de48"
+  },
+  {
+   "file": "after-workout-leg4-intro.png",
+   "sha256": "68fc1e2385d0fa220afa31d21b564b9ecb0f61e878eb4be932cbc380d9f542c7"
+  },
+  {
+   "file": "after-attention-odd-one-out-feedback.png",
+   "sha256": "6cde7a4fbd9228905ed7bb0c8436a8ea52cbd1492be89cd380c18ae1773ccaf9"
+  },
+  {
+   "file": "after-attention-sustained-vigilance-feedback.png",
+   "sha256": "d136f40e415d45f32779312a58a5cb90beb05d02e8248696b8ed0ff2ca7042ef"
+  },
+  {
+   "file": "after-attention-sustained-vigilance-pause.png",
+   "sha256": "e9c2d9f9f4fa06f4149f1a0d9edef95b3278ef73ca7a0104536c28470b4bd39c"
+  },
+  {
+   "file": "after-attention-symbol-tracker-feedback.png",
+   "sha256": "0d69a62a1161c30334e92cdf660f374e0c389a677116ede75b5645dc42a27ec7"
+  },
+  {
+   "file": "after-attention-visual-search-feedback.png",
+   "sha256": "5c04af01099078f40dd40e8c69bed6c5cf6b356a10a4477dd006dd670822d6a8"
+  },
+  {
+   "file": "after-flexibility-color-stroop-active.png",
+   "sha256": "689b6b1a4d4ca304fbe1bb09e6cbdb077587bf209ac52e839d92d0159f2f1cc5"
+  },
+  {
+   "file": "after-flexibility-task-switch-feedback.png",
+   "sha256": "0fa52ded1fa65f661c8f8b938f48568a65318e5b2fd339d9871b21f370e63a99"
+  },
+  {
+   "file": "after-language-context-fit-pause.png",
+   "sha256": "e9c2d9f9f4fa06f4149f1a0d9edef95b3278ef73ca7a0104536c28470b4bd39c"
+  },
+  {
+   "file": "after-language-word-chain-feedback.png",
+   "sha256": "a43d29c15f15478afe86bab33e6f3d70c5cd50a1ed4d1ff51e9e2dfb1951e11e"
+  },
+  {
+   "file": "after-language-word-match-pause.png",
+   "sha256": "e9c2d9f9f4fa06f4149f1a0d9edef95b3278ef73ca7a0104536c28470b4bd39c"
+  },
+  {
+   "file": "after-language-word-scramble-feedback.png",
+   "sha256": "ddb506d3771bbb52af3a62a5e374cd0b3d43ecc1f7491a30bc1734b514f1bf72"
+  },
+  {
+   "file": "after-logic-code-cracker-feedback.png",
+   "sha256": "80f0e8cac98bbd9bb3d551e7782cd1f8dd4f00e923c1eaf39b0ced82b0c0f1eb"
+  },
+  {
+   "file": "after-math-equation-builder-feedback.png",
+   "sha256": "37d278ddb56a7ec15f5a8c36a289bea15a1c031bc8ef74a8feefc7a354eb0e79"
+  },
+  {
+   "file": "after-math-equation-builder-pause.png",
+   "sha256": "e9c2d9f9f4fa06f4149f1a0d9edef95b3278ef73ca7a0104536c28470b4bd39c"
+  },
+  {
+   "file": "after-math-fast-math-feedback.png",
+   "sha256": "088c612e34351b79c6452c3e59609fc6ff36b5098c0bf56d4fa29bd2a7e44a33"
+  },
+  {
+   "file": "after-math-number-line-estimation-feedback.png",
+   "sha256": "1db5dcd832c879d4a9b195f7a7f507fbddab6aac759b105c68e9a2c78e408d77"
+  },
+  {
+   "file": "after-math-value-ordering-feedback.png",
+   "sha256": "d4712bf8dbb3b7ad9e813ac3afe909e89b88d5dfd5d9d3f83f3f6835e73c781a"
+  },
+  {
+   "file": "after-memory-prospective-cue-active.png",
+   "sha256": "6a9cc9c878a5d3765cd788c48b5f6286cabf8ff5ac50d70dc8e2a5b616062117"
+  },
+  {
+   "file": "after-memory-running-order-feedback.png",
+   "sha256": "25617372a050106674f2b85f739b237da9f712cf5411452c5302464d49e99919"
+  },
+  {
+   "file": "after-spatial-grid-nav-feedback.png",
+   "sha256": "c2b3e150528906d694930b1da2f29f58ab5b99bb74b9da02c6fbb31ae4139e12"
+  },
+  {
+   "file": "after-speed-quick-compare-active.png",
+   "sha256": "b90d23112915bb9478cb67fe08b9616df058a978dbb3967bb0a59f0b862240c5"
+  },
+  {
+   "file": "after-speed-tap-rush-feedback.png",
+   "sha256": "0da2f15eeb89b174098e59286ca2845be4bc40f39a6b9eae96ba573e98172be1"
+  }
+ ],
+ "excluded": [
+  {
+   "file": "rejected/after-attention-odd-one-out-feedback.png",
+   "sha256": "a32dd23c489e6ec328f9f7cbe90cdc29c66910ac81852cf8e710cfeed0cce7fe",
+   "reason": "Active option board; no feedback."
+  },
+  {
+   "file": "rejected/after-attention-sustained-vigilance-feedback.png",
+   "sha256": "e9191cf69da2ecac01f92ea6b7b121ae874b8bf2e885863de21bbb7cf5b28d58",
+   "reason": "Already at saved result; no in-round feedback."
+  },
+  {
+   "file": "rejected/after-attention-symbol-tracker-feedback.png",
+   "sha256": "c2549d850a0a6a1ab381196050d12c6b1bdbebec4e843e4845e72986b6e3c7c4",
+   "reason": "Selected board before Check answer; no feedback."
+  },
+  {
+   "file": "rejected/after-attention-visual-search-feedback.png",
+   "sha256": "bb3026916785b06e1d3e02fea9bd51f9b6820317b11e23fbc39a473ec6873508",
+   "reason": "Active search board; no feedback."
+  },
+  {
+   "file": "rejected/after-flexibility-color-stroop-active.png",
+   "sha256": "be99eb28c09515c5fbfd41bdadeef3642f9f9aa42c2a6c12735a897e328e1c3d",
+   "reason": "Time's up feedback, not active play."
+  },
+  {
+   "file": "rejected/after-flexibility-task-switch-feedback.png",
+   "sha256": "70f5ec8895b17851a1542214d8995f757fc26028412c37275092df31a212612a",
+   "reason": "Active parity board; no feedback."
+  },
+  {
+   "file": "rejected/after-language-word-chain-feedback.png",
+   "sha256": "8d5ca77d9cceba71d86cf3df0ee40ff175e4263cc0a94e37273b4c16d31a47e0",
+   "reason": "Active word selection; no feedback."
+  },
+  {
+   "file": "rejected/after-language-word-scramble-feedback.png",
+   "sha256": "2dbe322224efe54a835e945974305966b089c8549d908d9aaadeb03861e22a31",
+   "reason": "Choice selected but not submitted; no feedback."
+  },
+  {
+   "file": "rejected/after-logic-code-cracker-active.png",
+   "sha256": "112b04a9c68adf7c8e8e623c5eb92d1fe14fd33d087cd0a103d142d7c57fd09a",
+   "reason": "Get-ready screen, not active guessing. A real active frame was reclassified from the mislabeled feedback capture."
+  },
+  {
+   "file": "rejected/after-math-fast-math-feedback.png",
+   "sha256": "022e62d57d9e078ef91df368350794bd48c74e58fea68fe8aa71d47c60327d12",
+   "reason": "Active answer keypad; no feedback."
+  },
+  {
+   "file": "rejected/after-math-number-line-estimation-feedback.png",
+   "sha256": "d3a8dc318a5aff8a47ce1a7c5254986d6b78d74f0bd501dea602f2d5ab4feaa9",
+   "reason": "Unanswered active number line; no feedback."
+  },
+  {
+   "file": "rejected/after-math-value-ordering-feedback.png",
+   "sha256": "b10e7d3b762518b4fe8cc5d112c0bc946fad99e345de962d9b0c8b6ba357ef0a",
+   "reason": "Active ordering board; no feedback."
+  },
+  {
+   "file": "rejected/after-memory-prospective-cue-active.png",
+   "sha256": "1dc71d1b08e5200833285fc48c401256bc2aae3bd3a51a61600f81638442d82e",
+   "reason": "Pre-stream Start screen, not active detection."
+  },
+  {
+   "file": "rejected/after-memory-running-order-feedback.png",
+   "sha256": "0ff750769239f951d9cd3d1cf7c2b2f3853cebf684f42c06bd7de6efc2ea987d",
+   "reason": "Unanswered recall board; no feedback."
+  },
+  {
+   "file": "rejected/after-spatial-grid-nav-feedback.png",
+   "sha256": "6aa24e99a74f97a4d6f2762ad877e97e61a7ff09f8ae888fc4906e6343e77aaa",
+   "reason": "Active grid/instructions before answer; no feedback."
+  },
+  {
+   "file": "rejected/after-speed-quick-compare-active.png",
+   "sha256": "fe6afd0eceb229bd2188dc223bea7da91a6b23ee42e95a1244e1d5ce544f2d09",
+   "reason": "Timed-out Too slow feedback, not active response."
+  }
+ ],
+ "reclassified": [
+  {
+   "file": "after-logic-code-cracker-active.png",
+   "from": "after-logic-code-cracker-feedback.png",
+   "reason": "Captured guessing controls; no submitted feedback."
+  }
+ ]
 }
