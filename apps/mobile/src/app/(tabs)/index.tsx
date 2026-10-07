@@ -846,7 +846,10 @@ export default function HomeScreen() {
               </View>
             ) : workout.length > 0 ? (
               <View style={styles.progressRow}>
-                <ThemedText type="numeralXl" testID="home-workout-progress">
+                {/* stageInk required: this numeral sits on the charcoal stage
+                    card, where the default paper ink is unreadable (device
+                    capture: near-black "0/4" on the stage). */}
+                <ThemedText type="numeralXl" themeColor="stageInk" testID="home-workout-progress">
                   {`${workoutIndex}/${workout.length}`}
                 </ThemedText>
                 <View style={styles.progressCopy}>

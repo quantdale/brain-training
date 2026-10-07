@@ -15,6 +15,7 @@
  * visual-baselines.test.tsx.
  */
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { StyleSheet } from 'react-native';
 import {
   fireEvent,
   renderRouter,
@@ -28,6 +29,7 @@ import type { AppDatabase, WorkoutInstance } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
 import { registry as generatedRegistry } from '@/registry/registry.generated';
 import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
+import { Colors } from '@/theme/tokens';
 import { expectConsoleNoise } from '@/test-utils';
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
@@ -156,6 +158,15 @@ describe('home template-workout start failure path', () => {
     expect(screen.getByTestId('home-local-trust')).toHaveTextContent(
       /ready on this device and works offline/i,
     );
+  });
+
+  it('renders the workout progress numeral in stage ink on the charcoal stage', async () => {
+    // Device-capture defect: the numeral used the default paper ink on the
+    // stage card and was unreadable (near-black on charcoal).
+    await renderHome();
+
+    const numeral = screen.getByTestId('home-workout-progress');
+    expect(StyleSheet.flatten(numeral.props.style).color).toBe(Colors.light.stageInk);
   });
 
   it('surfaces a failed start, stays on Home, and keeps the CTA retryable', async () => {
