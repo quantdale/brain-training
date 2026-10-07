@@ -357,7 +357,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
           </ThemedText>
           <ThemedText
             type="small"
-            themeColor="textSecondary"
+            themeColor="stageMuted"
             testID={testId(GAME_ID, 'streak')}>
             Streak {state.stats.streak}
           </ThemedText>

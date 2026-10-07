@@ -415,14 +415,14 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
           </ThemedText>
           <ThemedText
             type="small"
-            themeColor="textSecondary"
+            themeColor="stageMuted"
             testID={testId(GAME_ID, "score")}
           >
             Score {state.stats.score}
           </ThemedText>
           <ThemedText
             type="small"
-            themeColor="textSecondary"
+            themeColor="stageMuted"
             testID={testId(GAME_ID, "rule")}
           >
             Rule: {state.currentRule === "ink" ? "INK" : "WORD"}

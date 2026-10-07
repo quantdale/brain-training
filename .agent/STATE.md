@@ -1,5 +1,12 @@
 # Durable Project State
 
+**076 resumption checkpoint — 2026-10-07:** security SHA `142e3c0` passed all
+four remote workflows; dedicated AVD recovered and ARTEMIS helper/doctor ready.
+Six low-contrast custom HUD readouts corrected to existing stageMuted in five
+games; focused 42 suites/480 tests, typecheck/lint PASS. Rebuild and final-build
+captures/full gates still owed. Prior evidence counts below remain historical;
+no acceptance tasks closed. See change `evidence/RESUMPTION.md`.
+
 **Current review checkpoint — 2026-10-07, 076 REOPENED (release acceptance BLOCKED):**
 The earlier `VALIDATED` declaration was withdrawn after per-file visual audit.
 The game index contains 172 retained hashed PNGs; only A 39/42, F 27/42,
@@ -7,7 +14,7 @@ P 38/42 and R 42/42 depict the named state (22/168 core gaps). Earlier
 verified 90/90 route matrix is tied to APK `00024954…`, not final
 `c3b3e4d9…`; its 8/8 named detail stills cannot replace the matrix. The
 final-build full-matrix attempt aborted on system launcher/SystemUI ANRs;
-AVD stopped. ARTEMIS Pro journeys provider-BLOCKED (nine attempts), Flash
+AVD stopped at that review (subsequently recovered as above). ARTEMIS Pro journeys provider-BLOCKED (nine attempts), Flash
 smoke PASS, direct ADB fallback supplementary only; iOS NOT VALIDATED.
 Source fixes include bootstrap Retry, board-still geometry, Android 48dp
 vs iOS 44pt targets, app-owned accessibility audit and fail-closed capture

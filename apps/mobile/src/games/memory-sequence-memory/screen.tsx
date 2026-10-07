@@ -439,7 +439,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
           </ThemedText>
           <ThemedText
             type="small"
-            themeColor="textSecondary"
+            themeColor="stageMuted"
             testID={testId(GAME_ID, 'countdown')}>
             {formatRemaining(remainingMs)}
           </ThemedText>

@@ -462,7 +462,7 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
           {state.phase === 'observe' ? (
             <ThemedText
               type="small"
-              themeColor="textSecondary"
+              themeColor="stageMuted"
               testID={testId(GAME_ID, 'observe-status')}
             >
               Track {state.trackCount} symbols

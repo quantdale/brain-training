@@ -413,7 +413,7 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
           {state.phase === 'study' ? (
             <ThemedText
               type="small"
-              themeColor="textSecondary"
+              themeColor="stageMuted"
               testID={testId(GAME_ID, 'study-status')}
             >
               Memorize {state.targetCount} cells

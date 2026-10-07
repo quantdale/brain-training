@@ -6,9 +6,10 @@
   focused detail stills, but the required 90-route/theme/profile matrix
   aborted after 1,800 seconds due to dedicated AVD launcher/SystemUI ANRs
   and a null accessibility root. Earlier verified 90/90 captures belong to
-  `00024954…` and cannot certify final rendering. The AVD is stopped. Restore
-  a stable dedicated AVD without hijacking host input; otherwise keep this
-  gate BLOCKED. Diagnostics in ignored `qa-artifacts/076-ui-reboot/`.
+  `00024954…` and cannot certify final rendering. The AVD was stopped, then
+  recovered 2026-10-07; the full final matrix still remains NOT VALIDATED.
+  A later contrast-fix build must be recaptured. Diagnostics in ignored
+  `qa-artifacts/076-ui-reboot/` and `qa-artifacts/076-final/`.
 - **High, missing visual proof:** image-by-image audit of 42 games disqualified
   16 mislabeled/non-state frames (preserved under `rejected/` with hashes).
   Retained per-game evidence: A 39/42, F 27/42, P 38/42, R 42/42;

@@ -54,9 +54,10 @@ stills passed, not the full route matrix. ARTEMIS Flash smoke passed, but
 nine Pro attempts were provider-BLOCKED and ADB fallback is not Pro
 acceptance. iOS remains NOT VALIDATED. Touch-target source/tests use 48dp
 Android and 44pt iOS; final per-game device measurement remains open.
-**Do not mark 076 validated until these gaps are closed.** The AVD is
-currently stopped after the ANRs; attempt a stable dedicated AVD when
-resources allow and record the exact BLOCKED gate if instability persists.
+**Do not mark 076 validated until these gaps are closed.** The AVD stopped
+after those ANRs, then recovered on 2026-10-07 with one userdata wipe and
+cold boot. New contrast fixes require another final APK and full capture
+gates; no new acceptance is implied. See `evidence/RESUMPTION.md`.
 
 ## Former terminal result (2026-10-06; superseded, not acceptance evidence)
 
@@ -74,6 +75,11 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- 2026-10-07 resumption: all four workflows PASS for security SHA `142e3c0`;
+  dedicated AVD recovered, ARTEMIS helper/doctor ready. Six HUD-secondary
+  ink defects corrected in five games, light/dark render/catalog guard added;
+  typecheck/lint and focused 42 suites/480 tests PASS. Final rebuild/captures,
+  full local matrix and ARTEMIS retries remain owed; no task checkboxes moved.
 - 2026-10-05: **waves 0-3 complete (22/82 tasks)**. Wave 1: route/state
   inventory manifest; ARTEMIS doctor READY (evidence task-1-2-artemis.md);
   old-build device baseline COMPLETE — 42/42 games (tutorial/active/pause/

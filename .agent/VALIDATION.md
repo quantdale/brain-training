@@ -1,5 +1,17 @@
 # Durable Validation Record
 
+## 076 resumption — 2026-10-07 (in progress, NOT release certification)
+
+Security SHA `142e3c0` remote PASS: App CI `37575106113`, Repository Integrity
+`37575106085`, Android `37575106092`, iOS compile `37575106096`. Audit PASS:
+10 accepted/0 unallowlisted, self-test 41/41. Contrast-fix working tree:
+typecheck/lint PASS; five-game + host/header checks 42 suites/480 tests PASS.
+LSP 0 findings/6 unconfirmed, not a clean-LSP claim. AVD recovered, ARTEMIS
+helper v6 and doctor READY; candidate APK `94be11ed…` is superseded pending
+contrast-fix rebuild. No new accepted game captures/full matrix. Full final
+gates/provider retries/committed proof owed; Pro historically BLOCKED_EXTERNAL,
+iOS runtime NOT VALIDATED. See change `evidence/RESUMPTION.md`.
+
 ## Current review correction — 2026-10-07, Campaign 076 ACTIVE, release acceptance BLOCKED
 
 This section **supersedes the former VALIDATED declaration below**. The
