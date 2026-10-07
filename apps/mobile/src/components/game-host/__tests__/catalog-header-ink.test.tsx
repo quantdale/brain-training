@@ -9,6 +9,7 @@ import * as ts from 'typescript';
 import SymbolTracker from '@/games/attention-symbol-tracker/screen';
 import ColorStroop from '@/games/flexibility-color-stroop/screen';
 import GridRecall from '@/games/memory-grid-recall/screen';
+import ProspectiveCue from '@/games/memory-prospective-cue/screen';
 import SequenceMemory from '@/games/memory-sequence-memory/screen';
 import QuickCompare from '@/games/speed-quick-compare/screen';
 import { createFakeClock, createInMemoryTutorialStore } from '@/sdk';
@@ -27,6 +28,7 @@ const cases = [
   { id: 'attention-symbol-tracker', Screen: SymbolTracker, labels: ['observe-status'], primary: 'round.1' },
   { id: 'memory-grid-recall', Screen: GridRecall, labels: ['study-status'], primary: 'round.1' },
   { id: 'memory-sequence-memory', Screen: SequenceMemory, labels: ['countdown'], primary: 'round.1' },
+  { id: 'memory-prospective-cue', Screen: ProspectiveCue, labels: [], primary: 'round.1' },
 ];
 
 function ink(id: string) {
@@ -47,6 +49,7 @@ describe('catalog stage-header ink', () => {
       for (const label of labels) expect(ink(`${id}.${label}`)).toBe(Colors[scheme].stageMuted);
       expect(ink(`${id}.${primary}`)).toBe(Colors[scheme].stageInk);
       expect(screen.getByTestId(`${id}.pause`)).toBeOnTheScreen();
+      if (id !== 'flexibility-color-stroop') expect(ink(`${id}.score-live`)).toBe(Colors[scheme].text);
       if (id === 'speed-quick-compare') {
         // This label is on the mechanic's paper panel, not in the stage HUD.
         expect(StyleSheet.flatten(screen.getByText('Score').props.style).color).toBe(Colors[scheme].textSecondary);
@@ -63,6 +66,16 @@ describe('catalog stage-header ink', () => {
       inspected++;
       const ast = ts.createSourceFile('screen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
       function visit(node: ts.Node) {
+        if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText(ast) === 'AnimatedNumber') {
+          const attributes = node.attributes.properties.filter(ts.isJsxAttribute);
+          const id = attributes.find(attr => attr.name.getText(ast) === 'testID');
+          if (id?.initializer?.getText(ast).match(/score-(live|final)/)) {
+            const color = attributes.find(attr => attr.name.getText(ast) === 'themeColor');
+            // Paper scores use text; existing stage scores legitimately use
+            // stageInk. Neither passive role may borrow the action accent.
+            expect(color === undefined ? '"text"' : color.initializer?.getText(ast)).toMatch(/^['"](?:text|stageInk)['"]$/);
+          }
+        }
         if (ts.isJsxAttribute(node) && node.name.getText(ast) === 'header') {
           function check(child: ts.Node) {
             if (ts.isJsxAttribute(child) && child.name.getText(ast) === 'themeColor') {

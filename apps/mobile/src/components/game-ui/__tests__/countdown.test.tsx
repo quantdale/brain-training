@@ -5,11 +5,23 @@
  */
 import { describe, expect, it, jest } from "@jest/globals";
 import { act, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from 'react-native';
+import { Colors } from '@/theme/tokens';
 
 import { Countdown } from "../countdown";
 import { createFakeClock } from "@/sdk";
 
 describe("Countdown settle (061)", () => {
+  it('uses neutral instrumentation ink, then warning, never CTA red', async () => {
+    jest.useFakeTimers();
+    try {
+      const clock = createFakeClock(0);
+      await render(<Countdown deadlineMs={1000} windowMs={1000} clock={clock} testID="roles" />);
+      expect(StyleSheet.flatten(screen.getByTestId('roles-fill').props.style).backgroundColor).toBe(Colors.light.textSecondary);
+      await act(async () => { clock.advance(800); await jest.advanceTimersByTimeAsync(50); });
+      expect(StyleSheet.flatten(screen.getByTestId('roles-fill').props.style).backgroundColor).toBe(Colors.light.warning);
+    } finally { jest.useRealTimers(); }
+  });
   it("stops ticking once remaining reaches zero", async () => {
     jest.useFakeTimers();
     try {

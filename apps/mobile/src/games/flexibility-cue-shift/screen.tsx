@@ -405,7 +405,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
           <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
             <ThemedText
               type="headline"
-              themeColor="accent"
+              themeColor="text"
               testID={testId(GAME_ID, 'rule-banner-text')}>
               {RULE_LABELS[state.round.rule]}
             </ThemedText>
@@ -445,7 +445,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
           <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
             <ThemedText
               type="headline"
-              themeColor="accent"
+              themeColor="text"
               testID={testId(GAME_ID, 'rule-banner-text')}>
               {RULE_LABELS[state.round.rule]}
             </ThemedText>

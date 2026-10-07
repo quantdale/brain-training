@@ -78,8 +78,11 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 - 2026-10-07 resumption: all four workflows PASS for security SHA `142e3c0`;
   dedicated AVD recovered, ARTEMIS helper/doctor ready. Six HUD-secondary
   ink defects corrected in five games, light/dark render/catalog guard added;
-  typecheck/lint and focused 42 suites/480 tests PASS. Final rebuild/captures,
-  full local matrix and ARTEMIS retries remain owed; no task checkboxes moved.
+  source `cda4401` passed four remote workflows and built/installed. Three
+  actual active states reviewed; passive red score/cue leakage found and
+  repaired (44 color selections + Countdown). Fresh full Jest 618 suites/
+  7,232 tests, typecheck/lint, repo gates, web export, OpenSpec 60/60 PASS.
+  Final rebuilt capture matrix and ARTEMIS retries owed; no checkboxes moved.
 - 2026-10-05: **waves 0-3 complete (22/82 tasks)**. Wave 1: route/state
   inventory manifest; ARTEMIS doctor READY (evidence task-1-2-artemis.md);
   old-build device baseline COMPLETE — 42/42 games (tutorial/active/pause/

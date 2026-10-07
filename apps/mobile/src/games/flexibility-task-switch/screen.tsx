@@ -454,7 +454,7 @@ export default function TaskSwitchScreen(
               >
                 <ThemedText
                   type="headline"
-                  themeColor="accent"
+                  themeColor="text"
                   testID={testId(GAME_ID, "task-banner-text")}
                 >
                   {TASK_CUE_WORDS[state.round.task]}
@@ -515,7 +515,7 @@ export default function TaskSwitchScreen(
               >
                 <ThemedText
                   type="headline"
-                  themeColor="accent"
+                  themeColor="text"
                   testID={testId(GAME_ID, "task-banner-text")}
                 >
                   {TASK_CUE_WORDS[state.round.task]}

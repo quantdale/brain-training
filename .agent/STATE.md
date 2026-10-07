@@ -3,8 +3,13 @@
 **076 resumption checkpoint — 2026-10-07:** security SHA `142e3c0` passed all
 four remote workflows; dedicated AVD recovered and ARTEMIS helper/doctor ready.
 Six low-contrast custom HUD readouts corrected to existing stageMuted in five
-games; focused 42 suites/480 tests, typecheck/lint PASS. Rebuild and final-build
-captures/full gates still owed. Prior evidence counts below remain historical;
+games; focused 42 suites/480 tests PASS. Source `cda4401` then passed four
+remote workflows; its new APK yielded three individually confirmed active
+states, exposing passive CTA-ink leakage. Forty-four score/rule label color
+roles and shared Countdown corrected without changing mechanics. Fresh full
+Jest 618 passed/4 skipped suites, 7,232 passed/5 skipped tests, typecheck/lint,
+all declared repo validators, audit, strict OpenSpec 60/60 and web export PASS.
+Rebuild and final-build captures/controller gates still owed. Prior counts remain historical;
 no acceptance tasks closed. See change `evidence/RESUMPTION.md`.
 
 **Current review checkpoint — 2026-10-07, 076 REOPENED (release acceptance BLOCKED):**

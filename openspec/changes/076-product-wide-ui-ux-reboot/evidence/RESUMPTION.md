@@ -60,6 +60,39 @@ completed; header-contrast initially failed with empty output, then succeeded
 via same-protocol resume. No child mutations/worktrees. Scout conclusions
 are source analysis, not device acceptance.
 
+## Second device-driven role correction
+
+Source `cda440197d8e6e83acde3872fe4015bad52fb365` built successfully in
+2m51s (495 tasks; 24 executed) and installed as APK
+`2a8986e6a627f097127c42e11ac419526c7615bb5d6323f84ff11d8d4b32baff`
+(48,887,760 bytes). Three atomic PNG/XML pairs were individually inspected:
+Stroop is a live blue-ink WALL prompt with four enabled swatches and legible
+Score/Rule; Prospective Cue is running the actual GO/SIGNAL stream, not a
+briefing; Quick Compare is a live 9-versus-4 choice, not timeout feedback.
+These prove collection recovery, not all-42 acceptance. Local paths/hashes
+remain pending filing and are superseded by the source repair below.
+
+Inspection exposed the inherited action-accent use on passive scores; a
+source-backed sweep identified 38 live/final score numerals in 19 games and
+six rule/task cue labels in three Flexibility games. Only those 44 passive
+JSX color selections now use neutral text. Shared Countdown uses secondary
+instrumentation ink, retaining warning for the last third. Intrinsic color
+stimuli, CTA buttons, animations and rules are unchanged. Quick Compare's
+empty capsule is an intentional noninteractive verdict slot (source-backed
+N/A to active verdict), not missing timer copy or a hidden control; its
+active timer is the separate accessible shrinking bar.
+
+Full local source matrix after this repair: typecheck/lint PASS; Jest
+618 passed/4 skipped suites, 7,232 passed/5 skipped tests, five snapshots;
+governed signal validator PASS. First full attempt failed only the new
+structural assertion rejecting legitimate stageInk scores; corrected to
+permit both neutral text and stageInk (not action accent), then reran the
+whole matrix. All declared repository validators, dependency audit/self-test,
+clean-checkout self-test, QA Node tests 10/10, strict OpenSpec 60/60 PASS.
+Fresh web export PASS. Remote `cda4401` all PASS: App CI `37582225183`,
+Integrity `37582225189`, Android `37582225138`, iOS compile `37582225196`.
+Rebuilt final APK and runtime/matrix gates remain owed.
+
 ## Evidence boundary / remaining work
 
 The earlier active attempts were visually rejected: Stroop timeout,

@@ -12,6 +12,15 @@ contrast-fix rebuild. No new accepted game captures/full matrix. Full final
 gates/provider retries/committed proof owed; Pro historically BLOCKED_EXTERNAL,
 iOS runtime NOT VALIDATED. See change `evidence/RESUMPTION.md`.
 
+Second role-fix tree: typecheck/lint PASS; full Jest 618 passed/4 skipped
+suites, 7,232 passed/5 skipped tests, five snapshots; signal validator PASS.
+All declared repository validators, dependency audit/self-test, clean-checkout
+self-test, QA Node tests 10/10, strict OpenSpec 60/60 and fresh web export PASS.
+Three actual active states reviewed on intermediate APK `2a8986e6…` from
+`cda4401`; no final-build count inherited after subsequent source changes.
+Remote `cda4401` PASS: App CI `37582225183`, Integrity `37582225189`, Android
+`37582225138`, iOS compile `37582225196`. Final rebuilt device gates still owed.
+
 ## Current review correction — 2026-10-07, Campaign 076 ACTIVE, release acceptance BLOCKED
 
 This section **supersedes the former VALIDATED declaration below**. The
@@ -6180,7 +6189,7 @@ Campaign: Public-Repo Final Re-Certification and Closure (owner directive,
 prescribes; the "R1 remains OPEN" text above is historical as of its date and
 is retained unchanged, billing incident included.
 
-**FINAL CERTIFICATION: COMPLETE**
+## FINAL CERTIFICATION: COMPLETE
 
 ## Certification identity (mechanical)
 

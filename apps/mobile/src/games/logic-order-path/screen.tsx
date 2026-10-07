@@ -393,7 +393,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
             <AnimatedNumber
               value={state.stats.score}
               type="numeral"
-              themeColor="accent"
+              themeColor="text"
               testID={testId(GAME_ID, "score-live")}
             />
           </View>
@@ -552,7 +552,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
             <AnimatedNumber
               value={state.stats.score}
               type="numeralLg"
-              themeColor="accent"
+              themeColor="text"
               testID={testId(GAME_ID, "score-final")}
             />
           </View>

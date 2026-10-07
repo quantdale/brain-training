@@ -57,7 +57,8 @@ export function Countdown({ deadlineMs, windowMs, clock, testID }: CountdownProp
 
   const fraction = windowMs > 0 ? Math.min(1, remaining / windowMs) : 0;
   // The window turns warning-colored once less than a third remains.
-  const fillColor = fraction < 1 / 3 ? theme.warning : theme.accent;
+  // The action accent is CTA-only; a timer is passive instrumentation.
+  const fillColor = fraction < 1 / 3 ? theme.warning : theme.textSecondary;
 
   return (
     <View
