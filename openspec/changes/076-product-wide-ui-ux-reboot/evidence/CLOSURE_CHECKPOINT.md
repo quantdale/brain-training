@@ -1,5 +1,25 @@
 # 076 closure recovery checkpoint — 2026-10-08
 
+> **2026-10-08 correction (076-f task 1.1) — supersedes two stale statements
+> below, without claiming release acceptance.**
+>
+> 1. *"An evidence-only checkpoint ending SHA requires its own remote check"*
+>    — that remote check now exists. Evidence commit **`7e7374b`** has all four
+>    completed GREEN workflows: App CI **37719414181**, Repository Integrity
+>    **37719414125**, Android Build Smoke **37719414141**, iOS Build Smoke
+>    **37719414138**. Verified via `gh run list` against
+>    `github.com/quantdale/brain-training`. Any note still saying this SHA lacks
+>    its own remote verification is stale.
+> 2. The `BLOCKED_EXTERNAL_ARTEMIS_PROVIDER` **HTTP 401 Invalid credential**
+>    result below is historical. Re-probed under 076-f the credential is no
+>    longer invalid; the failure class changed to provider **quota exhaustion**
+>    (HTTP 429 `RESOURCE_EXHAUSTED` on `generate_content_free_tier_requests`,
+>    limit 20/day per model). See
+>    `openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
+>
+> Neither correction is release acceptance. Campaign 076's acceptance ledger is
+> unchanged and this file remains a recovery checkpoint.
+
 **Campaign ACTIVE / release acceptance BLOCKED.** This is a preserved recovery checkpoint, not either terminal completion verdict. Source fixes and route evidence advanced; final game-state/ARTEMIS acceptance still owed. Training Studio remains locked; gameplay/scoring, persistence, economy, workout ownership, offline and registry contracts unchanged.
 
 ## Committed source and one APK identity
@@ -22,7 +42,7 @@
 
 - Full Jest **621 passed/4 skipped suites; 7,237 passed/5 skipped tests; 5 snapshots**, signal/console gate PASS. Focused Home/Progress 2 suites/7 tests PASS. Typecheck/lint and web export PASS.
 - Repo-state, task ownership, offline, secrets, provenance, workflows, affected-sync, Expo alignment, dependency audit/self-test, registry, runtime-QA contract, clean-checkout **self-test**, QA Node tests, strict OpenSpec PASS. Full clean-checkout composite NOT RUN in this recovery; do not confuse its self-test with certification. LSP: 5 existing inline-style hints + 1 unconfirmed path, not a clean-LSP claim.
-- `c3c75b9` App CI `37654478658` failed on the stale display assertion. Recovery source **c324960** has all four completed GREEN workflows: App CI **37715645616**, Integrity **37715645424**, Android build **37715645412**, iOS build **37715645502**. An evidence-only checkpoint ending SHA requires its own remote check; source-SHA green is not silently final-SHA green.
+- `c3c75b9` App CI `37654478658` failed on the stale display assertion. Recovery source **c324960** has all four completed GREEN workflows: App CI **37715645616**, Integrity **37715645424**, Android build **37715645412**, iOS build **37715645502**. An evidence-only checkpoint ending SHA requires its own remote check; source-SHA green is not silently final-SHA green. *(2026-10-08: that remote check has since been performed for `7e7374b` — see the correction banner at the top of this file.)*
 - iOS **BUILD PASS / RUNTIME NOT VALIDATED**. Human TalkBack/VoiceOver, physical/OEM and store signing are not certified.
 
 ## Bounded current ARTEMIS attempts — external blocker

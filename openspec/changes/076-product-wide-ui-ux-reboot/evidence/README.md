@@ -11,9 +11,15 @@ Read **`CLOSURE_CHECKPOINT.md` first** for 2026-10-08 current scope.
 - Historical game index is now 194 retained/16 rejected, 168/168 complete;
   the verifier `--require-complete` PASSES for historical coverage. It does
   not certify this APK. All 22 current-build gap states still owed.
-- Current Pro failed HTTP 401 Invalid credential (no plan/steps):
+- ~~Current Pro failed HTTP 401 Invalid credential (no plan/steps):
   **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**. Owner external credential action
-  required. No controller fallback or more retries. iOS BUILD PASS /
+  required. No controller fallback or more retries.~~ **Stale — corrected
+  2026-10-08 by 076-f task 1.1.** The credential is no longer invalid; the
+  re-probe failure class is provider **quota exhaustion** (HTTP 429
+  `RESOURCE_EXHAUSTED`, `generate_content_free_tier_requests`, limit 20/day per
+  model). The controller is operational once routed to a model with quota — see
+  `openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
+  This correction is not release acceptance. iOS BUILD PASS /
   RUNTIME NOT VALIDATED. Campaign still ACTIVE; no terminal verdict.
 
 ## Former review index snapshot — historical, counts superseded

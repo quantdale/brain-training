@@ -18,49 +18,53 @@ ARTEMIS="D:/Tools/artemis"
 EV="$REPO/openspec/changes/076-f-final-product-certification/evidence/current-device"
 export BT_AVD_NAME=braintraining-ui35
 
+# Ordered so the 20 games whose PARENT redesign task is still unchecked (076-f
+# tasks 3.1-3.20) run first: those gate the parent acceptance ledger. The
+# remaining 22 (task 3.21) are covered afterwards. attention-target-count is
+# already filed and is skipped by the resume guard.
 GAMES=(
   attention-odd-one-out
   attention-sustained-vigilance
   attention-symbol-tracker
-  attention-target-count
   attention-visual-search
-  flexibility-card-sort
   flexibility-color-stroop
-  flexibility-cue-shift
-  flexibility-rule-flip
   flexibility-task-switch
   language-context-fit
-  language-sentence-builder
   language-word-chain
   language-word-match
   language-word-scramble
   logic-code-cracker
+  math-equation-builder
+  math-fast-math
+  math-number-line-estimation
+  math-value-ordering
+  memory-prospective-cue
+  memory-running-order
+  spatial-grid-nav
+  speed-quick-compare
+  speed-tap-rush
+  attention-target-count
+  flexibility-card-sort
+  flexibility-cue-shift
+  flexibility-rule-flip
+  language-sentence-builder
   logic-deduction-table
   logic-next-sequence
   logic-order-path
   logic-rule-grid
-  math-equation-builder
-  math-fast-math
   math-missing-operator
-  math-number-line-estimation
-  math-value-ordering
   memory
   memory-grid-recall
   memory-pair-recall
   memory-pattern-tap-back
-  memory-prospective-cue
-  memory-running-order
   memory-sequence-memory
   spatial-coordinate-turn
   spatial-fold-match
-  spatial-grid-nav
   spatial-mental-rotation
   spatial-transform-match
   speed-color-match
   speed-order-sweep
-  speed-quick-compare
   speed-reaction-time
-  speed-tap-rush
 )
 
 mkdir -p "$EV"
@@ -68,16 +72,32 @@ mkdir -p "$EV"
 prompt_for() {
   cat <<EOF
 Locked app: com.braintraining.app. The deep link braintraining://game/$1 opens this game directly.
-Perform ONE current-device game-state acceptance journey and record it in note key 'game_state_review_log' using exactly these headings:
-## 1. Active Play Board  (report the board/stimulus content, every visible control and its literal label, the round/score/timer chips, whether instructions are visible, and whether the board is legible with clear hierarchy)
-## 2. Scored Feedback   (tap answers until a SCORED FEEDBACK appears - a correct/incorrect verdict or a timeout reveal. Report the EXACT verdict text. Do not treat an intro screen or an unanswered board as feedback)
-## 3. Pause & Resume     (open the PAUSE overlay, confirm it rendered and quote its buttons, then RESUME back to active play)
-## 4. Final Result Screen (continue play to the final RESULT screen and report every score/stat line and the reward exactly)
-## 5. Input & Exit       (report whether taps registered immediately, then exit back to the games list and re-open this same game to prove safe exit and return)
-## 6. Defects            (report any clipped text, low-contrast text, hidden or unreachable action, overlap, or unresponsive input. Write 'none observed' if there are none)
-End with the app left on this game's final RESULT screen.
+Perform ONE current-device game-state acceptance journey and record it in note key 'game_state_review_log' with exactly these headings:
+## 1. Active Play Board  (board/stimulus content, every visible control and its literal label, round/score/timer chips, whether instructions are visible, whether the board is legible with clear hierarchy)
+## 2. Scored Feedback   (tap answers until a SCORED FEEDBACK appears - a correct/incorrect verdict or timeout reveal. Report the EXACT verdict text. An intro screen or unanswered board is NOT feedback)
+## 3. Pause & Resume     (open the PAUSE overlay, quote its buttons, then RESUME)
+## 4. Final Result Screen (report every score/stat line and the reward exactly)
+## 5. Input & Exit       (did taps register immediately? then exit to the games list and re-open this game to prove safe exit and return)
+## 6. Defects            (clipped text, low contrast, hidden/unreachable action, overlap, unresponsive input - or 'none observed')
+End on the final RESULT screen.
 EOF
 }
+
+# Lean invocation: the external Google credential is free tier and the only
+# usable model is capped at 15 requests/minute, so the auxiliary LLM sub-agents
+# (checker, step summarizer, committee, planner validation, video analyzer) are
+# disabled to fit the budget. The reviewer's own inspection of the filed device
+# frames supplies the verification those sub-agents would otherwise provide.
+# See evidence/CONTROLLER.md.
+ARTEMIS_FLAGS=(
+  --profile flash
+  --locked-app com.braintraining.app
+  --disable-step-summarizer
+  --disable-checker
+  --without-video-recording-tools
+  --disable-committee
+  --disable-planner-validation
+)
 
 for g in "${GAMES[@]}"; do
   dest="$EV/$g"
@@ -88,8 +108,8 @@ for g in "${GAMES[@]}"; do
   mkdir -p "$dest"
   name="cert076f-game-$g"
   echo "=== [$(date +%H:%M:%S)] $g ==="
-  ( cd "$ARTEMIS" && timeout 1200 uv run artemis run "$(prompt_for "$g")" \
-      --profile pro --locked-app com.braintraining.app --test-name "$name" ) \
+  ( cd "$ARTEMIS" && timeout 1500 uv run artemis run "$(prompt_for "$g")" \
+      "${ARTEMIS_FLAGS[@]}" --test-name "$name" ) \
       > "$dest/artemis.log" 2>&1
   rc=$?
   echo "    artemis rc=$rc"
@@ -112,7 +132,7 @@ for g in "${GAMES[@]}"; do
     echo "# Current-device acceptance — \`$g\`"
     echo
     echo "- Date: $(date -Iseconds)"
-    echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`pro\`, locked app \`com.braintraining.app\`"
+    echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`flash\` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md), locked app \`com.braintraining.app\`"
     echo "- Test name: \`$name\`"
     echo "- ARTEMIS session: \`$sess\` (raw trace external to Git)"
     echo "- Device: emulator-5554 / AVD braintraining-ui35"
