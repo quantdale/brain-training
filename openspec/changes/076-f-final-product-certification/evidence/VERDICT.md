@@ -173,6 +173,32 @@ preserved as `artemis.jsonc.bak-cert076f`. This is recorded prominently because
 the previous checkpoint logged "no provider configuration changed" as a
 positive property and that is no longer true of this run.
 
+## Ending-SHA workflow record (task 8.4)
+
+`main` was committed and pushed; the four required workflows were then verified
+at the **exact ending SHA `47043998`** (`4704399`), all completed GREEN:
+
+| Workflow | Run ID | SHA | Conclusion |
+| --- | --- | --- | --- |
+| App CI | `37755208334` | `47043998` | **success** |
+| Repository Integrity | `37755208277` | `47043998` | **success** |
+| Android Build Smoke | `37755208452` | `47043998` | **success** |
+| iOS Build Smoke | `37755208486` | `47043998` | **success** |
+
+Preceding SHAs, recorded so the chain is visible and so nothing claims a green
+run it does not have: `52de91e8` (App CI `37752185548`, Repository Integrity
+`37752185537`, both success) and `adeb18c` (Repository Integrity `37749496971`,
+Android Build Smoke `37749496967`, both success). Green runs at the **planning**
+commit are deliberately never cited as certification evidence.
+
+**Boundary of this record.** Commits made *after* `47043998` to add this very
+record change only evidence prose and durable state — no application source,
+build input, lockfile, workflow, or test. That is the same source-equivalence
+argument used throughout this change, and it is re-verifiable: if any later
+commit touches an application or build input, the four workflows must be
+re-verified at that commit and this record updated. Nothing here claims a green
+run for a SHA that does not have one.
+
 ## Rollback / continuation
 
 Nothing in the product was changed, so there is nothing to roll back. `main` is

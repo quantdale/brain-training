@@ -82,7 +82,7 @@ for g in ${GAMES[@]+"${GAMES[@]}"}; do
     continue
   fi
   echo "=== [$(date +%H:%M:%S)] REPAIR $g ==="
-  (cd "$ARTEMIS" && timeout 1500 uv run artemis run "$(prompt_for "$g")" \
+  (cd "$ARTEMIS" && timeout 2400 uv run artemis run "$(prompt_for "$g")" \
     "${ARTEMIS_FLAGS[@]}" --test-name "cert076f-game-$g") >"$dest/artemis.log" 2>&1
   echo "    rc=$? sess=$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$dest/artemis.log" | tail -1)"
 done

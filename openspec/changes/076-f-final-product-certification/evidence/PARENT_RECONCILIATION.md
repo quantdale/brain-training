@@ -23,6 +23,13 @@ The 25 are the 20 game-domain tasks in sections 6–13 plus `14.2`, `14.3`,
 `14.4`, `14.7`, `14.8`. `14.5` and `14.6` were already checked and are **not**
 reopened — there is no contradiction with them.
 
+Parent ledger after this change: **60/82 checked, 22 unchecked**.
+Three boxes moved, each in the commit that links its evidence — `6.1`, `6.3`
+(from PASS current-device rows) and `14.8` (durable state + push + no abandoned
+worktrees). One box moved **backwards** during independent review: `6.2` was
+checked on a row that review then downgraded, so it was un-checked again. See
+[`REVIEW.md`](REVIEW.md). Nothing else moved, and nothing was bulk-checked.
+
 ## Vocabulary
 
 | Classification | Meaning |
@@ -139,11 +146,14 @@ report is published.
 
 Wholly repository-owned and fully executable regardless of controller state.
 
-- **Classification:** `DONE` only once the ending SHA is pushed and the four
-  workflow runs at **that exact SHA** are recorded in [`VERDICT.md`](VERDICT.md).
-  `GATES.md` does **not** contain the ending-SHA record — it is deliberately
-  frozen as the shipped-command record. `14.8` must not be checked until that
-  record exists and is linked in the same commit.
+- **Classification:** **DONE.** All three conditions are satisfied and linked:
+  (1) durable `.agent/` files updated (CURRENT_CAMPAIGN, EXECUTION_PROMPT,
+  STATE, VALIDATION, KNOWN_ISSUES) with historical checkpoints kept historical;
+  (2) coherent buildable work committed and pushed to `origin/main`; (3) no
+  abandoned worktrees — `git worktree list` shows a single worktree on `main`,
+  no temporary branches, and the disposable clean-checkout from task 7.1 was
+  deleted after its run. The ending-SHA workflow record is in
+  [`VERDICT.md`](VERDICT.md): all four green at `47043998`.
 
 ## Bulk-checking is the thing being prevented
 
