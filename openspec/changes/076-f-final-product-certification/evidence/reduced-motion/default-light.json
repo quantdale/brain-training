@@ -1,0 +1,218 @@
+{
+  "dir": "D:\\Documents\\tryPython\\brain-training\\qa-artifacts\\cert076f-reduced-motion\\default\\light",
+  "density": 420,
+  "package": "com.braintraining.app",
+  "surfaces": [
+    {
+      "surface": "bootstrap-recovery",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "data-management",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "Backup name",
+          "heightDp": 22,
+          "reason": "screen-edge"
+        }
+      ]
+    },
+    {
+      "surface": "game-detail",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "game-intro",
+      "interactive": 8,
+      "labelled": 8,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "games",
+      "interactive": 15,
+      "labelled": 15,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "All, 42",
+          "widthDp": 67,
+          "reason": "rail-edge (scroll-reachable)"
+        },
+        {
+          "label": "Math, 5",
+          "widthDp": 2,
+          "reason": "rail-edge (scroll-reachable)"
+        },
+        {
+          "label": "Visual Search, Attention game, Learning",
+          "heightDp": 17,
+          "reason": "tab-bar-overlay"
+        },
+        {
+          "label": "Card Sort, Flexibility game, Learning",
+          "heightDp": 17,
+          "reason": "tab-bar-overlay"
+        }
+      ]
+    },
+    {
+      "surface": "home",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "Symbol Tracker, Attention, up next",
+          "heightDp": 21,
+          "reason": "tab-bar-overlay"
+        }
+      ]
+    },
+    {
+      "surface": "profile",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-activity",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-detail",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-domain",
+      "interactive": 5,
+      "labelled": 5,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-game",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "results",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "Play again. Card Sort",
+          "heightDp": 25,
+          "reason": "screen-edge"
+        }
+      ]
+    },
+    {
+      "surface": "rewards",
+      "interactive": 5,
+      "labelled": 5,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "storage-unavailable",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    }
+  ],
+  "violations": [],
+  "occluded": [
+    {
+      "surface": "data-management",
+      "kind": "occluded",
+      "label": "Backup name",
+      "heightDp": 22,
+      "reason": "screen-edge"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "All, 42",
+      "widthDp": 67,
+      "reason": "rail-edge (scroll-reachable)"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Math, 5",
+      "widthDp": 2,
+      "reason": "rail-edge (scroll-reachable)"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Visual Search, Attention game, Learning",
+      "heightDp": 17,
+      "reason": "tab-bar-overlay"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Card Sort, Flexibility game, Learning",
+      "heightDp": 17,
+      "reason": "tab-bar-overlay"
+    },
+    {
+      "surface": "home",
+      "kind": "occluded",
+      "label": "Symbol Tracker, Attention, up next",
+      "heightDp": 21,
+      "reason": "tab-bar-overlay"
+    },
+    {
+      "surface": "results",
+      "kind": "occluded",
+      "label": "Play again. Card Sort",
+      "heightDp": 25,
+      "reason": "screen-edge"
+    }
+  ]
+}

@@ -81,10 +81,10 @@ question and are answered in the table below as they are measured.
 | 2× text | **COVERED** | fs2 light + dark, 30 surfaces, 0 violations (incl. the reflowed Progress-detail badge) |
 | compact viewport | **COVERED** | compact light + dark, 30 surfaces, 0 violations |
 | normal/large viewport | **COVERED** | the default profile is the normal viewport (1080×2400 @ 420dpi); compact is the narrow case |
-| reduced motion | **IN PROGRESS** — the one genuinely open route condition | see below |
-| representative gameplay, all eight domains | **IN PROGRESS** | driven through the authorised controller under `current-device/` |
-| actual game-control labels + 48dp floor | **IN PROGRESS** | measured per game as its current-device row lands |
-| occluded/unmeasured excluded from pass count | **ENFORCED** | 32 occluded nodes enumerated and excluded |
+| reduced motion | **COVERED** | see below — 30 surfaces, 0 violations, 14 occluded excluded |
+| representative gameplay, all eight domains | **IN PROGRESS / QUOTA-BLOCKED** | driven through the authorised controller under `current-device/` |
+| actual game-control labels + 48dp floor | **IN PROGRESS / QUOTA-BLOCKED** | measured per game as its current-device row lands |
+| occluded/unmeasured excluded from pass count | **ENFORCED** | 32 occluded nodes (routes) + 14 (reduced motion) enumerated and excluded |
 
 The change design pre-declared this gap and forbids papering over it:
 
@@ -92,18 +92,50 @@ The change design pre-declared this gap and forbids papering over it:
 > enlarged-text route captures exist but reduced motion was not reviewed, THEN
 > the accessibility and layout acceptance requirement remains incomplete.
 
+### Reduced motion — COVERED
+
 Reduced motion is OS-driven (`AccessibilityInfo.isReduceMotionEnabled()`, which
 the app subscribes to once via a shared store in
 `components/a11y/reduced-motion.ts` and which gates decorative motion to a
-static fallback). It is therefore verified by putting the device into Android's
-"Remove animations" state and re-capturing/re-auditing, not by asserting that
-the code has a hook. **Until that capture lands, this row stays open and
-`5.3` (parent `14.3`) stays unchecked** — the requirement is only complete when
-every condition above is satisfied.
+static fallback). It is therefore **verified by putting the device into
+Android's "Remove animations" state and re-capturing/re-auditing**, not by
+asserting that the code has a hook. That was done:
+
+```bash
+adb shell settings put global transition_animation_scale 0
+adb shell settings put global window_animation_scale 0
+adb shell settings put global animator_duration_scale 0
+node scripts/qa/ui-capture.mjs --out qa-artifacts/cert076f-reduced-motion \
+  --device emulator-5554 --profile default --theme light,dark   # 30/30 PASS
+node scripts/qa/a11y-audit.mjs --dir …/default/{light,dark} --density 420
+```
+
+| Reduced-motion audit | Surfaces | Violations | Occluded (excluded) |
+| --- | --- | --- | --- |
+| default-light | 15 | **0** | 7 |
+| default-dark | 15 | **0** | 7 |
+| **Total** | **30** | **0** | **14** |
+
+Artifacts: [`reduced-motion/captures.json`](reduced-motion/captures.json),
+[`reduced-motion/default-light.json`](reduced-motion/default-light.json),
+[`reduced-motion/default-dark.json`](reduced-motion/default-dark.json). The 14
+occluded nodes are enumerated with reasons in those files and are **kept out of
+the pass count**, exactly as the requirement demands.
+
+This closes the gap the change design pre-declared and forbade papering over:
+the accessibility and layout acceptance requirement is no longer incomplete for
+lack of reduced-motion review. What remains open is the **gameplay** half —
+per-domain game-control labels and the 48dp floor measured on live game boards,
+which needs the authorised controller and is quota-blocked.
 
 ## 5.3 Parent task 14.3
 
 **NOT CHECKED.** The requirement is conjunctive — "only after every required
-profile and gameplay condition is satisfied" — and reduced motion plus the
-per-domain game-control measurements are not all filed yet. Checking 14.3 now
-would be exactly the bulk-checking this change exists to prevent.
+profile and gameplay condition is satisfied". Every **profile** condition is now
+satisfied, including reduced motion (30 surfaces, 0 violations). What is still
+outstanding is the **gameplay** half: representative gameplay from all eight
+domains with actual game-control labels and the Android 48dp floor measured on
+live game boards. That needs the authorised controller, which is quota-blocked
+(see [`CONTROLLER.md`](CONTROLLER.md)). Checking `14.3` now would be exactly the
+bulk-checking this change exists to prevent, so it stays unchecked and
+`NOT VALIDATED`.
