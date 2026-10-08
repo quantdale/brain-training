@@ -263,3 +263,21 @@ console.log(`provenance rows: ${rows.length}`);
 console.log(`dependency-surface changes since ${HISTORICAL_SOURCE.slice(0, 7)}: ${surfaceChanges.length}`);
 console.log(`production files changed since ${HISTORICAL_SOURCE.slice(0, 7)}: ${changed.length}`);
 for (const f of changed) console.log(`  - ${f}`);
+
+// FAIL CLOSED. Review finding (076-f provenance lane): this generator used to
+// only LOG the dependency-surface diff while hard-coding every game row as
+// SOURCE_EQUIVALENT_HISTORICAL, so a future rendering edit would have been
+// silently recorded as equivalence - the exact "silent rot" the narrative
+// claimed was impossible. Now a non-empty closure diff is a hard error, and
+// the affected rows are no longer claimed equivalent.
+if (surfaceChanges.length > 0) {
+  console.error('');
+  console.error('build-provenance: FAIL — rendering-dependency closure changed since the');
+  console.error(`game-capture source ${HISTORICAL_SOURCE}:`);
+  for (const f of surfaceChanges) console.error(`  - ${f}`);
+  console.error('');
+  console.error('Historical game frames are NO LONGER source-equivalent and MUST NOT be');
+  console.error('labelled SOURCE_EQUIVALENT_HISTORICAL. Recapture the affected dependency');
+  console.error('closure (or mark those frames NOT VALIDATED) before regenerating.');
+  process.exitCode = 1;
+}

@@ -19,7 +19,10 @@ Checkout proven clean before the run: no inherited `apps/mobile/android`,
 `apps/mobile/ios`, `node_modules`, or `.expo` (all gitignored, so the clone was
 genuinely clean), at commit `a45232f`. The checkout was removed afterwards.
 
-**Composite result: `FAIL` — 19 of 20 gates passed, 1 failed.** This is the
+**Composite result: `FAIL` — 19 of 20 labeled gates passed, 1 failed.** The
+tally counts the 20 labeled `run()` gates. A 21st, unlabeled pass/fail result
+(`tracked_mutation_after_clean_run=PASS`, from `trackedMutation()`) is recorded
+separately below rather than folded into the tally. This is the
 composite's own verdict and is reported as-is. It is **not** the self-test; the
 self-test (`--self-test`, 10 checks) passing is a different, weaker thing and is
 never reported as certification.
@@ -45,7 +48,8 @@ never reported as certification.
 | 17 | web export | PASS |
 | 18 | **Expo Doctor** | **FAIL (exit 1)** |
 | 19 | full Jest | PASS |
-| 20 | jest signal | PASS (`tracked_mutation_after_clean_run=PASS`) |
+| 20 | jest signal | PASS (skip-signal allowlist validation) |
+| — | tracked mutation (separate, unlabeled check) | PASS (`tracked_mutation_after_clean_run=PASS`) |
 
 ### The one failing gate is classified, not excused
 

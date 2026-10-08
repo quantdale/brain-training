@@ -1,8 +1,8 @@
-# Current-device acceptance — `language-word-match`
+# Current-device acceptance — `logic-code-cracker`
 
 - Controller: external ARTEMIS (D:\Tools\artemis), profile `pro` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md)
 - Locked app: `com.braintraining.app`
-- ARTEMIS session: `21585491-6ab3-4e5b-b1bd-35caabe12064` (raw trace external to Git)
+- ARTEMIS session: `8456120d-9f2b-44da-b720-b0fa1d33f32b` (raw trace external to Git)
 - Device: emulator-5554 / AVD braintraining-ui35
 - APK under test: `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d` (48,888,204 bytes, com.braintraining.app 0.1.0/1000)
 - Controller review note: ABSENT — this row is NOT VALIDATED

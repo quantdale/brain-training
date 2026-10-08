@@ -31,8 +31,9 @@ capture manifests:
 | `…/evidence/after-captures-games/index.json` | 194 retained + 16 quarantined game frames |
 
 The generator recomputes the rendering-dependency diff with `git diff` and
-refuses to hand-wave it, so a later production edit cannot quietly leave a
-stale "unchanged" claim in place. Re-run it after any source change.
+**fails closed** on a non-empty closure diff (exit non-zero, no equivalence
+labels emitted), so a later production edit cannot quietly leave a stale
+"unchanged" claim in place. Re-run it after any source change.
 
 Totals: **302 rows** — 90 route, 2 route-scroll, 194 game, 16 rejected.
 

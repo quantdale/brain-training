@@ -112,6 +112,20 @@ function structure(id) {
   if (missing.length > 0) {
     return { ok: false, note: 'present', reason: `states not evidenced: ${missing.join(', ')}` };
   }
+
+  // SCORED FEEDBACK must be a QUOTED verdict, not a description of the game's
+  // feedback mechanism. The change spec is explicit: "Feedback is not
+  // inferred" - an intro, an unanswered board or a filename is never scored
+  // feedback, and neither is prose about how feedback generally works.
+  const fbMatch = body.match(/##[^\n]*Scored\s+Feedback[^\n]*\n([\s\S]*?)(?=\n##|$)/i);
+  const fb = (fbMatch ?? [])[1] ?? '';
+  if (!/["'\u201c\u201d].{2,120}["'\u201c\u201d]/.test(fb)) {
+    return {
+      ok: false,
+      note: 'present',
+      reason: 'scored feedback not evidenced - the Scored Feedback section contains no quoted correct/incorrect/timeout verdict',
+    };
+  }
   return { ok: true, note: 'present', reason: '' };
 }
 
@@ -119,7 +133,20 @@ function classify(id, manual) {
   const s = structure(id);
   const m = manual[id];
 
-  // A manual verdict always wins: identity is a human judgement here.
+  // FAIL CLOSED FIRST: a manual verdict can refine a structurally sound row,
+  // but it must never promote a row that lacks the required states. A reviewer
+  // note saying "PASS" over an empty or partial row is exactly how the
+  // flexibility-card-sort over-claim got published (076-f review finding F6).
+  if (!s.ok && (!m || m.status === 'PASS' || m.status === 'FIXED')) {
+    return {
+      status: 'NOT VALIDATED',
+      reason: `${s.reason}${m ? ` (reviewer marked ${m.status} but the row does not evidence every required state)` : ''}`,
+      note: s.note,
+      identity: m ? m.identity : 'unreviewed',
+    };
+  }
+
+  // A manual verdict wins only over a structurally complete row.
   if (m) {
     return {
       status: m.status === 'N-A' ? 'N/A' : m.status,
@@ -128,9 +155,7 @@ function classify(id, manual) {
       identity: m.identity,
     };
   }
-  if (!s.ok) {
-    return { status: 'NOT VALIDATED', reason: s.reason, note: s.note, identity: 'unreviewed' };
-  }
+
   // Structurally complete but not yet manually verified for identity: the
   // change spec forbids accepting a state from anything but inspection, so this
   // stays NOT VALIDATED until a reviewer confirms it is the right game.

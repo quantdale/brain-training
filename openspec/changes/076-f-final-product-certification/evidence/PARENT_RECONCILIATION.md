@@ -42,7 +42,7 @@ be that game's own play/capture of active, feedback, pause/end states.
 | Parent task | Game | Evidence row | Classification |
 | --- | --- | --- | --- |
 | 6.1 | attention-odd-one-out | `current-device/attention-odd-one-out/` | **DONE** — PASS - active board, scored feedback quoted verbatim (time-up verdict with the odd item revealed), pause overlay with Resume/Quit, resume confirmed at Round 2/6, and the result screen independently confirmed against the filed device frame (Score 125 / 17% / 1-6 / Timeouts 5 / XP 12 / +2 coins). Selection mechanic retained. |
-| 6.2 | attention-sustained-vigilance | `current-device/attention-sustained-vigilance/` | **DONE** — PASS - sustained-timing mechanic observed: the GO/hold instruction, Trial 1/30 chip, Score and Pause controls. |
+| 6.2 | attention-sustained-vigilance | `current-device/attention-sustained-vigilance/` | **NOT VALIDATED** — downgraded on review (findings F3/F4). The right game and mechanic are described, and the pause overlay and itemised result ARE quoted, but section 2 quotes NO scored verdict: it claims feedback is continuous rather than a per-trial popup, which is factually wrong (stimulus-stage.tsx renders per-trial verdicts Go!/Held - nice/That was the stop number/Missed one with ✓/✕/⏱ badges). Scored feedback is therefore not evidenced. The filed frame is additionally the HOME screen and is not corroboration. Re-run required. |
 | 6.3 | attention-symbol-tracker | `current-device/attention-symbol-tracker/` | **DONE** — PASS - tracking mechanic observed: Track 2 symbols and the memorise instruction; scored feedback quoted verbatim including the miss verdict and the timeout submission note. |
 | 6.5 | attention-visual-search | `current-device/attention-visual-search/` | **NOT VALIDATED** — Controller MIS-NAVIGATED and played a Flexibility Match-by-SHAPE demo. The note is real and detailed and is NOT evidence of visual search. Re-run required. |
 | 7.2 | flexibility-color-stroop | `current-device/flexibility-color-stroop/` | **NOT VALIDATED** — Run killed before producing a review note. Re-run required. |
@@ -62,10 +62,10 @@ be that game's own play/capture of active, feedback, pause/end states.
 | 13.3 | speed-quick-compare | `current-device/speed-quick-compare/` | **NOT VALIDATED** — Not yet observed. |
 | 13.5 | speed-tap-rush | `current-device/speed-tap-rush/` | **NOT VALIDATED** — Not yet observed. |
 
-The classification column is filled from
-[`ASSESSMENT.md`](ASSESSMENT.md) when the current-device sweep is complete. It
-is deliberately *not* pre-filled here: pre-filling would be exactly the
-"checking a box before its evidence exists" failure this change exists to stop.
+The classification column is filled **per-row** from `ASSESSMENT.md` as evidence
+lands. A `DONE` entry is written only after that row's evidence is filed and
+linked in the same commit that checks the parent box. It is never pre-filled in
+anticipation of evidence.
 
 **A parent game task is checked if and only if** its row shows PASS (or FIXED
 with the fix and its regression guard) across active, scored feedback,
@@ -139,9 +139,11 @@ report is published.
 
 Wholly repository-owned and fully executable regardless of controller state.
 
-- **Classification:** `DONE` once the durable files are updated and the ending
-  SHA is pushed with no abandoned worktrees. See
-  [`../..`](../) and the ending-SHA record in [`GATES.md`](GATES.md)/[`VERDICT.md`](VERDICT.md).
+- **Classification:** `DONE` only once the ending SHA is pushed and the four
+  workflow runs at **that exact SHA** are recorded in [`VERDICT.md`](VERDICT.md).
+  `GATES.md` does **not** contain the ending-SHA record — it is deliberately
+  frozen as the shipped-command record. `14.8` must not be checked until that
+  record exists and is linked in the same commit.
 
 ## Bulk-checking is the thing being prevented
 

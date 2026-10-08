@@ -55,8 +55,11 @@ Result: **zero files** (excluding test-only edits, which do not render).
 
 The same is recomputed on every run of
 `scripts/certification/build-provenance.mjs`, which reports
-`dependency-surface changes since 4a6fc53: 0` and fails loudly if that ever
-stops being true, so this claim cannot rot.
+`dependency-surface changes since 4a6fc53: 0`. **That is now enforced, not just
+reported**: if the closure diff is ever non-empty the generator exits non-zero
+and refuses to emit `SOURCE_EQUIVALENT_HISTORICAL` for the game frames, so the
+claim cannot rot silently. (It previously only logged the diff while hard-coding
+equivalence — a review finding, now fixed.)
 
 `apps/mobile/src/app/_layout.tsx` and the tab layout are also unchanged — game
 navigation did not move.

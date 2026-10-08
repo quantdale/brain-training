@@ -53,7 +53,7 @@ consequence directly:
 | Accessibility audits (measured nodes) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
 | Reduced-motion accessibility | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
 | Per-domain game-control labels + 48dp | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42 games)** | **INCOMPLETE — 4 PASS, 38 NOT VALIDATED** | `ASSESSMENT.md` |
+| **Current-device game acceptance (42 games)** | **INCOMPLETE — 2 PASS, 40 NOT VALIDATED** | `ASSESSMENT.md` |
 | Defect repair discipline | **PASS** — no defect reproduced, no production edit | `DEFECTS.md` |
 | Clean-checkout composite | **FAIL (19/20)** — one gate, upstream drift | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
@@ -67,6 +67,39 @@ consequence directly:
 
 The decisive unmet gate is the third row of the blocking group: **42-game
 current-device acceptance is incomplete**, and it is repository-owned.
+
+## Independent review found and repaired over-claiming
+
+Task 8.2 ran a three-lane read-only review (provenance / assessment / gates).
+It found **six blocking findings**, and every one was repaired before this
+verdict was written. The most important one is worth stating plainly, because
+it is the exact failure this change exists to prevent:
+
+- **A game was marked PASS on evidence that did not support it, and its filed
+  device frame was a different game.** `flexibility-card-sort` had no scored
+  verdict (its quoted "verdict" was a rule-switch notice), no pause and no
+  result — and its `result.png`/`result.xml` carried only
+  `attention-target-count.*` testIDs. The frame has been moved to the game it
+  actually shows; the row is `NOT VALIDATED`.
+- **A second row quoted no scored verdict** and asserted the game shows no
+  per-trial feedback, which is false — `stimulus-stage.tsx` renders
+  `Go!` / `Held — nice` / `That was the stop number` / `Missed one` verdicts.
+  `attention-sustained-vigilance` is downgraded to `NOT VALIDATED`.
+- **The assessment generator let a manual PASS override its own structural
+  check.** It now fails closed: a row lacking any required state cannot be
+  promoted by a reviewer verdict, and scored feedback must be a **quoted**
+  verdict, not prose about how feedback works.
+- **The provenance generator claimed to "fail loudly" and did not.** A
+  dependency-closure change was only logged while every game row stayed
+  hard-coded `SOURCE_EQUIVALENT_HISTORICAL`. It now exits non-zero and refuses
+  to emit equivalence labels when the closure changed.
+
+Consequence: the parent ledger moves **backwards** where it must. Parent `6.2`
+and task `3.2` are un-checked again, because their evidence no longer satisfies
+the acceptance criteria. A checkbox that cannot survive review is not a
+checkbox.
+
+The corrected counts are **2 PASS, 40 NOT VALIDATED**.
 
 ## What is genuinely established
 
@@ -94,15 +127,15 @@ This certification is not empty. It closes real, previously-open gaps:
 
 ## What is not established, and why
 
-- **38 of 42 games are NOT VALIDATED.** Not "failed" — *not observed*. The
-  authorised controller is throttled to 15 LLM requests/minute on the only
-  model with budget, and its circuit breaker opens under that pressure, so runs
-  stall before recording states. Three distinct failure modes were caught by
-  review and refused as evidence: an unfilled note skeleton, a run that died
-  before writing a note, and — most importantly — one run that **mis-navigated
-  and played a different game**, producing a detailed, entirely plausible note
-  about the wrong board. That last one is exactly the class of error this
-  change exists to prevent, and it is recorded as `NOT VALIDATED`.
+- **40 of 42 games are NOT VALIDATED.** Not "failed" — *not observed well
+  enough*. The authorised controller is throttled to 15 LLM requests/minute on
+  the only model with budget, and its circuit breaker opens under that
+  pressure, so runs stall before recording states. Four distinct failure modes
+  were caught by review and refused as evidence: an unfilled note skeleton, a
+  run that died before writing a note, a run that **mis-navigated and played a
+  different game** producing a detailed note about the wrong board, and a
+  device frame filed under the wrong game. Those are exactly the errors this
+  change exists to prevent, and each is recorded rather than smoothed over.
 - **The nine stateful journeys are NOT VALIDATED.** ADB gameplay is never
   substituted for the controller, so they wait on the same external repair.
 - **Reduced motion is NOT VALIDATED.** It is OS-driven and must be observed
@@ -149,7 +182,7 @@ committed manifests, and every claim above is tied to a file in `evidence/`.
 
 ## What this verdict does not say
 
-- It does not say the product is broken. Four games were reviewed and passed;
+- It does not say the product is broken. Two games were reviewed and passed;
   the rest are *unobserved*, not defective.
 - It does not withdraw any green gate. Everything that passed still passed.
 - It does not certify release acceptance. The parent ledger remains the
