@@ -83,14 +83,20 @@ End on the final RESULT screen.
 EOF
 }
 
-# Lean invocation: the external Google credential is free tier and the only
-# usable model is capped at 15 requests/minute, so the auxiliary LLM sub-agents
-# (checker, step summarizer, committee, planner validation, video analyzer) are
-# disabled to fit the budget. The reviewer's own inspection of the filed device
-# frames supplies the verification those sub-agents would otherwise provide.
-# See evidence/CONTROLLER.md.
+# Pro, not Flash: measured on the same game (attention-odd-one-out) the Flash
+# reactive loop ran UNBOUNDED - 120 steps / 351 LLM calls and never wrote its
+# review note - while Pro's planner + convergence gate completed the identical
+# journey in 17 steps / 73 calls WITH the note. Pro is the cheaper and the
+# better-evidenced profile here.
+#
+# The external Google credential is free tier and the only model with budget is
+# capped at 15 requests/minute, so the auxiliary LLM sub-agents (checker, step
+# summarizer, committee, planner validation, video analyzer) are disabled to fit
+# that budget. The reviewer's own inspection of the filed device frames supplies
+# the verification those sub-agents would otherwise provide. See
+# evidence/CONTROLLER.md.
 ARTEMIS_FLAGS=(
-  --profile flash
+  --profile pro
   --locked-app com.braintraining.app
   --disable-step-summarizer
   --disable-checker
@@ -132,19 +138,25 @@ for g in "${GAMES[@]}"; do
     echo "# Current-device acceptance — \`$g\`"
     echo
     echo "- Date: $(date -Iseconds)"
-    echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`flash\` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md), locked app \`com.braintraining.app\`"
+    echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`pro\` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md), locked app \`com.braintraining.app\`"
     echo "- Test name: \`$name\`"
     echo "- ARTEMIS session: \`$sess\` (raw trace external to Git)"
     echo "- Device: emulator-5554 / AVD braintraining-ui35"
     echo "- APK under test: \`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d\` (48,888,204 bytes, com.braintraining.app 0.1.0/1000)"
     echo "- Controller exit code: $rc"
+    if [ -n "$note" ]; then
+      echo "- Controller review note: PRESENT"
+    else
+      echo "- Controller review note: ABSENT — this row is NOT VALIDATED"
+    fi
     echo
     echo "## Controller state-review log (scrubbed)"
     echo
     if [ -n "$note" ]; then
       cat "$note"
     else
-      echo "_No controller review note was produced; see artemis.log tail._"
+      echo "_No controller review note was produced. **This game is NOT VALIDATED.**_"
+      echo "_See artemis.log for the failure; do not treat the device frame below as acceptance._"
     fi
     echo
     echo "## Device frame filed alongside"

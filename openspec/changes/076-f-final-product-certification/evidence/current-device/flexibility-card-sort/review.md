@@ -1,19 +1,19 @@
 # Current-device acceptance — `flexibility-card-sort`
 
-- Date: 2026-10-08T15:17:06+08:00
-- Controller: external ARTEMIS (D:\Tools\artemis), profile `pro`, locked app `com.braintraining.app`
-- Test name: `cert076f-game-flexibility-card-sort`
-- ARTEMIS session: `8e5802aa-3d43-4fd9-ae04-f1c56677a72b` (raw trace external to Git)
+- Controller: external ARTEMIS (D:\Tools\artemis), profile `pro` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md)
+- Locked app: `com.braintraining.app`
+- ARTEMIS session: `b8e856fc-eae3-44d3-8bf3-932b4ad1665a` (raw trace external to Git)
 - Device: emulator-5554 / AVD braintraining-ui35
 - APK under test: `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d` (48,888,204 bytes, com.braintraining.app 0.1.0/1000)
-- Controller exit code: 124
+- Controller review note: PRESENT
 
 ## Controller state-review log (scrubbed)
 
-_No controller review note was produced; see artemis.log tail._
+## 1. Active Play Board
+- Board content: A target card (green square) and four choice cards (blue square, green circle, red square, blue circle).
+- Rule: "Match by COLOR".
+- Controls: "Match by COLOR" banner, four choice cards.
+- Legibility: Clear hierarchy, legible.
+## 2. Scored Feedback
+- Verdict: "Rule switched! Match by SHAPE".
 
-## Device frame filed alongside
-
-`result.png` + `result.xml` are captured from the terminal APK on the
-current device after the journey, and are the reviewer's independent check
-on the controller report above.
