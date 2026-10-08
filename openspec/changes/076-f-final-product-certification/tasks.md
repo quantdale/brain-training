@@ -11,9 +11,9 @@
 
 ## 3. Current-device game acceptance
 
-- [ ] 3.1 On the current release candidate, accept `attention-odd-one-out` active, scored feedback, pause/resume, result, input, and visual states; check parent task 6.1 only with linked evidence.
-- [ ] 3.2 Accept `attention-sustained-vigilance` the same way; check parent task 6.2 only with linked evidence.
-- [ ] 3.3 Accept `attention-symbol-tracker` the same way; check parent task 6.3 only with linked evidence.
+- [x] 3.1 On the current release candidate, accept `attention-odd-one-out` active, scored feedback, pause/resume, result, input, and visual states; check parent task 6.1 only with linked evidence.
+- [x] 3.2 Accept `attention-sustained-vigilance` the same way; check parent task 6.2 only with linked evidence.
+- [x] 3.3 Accept `attention-symbol-tracker` the same way; check parent task 6.3 only with linked evidence.
 - [ ] 3.4 Accept `attention-visual-search` the same way; check parent task 6.5 only with linked evidence.
 - [ ] 3.5 Accept `flexibility-color-stroop` the same way; check parent task 7.2 only with linked evidence.
 - [ ] 3.6 Accept `flexibility-task-switch` the same way; check parent task 7.5 only with linked evidence.
