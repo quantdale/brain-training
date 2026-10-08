@@ -61,16 +61,27 @@ Task 6.2's branch, applied exactly as written:
 > unchecked with the trace evidence and exact external repair. **Do not
 > substitute ADB gameplay.**
 
-- Parent `14.4` **stays unchecked**. ADB is never used to drive gameplay and is
-  never reported as Pro or as a controller result.
-- Trace evidence: the ARTEMIS session logs under `D:\Tools\artemis\traces\`,
-  referenced by session UUID only. Raw traces and credentials stay external;
-  only scrubbed IDs enter this repository.
-- **Exact external repair:** move the configured Google credential off the free
-  tier — it is capped at 20 requests/**day** on `gemini-3.x-flash`, 500/day on
-  `gemini-3.5-flash-lite`, and 15/**minute** on `gemini-3.1-flash-lite` — or
-  supply a credential with paid-tier quota, configured **only** in the external
-  ARTEMIS environment file. No repository change is needed to accept it.
+**Nuance recorded rather than glossed:** the controller is externally blocked,
+but the precise failure class is **quota exhaustion**, not a rejected
+credential. Authentication demonstrably succeeded — Flash smoke `dfb4c0c8-…`
+and Pro smoke `0e257ed7-…` both completed real work on the same credential, and
+the provider now answers `429 RESOURCE_EXHAUSTED` rather than the `401 Invalid
+credential` seen at the previous checkpoint. Task 6.2's *actions* are therefore
+satisfied in substance and were carried out in full:
+
+1. **parent `14.4` remains unchecked** — it is `NOT VALIDATED`, not DONE;
+2. **trace evidence** is recorded (session UUIDs, referenced; raw traces stay
+   external under `D:\Tools\artemis\traces\`);
+3. **the exact external repair** is named in [`CONTROLLER.md`](CONTROLLER.md):
+   move the configured Google credential off the free tier, or supply one with
+   paid-tier quota, in the external ARTEMIS environment file;
+4. **ADB gameplay was never substituted** and is never reported as Pro or as a
+   controller result.
+
+Task 6.1 ("After authentication succeeds, execute and inspect …") is **not**
+checked: its precondition is met but the nine journeys did not execute, so
+there is nothing to inspect. The two tasks are not collapsed into a generic
+status.
 
 The blocker is **billing, not code**, and it is named so the owner can act on it
 rather than guess.

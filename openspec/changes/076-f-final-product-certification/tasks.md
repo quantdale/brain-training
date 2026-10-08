@@ -32,7 +32,7 @@
 - [ ] 3.19 Accept `speed-quick-compare` the same way; check parent task 13.3 only with linked evidence.
 - [ ] 3.20 Accept `speed-tap-rush` the same way; check parent task 13.5 only with linked evidence.
 - [ ] 3.21 Add current-device rows for the 22 games whose parent redesign tasks are already checked, without treating those existing checks as this review.
-- [ ] 3.22 Publish the one-row-per-game assessment using only PASS, FIXED, NOT VALIDATED, or justified N/A. Do not count an intro, unanswered board, or filename as scored feedback.
+- [x] 3.22 Publish the one-row-per-game assessment using only PASS, FIXED, NOT VALIDATED, or justified N/A. Do not count an intro, unanswered board, or filename as scored feedback.
 
 ## 4. Defect repair
 
@@ -40,14 +40,14 @@
 
 ## 5. Accessibility, layout, and preserved routes
 
-- [ ] 5.1 Preserve the reviewed 90/90 route matrix and two Results-scroll pairs unless a relevant source change invalidates a surface. Recapture only the affected combinations.
+- [x] 5.1 Preserve the reviewed 90/90 route matrix and two Results-scroll pairs unless a relevant source change invalidates a surface. Recapture only the affected combinations.
 - [ ] 5.2 Complete reduced-motion, normal/large viewport, and representative gameplay checks for all eight domains, including actual game-control labels and the Android 48dp floor. Keep occluded or unmeasured nodes out of the pass count.
 - [ ] 5.3 Check parent task 14.3 only after every required profile and gameplay condition is satisfied.
 
 ## 6. Controller journeys
 
 - [ ] 6.1 After authentication succeeds, execute and inspect first-run, daily workout, scored gameplay, interrupted resume, standalone completion, full workout completion, results and progress, diagnostics or storage recovery, and applicable background/foreground interruption. Record trace ID, APK, planned steps, executed steps, and outcome for each.
-- [ ] 6.2 If authentication remains externally blocked, leave parent task 14.4 unchecked with the trace evidence and exact external repair. Do not substitute ADB gameplay.
+- [x] 6.2 If authentication remains externally blocked, leave parent task 14.4 unchecked with the trace evidence and exact external repair. Do not substitute ADB gameplay.
 
 ## 7. Clean checkout and terminal artifact
 
