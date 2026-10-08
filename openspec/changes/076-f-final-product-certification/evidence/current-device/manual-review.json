@@ -1,0 +1,45 @@
+{
+  "_comment": "Manual reviewer verdicts for the 076-f current-device assessment. Each entry is authored only after this reviewer opened the filed controller note AND the filed device frame and confirmed the row really shows that game. `identity` is the decisive field: a note describing a DIFFERENT game is never acceptance of the named game, no matter how good it looks. `status` uses only PASS / FIXED / NOT VALIDATED / N-A.",
+  "verdicts": {
+    "attention-odd-one-out": {
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Controller note describes a 3x3 grid of triangles with one odd circle, Round 1/6, timer, Pause. Scored feedback quoted verbatim: \"Time's up\" with the odd one revealed. Pause overlay quotes \"The challenge is hidden and the timers are frozen\" with Resume/Quit; resume confirmed at Round 2/6. Result screen independently confirmed against the filed device frame item-for-item (Score 125, Accuracy 17%, First-try 17%, Rounds passed 1/6, Best streak 1, Timeouts 5, XP 12, Reward +12 XP +2 coins). Controls legible, Play again is the single red CTA, no clipping or overlap."
+    },
+    "attention-sustained-vigilance": {
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained."
+    },
+    "attention-symbol-tracker": {
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Controller note describes the tracking mechanic specifically: 3x3 grid of symbols with two highlighted symbol cards to memorize, \"Track 2 symbols\", \"Memorize the highlighted symbols...\", Round 1/5, Score 0, Pause. Scored feedback quoted: \"Not quite\", \"You found 0 of 2 tracked symbols\", \"Time ran out - your picks were submitted as they stood.\""
+    },
+    "flexibility-card-sort": {
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Controller note describes the card-sort mechanic specifically: a target card (green square) with four choice cards (blue square, green circle, red square, blue circle) and the rule banner \"Match by COLOR\". Distinct sorting mechanic."
+    },
+    "attention-visual-search": {
+      "identity": "wrong-game",
+      "status": "NOT VALIDATED",
+      "note": "The filed note describes a DIFFERENT game: a \"Demo\" session for Flexibility with a \"Match by SHAPE\" button and four selectable shape cards. That is not attention-visual-search. The controller mis-navigated; this row does not evidence visual search at any state. Must be re-run."
+    },
+    "flexibility-task-switch": {
+      "identity": "unverified",
+      "status": "NOT VALIDATED",
+      "note": "Controller note is an unfilled skeleton: \"(To be populated)\" for scored feedback, pause and result. No state was evidenced. Must be re-run."
+    },
+    "language-context-fit": {
+      "identity": "unverified",
+      "status": "NOT VALIDATED",
+      "note": "Controller note is an unfilled skeleton: \"(Pending observation)\" for the active board. No state was evidenced. Must be re-run."
+    },
+    "flexibility-color-stroop": {
+      "identity": "unverified",
+      "status": "NOT VALIDATED",
+      "note": "The earlier run was killed before producing a review note. Must be re-run."
+    }
+  }
+}

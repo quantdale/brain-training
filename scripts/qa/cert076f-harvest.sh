@@ -52,12 +52,23 @@ for dest in "$EV"/*/; do
   fi
 
   # A note that is still an unfilled skeleton is NOT evidence. The controller
-  # sometimes writes the headings and then dies before recording anything; that
-  # must not be filed as a reviewed row (it is the exact "filename as feedback"
+  # sometimes writes the headings and then dies before recording anything, or
+  # records "(To be populated)" / "(Pending observation)" placeholders. That
+  # must not be filed as a reviewed row (it is the "filename as feedback"
   # failure the change spec forbids, in note form).
-  if [ -n "$note" ] && grep -qiE "to be recorded|pending execution|\[pending" "$note"; then
+  if [ -n "$note" ] && grep -qiE "to be recorded|to be populated|pending (execution|observation)|\[pending|\(pending" "$note"; then
     echo "[placeholder-note] $g — skeleton only, treating as no-note"
     note=""
+  fi
+
+  # A note must also contain real observed content: at least four non-empty,
+  # non-heading body lines. A three-line skeleton is not a reviewed state.
+  if [ -n "$note" ]; then
+    body_lines=$(grep -cE '^[^#[:space:]].{15,}' "$note")
+    if [ "${body_lines:-0}" -lt 4 ]; then
+      echo "[thin-note] $g — only ${body_lines:-0} substantive lines, treating as no-note"
+      note=""
+    fi
   fi
 
   if [ -z "$note" ]; then

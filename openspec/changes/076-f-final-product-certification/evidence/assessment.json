@@ -1,0 +1,388 @@
+{
+  "generatedAt": "2026-10-08T08:18:34.027Z",
+  "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+  "counts": {
+    "PASS": 4,
+    "NOT VALIDATED": 38
+  },
+  "rows": [
+    {
+      "domain": "attention",
+      "game": "attention-odd-one-out",
+      "parentTask": "6.1",
+      "status": "PASS",
+      "reason": "Controller note describes a 3x3 grid of triangles with one odd circle, Round 1/6, timer, Pause. Scored feedback quoted verbatim: \"Time's up\" with the odd one revealed. Pause overlay quotes \"The challenge is hidden and the timers are frozen\" with Resume/Quit; resume confirmed at Round 2/6. Result screen independently confirmed against the filed device frame item-for-item (Score 125, Accuracy 17%, First-try 17%, Rounds passed 1/6, Best streak 1, Timeouts 5, XP 12, Reward +12 XP +2 coins). Controls legible, Play again is the single red CTA, no clipping or overlap.",
+      "note": "present",
+      "identity": "verified"
+    },
+    {
+      "domain": "attention",
+      "game": "attention-sustained-vigilance",
+      "parentTask": "6.2",
+      "status": "PASS",
+      "reason": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained.",
+      "note": "present",
+      "identity": "verified"
+    },
+    {
+      "domain": "attention",
+      "game": "attention-symbol-tracker",
+      "parentTask": "6.3",
+      "status": "PASS",
+      "reason": "Controller note describes the tracking mechanic specifically: 3x3 grid of symbols with two highlighted symbol cards to memorize, \"Track 2 symbols\", \"Memorize the highlighted symbols...\", Round 1/5, Score 0, Pause. Scored feedback quoted: \"Not quite\", \"You found 0 of 2 tracked symbols\", \"Time ran out - your picks were submitted as they stood.\"",
+      "note": "present",
+      "identity": "verified"
+    },
+    {
+      "domain": "attention",
+      "game": "attention-target-count",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "attention",
+      "game": "attention-visual-search",
+      "parentTask": "6.5",
+      "status": "NOT VALIDATED",
+      "reason": "The filed note describes a DIFFERENT game: a \"Demo\" session for Flexibility with a \"Match by SHAPE\" button and four selectable shape cards. That is not attention-visual-search. The controller mis-navigated; this row does not evidence visual search at any state. Must be re-run.",
+      "note": "present",
+      "identity": "wrong-game"
+    },
+    {
+      "domain": "flexibility",
+      "game": "flexibility-card-sort",
+      "parentTask": "—",
+      "status": "PASS",
+      "reason": "Controller note describes the card-sort mechanic specifically: a target card (green square) with four choice cards (blue square, green circle, red square, blue circle) and the rule banner \"Match by COLOR\". Distinct sorting mechanic.",
+      "note": "present",
+      "identity": "verified"
+    },
+    {
+      "domain": "flexibility",
+      "game": "flexibility-color-stroop",
+      "parentTask": "7.2",
+      "status": "NOT VALIDATED",
+      "reason": "The earlier run was killed before producing a review note. Must be re-run.",
+      "note": "absent",
+      "identity": "unverified"
+    },
+    {
+      "domain": "flexibility",
+      "game": "flexibility-cue-shift",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "flexibility",
+      "game": "flexibility-rule-flip",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "flexibility",
+      "game": "flexibility-task-switch",
+      "parentTask": "7.5",
+      "status": "NOT VALIDATED",
+      "reason": "Controller note is an unfilled skeleton: \"(To be populated)\" for scored feedback, pause and result. No state was evidenced. Must be re-run.",
+      "note": "absent",
+      "identity": "unverified"
+    },
+    {
+      "domain": "language",
+      "game": "language-context-fit",
+      "parentTask": "8.1",
+      "status": "NOT VALIDATED",
+      "reason": "Controller note is an unfilled skeleton: \"(Pending observation)\" for the active board. No state was evidenced. Must be re-run.",
+      "note": "absent",
+      "identity": "unverified"
+    },
+    {
+      "domain": "language",
+      "game": "language-sentence-builder",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "language",
+      "game": "language-word-chain",
+      "parentTask": "8.3",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "language",
+      "game": "language-word-match",
+      "parentTask": "8.4",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "language",
+      "game": "language-word-scramble",
+      "parentTask": "8.5",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "logic",
+      "game": "logic-code-cracker",
+      "parentTask": "9.1",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "logic",
+      "game": "logic-deduction-table",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "logic",
+      "game": "logic-next-sequence",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "logic",
+      "game": "logic-order-path",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "logic",
+      "game": "logic-rule-grid",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "math",
+      "game": "math-equation-builder",
+      "parentTask": "10.1",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "math",
+      "game": "math-fast-math",
+      "parentTask": "10.2",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "math",
+      "game": "math-missing-operator",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "math",
+      "game": "math-number-line-estimation",
+      "parentTask": "10.4",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "math",
+      "game": "math-value-ordering",
+      "parentTask": "10.5",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-grid-recall",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-pair-recall",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-pattern-tap-back",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-prospective-cue",
+      "parentTask": "11.5",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-running-order",
+      "parentTask": "11.6",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "memory",
+      "game": "memory-sequence-memory",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "spatial",
+      "game": "spatial-coordinate-turn",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "spatial",
+      "game": "spatial-fold-match",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "spatial",
+      "game": "spatial-grid-nav",
+      "parentTask": "12.3",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "spatial",
+      "game": "spatial-mental-rotation",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "spatial",
+      "game": "spatial-transform-match",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "speed",
+      "game": "speed-color-match",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "speed",
+      "game": "speed-order-sweep",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "speed",
+      "game": "speed-quick-compare",
+      "parentTask": "13.3",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "speed",
+      "game": "speed-reaction-time",
+      "parentTask": "—",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    },
+    {
+      "domain": "speed",
+      "game": "speed-tap-rush",
+      "parentTask": "13.5",
+      "status": "NOT VALIDATED",
+      "reason": "no current-device row yet",
+      "note": "absent",
+      "identity": "unreviewed"
+    }
+  ]
+}
