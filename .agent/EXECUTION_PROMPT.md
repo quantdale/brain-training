@@ -1,5 +1,13 @@
 # Execution Prompt — Campaign 076: Product-Wide UI/UX Reboot
 
+> **ACTIVE CLOSURE BINDING (2026-10-08):** the active closure binding is now
+> **`openspec/changes/076-f-final-product-certification`**. This prompt remains
+> the ORIGINAL active 076 redesign prompt and is deliberately left as
+> historical context — it is NOT evidence of certification, and its GitHub
+> Actions runs are NOT certification evidence. Do not execute the redesign wave
+> plan below as if it were the current closure work. Read the 076-f
+> `evidence/VERDICT.md` for the current status.
+
 **Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` (former VALIDATED verdict withdrawn after evidence review)
 **Change:** `076-product-wide-ui-ux-reboot` (ACTIVE)
 **Start-SHA:** `b6654fb` (proposal head; Explore baseline `d3d0b99`)
@@ -29,7 +37,7 @@ or an honestly BLOCKED condition is durably recorded.
 - Task-ownership: `.agent/task-ownership.json` binds parallel packets per
   wave; coders never edit orchestrator-only surfaces.
 
-## Current checkpoint — 2026-10-08
+## Current checkpoint — 2026-10-08 (superseded by 076-f; see banner above)
 
 See change `evidence/CLOSURE_CHECKPOINT.md`: source `c324960` four workflows
 GREEN; new APK `de6c5fcd…`, reviewed/filed 90 route pairs + 2 scrolled Results
@@ -38,6 +46,14 @@ HTTP 401 Invalid credential, no steps: **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**.
 Owner must restore configured credentials only externally; no retry/fallback.
 All 22 current-build gap states and remaining acceptance still owed; no
 checkbox moved. iOS BUILD PASS / RUNTIME NOT VALIDATED.
+
+*2026-10-08 correction (076-f task 1.1): the HTTP 401 above is historical.
+Re-probed under 076-f the credential is valid; the failure class is provider
+**quota exhaustion** on the free tier. See
+`openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
+The four workflows at evidence SHA `7e7374b` are green (37719414181 /
+37719414125 / 37719414141 / 37719414138), so that SHA no longer lacks remote
+verification. Neither correction is release acceptance.*
 
 ## Historical review checkpoint / outstanding acceptance scope
 

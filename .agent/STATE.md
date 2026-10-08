@@ -1,6 +1,32 @@
 # Durable Project State
 
-**076 closure checkpoint — 2026-10-08 (current, BLOCKED):** source fixes
+> **ACTIVE CLOSURE BINDING (2026-10-08):** closure is bound to
+> **`openspec/changes/076-f-final-product-certification`**. This file's 076
+> checkpoint below is retained as history. Two of its statements are stale and
+> are corrected in place below (the HTTP 401 classification and the "evidence
+> SHA needs its own remote check" implication). Neither correction is release
+> acceptance.
+
+**076-f closure checkpoint — 2026-10-08 (current, BLOCKED):** certification
+change `076-f-final-product-certification` is in progress. Provenance is now
+DERIVED from the committed capture manifests (`build-provenance.mjs`, 302 rows)
+and the rendering-dependency closure is machine-verified **unchanged** since
+game-capture source `4a6fc53` — so all 194 game frames are classified
+`SOURCE_EQUIVALENT_HISTORICAL` and are explicitly NOT terminal-APK captures.
+The terminal release APK was rebuilt and is **byte-identical** to
+`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`
+(48,888,204 B), closing the provenance chain across evidence, device and
+source. Full clean-checkout composite RAN (19/20 gates PASS; Expo Doctor fails
+on upstream patch drift, classified per Change 069 as not a repository defect;
+the hermetic `validate-expo-alignment.mjs` gate passes 22/22). Jest baseline
+confirmed 621/4 suites, 7,237/5 tests, 5 snapshots. Strict OpenSpec is now
+**61/61** (the new total after adding 076-f). ARTEMIS controller is
+operational: Flash and Pro smokes PASS; the external blocker is free-tier
+**quota**, not an invalid credential. Exact external repair: move the configured
+Google credential off the free tier, or supply one with paid quota, in the
+external ARTEMIS environment file. iOS BUILD PASS / RUNTIME NOT VALIDATED.
+
+**076 closure checkpoint — 2026-10-08 (superseded, kept as history):** source fixes
 pushed as `c324960`, all four source-SHA workflows GREEN. New committed-source
 APK `de6c5fcd…` (48,888,204 B) installed, device-SHA checked and launched.
 90/90 route pairs personally reviewed/filed; wrapped 2× Progress badge fixed;

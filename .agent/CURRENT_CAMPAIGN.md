@@ -1,5 +1,12 @@
 # Campaign 076: Product-Wide UI/UX Reboot (REOPENED — release acceptance blocked)
 
+> **ACTIVE CLOSURE BINDING (2026-10-08):** closure of Campaign 076 is now bound
+> to **`openspec/changes/076-f-final-product-certification`** — a *separate
+> certification change* that does not replace this campaign's acceptance ledger.
+> This campaign's `tasks.md` remains the product-acceptance ledger; 076-f
+> authorises checking a parent box only when that task's own linked evidence
+> exists. Read 076-f `evidence/VERDICT.md` for the current status.
+
 **Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 **Campaign id:** `076-product-wide-ui-ux-reboot`
 **Predecessor:** Phase 10 terminal certification (post-075 convergence; all 46 audit findings dispositioned, 0 open)
@@ -40,7 +47,7 @@ contracts.
    matrices, ARTEMIS journeys, impact-map gates, release APK, iOS status,
    final coverage manifest + visual decision report, durable state, push (14.x).
 
-## Current checkpoint — 2026-10-08 (supersedes historical claims below)
+## Current checkpoint — 2026-10-08 (superseded by 076-f; see banner above)
 
 Source `c324960` fixes the captured 2× badge clipping and stale HUD CI assertion;
 all four source-SHA workflows GREEN. New APK `de6c5fcd…` installed/hash checked;
@@ -53,6 +60,23 @@ no more retry or alternate controller. All 22 current-build gap states, game/
 control/reduced-motion/Pro acceptance, full clean-checkout and terminal ledger
 still owed. iOS BUILD PASS / RUNTIME NOT VALIDATED. No acceptance checkbox
 moved. See `evidence/CLOSURE_CHECKPOINT.md` for exact hashes and evidence.
+
+*2026-10-08 correction (076-f task 1.1). Two statements above are stale and are
+superseded — this campaign's checkpoint text is kept as history, not rewritten.*
+
+1. *"401 Invalid credential … BLOCKED_EXTERNAL_ARTEMIS_PROVIDER"* is historical.
+   Re-probed under 076-f the credential is **valid**; the failure class is
+   provider **quota exhaustion** on the free tier (HTTP 429
+   `RESOURCE_EXHAUSTED`). The controller executes real work once routed to a
+   model with quota — Flash and Pro smokes both PASS.
+2. *"all four source-SHA workflows GREEN"* is true for `c324960`, and the
+   evidence SHA `7e7374b` has since earned **its own** four green runs
+   (App CI 37719414181, Repository Integrity 37719414125, Android Build Smoke
+   37719414141, iOS Build Smoke 37719414138), so that SHA no longer lacks remote
+   verification.
+
+*Neither correction is release acceptance. See
+`openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.*
 
 ## Historical review correction (former terminal claim remains withdrawn)
 

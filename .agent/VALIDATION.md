@@ -1,6 +1,39 @@
 # Durable Validation Record
 
-## 076 closure checkpoint — 2026-10-08 (current, BLOCKED)
+## 076-f certification checkpoint — 2026-10-08 (current, BLOCKED)
+
+Validation record for `openspec/changes/076-f-final-product-certification`.
+Full detail lives in that change's `evidence/` directory; this entry is the
+durable summary. Older entries in this file are historical and are true of the
+commit and date they name — they are not claims about the present.
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Clean-checkout **composite** (not the self-test) | **FAIL — 19/20** | `evidence/GATES.md`; disposable clone at `a45232f`, removed after |
+| — Expo Doctor (the 1 failing gate) | FAIL (exit 1) | 8 Expo packages behind `api.expo.dev` patch expectations — **upstream drift**, per Change 069 not a repository defect |
+| — hermetic Expo alignment (the repository-owned gate) | **PASS 22/22** | `node scripts/validate-expo-alignment.mjs` |
+| Strict OpenSpec `@1.9.0 validate --all --strict` | **PASS 61/61** | new total after adding 076-f; the old 60/60 is superseded, not forced |
+| OpenSpec pin alignment | **CORRECTED** | script ran `@1.6.0 validate --all` while governance/CI declare `@1.9.0 validate --all --strict`; self-test 6→10 checks now fails closed on drift |
+| Full Jest baseline | **PASS, exact match** | 621 passed/4 skipped suites, 7,237 passed/5 skipped tests, 5 snapshots |
+| Release APK build | **BUILD SUCCESSFUL** | `:app:assembleRelease` x86_64, 2m37s |
+| Terminal APK identity | **byte-identical match** | rebuilt `app-release.apk` = `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`, 48,888,204 B = routed evidence = pulled device `base.apk` |
+| Rendering-dependency closure since `4a6fc53` | **0 files changed** | machine-verified by `build-provenance.mjs` |
+| Provenance table | **302 rows derived** | `evidence/provenance-table.{md,json}` |
+| Route matrix 90/90 + 2 scroll pairs | **PRESERVED** | zero combinations require recapture |
+| Accessibility audits | 90 surfaces, **0 violations**, 32 occluded excluded | reduced motion + per-domain game controls still open |
+| ARTEMIS Flash smoke | **PASS** | session `dfb4c0c8-…`, real `report_task_status` completion |
+| ARTEMIS Pro smoke | **PASS** | session `0e257ed7-…`, full graph; Checker released fail-open on quota (recorded, not hidden) |
+| Current-device game acceptance | **IN PROGRESS** | authorised controller sweep under `evidence/current-device/` |
+| Controller journeys (9) | pending | free-tier quota; ADB never substituted |
+| iOS | BUILD PASS / **RUNTIME NOT VALIDATED** | unchanged |
+
+Workflow runs at evidence SHA `7e7374b` (all green): App CI **37719414181**,
+Repository Integrity **37719414125**, Android Build Smoke **37719414141**, iOS
+Build Smoke **37719414138**. That SHA therefore no longer lacks its own remote
+verification. Green runs at a *planning* commit are never certification
+evidence.
+
+## 076 closure checkpoint — 2026-10-08 (superseded, kept as history)
 
 Source `c324960`: App CI **37715645616**, Integrity **37715645424**, Android
 **37715645412**, iOS compile **37715645502**, all completed GREEN. APK

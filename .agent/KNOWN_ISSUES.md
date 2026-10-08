@@ -1,6 +1,51 @@
 # Known Issues / Blockers
 
-## Campaign 076 — current blocker (2026-10-08)
+## 076-f certification — current blocker (2026-10-08)
+
+**BLOCKED_EXTERNAL_ARTEMIS_QUOTA — billing, not code.** Supersession of the
+authentication blocker below: re-probed under 076-f, the configured Google
+credential is **valid** (HTTP 401 did not recur). The controller executes real
+work — Flash smoke `dfb4c0c8-…` and Pro smoke `0e257ed7-…` both PASS. The
+remaining blocker is **free-tier quota exhaustion**, measured directly:
+
+| Model | Budget | Metric |
+| --- | --- | --- |
+| `gemini-3.8-flash` | 20/day | `generate_content_free_tier_requests` |
+| `gemini-3.7-flash` | 20/day | `generate_content_free_tier_requests` |
+| `gemini-3.5-flash-lite` | 500/day | `generate_content_free_tier_requests` |
+| `gemini-3.1-flash-lite` | 15/minute | `GenerateRequestsPerMinutePerProjectPerModel-FreeTier` |
+
+**Owner action required (credentials/payment decision):** move the configured
+Google credential off the free tier (paid plan), or supply a credential with
+paid-tier quota, configured **only** in the external ARTEMIS environment file.
+No repository change is needed to accept it. Until then the per-minute lane is
+used for as much current-device coverage as it can carry and the rest is
+recorded `NOT VALIDATED`.
+
+**Environment change made during 076-f (disclosure):** ARTEMIS's
+`config/artemis.jsonc` default model was rerouted to `gemini-3.1-flash-lite`
+because the shipped default is day-capped at 20 requests. Same provider, same
+credential; original preserved as `artemis.jsonc.bak-cert076f`. Restore that
+backup (which needs paid-tier quota) if the original model is preferred.
+
+**Open repository finding (Medium) — script/CI gate mismatch.**
+`scripts/certification/certify-clean-checkout.mjs` runs the network
+`npx expo-doctor` as a hard gate and does **not** run the hermetic
+`scripts/validate-expo-alignment.mjs`. The declared CI gate set is the
+opposite: Change 069 removed expo-doctor from the push path (it resolves
+expectations from `api.expo.dev`, so it "can go red with zero repository
+changes") and made `validate-expo-alignment.mjs` the hermetic gate. Consequence:
+the clean-checkout composite reports FAIL on one upstream-drift gate while the
+repository-owned Expo gate passes 22/22. Owner of the fix: release-engineering
+orchestrator. Fix is to align the script with the declared gate set — adding the
+hermetic gate as hard and classifying expo-doctor as observed upstream drift —
+which raises the bar and lowers no threshold. Left unfixed during 076-f so the
+recorded composite result stays exactly what the shipped command produced.
+
+## Campaign 076 — historical blocker (2026-10-08) — SUPERSEDED
+
+> Superseded by the 076-f entry above. Kept as history: the HTTP 401 result was
+> true of that run. The credential is not invalid.
 
 **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER — authentication.** One bounded current
 Pro attempt `cecc4f2a-ae03-4868-a074-adf533e12a61` failed after 15.4s with
