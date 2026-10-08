@@ -33,22 +33,13 @@ for dest in "$EV"/*/; do
   # is the run this row belongs to.
   sess=$(grep -oE "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" "$log" | tail -1)
   note=""
-  if [ -n "${sess:-}" ]; then
-    [ -s "$ARTEMIS/traces/$sess/notes/game_state_review_log.md" ] && note="$ARTEMIS/traces/$sess/notes/game_state_review_log.md"
-  fi
-  # Fall back to the newest session whose stdout or review note mentions this
-  # game id (the daemon writes the id into neither stdout.log nor the trace dir
-  # name reliably, so both are checked).
-  if [ -z "$note" ]; then
-    for cand in $(ls -t "$ARTEMIS/traces" | grep -E "^[0-9a-f]{8}-" | head -12); do
-      if [ -s "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" ] &&
-        { grep -q "$g" "$ARTEMIS/traces/$cand/stdout.log" 2>/dev/null ||
-          grep -qi "${g#*-}" "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" 2>/dev/null; }; then
-        note="$ARTEMIS/traces/$cand/notes/game_state_review_log.md"
-        sess="$cand"
-        break
-      fi
-    done
+  # ONLY the client-log session UUID is trusted. A fallback that scanned nearby
+  # sessions by name matching produced real mis-attribution (attention-target-
+  # count was filed from attention-sustained-vigilance's session) - the exact
+  # failure this review process exists to catch. If the UUID does not resolve to
+  # a note, the row is NOT VALIDATED. No guessing.
+  if [ -n "${sess:-}" ] && [ -s "$ARTEMIS/traces/$sess/notes/game_state_review_log.md" ]; then
+    note="$ARTEMIS/traces/$sess/notes/game_state_review_log.md"
   fi
 
   # A note that is still an unfilled skeleton is NOT evidence. The controller
