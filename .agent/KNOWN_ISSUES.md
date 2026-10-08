@@ -1,6 +1,18 @@
 # Known Issues / Blockers
 
-## Campaign 076 release acceptance — OPEN / BLOCKED (review correction)
+## Campaign 076 release acceptance — OPEN / BLOCKED (current closure)
+
+Current recovery supersedes the artifact/count claims in the historical review
+below: `6e31d41e` has 90 acquired route pairs, but 2× Progress-detail badge
+clipping is a concrete responsive defect. Minimal header-wrap repair is
+unit-tested; native recertification owed on a new APK. Only 21/22 new gap pairs
+exist (Tap Rush feedback absent); filed `b2913bca` 168-state completeness is
+historical, not current rendering acceptance. `c3c75b9` App CI failed a stale
+fractional-HUD expectation; test corrected, full local matrix PASS, current
+remote run owed. Current source needs a rebuilt APK, new-identity captures,
+final visual/a11y checks, controller attempt and evidence filing. See
+`evidence/CLOSURE_CHECKPOINT.md`. No external/runtime blocker has been relabeled
+PASS. **Historical review findings and their then-current identities follow.**
 
 - **High, device gate:** final APK SHA-256 `c3b3e4d9…` has 8/8 verified
   focused detail stills, but the required 90-route/theme/profile matrix

@@ -75,6 +75,15 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- Closure recovery: reconciled `eff5de0` source and `6e31d41e` intermediate APK;
+  actual new gap acquisition is 21/22 (Tap Rush feedback missing). Matrix has
+  90 acquired pairs but captured 2× Progress-detail badge clipping; minimal
+  wrap repair + regression guard applied. Stale fractional-HUD test caused
+  `c3c75b9` App CI failure; assertion corrected. Full local 621 suites/7,237
+  tests + typecheck/lint/declared validators PASS. Rebuild, new-identity
+  captures, visual acceptance and current controller/remote gates owed;
+  no acceptance tasks moved. See `evidence/CLOSURE_CHECKPOINT.md`.
+
 - 2026-10-07 resumption: all four workflows PASS for security SHA `142e3c0`;
   dedicated AVD recovered, ARTEMIS helper/doctor ready. Six HUD-secondary
   ink defects corrected in five games, light/dark render/catalog guard added;

@@ -1,4 +1,8 @@
-# Campaign 076 — 2026-10-07 resumption (in progress)
+# Campaign 076 — 2026-10-07 resumption (historical checkpoint)
+
+**Superseded by `CLOSURE_CHECKPOINT.md` for current recovery.** The acquisition,
+source and gate counts below describe this earlier checkpoint only. No final
+acceptance is inherited after subsequent source corrections.
 
 **Verdict remains `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.** No missing
 state or final-build matrix has been certified by this checkpoint.

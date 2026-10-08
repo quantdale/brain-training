@@ -1,5 +1,23 @@
 # Durable Validation Record
 
+## 076 closure recovery — current, not release certification
+
+Full local Jest: **621 passed/4 skipped suites, 7,237 passed/5 skipped tests,
+5 snapshots**, console/signal gate PASS. Typecheck/lint PASS. Repo-state,
+task ownership, offline, secrets, provenance, workflows, affected-sync,
+Expo alignment, dependency audit/self-test, registry, runtime-QA contract,
+clean-checkout self-test, QA Node tests and strict OpenSpec PASS. Remote
+`c3c75b9`: Integrity/Android/iOS builds PASS; App CI `37654478658` FAIL on
+stale Task Switch `Score 148.8` display expectation (actual rounded `149`).
+Assertion repaired; fresh remote run owed. Intermediate `6e31d41e` has
+90 acquired route pairs but a captured 2× badge clipping defect; 21/22 new
+gap pairs (Tap Rush feedback missing). Neither is final acceptance. Focused
+Home/Progress 2 suites/7 tests PASS after the header-wrap repair. New build
+and all artifact-dependent checks owed. Doctor READY; Pro not retried yet.
+iOS **BUILD PASS / RUNTIME NOT VALIDATED**. Evidence and exact hashes:
+change `evidence/CLOSURE_CHECKPOINT.md` and `closure-defects/progress-badge/`.
+Earlier 076 records below are historical checkpoints.
+
 ## 076 resumption — 2026-10-07 (in progress, NOT release certification)
 
 Security SHA `142e3c0` remote PASS: App CI `37575106113`, Repository Integrity

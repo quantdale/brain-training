@@ -15,6 +15,7 @@
  */
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
+import { StyleSheet } from 'react-native';
 
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
@@ -142,6 +143,12 @@ describe('progress detail screen', () => {
     });
     const result = renderRouter('./src/app', { initialUrl: '/progress-detail' });
     await result;
+
+    // Device capture at font scale 2 showed the count badge cut to "1 ses".
+    // A wrapping row lets the intact badge move below the long tracked title.
+    const pbHeader = screen.getByTestId('progress-detail-pb-header');
+    expect(StyleSheet.flatten(pbHeader.props.style).flexWrap).toBe('wrap');
+    expect(within(pbHeader).getByText('1 session')).toBeOnTheScreen();
 
     // Per-domain history: one block per domain, entries carry rating + delta.
     expect(screen.getByTestId('progress-detail-domain-memory')).toBeOnTheScreen();

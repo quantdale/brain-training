@@ -310,7 +310,8 @@ describe('TaskSwitchScreen', () => {
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, 'option-grid.option', String(plan[0].correctIndex))),
     );
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(/Score 148\.8/);
+    // The display boundary rounds to an integer; scoring/timing stay fractional.
+    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent('Score 149');
 
     // Finish via QA and confirm the persisted durations exclude the pause.
     await pressToggleAndForce('force-win');

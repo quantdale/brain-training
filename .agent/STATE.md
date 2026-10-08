@@ -1,5 +1,18 @@
 # Durable Project State
 
+**076 closure recovery (current):** see change `evidence/CLOSURE_CHECKPOINT.md`.
+Home stage numeral fixed and visually confirmed on intermediate APK `6e31d41e…`.
+Acquisition has 90 route pairs but 2× Progress-detail badge clipping prevents
+acceptance; minimal wrapping repair plus regression guard applied. Only 21/22
+new gap pairs exist (Tap Rush feedback absent), not the chat-reported 22/22.
+Filed `b2913bca` 168-state coverage is historical after later source changes.
+Origin `c3c75b9` App CI failed on the stale fractional-HUD expectation; corrected
+without altering scoring. Full local Jest now 621 passed/4 skipped suites,
+7,237 passed/5 skipped tests, 5 snapshots; typecheck/lint and declared validators
+PASS. New committed-source APK, recapture/visual review, current ARTEMIS,
+final evidence and remote CI still owed. Campaign remains ACTIVE/BLOCKED;
+no acceptance checkbox changed. All earlier 076 checkpoints below are historical.
+
 **076 resumption checkpoint — 2026-10-07:** security SHA `142e3c0` passed all
 four remote workflows; dedicated AVD recovered and ARTEMIS helper/doctor ready.
 Six low-contrast custom HUD readouts corrected to existing stageMuted in five

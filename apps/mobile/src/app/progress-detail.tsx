@@ -171,7 +171,7 @@ export default function ProgressDetailScreen() {
           {/* The screen's one focal panel (lock §5): the personal-best numeral
               in reading ink, its raising events as numbered hairline rows. */}
           <ArcadePanel emphasis="focal" testID="progress-detail-pb">
-            <View style={styles.cardHeader}>
+            <View style={styles.cardHeader} testID="progress-detail-pb-header">
               <ThemedText type="eyebrow" themeColor="textSecondary">
                 Recent personal best
               </ThemedText>
@@ -647,6 +647,9 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
+    // At 2× text the tracked heading plus count badge exceeds the card;
+    // reflow the badge rather than clipping its label at the right edge.
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
