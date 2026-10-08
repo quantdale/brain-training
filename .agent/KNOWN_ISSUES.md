@@ -1,6 +1,22 @@
 # Known Issues / Blockers
 
-## Campaign 076 release acceptance — OPEN / BLOCKED (current closure)
+## Campaign 076 — current blocker (2026-10-08)
+
+**BLOCKED_EXTERNAL_ARTEMIS_PROVIDER — authentication.** One bounded current
+Pro attempt `cecc4f2a-ae03-4868-a074-adf533e12a61` failed after 15.4s with
+HTTP 401 Invalid credential; trace has no plan/steps. Current Flash
+`043dea1e…` separately failed runner startup. Doctor readiness is not auth
+acceptance. Owner must repair the configured credential only in the external
+ARTEMIS environment; no secret in chat/repo, no retry until repaired, no
+provider/controller fallback. Source `c324960` four workflows GREEN; new
+APK `de6c5fcd…` has reviewed/filed 90/90 routes + 2 scrolled Results pairs,
+0 automated violations, 32 occluded nodes unmeasurable. Captured Progress
+badge clipping fixed and natively revalidated. All 22 current-build game gap
+frames and remaining acceptance gates still owed; historical 168-state
+completeness is not this APK's certification. iOS BUILD PASS / RUNTIME
+NOT VALIDATED. Exact evidence: change `evidence/CLOSURE_CHECKPOINT.md`.
+
+## Earlier Campaign 076 recovery — HISTORICAL / superseded
 
 Current recovery supersedes the artifact/count claims in the historical review
 below: `6e31d41e` has 90 acquired route pairs, but 2× Progress-detail badge

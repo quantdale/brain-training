@@ -1,6 +1,21 @@
 # Wave 14 — Convergence and review correction (release acceptance BLOCKED)
 
-## Current evidence classification — 2026-10-07 (supersedes the former close claims below)
+## Current evidence classification — 2026-10-08
+
+See **`CLOSURE_CHECKPOINT.md`** first: source `c324960` four workflows GREEN;
+new APK `de6c5fcd…`, 90/90 personally reviewed/filed route pairs + 2 Results
+reachability pairs; six unique-XML audits 0 violations / 32 occluded
+unmeasurable. Progress badge fix verified in 2× light/dark. Full local
+621 suites/7,237 tests/5 snapshots + typecheck/lint/declared validators/web
+export PASS. Current Flash runner failed; one bounded Pro failed HTTP 401
+Invalid credential (no steps), **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**.
+Owner external credential action required; no fallback or blind retry.
+All 22 current-build gap states, remaining game/control/reduced-motion/
+Pro acceptance, full clean-checkout and terminal ledger still owed.
+Historical index completeness 168/168 PASS, not this APK's proof.
+iOS BUILD PASS / RUNTIME NOT VALIDATED. No acceptance checkbox moved.
+
+## Historical review classification — 2026-10-07 (not current acceptance)
 
 - **Game-state visual audit:** `GAME_ASSESSMENT.md` and the corrected
   `after-captures-games/index.json` contain 172 retained hashed PNGs; the

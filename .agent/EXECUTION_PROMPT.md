@@ -29,7 +29,17 @@ or an honestly BLOCKED condition is durably recorded.
 - Task-ownership: `.agent/task-ownership.json` binds parallel packets per
   wave; coders never edit orchestrator-only surfaces.
 
-## Current checkpoint / outstanding acceptance
+## Current checkpoint — 2026-10-08
+
+See change `evidence/CLOSURE_CHECKPOINT.md`: source `c324960` four workflows
+GREEN; new APK `de6c5fcd…`, reviewed/filed 90 route pairs + 2 scrolled Results
+pairs and 0 automated violations (32 occluded unmeasurable). Current Pro
+HTTP 401 Invalid credential, no steps: **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**.
+Owner must restore configured credentials only externally; no retry/fallback.
+All 22 current-build gap states and remaining acceptance still owed; no
+checkbox moved. iOS BUILD PASS / RUNTIME NOT VALIDATED.
+
+## Historical review checkpoint / outstanding acceptance scope
 
 After review, 22/168 individual core game-state frames have no valid visual
 proof; the final-build 90-route capture matrix aborted amid launcher/SystemUI

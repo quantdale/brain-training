@@ -40,7 +40,21 @@ contracts.
    matrices, ARTEMIS journeys, impact-map gates, release APK, iOS status,
    final coverage manifest + visual decision report, durable state, push (14.x).
 
-## Current review correction (supersedes the former terminal claim below)
+## Current checkpoint — 2026-10-08 (supersedes historical claims below)
+
+Source `c324960` fixes the captured 2× badge clipping and stale HUD CI assertion;
+all four source-SHA workflows GREEN. New APK `de6c5fcd…` installed/hash checked;
+90/90 route pairs reviewed/filed and six audits PASS (32 occluded unmeasurable),
+2 Results-scroll pairs prove reachability. Local full 621 suites/7,237 tests,
+typecheck/lint/declared gates/web export PASS. Current Flash runtime failed;
+one bounded Pro attempt failed **401 Invalid credential**, no plan/steps:
+**BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**. Owner external credential action needed;
+no more retry or alternate controller. All 22 current-build gap states, game/
+control/reduced-motion/Pro acceptance, full clean-checkout and terminal ledger
+still owed. iOS BUILD PASS / RUNTIME NOT VALIDATED. No acceptance checkbox
+moved. See `evidence/CLOSURE_CHECKPOINT.md` for exact hashes and evidence.
+
+## Historical review correction (former terminal claim remains withdrawn)
 
 The former `VALIDATED` verdict was withdrawn after inspecting the actual
 per-game images and APK bindings. The historical game index now retains

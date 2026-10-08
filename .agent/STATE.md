@@ -1,17 +1,21 @@
 # Durable Project State
 
-**076 closure recovery (current):** see change `evidence/CLOSURE_CHECKPOINT.md`.
-Home stage numeral fixed and visually confirmed on intermediate APK `6e31d41e…`.
-Acquisition has 90 route pairs but 2× Progress-detail badge clipping prevents
-acceptance; minimal wrapping repair plus regression guard applied. Only 21/22
-new gap pairs exist (Tap Rush feedback absent), not the chat-reported 22/22.
-Filed `b2913bca` 168-state coverage is historical after later source changes.
-Origin `c3c75b9` App CI failed on the stale fractional-HUD expectation; corrected
-without altering scoring. Full local Jest now 621 passed/4 skipped suites,
-7,237 passed/5 skipped tests, 5 snapshots; typecheck/lint and declared validators
-PASS. New committed-source APK, recapture/visual review, current ARTEMIS,
-final evidence and remote CI still owed. Campaign remains ACTIVE/BLOCKED;
-no acceptance checkbox changed. All earlier 076 checkpoints below are historical.
+**076 closure checkpoint — 2026-10-08 (current, BLOCKED):** source fixes
+pushed as `c324960`, all four source-SHA workflows GREEN. New committed-source
+APK `de6c5fcd…` (48,888,204 B) installed, device-SHA checked and launched.
+90/90 route pairs personally reviewed/filed; wrapped 2× Progress badge fixed;
+2 scrolled Results pairs prove replay reachability. Six unique-XML audits
+0 violations, 32 occluded nodes unmeasurable; scrolled audit 0/0. Full local
+621 passed/4 skipped suites, 7,237 passed/5 skipped tests, 5 snapshots,
+typecheck/lint/declared validators/web export PASS. Current ARTEMIS Flash
+runner died; one bounded same-protocol Pro attempt failed HTTP 401 Invalid
+credential (15.4s, no plan/steps), **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**.
+Owner must restore the configured credential only in the external environment.
+No more retries/fallback. All 22 current-APK gap frames, final game/control/
+reduced-motion/Pro acceptance, full clean-checkout and terminal ledger/report
+still owed; historical 168-state integrity is not this APK's certification.
+iOS BUILD PASS / RUNTIME NOT VALIDATED. No acceptance checkbox changed.
+See change `evidence/CLOSURE_CHECKPOINT.md`; all earlier checkpoints historical.
 
 **076 resumption checkpoint — 2026-10-07:** security SHA `142e3c0` passed all
 four remote workflows; dedicated AVD recovered and ARTEMIS helper/doctor ready.

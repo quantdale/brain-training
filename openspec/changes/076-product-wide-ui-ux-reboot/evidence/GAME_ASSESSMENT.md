@@ -1,4 +1,12 @@
-# Game-state evidence audit — Campaign 076 (closure edition)
+# Game-state evidence audit — Campaign 076 (historical b2913bca closure)
+
+**Current checkpoint:** see `CLOSURE_CHECKPOINT.md`. The 168-state completeness
+below is valid historical coverage, NOT certification of new APK `de6c5fcd…`
+(source `c324960`). All 22 current-build gap states still owed; intermediate
+`6e31d41e` acquired only 21/22 (Tap Rush feedback absent). Source repairs since
+this assessment: Home stage numeral (`eff5de0`), Progress-detail 2× badge wrap
+(`c324960`), both natively confirmed in the new 90-route matrix. No current
+42-game/control/ARTEMIS pass is inferred from this historical table.
 
 **Status: core 42-game state matrix COMPLETE (168/168), each state frame
 individually visually reviewed.** The 22 previously missing state frames were

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "package": "com.braintraining.app",
+  "build": {
+    "codeSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+    "apkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+    "apkBytes": 48888204,
+    "versionName": "0.1.0",
+    "versionCode": 1000,
+    "abi": "x86_64",
+    "sourceIsCommitted": true
+  },
+  "profiles": [
+    "fs2"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "requestedSurfaces": [
+    "results-scrolled"
+  ],
+  "expectedCount": 2,
+  "skipped": [],
+  "surfaces": [
+    {
+      "name": "fs2-results-scrolled-light",
+      "markers": [
+        "results-play-again",
+        "results-reward"
+      ],
+      "forbidden": [
+        "results-loading"
+      ],
+      "started": "2026-10-08T02:36:02.679Z",
+      "at": "2026-10-08T02:36:03.221Z",
+      "package": "com.braintraining.app",
+      "versionName": "0.1.0",
+      "lastUpdateTime": "2026-10-08 02:03:31",
+      "apkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+      "codeSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+      "source": "external ARTEMIS helper atomic snapshot",
+      "sourceImageFormat": "JPEG",
+      "pngBytes": 713772,
+      "xmlBytes": 39693,
+      "pngSha256": "e202ecd8988ef5a8a157ef951b235551e34376ce5ff6da6debbdb36503821724",
+      "xmlSha256": "3c6a814c66d7e3806d63db73f4eb524a4408a688e6cb1305a4241a6efe4ea3f6",
+      "windowsXmlSha256": "4b9e5945c6eba7c3a418f9b2c30cd6c144f7684c6b51e2638652fc19fe15e9a2",
+      "hierarchyScope": "unique active focused application window; raw multi-window XML retained",
+      "surface": "results-scrolled",
+      "profile": "fs2",
+      "theme": "light",
+      "fontScale": "2.0",
+      "densityDpi": 420,
+      "route": "/results",
+      "acquisition": "emulator-local observation-only route scroll",
+      "controlBounds": [
+        42,
+        1446,
+        1038,
+        1615
+      ],
+      "scoredFeedback": false,
+      "captureIssues": [],
+      "visualReview": "PASS_VISIBLE_ROUTE_SURFACE",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/light/results-scrolled.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/light/results-scrolled.xml",
+      "windowsXml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/light/results-scrolled.windows.txt",
+      "routeVerified": true,
+      "foregroundVerified": true,
+      "blank": false,
+      "expectedMarkers": [
+        "results-play-again",
+        "results-reward"
+      ],
+      "expectAll": true,
+      "visualReviewedAt": "2026-10-08",
+      "reviewMethod": "Parent inspected every route PNG in six labelled contact sheets; direct large-text badge and scrolled Results spot checks. Mechanic/scored gameplay N/A for route stills; not Pro acceptance."
+    },
+    {
+      "name": "fs2-results-scrolled-dark",
+      "markers": [
+        "results-play-again",
+        "results-reward"
+      ],
+      "forbidden": [
+        "results-loading"
+      ],
+      "started": "2026-10-08T02:36:15.994Z",
+      "at": "2026-10-08T02:36:16.491Z",
+      "package": "com.braintraining.app",
+      "versionName": "0.1.0",
+      "lastUpdateTime": "2026-10-08 02:03:31",
+      "apkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+      "codeSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+      "source": "external ARTEMIS helper atomic snapshot",
+      "sourceImageFormat": "JPEG",
+      "pngBytes": 687326,
+      "xmlBytes": 39693,
+      "pngSha256": "45ca27f3c1b7f706fa3846570c5dd8442282cc82e0d978f5e2f4caf81943bfb4",
+      "xmlSha256": "a328d39483dae6418ae604572050166417e6501948f018cdcf9485ad7781402a",
+      "windowsXmlSha256": "ace8be1194b494bb6d0f6c7818513b75c9af7c634e48b862b81879ade2ceab74",
+      "hierarchyScope": "unique active focused application window; raw multi-window XML retained",
+      "surface": "results-scrolled",
+      "profile": "fs2",
+      "theme": "dark",
+      "fontScale": "2.0",
+      "densityDpi": 420,
+      "route": "/results",
+      "acquisition": "emulator-local observation-only route scroll",
+      "controlBounds": [
+        42,
+        1446,
+        1038,
+        1615
+      ],
+      "scoredFeedback": false,
+      "captureIssues": [],
+      "visualReview": "PASS_VISIBLE_ROUTE_SURFACE",
+      "png": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/dark/results-scrolled.png",
+      "xml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/dark/results-scrolled.xml",
+      "windowsXml": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/dark/results-scrolled.windows.txt",
+      "routeVerified": true,
+      "foregroundVerified": true,
+      "blank": false,
+      "expectedMarkers": [
+        "results-play-again",
+        "results-reward"
+      ],
+      "expectAll": true,
+      "visualReviewedAt": "2026-10-08",
+      "reviewMethod": "Parent inspected every route PNG in six labelled contact sheets; direct large-text badge and scrolled Results spot checks. Mechanic/scored gameplay N/A for route stills; not Pro acceptance."
+    }
+  ],
+  "scope": "Route visual evidence only. Dynamic gameplay/ARTEMIS acceptance remains BLOCKED/NOT VALIDATED."
+}

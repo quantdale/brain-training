@@ -1,0 +1,25 @@
+{
+  "dir": "D:\\Documents\\tryPython\\brain-training\\openspec\\changes\\076-product-wide-ui-ux-reboot\\evidence\\final-scroll-de6c5fcd\\fs2",
+  "density": 420,
+  "package": "com.braintraining.app",
+  "surfaces": [
+    {
+      "surface": "dark/results-scrolled",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "light/results-scrolled",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    }
+  ],
+  "violations": [],
+  "occluded": []
+}

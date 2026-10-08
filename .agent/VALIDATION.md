@@ -1,6 +1,26 @@
 # Durable Validation Record
 
-## 076 closure recovery — current, not release certification
+## 076 closure checkpoint — 2026-10-08 (current, BLOCKED)
+
+Source `c324960`: App CI **37715645616**, Integrity **37715645424**, Android
+**37715645412**, iOS compile **37715645502**, all completed GREEN. APK
+`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`,
+48,888,204 B, installed/device-SHA checked. Filed/reviewed 90/90 route pairs
++ 2 Results-scroll pairs; native wrapping fix visible both themes. Six audits
+on 90 unique app XMLs: 0 violations / 32 occluded unmeasurable; scrolled audit
+2/0/0. Hash/path verification PASS. Full local 621 suites/7,237 tests/5
+snapshots + declared validators/typecheck/lint/web export PASS; full composite
+clean-checkout NOT RUN (self-test PASS only). Historical game index integrity
+194 retained/16 rejected and completeness 168/168 PASS, not current APK proof.
+Flash `043dea1e…` runtime process failure. Pro `cecc4f2a…` HTTP 401 Invalid
+credential, no plan/steps; **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**. All 22
+current-build gap states and remaining acceptance tasks still owed. Owner
+credential action required externally; no fallback. iOS BUILD PASS / RUNTIME
+NOT VALIDATED. Evidence-only ending SHA gets separate remote verification;
+never inherit source-SHA CI as ending-SHA proof. See change
+`evidence/CLOSURE_CHECKPOINT.md` for identities, scope, commands and trace IDs.
+
+## Earlier 076 closure recovery — historical, not release certification
 
 Full local Jest: **621 passed/4 skipped suites, 7,237 passed/5 skipped tests,
 5 snapshots**, console/signal gate PASS. Typecheck/lint PASS. Repo-state,

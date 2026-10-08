@@ -62,7 +62,19 @@ ARTEMIS-led Android journeys, and a final visibly transformed release APK.
    iOS status, final coverage manifest + visual decision report, durable
    state and push (14.1–14.8)
 
-## Review correction — outstanding release acceptance
+## Current checkpoint — 2026-10-08
+
+Read `evidence/CLOSURE_CHECKPOINT.md` first. Source `c324960` four workflows
+GREEN, APK `de6c5fcd…` installed/SHA checked, 90 route pairs + 2 Results-scroll
+pairs personally reviewed/filed, six audits 0 violations / 32 occluded
+unmeasurable; 2× badge clipping repaired. Current Pro HTTP 401 Invalid
+credential, no plan/steps: **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**. Owner must
+restore configured credentials externally; no retry/fallback until then.
+All 22 current-build gap states and remaining game/control/reduced-motion/
+Pro/clean-checkout/terminal acceptance still owed. iOS BUILD PASS / RUNTIME
+NOT VALIDATED. No acceptance checkbox moved. Below is historical review.
+
+## Historical review correction — remaining gate scope still applies
 
 The 2026-10-06 VALIDATED declaration was premature and is superseded.
 Per-frame visual audit yields **39/42 A, 27/42 F, 38/42 P, 42/42 R**;

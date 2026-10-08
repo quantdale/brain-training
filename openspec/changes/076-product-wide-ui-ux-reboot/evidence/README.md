@@ -1,6 +1,25 @@
 # Campaign 076 evidence index (release acceptance BLOCKED)
 
-Read `GAME_ASSESSMENT.md` and `WAVE14_EVIDENCE.md` **first**. The corrected
+Read **`CLOSURE_CHECKPOINT.md` first** for 2026-10-08 current scope.
+
+- Source `c324960`, APK `de6c5fcd…`: `final-matrix-de6c5fcd/captures.json`
+  (90 reviewed route pairs, six reproducible audits),
+  `final-scroll-de6c5fcd/captures.json` (2 reviewed Results reachability pairs).
+  Verify each using `verify-capture-evidence.mjs --manifest <path>`; after
+  commit add `--require-committed`. Raw window XML hashes are preserved as
+  `.windows.txt`; audits measure unique app XMLs only.
+- Historical game index is now 194 retained/16 rejected, 168/168 complete;
+  the verifier `--require-complete` PASSES for historical coverage. It does
+  not certify this APK. All 22 current-build gap states still owed.
+- Current Pro failed HTTP 401 Invalid credential (no plan/steps):
+  **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**. Owner external credential action
+  required. No controller fallback or more retries. iOS BUILD PASS /
+  RUNTIME NOT VALIDATED. Campaign still ACTIVE; no terminal verdict.
+
+## Former review index snapshot — historical, counts superseded
+
+The text below describes an earlier review only. Read historical
+`GAME_ASSESSMENT.md` and `WAVE14_EVIDENCE.md` with their current-scope notices. The corrected
 `after-captures-games/index.json` retains 172 SHA-256-pinned screenshots;
 16 misleading captures are quarantined in `after-captures-games/rejected/`
 with explicit reasons. Only 146/168 per-game A/F/P/R states depict their

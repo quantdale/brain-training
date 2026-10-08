@@ -1,0 +1,192 @@
+{
+  "dir": "D:\\Documents\\tryPython\\brain-training\\openspec\\changes\\076-product-wide-ui-ux-reboot\\evidence\\final-matrix-de6c5fcd\\compact\\light",
+  "density": 320,
+  "package": "com.braintraining.app",
+  "surfaces": [
+    {
+      "surface": "bootstrap-recovery",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "data-management",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "game-detail",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "game-intro",
+      "interactive": 8,
+      "labelled": 8,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "games",
+      "interactive": 18,
+      "labelled": 18,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "All, 42",
+          "widthDp": 66,
+          "reason": "rail-edge (scroll-reachable)"
+        },
+        {
+          "label": "Language, 5",
+          "widthDp": 44,
+          "reason": "rail-edge (scroll-reachable)"
+        },
+        {
+          "label": "Color Stroop, Flexibility game, New",
+          "heightDp": 104,
+          "reason": "tab-bar-overlay"
+        },
+        {
+          "label": "Cue Shift, Flexibility game, New",
+          "heightDp": 104,
+          "reason": "tab-bar-overlay"
+        }
+      ]
+    },
+    {
+      "surface": "home",
+      "interactive": 8,
+      "labelled": 8,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "profile",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-activity",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-detail",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-domain",
+      "interactive": 6,
+      "labelled": 6,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress-game",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "progress",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "results",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    },
+    {
+      "surface": "rewards",
+      "interactive": 2,
+      "labelled": 2,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": [
+        {
+          "label": "Buy Azure Ring for 150 coins",
+          "heightDp": 25,
+          "reason": "screen-edge"
+        }
+      ]
+    },
+    {
+      "surface": "storage-unavailable",
+      "interactive": 1,
+      "labelled": 1,
+      "undersized": [],
+      "unlabelled": [],
+      "occluded": []
+    }
+  ],
+  "violations": [],
+  "occluded": [
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "All, 42",
+      "widthDp": 66,
+      "reason": "rail-edge (scroll-reachable)"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Language, 5",
+      "widthDp": 44,
+      "reason": "rail-edge (scroll-reachable)"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Color Stroop, Flexibility game, New",
+      "heightDp": 104,
+      "reason": "tab-bar-overlay"
+    },
+    {
+      "surface": "games",
+      "kind": "occluded",
+      "label": "Cue Shift, Flexibility game, New",
+      "heightDp": 104,
+      "reason": "tab-bar-overlay"
+    },
+    {
+      "surface": "rewards",
+      "kind": "occluded",
+      "label": "Buy Azure Ring for 150 coins",
+      "heightDp": 25,
+      "reason": "screen-edge"
+    }
+  ]
+}
