@@ -176,22 +176,24 @@ positive property and that is no longer true of this run.
 ## Ending-SHA workflow record (task 8.4)
 
 `main` was committed and pushed; the four required workflows were then verified
-at the **exact ending SHA `47043998`** (`4704399`), all completed GREEN:
+at the **ending SHA `684396a7`** (`684396a`), all completed GREEN:
 
 | Workflow | Run ID | SHA | Conclusion |
 | --- | --- | --- | --- |
-| App CI | `37755208334` | `47043998` | **success** |
-| Repository Integrity | `37755208277` | `47043998` | **success** |
-| Android Build Smoke | `37755208452` | `47043998` | **success** |
-| iOS Build Smoke | `37755208486` | `47043998` | **success** |
+| App CI | `37758437026` | `684396a7` | **success** |
+| Repository Integrity | `37758437146` | `684396a7` | **success** |
+| Android Build Smoke | `37758437133` | `684396a7` | **success** |
+| iOS Build Smoke | `37758437093` | `684396a7` | **success** |
 
-Preceding SHAs, recorded so the chain is visible and so nothing claims a green
-run it does not have: `52de91e8` (App CI `37752185548`, Repository Integrity
-`37752185537`, both success) and `adeb18c` (Repository Integrity `37749496971`,
-Android Build Smoke `37749496967`, both success). Green runs at the **planning**
-commit are deliberately never cited as certification evidence.
+The same four were also green at the preceding SHA `47043998` (App CI
+`37755208334`, Repository Integrity `37755208277`, Android Build Smoke
+`37755208452`, iOS Build Smoke `37755208486`) — recorded so the chain is visible.
+Preceding SHAs again: `52de91e8` (App CI `37752185548`, Repository Integrity
+`37752185537`) and `adeb18c` (Repository Integrity `37749496971`, Android Build
+Smoke `37749496967`). Green runs at the **planning** commit are deliberately
+never cited as certification evidence.
 
-**Boundary of this record.** Commits made *after* `47043998` to add this very
+**Boundary of this record.** Commits made *after* `684396a7` to add this very
 record change only evidence prose and durable state — no application source,
 build input, lockfile, workflow, or test. That is the same source-equivalence
 argument used throughout this change, and it is re-verifiable: if any later
