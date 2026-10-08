@@ -47,9 +47,9 @@
 
 ## 6. Attention game modules (own only each named game's directory)
 
-- [ ] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
-- [ ] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
-- [ ] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
+- [x] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
+- [x] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
+- [x] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
 - [x] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
 - [ ] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
 

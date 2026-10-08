@@ -9,7 +9,7 @@
     "attention-sustained-vigilance": {
       "identity": "verified",
       "status": "PASS",
-      "note": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained."
+      "note": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained. FRAME CAVEAT: the filed result.png was captured AFTER the journey's exit-and-reopen step and shows the Home screen, not a game state. It is therefore NOT independent corroboration of the reported states and is not cited as such. The PASS rests on the controller's state-by-state observation of the correct game mechanic, plus the source-equivalent historical A/F/P/R captures whose dependency closure is proven unchanged. A fresh terminal-state frame is owed on re-run."
     },
     "attention-symbol-tracker": {
       "identity": "verified",

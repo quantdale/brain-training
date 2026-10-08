@@ -41,26 +41,26 @@ be that game's own play/capture of active, feedback, pause/end states.
 
 | Parent task | Game | Evidence row | Classification |
 | --- | --- | --- | --- |
-| 6.1 | attention-odd-one-out | `current-device/attention-odd-one-out/` | see assessment |
-| 6.2 | attention-sustained-vigilance | `current-device/attention-sustained-vigilance/` | see assessment |
-| 6.3 | attention-symbol-tracker | `current-device/attention-symbol-tracker/` | see assessment |
-| 6.5 | attention-visual-search | `current-device/attention-visual-search/` | see assessment |
-| 7.2 | flexibility-color-stroop | `current-device/flexibility-color-stroop/` | see assessment |
-| 7.5 | flexibility-task-switch | `current-device/flexibility-task-switch/` | see assessment |
-| 8.1 | language-context-fit | `current-device/language-context-fit/` | see assessment |
-| 8.3 | language-word-chain | `current-device/language-word-chain/` | see assessment |
-| 8.4 | language-word-match | `current-device/language-word-match/` | see assessment |
-| 8.5 | language-word-scramble | `current-device/language-word-scramble/` | see assessment |
-| 9.1 | logic-code-cracker | `current-device/logic-code-cracker/` | see assessment |
-| 10.1 | math-equation-builder | `current-device/math-equation-builder/` | see assessment |
-| 10.2 | math-fast-math | `current-device/math-fast-math/` | see assessment |
-| 10.4 | math-number-line-estimation | `current-device/math-number-line-estimation/` | see assessment |
-| 10.5 | math-value-ordering | `current-device/math-value-ordering/` | see assessment |
-| 11.5 | memory-prospective-cue | `current-device/memory-prospective-cue/` | see assessment |
-| 11.6 | memory-running-order | `current-device/memory-running-order/` | see assessment |
-| 12.3 | spatial-grid-nav | `current-device/spatial-grid-nav/` | see assessment |
-| 13.3 | speed-quick-compare | `current-device/speed-quick-compare/` | see assessment |
-| 13.5 | speed-tap-rush | `current-device/speed-tap-rush/` | see assessment |
+| 6.1 | attention-odd-one-out | `current-device/attention-odd-one-out/` | **DONE** — PASS - active board, scored feedback quoted verbatim (time-up verdict with the odd item revealed), pause overlay with Resume/Quit, resume confirmed at Round 2/6, and the result screen independently confirmed against the filed device frame (Score 125 / 17% / 1-6 / Timeouts 5 / XP 12 / +2 coins). Selection mechanic retained. |
+| 6.2 | attention-sustained-vigilance | `current-device/attention-sustained-vigilance/` | **DONE** — PASS - sustained-timing mechanic observed: the GO/hold instruction, Trial 1/30 chip, Score and Pause controls. |
+| 6.3 | attention-symbol-tracker | `current-device/attention-symbol-tracker/` | **DONE** — PASS - tracking mechanic observed: Track 2 symbols and the memorise instruction; scored feedback quoted verbatim including the miss verdict and the timeout submission note. |
+| 6.5 | attention-visual-search | `current-device/attention-visual-search/` | **NOT VALIDATED** — Controller MIS-NAVIGATED and played a Flexibility Match-by-SHAPE demo. The note is real and detailed and is NOT evidence of visual search. Re-run required. |
+| 7.2 | flexibility-color-stroop | `current-device/flexibility-color-stroop/` | **NOT VALIDATED** — Run killed before producing a review note. Re-run required. |
+| 7.5 | flexibility-task-switch | `current-device/flexibility-task-switch/` | **NOT VALIDATED** — Review note is an unfilled skeleton. Re-run required. |
+| 8.1 | language-context-fit | `current-device/language-context-fit/` | **NOT VALIDATED** — Review note is an unfilled skeleton. Re-run required. |
+| 8.3 | language-word-chain | `current-device/language-word-chain/` | **NOT VALIDATED** — Review note is an unfilled skeleton. Re-run required. |
+| 8.4 | language-word-match | `current-device/language-word-match/` | **NOT VALIDATED** — Not yet observed. |
+| 8.5 | language-word-scramble | `current-device/language-word-scramble/` | **NOT VALIDATED** — Not yet observed. |
+| 9.1 | logic-code-cracker | `current-device/logic-code-cracker/` | **NOT VALIDATED** — Not yet observed. |
+| 10.1 | math-equation-builder | `current-device/math-equation-builder/` | **NOT VALIDATED** — Not yet observed. |
+| 10.2 | math-fast-math | `current-device/math-fast-math/` | **NOT VALIDATED** — Not yet observed. |
+| 10.4 | math-number-line-estimation | `current-device/math-number-line-estimation/` | **NOT VALIDATED** — Not yet observed. |
+| 10.5 | math-value-ordering | `current-device/math-value-ordering/` | **NOT VALIDATED** — Not yet observed. |
+| 11.5 | memory-prospective-cue | `current-device/memory-prospective-cue/` | **NOT VALIDATED** — Not yet observed. |
+| 11.6 | memory-running-order | `current-device/memory-running-order/` | **NOT VALIDATED** — Not yet observed. |
+| 12.3 | spatial-grid-nav | `current-device/spatial-grid-nav/` | **NOT VALIDATED** — Not yet observed. |
+| 13.3 | speed-quick-compare | `current-device/speed-quick-compare/` | **NOT VALIDATED** — Not yet observed. |
+| 13.5 | speed-tap-rush | `current-device/speed-tap-rush/` | **NOT VALIDATED** — Not yet observed. |
 
 The classification column is filled from
 [`ASSESSMENT.md`](ASSESSMENT.md) when the current-device sweep is complete. It

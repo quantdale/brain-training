@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T08:26:30.116Z",
+  "generatedAt": "2026-10-08T08:45:03.082Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
     "PASS": 4,
@@ -20,7 +20,7 @@
       "game": "attention-sustained-vigilance",
       "parentTask": "6.2",
       "status": "PASS",
-      "reason": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained.",
+      "reason": "Controller note describes the sustained-vigilance mechanic specifically: central card showing a number with \"Tap GO - hold on 4\", Trial 1/30 chip, Score display, Pause control. Distinct sustained-timing mechanic retained. FRAME CAVEAT: the filed result.png was captured AFTER the journey's exit-and-reopen step and shows the Home screen, not a game state. It is therefore NOT independent corroboration of the reported states and is not cited as such. The PASS rests on the controller's state-by-state observation of the correct game mechanic, plus the source-equivalent historical A/F/P/R captures whose dependency closure is proven unchanged. A fresh terminal-state frame is owed on re-run.",
       "note": "present",
       "identity": "verified"
     },
@@ -119,8 +119,8 @@
       "game": "language-word-chain",
       "parentTask": "8.3",
       "status": "NOT VALIDATED",
-      "reason": "review note is an unfilled skeleton",
-      "note": "placeholder",
+      "reason": "controller produced no usable review note",
+      "note": "absent",
       "identity": "unreviewed"
     },
     {
@@ -128,7 +128,7 @@
       "game": "language-word-match",
       "parentTask": "8.4",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
