@@ -114,6 +114,71 @@ step summarizer deliberately, to fit the per-minute budget; the reviewer's own
 inspection of the filed device frames supplies the verification those sub-agents
 would otherwise provide.
 
+## Provider switch to OpenDesign (AMR Link) — 2026-10-09
+
+The owner resolved the billing blocker by supplying a **different provider**, not
+by upgrading the Google plan. This section records exactly what changed.
+
+**Endpoint:** `https://amr-link.open-design.ai/v1`, OpenAI ChatCompletions
+(`openai-completions`). ARTEMIS's `provider: "openai"` is its ChatCompletions
+backend, so it maps directly. Credentials were taken from the agent runtime's
+existing provider configuration and written **only** to
+`D:\Tools\artemis\.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`). No credential
+appears anywhere in this repository.
+
+**Models wired:**
+
+| Node | Model | Notes |
+| --- | --- | --- |
+| `default` (planner/operator/outputter/…) | `mimo-v2.6-pro` | vision (text+image), 1M context, 131k max tokens |
+| `default.fallback` / `hopper` | `mimo-v2.6-flash` | lighter sibling |
+| `object_detector` | `gemini-robotics-er-2-preview` (unchanged, Google) | ARTEMIS hard-requires a Gemini **ER** model for spatial grounding — "Non-ER models will fail spatial coordinate detection" — and it still answers HTTP 200 on its own quota |
+
+Verified before wiring: text call HTTP 200; vision call HTTP 200 with
+`image_tokens: 2550`, reading a real device frame and reproducing the verified
+result screen exactly (Score 125, Accuracy 17%, First-try 17%, Rounds 1/6,
+Best streak 1, Timeouts 5, XP 12, +12 XP · +2 coins).
+
+### Two integration defects found and fixed
+
+1. **`artemis.jsonc` cannot contain `https://` in string values.** ARTEMIS's
+   `strip_json_comments` (`artemis/utils/file.py`) runs
+   `re.sub(r"//.*?$", "", …, MULTILINE)` — it strips `//…` to end-of-line even
+   *inside* strings. Every `api_base` URL was truncated to `"https:` and the file
+   failed to parse (`JSONDecodeError: Invalid control character`). The original
+   config contained **zero** `https://` values, which is why this was never hit
+   before. Fix: no URLs in the JSONC; the base URL is supplied by
+   `OPENAI_BASE_URL` in `.env`, which `artemis/llm/router.py` already falls back
+   to when `endpoint.api_base` is absent.
+
+2. **A stale `OPENAI_API_KEY` in the host process environment shadows `.env`.**
+   The agent runtime exports its own `OPENAI_API_KEY` (67 chars, different
+   provider). Real env vars take precedence over the dotenv file, so ARTEMIS
+   sent the wrong key and the gateway answered `401 invalid_api_key — api key
+   not found`. Fix: every ARTEMIS invocation in `scripts/qa/cert076f-*.sh`
+   begins with `unset OPENAI_API_KEY`, so `D:\Tools\artemis\.env` supplies the
+   real credential. Verified: unsetting it resolves `settings.OPENAI_API_KEY`
+   to the correct 39-char key.
+
+Two smaller schema issues also had to be turned off for this gateway: it
+returns reasoning content that ARTEMIS's `ChatMessage` model rejects
+(`role: None` validation error), so `include_thoughts` is now `false` on
+`operator` and `checker`, and `hopper` — which uses
+`with_structured_output(HopperOutput)` — runs with `reasoning_effort: "none"`.
+Visual reasoning still happens; only the thought echo is dropped.
+
+### Smokes on the new provider
+
+| Smoke | Session | Evidence | Outcome |
+| --- | --- | --- | --- |
+| Flash | `6f185691-…` | 2 steps, real `report_task_status` quoting "Battery" / "100%" / "Battery charging, 100 percent", 3 calls on `openai:mimo-v2.6-pro` | **PASS** |
+| Pro | `251e3f10-…` | 4 steps, `task_status=completed`, 12 calls on `openai:mimo-v2.6-pro`, 147,681 prompt tokens, 65.5% cached | **PASS** |
+
+So the controller is operational and the earlier blocker is **resolved** — by a
+provider change rather than a billing change. Everything previously recorded
+about Google free-tier quota remains true of the Google credential and is kept
+as history.
+
 ## Exact external repair required to finish certification
 
 The blocker is **billing, not code**. It was measured four separate times during

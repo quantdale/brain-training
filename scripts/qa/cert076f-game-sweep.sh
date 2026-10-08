@@ -13,6 +13,12 @@
 # Resumable: a game whose review.md already exists is skipped.
 set -u
 
+# The host process inherits an OPENAI_API_KEY from the agent runtime that is NOT
+# the ARTEMIS credential. Real env vars beat the .env file, so ARTEMIS would send
+# the wrong key to the gateway and get 401 invalid_api_key. Unset it so
+# D:\Toolsrtemis\.env supplies the real one.
+unset OPENAI_API_KEY
+
 REPO="D:/Documents/tryPython/brain-training"
 ARTEMIS="D:/Tools/artemis"
 EV="$REPO/openspec/changes/076-f-final-product-certification/evidence/current-device"
