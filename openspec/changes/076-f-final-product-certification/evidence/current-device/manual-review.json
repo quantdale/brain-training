@@ -16,10 +16,15 @@
       "status": "PASS",
       "note": "Controller note describes the tracking mechanic specifically: 3x3 grid of symbols with two highlighted symbol cards to memorize, \"Track 2 symbols\", \"Memorize the highlighted symbols...\", Round 1/5, Score 0, Pause. Scored feedback quoted: \"Not quite\", \"You found 0 of 2 tracked symbols\", \"Time ran out - your picks were submitted as they stood.\""
     },
+    "attention-target-count": {
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Covered by task 3.21 (its parent redesign task 6.4 was already checked, so this row is the fresh current-device check and does not inherit that check). Note opens with the identity line 'On-screen game title: Target Count'. All six states evidenced for the correct counting mechanic: active board is a shape grid with 'Count the star' / 'Count the diamond' instructions, Round 1/8, Score chip, Pause and five number-selection buttons; scored feedback QUOTED verbatim ('Time up' with reveal text such as 'There were 6 stars.'); pause overlay quoted ('Pause', 'Resume', 'Quit') with resume confirmed; result screen itemised (Keep training, Final score 0, Accuracy 0%, Rounds correct 0/8, Best streak 0, XP 10, Reward +10 XP +2 coins, Progress saved); taps immediate with safe exit and re-open; no defects observed. Counting mechanic retained."
+    },
     "flexibility-card-sort": {
-      "identity": "contradicted",
-      "status": "NOT VALIDATED",
-      "note": "DOWNGRADED on review (findings F1 + F2). TWO defects. (1) The note stops after the active board: its \"verdict\" is the rule-switch notice \"Rule switched! Match by SHAPE\", which is not a correct/incorrect/timeout scored verdict (the game's real verdicts are the ✓/✕ Correct cues). There is no Pause section, no Final Result section and no input/exit section. (2) The filed result.png/result.xml are a DIFFERENT game entirely: every testID is attention-target-count.* (results, result-headline, accuracy 0%, rounds-correct 0/8, best-streak, xp, reward, restart, quit). The frame is mis-filed and has been moved to attention-target-count where it belongs. Needs a fresh full run."
+      "identity": "verified",
+      "status": "PASS",
+      "note": "RE-RUN after the first attempt was downgraded (findings F1/F2: no scored verdict, no pause/result, and a mis-filed frame belonging to attention-target-count). This run evidences the correct game decisively - the result-screen stats are card-sort's own layout (Accuracy, Speed, After rule switches, Discovery rounds, Best streak, Mistakes, XP), which no other game has. Active board: Round 1/10-10/10, score chips, Pause, rule banners 'Match by SHAPE' / 'Match by COLOR', 2x2 option-card grid. Scored feedback is now QUOTED (verdict 'Correct!' with descriptive match text 'Matched by shape: red circle') rather than the rule-switch notice that was wrongly quoted before. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume) with resume confirmed. Result screen itemised: 'Solid work', score 900, Accuracy 90%, Speed 0%, After rule switches 100%, Discovery rounds 67%, Best streak 5, Mistakes 1, XP 38, Reward +38 XP +7 coins, Progress saved. Taps immediate with safe exit and re-open; no defects observed. Sorting mechanic retained."
     },
     "attention-visual-search": {
       "identity": "verified",
