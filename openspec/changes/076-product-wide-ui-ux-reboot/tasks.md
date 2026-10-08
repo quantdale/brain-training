@@ -51,7 +51,7 @@
 - [ ] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
 - [x] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
 - [x] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
-- [ ] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
+- [x] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
 
 ## 7. Flexibility game modules
 

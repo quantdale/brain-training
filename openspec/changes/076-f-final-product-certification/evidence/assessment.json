@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-08T10:26:01.213Z",
+  "generatedAt": "2026-10-08T10:33:17.218Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
-    "PASS": 2,
-    "NOT VALIDATED": 40
+    "PASS": 3,
+    "NOT VALIDATED": 39
   },
   "rows": [
     {
@@ -38,18 +38,18 @@
       "game": "attention-target-count",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
-      "note": "absent",
-      "identity": "unreviewed"
+      "reason": "structurally complete but not yet identity-verified by the reviewer for `target count`",
+      "note": "present",
+      "identity": "pending-review"
     },
     {
       "domain": "attention",
       "game": "attention-visual-search",
       "parentTask": "6.5",
-      "status": "NOT VALIDATED",
-      "reason": "The filed note describes a DIFFERENT game: a \"Demo\" session for Flexibility with a \"Match by SHAPE\" button and four selectable shape cards. That is not attention-visual-search. The controller mis-navigated; this row does not evidence visual search at any state. Must be re-run.",
+      "status": "PASS",
+      "reason": "RE-RUN after the controller mis-navigated on the first attempt. This run's note opens with the identity line 'On-screen game title: Visual Search', which the tightened prompt requires before playing. All six states are evidenced for the correct game: active board is the odd-tile search board (2x2 grid expanding in later rounds, 'Find the odd tile', Round 1/12, Score, Pause, countdown timer); scored feedback is QUOTED verbatim ('Round failed' with subtitle 'Time's up - the odd tile was tile X' and the correct tile highlighted); pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume/Quit) with resume confirmed; result screen itemised (Score 0, Accuracy 0%, Rounds passed 0/4, Best streak 0, Avg response 0ms, Fastest response -, XP 10, Reward +10 XP +2 coins, Play again/Done); taps registered immediately with safe exit and re-open; no defects observed. Search mechanic retained.",
       "note": "present",
-      "identity": "wrong-game"
+      "identity": "verified"
     },
     {
       "domain": "flexibility",

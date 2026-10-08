@@ -22,9 +22,9 @@
       "note": "DOWNGRADED on review (findings F1 + F2). TWO defects. (1) The note stops after the active board: its \"verdict\" is the rule-switch notice \"Rule switched! Match by SHAPE\", which is not a correct/incorrect/timeout scored verdict (the game's real verdicts are the ✓/✕ Correct cues). There is no Pause section, no Final Result section and no input/exit section. (2) The filed result.png/result.xml are a DIFFERENT game entirely: every testID is attention-target-count.* (results, result-headline, accuracy 0%, rounds-correct 0/8, best-streak, xp, reward, restart, quit). The frame is mis-filed and has been moved to attention-target-count where it belongs. Needs a fresh full run."
     },
     "attention-visual-search": {
-      "identity": "wrong-game",
-      "status": "NOT VALIDATED",
-      "note": "The filed note describes a DIFFERENT game: a \"Demo\" session for Flexibility with a \"Match by SHAPE\" button and four selectable shape cards. That is not attention-visual-search. The controller mis-navigated; this row does not evidence visual search at any state. Must be re-run."
+      "identity": "verified",
+      "status": "PASS",
+      "note": "RE-RUN after the controller mis-navigated on the first attempt. This run's note opens with the identity line 'On-screen game title: Visual Search', which the tightened prompt requires before playing. All six states are evidenced for the correct game: active board is the odd-tile search board (2x2 grid expanding in later rounds, 'Find the odd tile', Round 1/12, Score, Pause, countdown timer); scored feedback is QUOTED verbatim ('Round failed' with subtitle 'Time's up - the odd tile was tile X' and the correct tile highlighted); pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume/Quit) with resume confirmed; result screen itemised (Score 0, Accuracy 0%, Rounds passed 0/4, Best streak 0, Avg response 0ms, Fastest response -, XP 10, Reward +10 XP +2 coins, Play again/Done); taps registered immediately with safe exit and re-open; no defects observed. Search mechanic retained."
     },
     "flexibility-task-switch": {
       "identity": "unverified",

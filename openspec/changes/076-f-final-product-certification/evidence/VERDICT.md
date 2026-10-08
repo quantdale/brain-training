@@ -53,7 +53,7 @@ consequence directly:
 | Accessibility audits (measured nodes) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
 | Reduced-motion accessibility | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
 | Per-domain game-control labels + 48dp | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42 games)** | **INCOMPLETE — 2 PASS, 40 NOT VALIDATED** | `ASSESSMENT.md` |
+| **Current-device game acceptance (42 games)** | **INCOMPLETE — 3 PASS, 39 NOT VALIDATED** | `ASSESSMENT.md` |
 | Defect repair discipline | **PASS** — no defect reproduced, no production edit | `DEFECTS.md` |
 | Clean-checkout composite | **FAIL (19/20)** — one gate, upstream drift | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
@@ -99,7 +99,8 @@ and task `3.2` are un-checked again, because their evidence no longer satisfies
 the acceptance criteria. A checkbox that cannot survive review is not a
 checkbox.
 
-The corrected counts are **2 PASS, 40 NOT VALIDATED**.
+The corrected counts were 2 PASS, 40 NOT VALIDATED at review time; the re-run
+sweep has since added `attention-visual-search` (3 PASS, 39 NOT VALIDATED).
 
 ## What is genuinely established
 
