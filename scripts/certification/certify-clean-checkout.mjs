@@ -22,6 +22,20 @@ import path from 'node:path';
 
 const root = process.cwd();
 const app = path.join(root, 'apps', 'mobile');
+
+/**
+ * Declared governance/CI OpenSpec gate.
+ *
+ * This MUST stay byte-identical to the command in `.agent/GOVERNANCE.json`
+ * (`openspec-validate-strict`) and `.github/workflows/repository-integrity.yml`.
+ * 076-f task 7.2: an older pin here reported a weaker validation than the
+ * declared CI gate, so the composite and the gate disagreed. The self-test
+ * below asserts the three stay aligned; thresholds are never lowered.
+ */
+const OPENSPEC_GATE_LABEL = '@fission-ai/openspec@1.9.0 validate --all --strict';
+const OPENSPEC_GATE_PKG = '@fission-ai/openspec@1.9.0';
+const OPENSPEC_GATE_ARGS = ['validate', '--all', '--strict'];
+
 const allowJestNotValidated = process.argv.includes('--allow-jest-not-validated');
 const skipInstall = process.argv.includes('--skip-install');
 // These switches are useful for diagnostics on constrained hosts, but they
@@ -147,12 +161,52 @@ function selfTest() {
     rmSync(dir, { recursive: true, force: true });
   }
 
+  // 076-f task 7.2: the OpenSpec pin must equal the declared governance/CI
+  // gate, or the composite certifies a different (weaker) validation than the
+  // gate the project claims to run. Checked against this file's own source,
+  // `.agent/GOVERNANCE.json` and the Repository Integrity workflow so a drift
+  // in any one of the three fails closed instead of passing vacuously.
+  try {
+    const selfSource = readFileSync(new URL(import.meta.url), 'utf8');
+    check(
+      'self source pins the declared OpenSpec gate',
+      selfSource.includes(OPENSPEC_GATE_LABEL),
+      `expected to contain ${OPENSPEC_GATE_LABEL}`,
+    );
+    check(
+      'self source has no superseded OpenSpec pin',
+      // Built at runtime so this guard does not match its own literal.
+      !selfSource.includes(`@fission-ai/openspec@${'1.6.0'}`),
+      'found the superseded pre-076-f pin',
+    );
+    const governancePath = path.join(root, '.agent', 'GOVERNANCE.json');
+    if (existsSync(governancePath)) {
+      const governance = readFileSync(governancePath, 'utf8');
+      check(
+        'governance declares the same OpenSpec gate',
+        governance.includes(OPENSPEC_GATE_LABEL),
+        `governance does not contain ${OPENSPEC_GATE_LABEL}`,
+      );
+    }
+    const workflowPath = path.join(root, '.github', 'workflows', 'repository-integrity.yml');
+    if (existsSync(workflowPath)) {
+      const workflow = readFileSync(workflowPath, 'utf8');
+      check(
+        'Repository Integrity workflow runs the same OpenSpec gate',
+        workflow.includes(OPENSPEC_GATE_LABEL),
+        `workflow does not contain ${OPENSPEC_GATE_LABEL}`,
+      );
+    }
+  } catch (error) {
+    failures.push(`OpenSpec pin alignment check failed — ${error.message}`);
+  }
+
   if (failures.length > 0) {
     for (const failure of failures) console.error(`certify self-test FAIL: ${failure}`);
     process.exitCode = 1;
     return;
   }
-  console.log('certify-clean-checkout self-test: PASS (6 checks)');
+  console.log('certify-clean-checkout self-test: PASS (10 checks)');
 }
 
 function assertCleanPrerequisites() {
@@ -219,7 +273,7 @@ if (selfTestMode) {
   if (!skipInstall) results.push(run('app npm ci', 'npm', ['ci', '--ignore-scripts'], app));
   results.push(run('repository state', 'node', ['scripts/validate-repo-state.mjs']));
   results.push(run('task ownership', 'node', ['scripts/validate-task-ownership.cjs']));
-  results.push(run('OpenSpec', 'npx', ['--yes', '@fission-ai/openspec@1.6.0', 'validate', '--all']));
+  results.push(run('OpenSpec', 'npx', ['--yes', OPENSPEC_GATE_PKG, ...OPENSPEC_GATE_ARGS]));
   results.push(run('registry', 'node', ['scripts/generate-game-registry.mjs', '--check']));
   // Provenance must diff against a real pre-change base: on a clean pushed
   // `main`, `origin/main` IS HEAD and the default invocation did no work
