@@ -9,6 +9,8 @@
 
 ## Controller state-review log (scrubbed)
 
+On-screen game title: Card Sort
+
 ## 1. Active Play Board
 The board displayed round counters (Round 1/10 to 10/10), score chips, a Pause button, rule instruction banners ("Match by SHAPE", "Match by COLOR"), and a 2x2 grid of selectable option cards with clear visual hierarchy.
 

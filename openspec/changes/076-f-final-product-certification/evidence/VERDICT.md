@@ -53,7 +53,7 @@ consequence directly:
 | Accessibility audits (measured nodes) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
 | Reduced-motion accessibility | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
 | Per-domain game-control labels + 48dp | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42 games)** | **INCOMPLETE — 3 PASS, 39 NOT VALIDATED** | `ASSESSMENT.md` |
+| **Current-device game acceptance (42 games)** | **INCOMPLETE — 5 PASS, 37 NOT VALIDATED** | `ASSESSMENT.md` |
 | Defect repair discipline | **PASS** — no defect reproduced, no production edit | `DEFECTS.md` |
 | Clean-checkout composite | **FAIL (19/20)** — one gate, upstream drift | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
@@ -99,8 +99,10 @@ and task `3.2` are un-checked again, because their evidence no longer satisfies
 the acceptance criteria. A checkbox that cannot survive review is not a
 checkbox.
 
-The corrected counts were 2 PASS, 40 NOT VALIDATED at review time; the re-run
-sweep has since added `attention-visual-search` (3 PASS, 39 NOT VALIDATED).
+At review time the counts were 2 PASS / 40 NOT VALIDATED. The re-run sweep then
+added `attention-visual-search`, `attention-target-count` and
+`flexibility-card-sort` (the last re-run after the review downgraded it),
+giving **5 PASS / 37 NOT VALIDATED** at close.
 
 ## What is genuinely established
 
@@ -128,7 +130,7 @@ This certification is not empty. It closes real, previously-open gaps:
 
 ## What is not established, and why
 
-- **40 of 42 games are NOT VALIDATED.** Not "failed" — *not observed well
+- **37 of 42 games are NOT VALIDATED.** Not "failed" — *not observed well
   enough*. The authorised controller is throttled to 15 LLM requests/minute on
   the only model with budget, and its circuit breaker opens under that
   pressure, so runs stall before recording states. Four distinct failure modes
@@ -211,7 +213,7 @@ committed manifests, and every claim above is tied to a file in `evidence/`.
 
 ## What this verdict does not say
 
-- It does not say the product is broken. Two games were reviewed and passed;
+- It does not say the product is broken. Five games were reviewed and passed;
   the rest are *unobserved*, not defective.
 - It does not withdraw any green gate. Everything that passed still passed.
 - It does not certify release acceptance. The parent ledger remains the

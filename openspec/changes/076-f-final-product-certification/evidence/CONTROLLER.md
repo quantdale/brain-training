@@ -116,8 +116,23 @@ would otherwise provide.
 
 ## Exact external repair required to finish certification
 
-The blocker is **billing, not code**. To complete the controller-led journeys and
-the remaining current-device game checks, the owner must do one of:
+The blocker is **billing, not code**. It was measured four separate times during
+this change, each after the free-tier budget recovered and then exhausted again
+mid-sweep:
+
+| Attempt | Model in use | Outcome |
+| --- | --- | --- |
+| 1 | `gemini-3.8-flash` / `gemini-3.7-flash` | 20/day cap, exhausted before any journey ran |
+| 2 | `gemini-3.5-flash-lite` | produced every accepted row, then hit its 500/day cap |
+| 3 | `gemini-3.1-flash-lite` | 15/minute cap — cannot run ARTEMIS at all (0 steps recorded) |
+| 4 | `gemini-3.5-flash-lite` again after its budget recovered | produced more accepted rows, then 429 again |
+
+Final state at close: **both usable models return 429**, `retry-in: 12h51m`, and
+the last run recorded **0 steps**. This is not a pacing problem that patience
+solves — the daily allowance is simply smaller than the workload.
+
+To complete the controller-led journeys and the remaining current-device game
+checks, the owner must do one of:
 
 1. **Move the configured Google credential to a paid plan** (the free tier is the
    constraint: 20/day on `gemini-3.x-flash`, 500/day on `gemini-3.5-flash-lite`,
@@ -126,10 +141,22 @@ the remaining current-device game checks, the owner must do one of:
    the external ARTEMIS environment file.
 
 After that, re-run section 3 (game acceptance) and section 6 (Pro journeys) of
-`openspec/changes/076-f-final-product-certification/tasks.md`. Nothing in this
-repository needs to change to accept the new credential.
+`openspec/changes/076-f-final-product-certification/tasks.md`. The tooling is
+ready and its failure modes are already fixed:
 
-Until then the per-minute lane is used for as much current-device coverage as it
-can carry, and anything it cannot reach is recorded as `NOT VALIDATED` with this
-file as the reason. A missing controller credential or quota does **not** create
-repository-complete, and it does not permit substituting ADB gameplay.
+- `scripts/qa/cert076f-repair.sh` — re-runs only the games whose row is not yet
+  accepted, with a tightened prompt that makes the controller state the
+  on-screen game title **before** playing (this is what fixed mis-navigation)
+  and forbids writing the note until the journey is complete (this is what
+  stops unfilled skeletons).
+- `scripts/qa/cert076f-harvest.sh` — rebuilds each row from the ARTEMIS session
+  UUID only (no name matching, which caused a real mis-attribution) and rejects
+  skeletons.
+- `node scripts/certification/build-assessment.mjs` — regenerates the
+  one-row-per-game assessment and fails closed.
+- `scripts/qa/cert076f-journeys.sh` — the nine stateful journeys.
+
+Nothing in this repository needs to change to accept a new credential.
+
+A missing controller credential or quota does **not** create repository-complete,
+and it does not permit substituting ADB gameplay.

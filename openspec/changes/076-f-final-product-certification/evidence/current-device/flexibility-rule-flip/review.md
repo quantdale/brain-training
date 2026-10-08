@@ -1,8 +1,8 @@
-# Current-device acceptance — `flexibility-color-stroop`
+# Current-device acceptance — `flexibility-rule-flip`
 
 - Controller: external ARTEMIS (D:\Tools\artemis), profile `pro` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md)
 - Locked app: `com.braintraining.app`
-- ARTEMIS session: `7e3f2ea0-e489-4f33-8367-a0f9e960861d` (raw trace external to Git)
+- ARTEMIS session: `095abeb5-c559-4622-90ef-1f969ffb1e15` (raw trace external to Git)
 - Device: emulator-5554 / AVD braintraining-ui35
 - APK under test: `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d` (48,888,204 bytes, com.braintraining.app 0.1.0/1000)
 - Controller review note: ABSENT — this row is NOT VALIDATED
