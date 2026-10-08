@@ -1,13 +1,13 @@
 ## 1. Baseline and provenance
 
-- [ ] 1.1 Re-verify clean `main`/`origin/main`, parent task counts, APK identity, and the four workflow run IDs at the starting SHA; correct stale durable notes that still say the evidence SHA lacks remote verification without claiming release acceptance.
-- [ ] 1.2 Write the game/route provenance table with source commit, APK SHA-256, production dependency, capture identity, visual-review status, applicability, and recapture reason.
-- [ ] 1.3 Record the source-equivalence diff from `4a6fc53` to the current application source. Classify unchanged game frames as source-equivalent historical evidence, never as terminal-APK captures. List only the frames that require recapture.
+- [x] 1.1 Re-verify clean `main`/`origin/main`, parent task counts, APK identity, and the four workflow run IDs at the starting SHA; correct stale durable notes that still say the evidence SHA lacks remote verification without claiming release acceptance.
+- [x] 1.2 Write the game/route provenance table with source commit, APK SHA-256, production dependency, capture identity, visual-review status, applicability, and recapture reason.
+- [x] 1.3 Record the source-equivalence diff from `4a6fc53` to the current application source. Classify unchanged game frames as source-equivalent historical evidence, never as terminal-APK captures. List only the frames that require recapture.
 
 ## 2. Controller authentication
 
-- [ ] 2.1 Run ARTEMIS doctor, then confirm the external credential with one authenticated request and a created task. Do not print, commit, or request the credential.
-- [ ] 2.2 Run one minimal Flash smoke and one minimal Pro smoke, or record persistent authentication failure, including HTTP 401, and stop controller retries. Doctor READY is not authentication.
+- [x] 2.1 Run ARTEMIS doctor, then confirm the external credential with one authenticated request and a created task. Do not print, commit, or request the credential.
+- [x] 2.2 Run one minimal Flash smoke and one minimal Pro smoke, or record persistent authentication failure, including HTTP 401, and stop controller retries. Doctor READY is not authentication.
 
 ## 3. Current-device game acceptance
 
@@ -36,7 +36,7 @@
 
 ## 4. Defect repair
 
-- [ ] 4.1 For each reproduced runtime defect, keep before evidence, apply the minimal fix and regression guard, run focused validation, rebuild and reverify affected states, and update artifact provenance. Record no production edit if none is reproduced.
+- [x] 4.1 For each reproduced runtime defect, keep before evidence, apply the minimal fix and regression guard, run focused validation, rebuild and reverify affected states, and update artifact provenance. Record no production edit if none is reproduced.
 
 ## 5. Accessibility, layout, and preserved routes
 
@@ -51,10 +51,10 @@
 
 ## 7. Clean checkout and terminal artifact
 
-- [ ] 7.1 Run `node scripts/certification/certify-clean-checkout.mjs` without self-test or skip flags from a disposable clean checkout, then remove that checkout. Do not report the self-test as the composite.
-- [ ] 7.2 Record strict OpenSpec validation and the release APK build as separate results. If the script's OpenSpec pin contradicts the declared CI gate, align the pin and its self-test without lowering thresholds.
-- [ ] 7.3 Build and install the terminal release APK from the terminal application source. Record source SHA, APK SHA-256, size, version, package, command, toolchain, install result, and device identity.
-- [ ] 7.4 Confirm the Jest baseline remains 621 passed suites, 4 classified skipped suites, 7,237 passed tests, 5 classified skipped tests, and 5 snapshots, and record the new strict OpenSpec total without forcing the old 60/60 count.
+- [x] 7.1 Run `node scripts/certification/certify-clean-checkout.mjs` without self-test or skip flags from a disposable clean checkout, then remove that checkout. Do not report the self-test as the composite.
+- [x] 7.2 Record strict OpenSpec validation and the release APK build as separate results. If the script's OpenSpec pin contradicts the declared CI gate, align the pin and its self-test without lowering thresholds.
+- [x] 7.3 Build and install the terminal release APK from the terminal application source. Record source SHA, APK SHA-256, size, version, package, command, toolchain, install result, and device identity.
+- [x] 7.4 Confirm the Jest baseline remains 621 passed suites, 4 classified skipped suites, 7,237 passed tests, 5 classified skipped tests, and 5 snapshots, and record the new strict OpenSpec total without forcing the old 60/60 count.
 
 ## 8. Ledger, review, and terminal verdict
 
