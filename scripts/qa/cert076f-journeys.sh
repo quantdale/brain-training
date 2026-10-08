@@ -41,19 +41,19 @@ for entry in "${JOURNEYS[@]}"; do
   fi
   mkdir -p "$dest"
   echo "=== [$(date +%H:%M:%S)] $key ==="
-  ( cd "$ARTEMIS" && timeout 1500 uv run artemis run \
-      "Locked app: com.braintraining.app. JOURNEY: $goal
+  (cd "$ARTEMIS" && timeout 1500 uv run artemis run \
+    "Locked app: com.braintraining.app. JOURNEY: $goal
 Record what you actually executed in note key 'journey_log' with headings:
 ## Planned steps
 ## Executed steps  (what you really did, in order)
 ## Observed outcome (quote exact on-screen text)
 ## Defects (or 'none observed')
 A request that did not execute the journey is NOT a pass - say so explicitly." \
-      --profile pro --locked-app com.braintraining.app \
-      --disable-step-summarizer --disable-checker \
-      --without-video-recording-tools --disable-committee \
-      --disable-planner-validation \
-      --test-name "cert076f-journey-$key" ) > "$dest/artemis.log" 2>&1
+    --profile pro --locked-app com.braintraining.app \
+    --disable-step-summarizer --disable-checker \
+    --without-video-recording-tools --disable-committee \
+    --disable-planner-validation \
+    --test-name "cert076f-journey-$key") >"$dest/artemis.log" 2>&1
   rc=$?
 
   sess=$(grep -oE "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" "$dest/artemis.log" | tail -1)
@@ -81,7 +81,7 @@ A request that did not execute the journey is NOT a pass - say so explicitly." \
     else
       echo "_No journey log produced. **NOT VALIDATED** — see artemis.log._"
     fi
-  } > "$dest/journey.md"
+  } >"$dest/journey.md"
   echo "    rc=$rc sess=$sess"
 done
 echo "=== JOURNEYS COMPLETE $(date -Iseconds) ==="

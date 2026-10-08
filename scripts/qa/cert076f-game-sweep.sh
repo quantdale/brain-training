@@ -114,9 +114,9 @@ for g in "${GAMES[@]}"; do
   mkdir -p "$dest"
   name="cert076f-game-$g"
   echo "=== [$(date +%H:%M:%S)] $g ==="
-  ( cd "$ARTEMIS" && timeout 1500 uv run artemis run "$(prompt_for "$g")" \
-      "${ARTEMIS_FLAGS[@]}" --test-name "$name" ) \
-      > "$dest/artemis.log" 2>&1
+  (cd "$ARTEMIS" && timeout 1500 uv run artemis run "$(prompt_for "$g")" \
+    "${ARTEMIS_FLAGS[@]}" --test-name "$name") \
+    >"$dest/artemis.log" 2>&1
   rc=$?
   echo "    artemis rc=$rc"
 
@@ -164,12 +164,12 @@ for g in "${GAMES[@]}"; do
     echo "\`result.png\` + \`result.xml\` are captured from the terminal APK on the"
     echo "current device after the journey, and are the reviewer's independent check"
     echo "on the controller report above."
-  } > "$dest/review.md"
+  } >"$dest/review.md"
 
-  ( cd "$REPO" && bash scripts/android/screenshot.sh --dir "$dest" --name result >/dev/null 2>&1 )
+  (cd "$REPO" && bash scripts/android/screenshot.sh --dir "$dest" --name result >/dev/null 2>&1)
   # hierarchy.sh --save is anchored to qa-artifacts/, so capture then move.
-  ( cd "$REPO" && bash scripts/android/hierarchy.sh --save "${g}-result.xml" >/dev/null 2>&1 \
-      && mv "$REPO/qa-artifacts/${g}-result.xml" "$dest/result.xml" >/dev/null 2>&1 )
+  (cd "$REPO" && bash scripts/android/hierarchy.sh --save "${g}-result.xml" >/dev/null 2>&1 &&
+    mv "$REPO/qa-artifacts/${g}-result.xml" "$dest/result.xml" >/dev/null 2>&1)
   echo "    filed -> $dest"
 done
 echo "=== SWEEP COMPLETE $(date -Iseconds) ==="

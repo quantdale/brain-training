@@ -99,7 +99,7 @@ function structure(id) {
   if (/Controller review note: ABSENT/i.test(text)) {
     return { ok: false, note: 'absent', reason: 'controller produced no usable review note' };
   }
-  if (/to be populated|pending observation|to be recorded|\[pending|\(pending/i.test(text)) {
+  if (/to be (filled|populated|recorded)|pending (execution|observation|review)|\[pending|\(pending|not yet (filled|recorded|observed)/i.test(text)) {
     return { ok: false, note: 'placeholder', reason: 'review note is an unfilled skeleton' };
   }
   const body = text.split(/## Controller state-review log/i)[1] ?? '';

@@ -41,9 +41,9 @@ for dest in "$EV"/*/; do
   # name reliably, so both are checked).
   if [ -z "$note" ]; then
     for cand in $(ls -t "$ARTEMIS/traces" | grep -E "^[0-9a-f]{8}-" | head -12); do
-      if [ -s "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" ] \
-         && { grep -q "$g" "$ARTEMIS/traces/$cand/stdout.log" 2>/dev/null \
-              || grep -qi "${g#*-}" "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" 2>/dev/null; }; then
+      if [ -s "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" ] &&
+        { grep -q "$g" "$ARTEMIS/traces/$cand/stdout.log" 2>/dev/null ||
+          grep -qi "${g#*-}" "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" 2>/dev/null; }; then
         note="$ARTEMIS/traces/$cand/notes/game_state_review_log.md"
         sess="$cand"
         break
@@ -52,12 +52,13 @@ for dest in "$EV"/*/; do
   fi
 
   # A note that is still an unfilled skeleton is NOT evidence. The controller
-  # sometimes writes the headings and then dies before recording anything, or
-  # records "(To be populated)" / "(Pending observation)" placeholders. That
-  # must not be filed as a reviewed row (it is the "filename as feedback"
-  # failure the change spec forbids, in note form).
-  if [ -n "$note" ] && grep -qiE "to be recorded|to be populated|pending (execution|observation)|\[pending|\(pending" "$note"; then
-    echo "[placeholder-note] $g — skeleton only, treating as no-note"
+  # writes the headings first and fills them in as it plays, so a run cut short
+  # leaves "(To be populated)" / "(To be filled during execution)" /
+  # "(Pending observation)" in place of observations. That must not be filed as
+  # a reviewed row - it is the "filename as feedback" failure the change spec
+  # forbids, in note form.
+  if [ -n "$note" ] && grep -qiE "to be (filled|populated|recorded)|pending (execution|observation|review)|\[pending|\(pending|not yet (filled|recorded|observed)" "$note"; then
+    echo "[skeleton-note] $g — unfilled skeleton, treating as no-note"
     note=""
   fi
 
@@ -72,10 +73,10 @@ for dest in "$EV"/*/; do
   fi
 
   if [ -z "$note" ]; then
-    missing=$((missing+1))
+    missing=$((missing + 1))
     echo "[no-note] $g"
   else
-    harvested=$((harvested+1))
+    harvested=$((harvested + 1))
     echo "[ok] $g  <- $sess"
   fi
 
@@ -97,7 +98,7 @@ for dest in "$EV"/*/; do
       echo "_No controller review note was produced. **This game is NOT VALIDATED.**_"
       echo "_See the session log for the failure; the device frame below is not acceptance._"
     fi
-  } > "$dest/review.md"
+  } >"$dest/review.md"
 done
 
 echo "=== harvest complete: $harvested rows with notes, $missing without ==="

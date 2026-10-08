@@ -42,7 +42,7 @@ current-device rows. One row per registered game. **Only** `PASS`, `FIXED`,
 | flexibility | `flexibility-task-switch` | 7.5 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(To be populated)" for scored feedback, pause and result. No state was evidenced. Must be re-run. |
 | language | `language-context-fit` | 8.1 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(Pending observation)" for the active board. No state was evidenced. Must be re-run. |
 | language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| language | `language-word-chain` | 8.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-chain` | 8.3 | unreviewed | placeholder | **NOT VALIDATED** | review note is an unfilled skeleton |
 | language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |

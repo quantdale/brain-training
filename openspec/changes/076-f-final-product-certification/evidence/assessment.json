@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T08:18:34.027Z",
+  "generatedAt": "2026-10-08T08:26:30.116Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
     "PASS": 4,
@@ -119,8 +119,8 @@
       "game": "language-word-chain",
       "parentTask": "8.3",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
+      "reason": "review note is an unfilled skeleton",
+      "note": "placeholder",
       "identity": "unreviewed"
     },
     {
