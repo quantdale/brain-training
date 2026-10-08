@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T09:11:06.597Z",
+  "generatedAt": "2026-10-08T10:08:55.231Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
     "PASS": 2,
@@ -21,7 +21,7 @@
       "parentTask": "6.2",
       "status": "NOT VALIDATED",
       "reason": "DOWNGRADED on review (finding F3). The note describes the right game and its mechanic (Tap GO / hold on the stop number, Trial 1/30) and it does quote the pause overlay (\"Paused\", \"The challenge is hidden and the timers are frozen.\", Resume/Quit, resume confirmed) and an itemised result (723, Go hits 2/26, Stop numbers held 4/4, Commissions 0, Mean reaction 743ms, Best streak 1, XP 27, +27 XP +5 coins). BUT section 2 quotes NO scored verdict: it only describes the feedback mechanism and claims feedback is continuous rather than an intermittent popup. That claim is factually wrong about the UI - attention-sustained-vigilance/components/stimulus-stage.tsx renders a per-trial verdict flash (\"Go!\", \"Held - nice\", \"That was the stop number\", \"Missed one\") with a ✓/✕/⏱ badge and a spoken verdict. Per the change spec feedback is not inferred, so scored feedback is NOT VALIDATED until a per-trial verdict is quoted from the device. FRAME CAVEAT (finding F4): the filed result.png/result.xml were captured after the journey exit step and show the HOME screen (home-brand, home-title, home-workout-cta, 0 of 4 complete), not any game state; they are not corroboration and are not cited as such.",
-      "note": "present",
+      "note": "absent",
       "identity": "verified"
     },
     {
@@ -38,8 +38,8 @@
       "game": "attention-target-count",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
+      "reason": "scored feedback not evidenced - the Scored Feedback section contains no quoted correct/incorrect/timeout verdict",
+      "note": "present",
       "identity": "unreviewed"
     },
     {
@@ -74,7 +74,7 @@
       "game": "flexibility-cue-shift",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },

@@ -1,4 +1,4 @@
-# Current-device acceptance — `flexibility-card-sort`
+# Current-device acceptance — `attention-target-count`
 
 - Controller: external ARTEMIS (D:\Tools\artemis), profile `pro` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md)
 - Locked app: `com.braintraining.app`

@@ -41,13 +41,24 @@ declared quota:
 | `gemini-3.8-flash` | `generate_content_free_tier_requests` **limit 20/day** | exhausted, retry in ~18h47m |
 | `gemini-3.7-flash` | **limit 20/day** | exhausted, retry in ~18h20m |
 | `gemini-2.5-flash` | — | HTTP 404, retired for new users |
-| `gemini-3.5-flash-lite` | **limit 500/day** | exhausted, retry in ~17h10m |
-| `gemini-3.1-flash-lite` | `GenerateRequestsPerMinutePerProjectPerModel-FreeTier` **15/minute** | usable; per-minute rate limit, recovers in ~60s |
+| `gemini-3.5-flash-lite` | **limit 500/day** | **the workable lane** — recovers within the day and drives full journeys |
+| `gemini-3.1-flash-lite` | `GenerateRequestsPerMinutePerProjectPerModel-FreeTier` **15/minute** | **not usable for ARTEMIS** — see below |
 | `gemini-robotics-er-2-preview` | — | HTTP 200 (object detector only) |
 
-Two distinct quota kinds are in play: **per-day** caps on the newer
-`gemini-3.x-flash` models, and a **per-minute** cap on `gemini-3.1-flash-lite`.
-Only the per-minute one is workable for a workload this size, by pacing.
+Three distinct quota kinds are in play: **per-day** caps on the newer
+`gemini-3.x-flash` models, a **500/day** cap on `gemini-3.5-flash-lite`, and a
+**per-minute** cap on `gemini-3.1-flash-lite`.
+
+**Measured correction — a per-minute cap is NOT workable here.** It looked
+workable in theory (15/min ≈ 900/hour), but in practice ARTEMIS cannot run on
+it at all: one full attempt on `gemini-3.1-flash-lite` produced 37 rate-limit
+429s, opened ARTEMIS's LLM circuit breaker (`artemis/services/llm.py`
+`_ENDPOINT_BREAKER`, threshold 3 / 30s cooldown), hit `TimeoutError: LLM call
+timed out after 180 seconds`, and recorded **0 steps**. Runs were being cut
+short mid-journey and filed unfilled note skeletons instead of observations.
+That is the direct cause of most `NOT VALIDATED` rows. `gemini-3.5-flash-lite`
+has no binding per-minute limit and drives complete journeys — e.g. session
+`51ef7337-…` recorded 17 steps and a full state review.
 
 ## Environment change made during this change (full disclosure)
 
@@ -66,7 +77,10 @@ the original preserved as `artemis.jsonc.bak-cert076f`:
 2. `default.model` → `gemini-3.5-flash-lite` — sustained 25+ consecutive probe
    calls and drove three full game journeys, then hit its 500/day cap.
 3. `default.model` and `nodes.hopper.model` → `gemini-3.1-flash-lite` — the only
-   model with a workable (per-minute) budget.
+   model then believed to have a workable budget. **This was later reverted:**
+   measured in production it cannot run ARTEMIS at all (see the quota table).
+4. Reverted to `gemini-3.5-flash-lite` after its budget recovered, which is the
+   configuration that produced the accepted evidence.
 
 **What did not change:** the provider (`google`), the credential, the ARTEMIS
 checkout, the controller itself, the device, or any repository file. There is no
