@@ -7,6 +7,17 @@
  * Run from the repository root after creating a fresh checkout/worktree:
  *   node scripts/certification/certify-clean-checkout.mjs
  *
+ * 076-f campaign prompt section 6.1: the Expo step runs the DECLARED hermetic
+ * gate (`scripts/validate-expo-alignment.mjs`). It used to run the network
+ * `npx expo-doctor` as a hard gate while `.agent/GOVERNANCE.json` classifies
+ * that command as network-dependent, weekly-schedule-only and advisory — "NOT a
+ * repository-defect signal; the hermetic expo-alignment gate is the push-path
+ * equivalent" — so the composite certified a harsher check than the gate the
+ * project declares and could not run offline. The self-test gained four checks
+ * that fail closed in both directions (hermetic gate present; network doctor
+ * NOT a composite gate; governance classification unchanged; App CI still runs
+ * the hermetic gate). No threshold was lowered.
+ *
  * The repository has no root package manifest/lockfile. The Expo app is the
  * install boundary, so npm ci and app commands deliberately run in
  * apps/mobile. Root governance/content validators run from the repository
@@ -35,6 +46,35 @@ const app = path.join(root, 'apps', 'mobile');
 const OPENSPEC_GATE_LABEL = '@fission-ai/openspec@1.9.0 validate --all --strict';
 const OPENSPEC_GATE_PKG = '@fission-ai/openspec@1.9.0';
 const OPENSPEC_GATE_ARGS = ['validate', '--all', '--strict'];
+
+/**
+ * Declared governance/CI Expo gate.
+ *
+ * 076-f campaign prompt section 6.1: the composite used to run the NETWORK
+ * `npx expo-doctor` as a hard gate while the declared CI gate set explicitly
+ * does NOT. `.agent/GOVERNANCE.json` puts `expo-doctor` in
+ * `networkDependentGates` ("needs https://api.expo.dev/v2/versions/latest;
+ * weekly schedule only, tolerated and classified as upstream drift. NOT a
+ * repository-defect signal") and in `advisoryOnlyGates`, and its
+ * `notACiGate.expo-doctor-21/21` entry says: "Never record `Expo Doctor 21/21`
+ * as a push-path result ... Record scripts/validate-expo-alignment.mjs
+ * instead."
+ *
+ * The consequence was that the composite went FAIL on upstream patch drift
+ * while the repository-owned Expo gate passed, certifying a different (and
+ * harsher) check than the gate the project declares. The composite now runs
+ * the HERMETIC declared gate, which answers the repository-owned question
+ * ("does the app declare the Expo-family versions its own installed SDK
+ * requires?") and cannot go red on an upstream patch release.
+ *
+ * This is an alignment, not a relaxation: the hermetic gate is strictly the
+ * declared one, and the network doctor is recorded as the separate,
+ * advisory, weekly-only result it actually is. Jest, audit and OpenSpec
+ * thresholds are untouched.
+ */
+const EXPO_HERMETIC_GATE = ['node', 'scripts/validate-expo-alignment.mjs'];
+const EXPO_HERMETIC_GATE_LABEL = 'scripts/validate-expo-alignment.mjs';
+const EXPO_NETWORK_GATE_LABEL = 'expo-doctor';
 
 const allowJestNotValidated = process.argv.includes('--allow-jest-not-validated');
 const skipInstall = process.argv.includes('--skip-install');
@@ -201,12 +241,61 @@ function selfTest() {
     failures.push(`OpenSpec pin alignment check failed — ${error.message}`);
   }
 
+  // 076-f campaign prompt section 6.1: the composite must run the DECLARED
+  // hermetic Expo gate and must NOT hard-gate the network `expo-doctor`.
+  // This is the same class of script-versus-declared-gate contradiction that
+  // the OpenSpec checks above close, and the guard has to fail closed in BOTH
+  // directions: the hermetic gate present, the network doctor absent as a
+  // composite gate. Without the second half the script can silently drift back
+  // to the pre-076-f behaviour that produced a 19/20 composite on upstream
+  // patch drift.
+  try {
+    const selfSource = readFileSync(new URL(import.meta.url), 'utf8');
+    check(
+      'self source runs the declared hermetic Expo gate',
+      selfSource.includes(`'expo alignment', ...EXPO_HERMETIC_GATE`)
+        && selfSource.includes(EXPO_HERMETIC_GATE_LABEL),
+      `expected a gate running ${EXPO_HERMETIC_GATE_LABEL}`,
+    );
+    check(
+      'self source does not hard-gate the network expo-doctor',
+      !selfSource.includes(`run('Expo Doctor', 'npx', ['${EXPO_NETWORK_GATE_LABEL}']`),
+      'the composite still hard-gates the network expo-doctor',
+    );
+    const governancePath = path.join(root, '.agent', 'GOVERNANCE.json');
+    if (existsSync(governancePath)) {
+      const governance = readFileSync(governancePath, 'utf8');
+      check(
+        'governance declares expo-doctor as advisory/network-only',
+        governance.includes('"expo-doctor-upstream-drift"')
+          && governance.includes('"advisoryOnlyGates"'),
+        'governance no longer classifies expo-doctor as an advisory/network gate',
+      );
+      check(
+        'governance declares the hermetic expo-alignment gate on the push path',
+        governance.includes('expo-alignment (scripts/validate-expo-alignment.mjs)'),
+        'governance no longer lists the hermetic expo-alignment gate',
+      );
+    }
+    const appCiPath = path.join(root, '.github', 'workflows', 'app-ci.yml');
+    if (existsSync(appCiPath)) {
+      const appCi = readFileSync(appCiPath, 'utf8');
+      check(
+        'App CI runs the hermetic expo-alignment gate',
+        appCi.includes('node scripts/validate-expo-alignment.mjs'),
+        'App CI no longer runs the hermetic expo-alignment gate',
+      );
+    }
+  } catch (error) {
+    failures.push(`Expo gate alignment check failed — ${error.message}`);
+  }
+
   if (failures.length > 0) {
     for (const failure of failures) console.error(`certify self-test FAIL: ${failure}`);
     process.exitCode = 1;
     return;
   }
-  console.log('certify-clean-checkout self-test: PASS (10 checks)');
+  console.log('certify-clean-checkout self-test: PASS (14 checks)');
 }
 
 function assertCleanPrerequisites() {
@@ -297,7 +386,11 @@ if (selfTestMode) {
   results.push(run('typecheck', 'npm', ['run', 'typecheck'], app));
   results.push(run('lint', 'npm', ['run', 'lint'], app));
   results.push(run('web export', 'npx', ['expo', 'export', '--platform', 'web'], app));
-  results.push(run('Expo Doctor', 'npx', ['expo-doctor'], app));
+  // 076-f campaign prompt section 6.1: run the DECLARED hermetic Expo gate,
+  // not the network doctor. The network doctor remains a weekly-only advisory
+  // CI gate per GOVERNANCE.json; running it here as a hard gate certified a
+  // harsher check than the project declares.
+  results.push(run('expo alignment', ...EXPO_HERMETIC_GATE));
 
   // Mirror app-ci: emit the machine-readable summary and validate the skip
   // signal against the reviewed allowlist (stale entries fail closed).
