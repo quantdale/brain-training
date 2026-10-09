@@ -70,6 +70,7 @@ set yet.
 | Controller Pro smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
 | Controller journeys (9 stateful) | **NOT VALIDATED** | `JOURNEYS.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
+| Workflows at the checkpoint SHA `1c8fe66` | **4/4 GREEN** | `GATES.md` §8.4 |
 
 The decisive unmet gates are repository-owned: **42-game current-device
 acceptance**, the **nine controller journeys**, and the **gameplay half of the
@@ -192,6 +193,12 @@ current ending-SHA record is maintained in [`GATES.md`](GATES.md) §8.4 and is
 re-recorded at the exit gate. Green runs at the *planning* commit `05bf793` or
 at `b7cf09b` are deliberately never cited as certification evidence for a later
 SHA.
+
+**Checkpoint-SHA workflow record (task 8.4, partial).** The four required
+workflows were verified at the checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d`,
+all **green**: App CI `37943831586`, Repository Integrity `37943831511`, Android
+Build Smoke `37943831547`, iOS Build Smoke `37943831621`. This is a checkpoint
+record, not the exit-gate record.
 
 **Because the exit gate could not be reached, task 8.4 is unchecked and this
 file is not the exit verdict.** It is the standing verdict, kept current.

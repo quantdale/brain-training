@@ -274,10 +274,34 @@ reconciliation and is re-verified against the terminal run.
 
 Strict OpenSpec total recorded alongside: **61 passed, 0 failed (61 items)**.
 
-## 8.4 Ending-SHA workflow record
+## 8.4 Workflow record at the checkpoint SHA
 
 Populated at the exit gate. The last record published here was for
 `684396a7` — App CI `37758437026`, Repository Integrity `37758437146`, Android
 Build Smoke `37758437133`, iOS Build Smoke `37758437093`, all green — and it is
 **historical**: it is not the ending SHA of this campaign. Green runs at
 `05bf793` or `b7cf09b` are likewise never cited as the ending-SHA result.
+
+### 2026-10-09 checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d` — 4/4 green
+
+The reconciliation, the composite alignment and the device-blocker record are
+all evidence-only commits; the terminal application source is unchanged
+(`b293a02`). The four required workflows were then verified at this exact SHA:
+
+| Workflow | Run ID | SHA | Conclusion |
+| --- | --- | --- | --- |
+| App CI | `37943831586` | `1c8fe66` | **success** |
+| Repository Integrity | `37943831511` | `1c8fe66` | **success** |
+| Android Build Smoke | `37943831547` | `1c8fe66` | **success** |
+| iOS Build Smoke | `37943831621` | `1c8fe66` | **success** |
+
+Preceding SHA `690fb22cab83ef6a3e9bdfa8c8c23fa960367339` was also 4/4 green
+(App CI `37934796557`, Repository Integrity `37934796675`, Android Build Smoke
+`37934796561`, iOS Build Smoke `37934796632`).
+
+**This is a checkpoint record, not an exit-gate record.** Task 8.4 stays
+unchecked: the exit gate requires a read-only review after the sweep and the
+terminal gates, and the device-owned work has no evidence yet (see
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md)). If the device lane is completed and
+another commit changes an application or build input, these runs are re-verified
+at that SHA and this table updated again.

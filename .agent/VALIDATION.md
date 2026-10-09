@@ -63,10 +63,19 @@ while the dependency surface is dirty — that is the reconciled behaviour, not 
 regression to fix. `scripts/validate-repo-state.mjs` PASS. Strict OpenSpec
 **61/61** PASS.
 
-### Workflow runs at the reconciliation SHA
+### Workflow record at the checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d` — 4/4 green
 
-Recorded when the reconciliation commit lands; see `GATES.md` §8.4. The
-2026-10-08 run ids below are historical.
+| Workflow | Run ID | Conclusion |
+| --- | --- | --- |
+| App CI | `37943831586` | success |
+| Repository Integrity | `37943831511` | success |
+| Android Build Smoke | `37943831547` | success |
+| iOS Build Smoke | `37943831621` | success |
+
+Recorded as a **checkpoint**, not the exit gate: task 8.4 requires the review
+and the terminal gates to have happened first, and the device-owned work has no
+evidence. Preceding SHA `690fb22` was also 4/4 green (`37934796557`,
+`37934796675`, `37934796561`, `37934796632`).
 
 ## 076-f certification checkpoint — 2026-10-08 (superseded — kept as history)
 

@@ -79,7 +79,7 @@ blockers", which the design explicitly forbids while game proof is missing.
 | Controller Pro smoke | **PASS** | `CONTROLLER.md` |
 | Controller journeys (9 stateful) | **NOT VALIDATED** | `JOURNEYS.md` |
 | Independent read-only review | **COMPLETE** — 7 blocking findings, all repaired | `REVIEW.md` |
-| Ending-SHA workflows | **4/4 GREEN at `b7cf09b`** | `VERDICT.md` |
+| Ending-SHA workflows | **4/4 GREEN at `1c8fe66`** — checkpoint record, not exit-gate | `GATES.md` §8.4 |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
 | Device / controller execution | **BLOCKED — `BLOCKED_HOST_ANDROID_EMULATOR`** | `DEVICE_BLOCKER.md` |
 
