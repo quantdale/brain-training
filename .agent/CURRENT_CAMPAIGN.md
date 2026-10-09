@@ -135,7 +135,10 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 ## Current checkpoint — 2026-10-09 (reconciled; device lane blocked)
 
 - **Execution authority:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
-- **Starting SHA:** `709ae55` — `main` == `origin/main`, worktree clean, one worktree.
+- **Starting SHA:** `709ae55` — historical prompt start, not the current `HEAD`.
+- **Record close:** document contradictions from the 2026-10-09 review are
+  corrected in this pass. The device lane is still blocked. Do not read
+  `709ae55` as `HEAD`.
 - **Terminal identity:** application source `b293a02e1cd5df260a66dd886c1d279978b68994`,
   release APK `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
   (48,888,452 B, x86_64, `com.braintraining.app` 0.1.0/1000). Built and hashed on

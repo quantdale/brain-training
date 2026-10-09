@@ -8,7 +8,7 @@ success is not a journey.
 > **Current status (2026-10-09 reconciliation).** Authentication **succeeded**.
 > The owner resolved the blocker by moving ARTEMIS to a different provider (the
 > external OpenDesign endpoint); object detection remains on the required Gemini
-> ER model; the credential lives only in `D:\Tools\artemis\env`. Flash smoke
+> ER model; the credential lives only in `D:\Tools\artemis\.env`. Flash smoke
 > `6f185691-…` and Pro smoke `251e3f10-…` both PASS. Task `6.2` — "if
 > authentication remains externally blocked" — was therefore **un-checked**: a
 > checked `6.2` would falsely assert the blocked branch is current. The Google

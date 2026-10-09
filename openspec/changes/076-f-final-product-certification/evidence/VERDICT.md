@@ -46,8 +46,8 @@ dependency — it leaves repository-owned work undone.
 
 **Current-device game acceptance is 42 NOT VALIDATED, 0 PASS, all graded on
 `de6c5fcd…` — an APK that is not the terminal APK.** That alone fixes the
-verdict. The clean-checkout composite is also not aligned with the declared gate
-set yet.
+verdict. The clean-checkout composite was later aligned and passed; that pass
+does not supply the missing game proof.
 
 ## Gate-by-gate state at close
 
@@ -77,7 +77,9 @@ acceptance**, the **nine controller journeys**, and the **gameplay half of the
 accessibility requirement**. All three are blocked by a single host failure —
 the dedicated Android emulator died and cannot be restarted — recorded in
 [`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md). The clean-checkout composite, which
-was the other blocking gate, now **PASSES 20/20** at the terminal SHA.
+was the other blocking gate, **PASSES 20/20 at `690fb22`**. That is the
+composite checkout SHA, not the terminal application SHA `b293a02` and not
+`HEAD`.
 
 The clean-checkout composite still does not assemble an Android artifact and
 runs no device or controller execution, so its pass does not reach the blocked
@@ -195,10 +197,12 @@ at `b7cf09b` are deliberately never cited as certification evidence for a later
 SHA.
 
 **Checkpoint-SHA workflow record (task 8.4, partial).** The four required
-workflows were verified at the checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d`,
-all **green**: App CI `37943831586`, Repository Integrity `37943831511`, Android
-Build Smoke `37943831547`, iOS Build Smoke `37943831621`. This is a checkpoint
-record, not the exit-gate record.
+workflows were verified at `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d`, all
+**green**: App CI `37943831586`, Repository Integrity `37943831511`, Android
+Build Smoke `37943831547`, iOS Build Smoke `37943831621`. `f338e1c` is also
+4/4 green (App CI `37948059749`, Repository Integrity `37948059896`, Android
+Build Smoke `37948059722`, iOS Build Smoke `37948059834`). Neither SHA is the
+exit-gate record.
 
 **Because the exit gate could not be reached, task 8.4 is unchecked and this
 file is not the exit verdict.** It is the standing verdict, kept current.

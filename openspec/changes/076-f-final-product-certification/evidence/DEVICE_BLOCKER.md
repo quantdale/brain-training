@@ -82,6 +82,14 @@ only transient `*.lock` files were moved to
 | §6.5 Jest totals | **622 passed / 4 skipped suites, 7,241 passed / 5 skipped tests, 5 snapshots** — the 621 / 7,237 baseline did not drop |
 | §6.6 provenance regeneration | **DONE** — 302 rows, 194 `SOURCE_NOT_EQUIVALENT`, 92 `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`, 0 rows usable as terminal-APK evidence |
 
+## Recheck — still blocked
+
+A later session rechecked the host without rebooting it and without running
+`wsl --shutdown`. `taskkill /F /PID 50120` again returned "There is no running
+instance of the task" while `Get-Process -Id 50120` still returned
+`qemu-system-x86_64-headless`. `adb devices` still listed `emulator-5554` as
+`offline`. No new emulator was launched. The device lane is unchanged.
+
 ## Verdict
 
 Unchanged and still correct:

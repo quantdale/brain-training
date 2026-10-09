@@ -7,7 +7,10 @@
 it explains.
 **Authority of this file:** it records the state of the ledgers *at the moment
 of reconciliation*. It is not acceptance, and it is superseded by any later
-record.
+record. In particular, the `7.1` row below saying the Expo-gate fix "is not
+yet applied" is historical: the aligned composite later passed 20/20 at
+`690fb22`, and tasks `7.1` and `7.4` were rechecked against that run. The
+terminal APK row is a host-hash match, not a new device pull.
 
 ---
 
@@ -35,7 +38,7 @@ certification exists to catch. So the ledgers were corrected **first**.
 | Last commit changing app/build inputs | `b293a02e1cd5df260a66dd886c1d279978b68994` | `git diff --name-only b293a02..HEAD -- apps/ package.json package-lock.json app.json .github/` → empty |
 | Non-test production files changed since game-capture source `4a6fc53` | **4** | `git diff --name-only 4a6fc53..HEAD -- apps/ …` |
 | Rendering-dependency surface changed since `4a6fc53` | **2** | `node scripts/certification/build-provenance.mjs` |
-| Terminal APK after the defect repairs | `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` (48,888,452 B) | recorded at `f760ee4`, device-hashed; **re-measured by the section-3 rebuild** |
+| Terminal APK after the defect repairs | `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` (48,888,452 B) | host rebuild hash matched the `f760ee4` record; **not** a new `base.apk` pull |
 | Controller | operational on the owner-directed external OpenDesign endpoint | `evidence/CONTROLLER.md` |
 | Task-boxes checked before this reconciliation | 076-f **21/42**, parent **61/82** | the ledgers |
 

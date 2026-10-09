@@ -8,8 +8,8 @@
   "versionCode": 1000,
   "abi": "x86_64",
   "buildCommand": "cd apps/mobile/android && ./gradlew.bat :app:assembleRelease --console=plain -PreactNativeArchitectures=x86_64",
-  "device": "emulator-5554 / AVD braintraining-ui35 / sdk_gphone64_x86_64 1080x2400 API 36",
-  "deviceVerification": "base.apk pulled from the device hashes to terminalApkSha256 (recorded at f760ee4; re-measured and re-recorded by the section-3 rebuild)",
+  "device": "not installed in the 2026-10-09 closure pass; historical device was emulator-5554 / AVD braintraining-ui35",
+  "deviceVerification": "NOT a current device pull. Historical base.apk pull at f760ee4 matched this hash. The 2026-10-09 section-3 rebuild hashed the host APK and matched e243341f; base.apk was not pulled. Task 7.3 stays unchecked.",
   "supersedes": {
     "terminalSourceSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
     "terminalApkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",

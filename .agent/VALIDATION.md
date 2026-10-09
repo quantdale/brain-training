@@ -6,8 +6,9 @@ The device lane is blocked: the dedicated Android emulator died of host memory
 exhaustion and cannot be restarted. `qemu-system-x86_64-headless.exe` (PID
 50120) is unreapable, holds ports 5554/5555 and the WHPX partition, and every
 new emulator launch aborts with "It seems too many emulator instances are
-running on this machine." Full evidence, recovery attempts and the exact
-recovery steps: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
+running on this machine." Rechecked without a reboot: `taskkill /F /PID 50120`
+still fails, and `adb devices` still shows `emulator-5554` offline. Full
+evidence: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
 
 **Consequence:** the 42 current-device game rows, the nine controller journeys,
 the gameplay half of accessibility, and the terminal APK install/device-hash

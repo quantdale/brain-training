@@ -1,7 +1,18 @@
 # Durable Project State
 
-> **CORRECTION — 2026-10-09 (076-f evidence reconciliation; this is the current
-> checkpoint).** The 076-f closure checkpoint below still reads: dependency
+> **CORRECTION #3 — 2026-10-09 record close (current).** Correction #1 below
+> still says measured truth at `709ae55`. That SHA sentence is stale as a
+> HEAD claim. `709ae55` is the prompt-start SHA, not `HEAD`. The credential
+> file that exists is `D:\Tools\artemis\.env`. The identity table in correction #1
+> (application source `b293a02`, APK `e243341f…`, closure of 2 files, Jest
+> 622 / 7,241) remains true. The device lane is still
+> `BLOCKED_HOST_ANDROID_EMULATOR`: PID 50120 was rechecked and `taskkill /F`
+> still reports no running instance while the process object remains, and
+> `adb devices` still shows `emulator-5554` offline. No host reboot was taken.
+> Verdict remains `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
+>
+> **CORRECTION — 2026-10-09 (076-f evidence reconciliation; historical as a
+> HEAD claim).** The 076-f closure checkpoint below still reads: dependency
 > closure **unchanged**, terminal APK **byte-identical** to
 > `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`, Jest
 > **621 / 7,237**, and the live blocker **Google free-tier quota**. Every one of
@@ -14,7 +25,7 @@
 > | dependency closure `0` files | **2 files** — `apps/mobile/src/components/game-ui/session-header.tsx` (rendered layout) and `apps/mobile/src/components/ui/button.tsx` (4 dp hit-slop, input only) |
 > | terminal APK byte-identical to `de6c5fcd…` | the terminal application source is `b293a02e1cd5df260a66dd886c1d279978b68994` and the terminal APK is `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` (48,888,452 B); `de6c5fcd…` / `c324960` is the **route-evidence** artifact |
 > | Jest 621 / 7,237 | **622 suites / 7,241 tests / 5 snapshots** — two additive regression guards; the old baseline did not drop |
-> | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\env`. Both smokes PASS. |
+> | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\.env`. Both smokes PASS. |
 >
 > **076-f correction #2 — 2026-10-09, `BLOCKED_HOST_ANDROID_EMULATOR` (the current
 > terminal state of the device lane).** The dedicated emulator died of host memory
