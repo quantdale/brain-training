@@ -42,9 +42,9 @@
       "note": "Controller note is an unfilled skeleton: \"(Pending observation)\" for the active board. No state was evidenced. Must be re-run."
     },
     "flexibility-color-stroop": {
-      "identity": "unverified",
-      "status": "NOT VALIDATED",
-      "note": "The earlier run was killed before producing a review note. Must be re-run."
+      "identity": "verified",
+      "status": "PASS",
+      "note": "Played the correct game decisively - board resource-ids are flexibility-color-stroop.* with 'Rule: INK'/'Rule: WORD' flip mechanics, four answer chips labelled red/blue/green/yellow. Scored feedback QUOTED verbatim and correctly distinguished from timeout: Trial 3 'Wrong!' / 'It was yellow' / '325ms' (red ✕ card), Trial 4 'Correct!' / '651ms' (green ✓ card), and a gold ⏱ 'Time's up!' / 'It was green' / '1500ms' card explicitly identified as timeout feedback rather than scored feedback. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume red-primary / Quit) with resume restoring the exact Trial 3 card and the timer proven frozen during pause. Result screen itemised: 'Keep training', score 128, Accuracy 7%, Correct 1/15, Best streak 1, Post-flip correct 0, XP 11, 'Reward +11 XP · +2 coins', 'Progress saved', Play again/Done. Inputs registered (Next trial 1/15 -> 15/15, answers at 325ms and 651ms). Stroop rule-flip mechanic retained. NOTE: filed as flexibility-color-stroop because that is the game actually played and reported; the run was requested for language-word-chain and the deep link did not re-route an already-foreground app - see the navigation finding recorded in REVIEW.md. Candidate defects (button dead-edge tap zone, Pause position drift) are recorded in the row's section 6 and require reproduction before any production edit."
     }
   }
 }

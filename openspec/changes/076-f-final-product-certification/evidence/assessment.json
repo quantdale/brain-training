@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-08T11:08:16.761Z",
+  "generatedAt": "2026-10-09T01:31:26.445Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
-    "PASS": 5,
-    "NOT VALIDATED": 37
+    "PASS": 6,
+    "NOT VALIDATED": 36
   },
   "rows": [
     {
@@ -21,7 +21,7 @@
       "parentTask": "6.2",
       "status": "NOT VALIDATED",
       "reason": "DOWNGRADED on review (finding F3). The note describes the right game and its mechanic (Tap GO / hold on the stop number, Trial 1/30) and it does quote the pause overlay (\"Paused\", \"The challenge is hidden and the timers are frozen.\", Resume/Quit, resume confirmed) and an itemised result (723, Go hits 2/26, Stop numbers held 4/4, Commissions 0, Mean reaction 743ms, Best streak 1, XP 27, +27 XP +5 coins). BUT section 2 quotes NO scored verdict: it only describes the feedback mechanism and claims feedback is continuous rather than an intermittent popup. That claim is factually wrong about the UI - attention-sustained-vigilance/components/stimulus-stage.tsx renders a per-trial verdict flash (\"Go!\", \"Held - nice\", \"That was the stop number\", \"Missed one\") with a ✓/✕/⏱ badge and a spoken verdict. Per the change spec feedback is not inferred, so scored feedback is NOT VALIDATED until a per-trial verdict is quoted from the device. FRAME CAVEAT (finding F4): the filed result.png/result.xml were captured after the journey exit step and show the HOME screen (home-brand, home-title, home-workout-cta, 0 of 4 complete), not any game state; they are not corroboration and are not cited as such.",
-      "note": "present",
+      "note": "absent",
       "identity": "verified"
     },
     {
@@ -64,10 +64,10 @@
       "domain": "flexibility",
       "game": "flexibility-color-stroop",
       "parentTask": "7.2",
-      "status": "NOT VALIDATED",
-      "reason": "The earlier run was killed before producing a review note. Must be re-run.",
-      "note": "absent",
-      "identity": "unverified"
+      "status": "PASS",
+      "reason": "Played the correct game decisively - board resource-ids are flexibility-color-stroop.* with 'Rule: INK'/'Rule: WORD' flip mechanics, four answer chips labelled red/blue/green/yellow. Scored feedback QUOTED verbatim and correctly distinguished from timeout: Trial 3 'Wrong!' / 'It was yellow' / '325ms' (red ✕ card), Trial 4 'Correct!' / '651ms' (green ✓ card), and a gold ⏱ 'Time's up!' / 'It was green' / '1500ms' card explicitly identified as timeout feedback rather than scored feedback. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume red-primary / Quit) with resume restoring the exact Trial 3 card and the timer proven frozen during pause. Result screen itemised: 'Keep training', score 128, Accuracy 7%, Correct 1/15, Best streak 1, Post-flip correct 0, XP 11, 'Reward +11 XP · +2 coins', 'Progress saved', Play again/Done. Inputs registered (Next trial 1/15 -> 15/15, answers at 325ms and 651ms). Stroop rule-flip mechanic retained. NOTE: filed as flexibility-color-stroop because that is the game actually played and reported; the run was requested for language-word-chain and the deep link did not re-route an already-foreground app - see the navigation finding recorded in REVIEW.md. Candidate defects (button dead-edge tap zone, Pause position drift) are recorded in the row's section 6 and require reproduction before any production edit.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "flexibility",
@@ -110,7 +110,7 @@
       "game": "language-sentence-builder",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -155,7 +155,7 @@
       "game": "logic-deduction-table",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -164,7 +164,7 @@
       "game": "logic-next-sequence",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -173,7 +173,7 @@
       "game": "logic-order-path",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -182,7 +182,7 @@
       "game": "logic-rule-grid",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },

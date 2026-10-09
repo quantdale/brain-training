@@ -33,6 +33,14 @@ GAMES=("${@:-}")
 prompt_for() {
   cat <<EOF
 Locked app: com.braintraining.app.
+STEP -1 - RESET (mandatory, do this BEFORE anything else):
+Force-stop and cold-launch the app first. A deep link delivered to an app that
+is ALREADY FOREGROUND on a different game is silently ignored (Android reports
+"Activity not started, intent has been delivered to currently running top-most
+instance") and you will play the WRONG game. So: force-stop com.braintraining.app,
+launch it fresh, THEN open the deep link. Confirm the reset worked by checking
+that the game title changed.
+
 STEP 0 - IDENTITY CHECK (do this FIRST and do not skip it):
 Open the deep link braintraining://game/$1. Read the game title actually shown
 on screen. In your note, the VERY FIRST line must be exactly:
