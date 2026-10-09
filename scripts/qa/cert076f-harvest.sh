@@ -25,11 +25,33 @@ EV="$REPO/openspec/changes/076-f-final-product-certification/evidence/current-de
 export BT_AVD_NAME=braintraining-ui35
 
 mkdir -p "$EV"
+
+# NEVER clobber a row a reviewer has already accepted. manual-review.json is the
+# reviewer's verdict record; if it marks this game PASS or FIXED, its review.md is
+# evidence that has already been inspected and must be left exactly as filed.
+# (Learned the hard way: the harvester overwrote an accepted flexibility-color-
+# stroop row and the content had to be restored from git.)
+accepted_status() {
+  python -c "
+import json,sys,os
+p=os.path.join('openspec/changes/076-f-final-product-certification/evidence/current-device/manual-review.json')
+try:
+    v=json.load(open(p,encoding='utf-8')).get('verdicts',{}).get(sys.argv[1],{})
+    print(v.get('status',''))
+except Exception:
+    print('')
+" "$1" 2>/dev/null
+}
+
 harvested=0
 missing=0
 
 for dest in "$EV"/*/; do
   g="$(basename "$dest")"
+  if [ "$(accepted_status "$g")" = "PASS" ] || [ "$(accepted_status "$g")" = "FIXED" ]; then
+    echo "[skip-accepted] $g"
+    continue
+  fi
   log="$dest/artemis.log"
   [ -s "$log" ] || continue
 
