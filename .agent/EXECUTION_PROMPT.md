@@ -1,14 +1,17 @@
-# Execution Prompt — Campaign 076: Product-Wide UI/UX Reboot
+# Execution Prompt — Campaign 076-F terminal closure
 
-> **ACTIVE CLOSURE BINDING (2026-10-08):** the active closure binding is now
-> **`openspec/changes/076-f-final-product-certification`**. This prompt remains
-> the ORIGINAL active 076 redesign prompt and is deliberately left as
-> historical context — it is NOT evidence of certification, and its GitHub
-> Actions runs are NOT certification evidence. Do not execute the redesign wave
-> plan below as if it were the current closure work. Read the 076-f
-> `evidence/VERDICT.md` for the current status.
+> **ACTIVE CLOSURE BINDING:** execute
+> `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
+> Do not execute the historical redesign waves below. Do not treat
+> `evidence/VERDICT.md` or this file's older checkpoint as current truth until
+> that prompt's reconciliation commit lands.
 
-**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` (former VALIDATED verdict withdrawn after evidence review)
+**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
+**Execute:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`
+
+## Historical execution prompt — Campaign 076 redesign
+
+**Status:** HISTORICAL — do not execute. Former verdict `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
 **Change:** `076-product-wide-ui-ux-reboot` (ACTIVE)
 **Start-SHA:** `b6654fb` (proposal head; Explore baseline `d3d0b99`)
 **Target-Branch:** `main`
