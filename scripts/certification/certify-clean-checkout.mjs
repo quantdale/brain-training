@@ -72,7 +72,7 @@ const OPENSPEC_GATE_ARGS = ['validate', '--all', '--strict'];
  * advisory, weekly-only result it actually is. Jest, audit and OpenSpec
  * thresholds are untouched.
  */
-const EXPO_HERMETIC_GATE = ['node', 'scripts/validate-expo-alignment.mjs'];
+const EXPO_HERMETIC_GATE = { command: 'node', args: ['scripts/validate-expo-alignment.mjs'] };
 const EXPO_HERMETIC_GATE_LABEL = 'scripts/validate-expo-alignment.mjs';
 const EXPO_NETWORK_GATE_LABEL = 'expo-doctor';
 
@@ -390,7 +390,7 @@ if (selfTestMode) {
   // not the network doctor. The network doctor remains a weekly-only advisory
   // CI gate per GOVERNANCE.json; running it here as a hard gate certified a
   // harsher check than the project declares.
-  results.push(run('expo alignment', ...EXPO_HERMETIC_GATE));
+  results.push(run('expo alignment', EXPO_HERMETIC_GATE.command, EXPO_HERMETIC_GATE.args));
 
   // Mirror app-ci: emit the machine-readable summary and validate the skip
   // signal against the reviewed allowlist (stale entries fail closed).
