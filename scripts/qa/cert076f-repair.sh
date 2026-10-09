@@ -58,6 +58,12 @@ Only then write note key 'game_state_review_log' with exactly these headings:
 ## 1. Active Play Board  (board/stimulus content, EVERY visible control and its
    literal label, round/score/timer chips, whether instructions are visible,
    whether the board is legible with clear hierarchy)
+CAPTURE TIMING (this has cost rows before): on games whose verdict banner is
+sub-second, a screenshot taken on a LATER step lands 5-15s after the tap and
+misses it. So the instant you tap an answer, take the screenshot in the SAME
+action step, immediately, before doing anything else. If a verdict still cannot
+be captured on any frame, write 'not reached' with the reason - never infer it.
+
 ## 2. Scored Feedback   (tap answers until a SCORED FEEDBACK appears - a
    correct/incorrect verdict or timeout reveal. Quote the EXACT verdict text.
    An intro screen or an unanswered board is NOT feedback)

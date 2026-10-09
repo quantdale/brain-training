@@ -44,8 +44,25 @@ for dest in "$EV"/*/; do
   # count was filed from attention-sustained-vigilance's session) - the exact
   # failure this review process exists to catch. If the UUID does not resolve to
   # a note, the row is NOT VALIDATED. No guessing.
-  if [ -n "${sess:-}" ] && [ -s "$ARTEMIS/traces/$sess/notes/game_state_review_log.md" ]; then
-    note="$ARTEMIS/traces/$sess/notes/game_state_review_log.md"
+  # The controller does not always honour the requested note key: it has been
+  # observed writing the review under 'journey_observations' instead. Accept any
+  # note in the session that carries the state-review headings, preferring the
+  # requested key. Matching on CONTENT (not filename) is what makes this robust.
+  if [ -n "${sess:-}" ]; then
+    for cand in "$ARTEMIS/traces/$sess/notes/game_state_review_log.md"                 "$ARTEMIS/traces/$sess/notes/journey_observations.md"; do
+      if [ -s "$cand" ] && grep -qiE "^## .*Active Play Board|^## 1\. Active" "$cand"; then
+        note="$cand"
+        break
+      fi
+    done
+    if [ -z "$note" ]; then
+      for cand in "$ARTEMIS/traces/$sess/notes/"*.md; do
+        if [ -s "$cand" ] && grep -qiE "^## .*Active Play Board|^## 1\. Active" "$cand" 2>/dev/null; then
+          note="$cand"
+          break
+        fi
+      done
+    fi
   fi
 
   # A note that is still an unfilled skeleton is NOT evidence. The controller
