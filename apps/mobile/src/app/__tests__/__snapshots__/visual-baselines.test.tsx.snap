@@ -4033,6 +4033,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={4}
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -4550,6 +4551,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={4}
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -7452,6 +7454,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={4}
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -8150,6 +8153,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={4}
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}

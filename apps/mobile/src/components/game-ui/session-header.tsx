@@ -79,41 +79,56 @@ export function SessionHeader({
           borderColor: onStage ? theme.stageBorder : theme.border,
         },
       ]}>
-      {children !== undefined ? (
-        children
-      ) : round !== undefined ? (
-        <ThemedText
-          type="label"
-          themeColor={onStage ? 'stageInk' : 'textSecondary'}
-          numberOfLines={1}
-          style={styles.round}>
-          {round}
-        </ThemedText>
-      ) : null}
+      {/* 076-f defect repair (reproduced on device): the single wrapping row put
+          the pause control wherever the wrap happened to land it - trailing when
+          the slots fit, and at the START of the next instrument line when they
+          did not. The controller observed it "moves between top-left and
+          top-right" across trials of the same game. Splitting the strip into a
+          wrapping INFO zone plus a pinned TRAILING zone keeps Campaign 055P's
+          anti-clipping wrap (the info slots still wrap instead of overflowing)
+          while the pause control stays anchored at one edge for the whole
+          session. */}
+      <View style={styles.info}>
+        {children !== undefined ? (
+          children
+        ) : round !== undefined ? (
+          <ThemedText
+            type="label"
+            themeColor={onStage ? 'stageInk' : 'textSecondary'}
+            numberOfLines={1}
+            style={styles.round}>
+            {round}
+          </ThemedText>
+        ) : null}
 
-      {progress !== undefined && progress.total > 0 ? (
-        <View style={styles.progress}>
-          <ProgressBar
-            value={Math.min(progress.value / progress.total, 1)}
-            height={8}
-            tone="success"
-            testID="session-progress"
-            accessibilityLabel={`${progress.value} of ${progress.total} rounds complete`}
-          />
+        {progress !== undefined && progress.total > 0 ? (
+          <View style={styles.progress}>
+            <ProgressBar
+              value={Math.min(progress.value / progress.total, 1)}
+              height={8}
+              tone="success"
+              testID="session-progress"
+              accessibilityLabel={`${progress.value} of ${progress.total} rounds complete`}
+            />
+          </View>
+        ) : null}
+
+        {score !== undefined ? (
+          <ThemedText
+            type="numeral"
+            themeColor={onStage ? 'stageInk' : 'text'}
+            numberOfLines={1}
+            testID={scoreTestID}>
+            {score}
+          </ThemedText>
+        ) : null}
+      </View>
+
+      {trailing !== undefined ? (
+        <View style={styles.trailing} testID="session-header-trailing">
+          {trailing}
         </View>
       ) : null}
-
-      {score !== undefined ? (
-        <ThemedText
-          type="numeral"
-          themeColor={onStage ? 'stageInk' : 'text'}
-          numberOfLines={1}
-          testID={scoreTestID}>
-          {score}
-        </ThemedText>
-      ) : null}
-
-      {trailing}
     </View>
   );
 }
@@ -121,18 +136,31 @@ export function SessionHeader({
 const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row',
-    // Campaign 055P (pixel certification): at compact widths or a 2x system
-    // font scale the four HUD slots exceed the strip; without wrapping the
-    // trailing pause control was clipped past the strip/screen edge (and at
-    // 2x it sat almost fully off-screen). Wrapping moves the overflow to a
-    // second instrument line instead of hiding a control.
-    flexWrap: 'wrap',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.twoHalf,
     paddingHorizontal: Spacing.twoHalf,
     paddingVertical: Spacing.oneHalf,
     borderRadius: Radii.medium,
     borderWidth: HAIRLINE,
+  },
+  // Campaign 055P's anti-clipping wrap lives here now, on the INFO slots only:
+  // at compact widths or a 2x system font scale the four HUD slots exceed the
+  // strip, and wrapping moves the overflow to a second instrument line instead
+  // of pushing a control off-screen.
+  info: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing.twoHalf,
+  },
+  // The pause control must never wrap away from its edge and never compress:
+  // a control whose position shifts mid-session is unfindable by muscle memory
+  // and was reported as a defect on device.
+  trailing: {
+    flexShrink: 0,
+    flexGrow: 0,
   },
   round: {
     flexShrink: 1,

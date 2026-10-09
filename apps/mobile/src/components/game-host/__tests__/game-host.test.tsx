@@ -160,13 +160,29 @@ describe('GameHost chrome mounting', () => {
     expect(screen.getByTestId(testId(GAME, 'quit'))).toBeOnTheScreen();
   });
 
-  it('wires the pause control into the wrapping session-header strip', async () => {
-    await render(<GameHost {...hostProps({})} />);
+  it('wires the pause control into the pinned trailing zone of the session-header strip', async () => {
+    // Render the full HUD (round + progress + score) so the info zone actually
+    // exists and the anti-clipping wrap can be asserted on it.
+    await render(
+      <GameHost
+        {...hostProps({
+          header: 'Round 1/5',
+          score: '0',
+          roundProgress: { value: 1, total: 5 },
+        })}
+      />,
+    );
 
-    // Walk up from the real pause control (not a stub) to the nearest wrapping
-    // container: the header strip is the button's `trailing` slot. Pinning the
-    // row+wrap style here keeps the Campaign 055P anti-clipping contract wired
-    // end to end, through GameHost → SessionHeader → GameButton.
+    // Walk up from the real pause control (not a stub) and pin how the header
+    // strip is wired end to end through GameHost → SessionHeader → GameButton.
+    //
+    // 076-f: the anti-clipping wrap moved OFF the pause control and onto the
+    // info slots only. It used to be an ancestor of the pause button, which is
+    // exactly why the button wrapped between the row's right edge and the start
+    // of the next instrument line and was observed "moving between top-left and
+    // top-right" mid-session. So the contract now asserts both halves: the
+    // overflow CAN wrap away (Campaign 055P, no clipping) and the pause control
+    // is NOT inside that wrapping zone (076-f, no drift).
     type HostInstance = ReturnType<typeof screen.getByTestId>;
     const pause = screen.getByTestId(testId(GAME, 'pause'));
     const wrappingAncestors: HostInstance[] = [];
@@ -177,13 +193,22 @@ describe('GameHost chrome mounting', () => {
       current = current.parent;
     }
 
-    expect(wrappingAncestors).toHaveLength(1);
-    const stripStyle = StyleSheet.flatten(wrappingAncestors[0].props.style) as Record<
-      string,
-      unknown
-    >;
+    // The pause control must never sit inside a wrapping zone again.
+    expect(wrappingAncestors).toHaveLength(0);
+
+    // The strip it lives in is still a single horizontal instrument row.
+    const strip = pause.parent?.parent;
+    expect(strip).not.toBeNull();
+    const stripStyle = StyleSheet.flatten(strip?.props.style) as Record<string, unknown>;
     expect(stripStyle.flexDirection).toBe('row');
-    expect(stripStyle.flexWrap).toBe('wrap');
+
+    // And the anti-clipping wrap is preserved on the info zone, which is what
+    // stops the round/progress/score slots being clipped at 2x text.
+    const infoZone = screen.getByTestId('session-progress').parent?.parent as unknown as HostInstance;
+    expect(infoZone).not.toBeNull();
+    const infoStyle = StyleSheet.flatten(infoZone?.props?.style) as Record<string, unknown>;
+    expect(infoStyle.flexDirection).toBe('row');
+    expect(infoStyle.flexWrap).toBe('wrap');
   });
 
   it('non-session views never mount the overlay even when paused=true', async () => {

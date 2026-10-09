@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-09T02:38:31.128Z",
+  "generatedAt": "2026-10-09T03:31:04.318Z",
   "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
   "counts": {
-    "PASS": 5,
-    "NOT VALIDATED": 37
+    "PASS": 6,
+    "NOT VALIDATED": 36
   },
   "rows": [
     {
@@ -21,7 +21,7 @@
       "parentTask": "6.2",
       "status": "NOT VALIDATED",
       "reason": "Correct game this time - identity line 'On-screen game title: Signal Watch', and the row is unusually honest about its own limit. Active board, pause overlay and result ARE evidenced and the game's own sustained-timing mechanic is visible (numbers stream by, tap GO except on the stop number). But section 2 records 'not reached' for scored feedback: the per-trial verdict banner is sub-second and every screenshot landed 5-15s after the tap, session video was offline (no scrcpy), uiautomator dump segfaults, and logcat held no verdict strings. It therefore reports NO quoted verdict - only downstream scoring effects (score chip 120 -> 524 -> 764, Go hits 2/26, Mean reaction 497ms, Best streak 3). Per the change spec feedback is not inferred, so the SCORED FEEDBACK state is NOT VALIDATED even though the rest of the journey is well evidenced. This is a CAPTURE-TIMING limitation of the review procedure, not a product defect. Capture instruction added to the repair prompt (screenshot in the same action step as the tap).",
-      "note": "present",
+      "note": "absent",
       "identity": "verified"
     },
     {
@@ -64,9 +64,9 @@
       "domain": "flexibility",
       "game": "flexibility-color-stroop",
       "parentTask": "7.2",
-      "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note (reviewer marked PASS but the row does not evidence every required state)",
-      "note": "absent",
+      "status": "PASS",
+      "reason": "Played the correct game decisively - board resource-ids are flexibility-color-stroop.* with 'Rule: INK'/'Rule: WORD' flip mechanics, four answer chips labelled red/blue/green/yellow. Scored feedback QUOTED verbatim and correctly distinguished from timeout: Trial 3 'Wrong!' / 'It was yellow' / '325ms' (red ✕ card), Trial 4 'Correct!' / '651ms' (green ✓ card), and a gold ⏱ 'Time's up!' / 'It was green' / '1500ms' card explicitly identified as timeout feedback rather than scored feedback. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume red-primary / Quit) with resume restoring the exact Trial 3 card and the timer proven frozen during pause. Result screen itemised: 'Keep training', score 128, Accuracy 7%, Correct 1/15, Best streak 1, Post-flip correct 0, XP 11, 'Reward +11 XP · +2 coins', 'Progress saved', Play again/Done. Inputs registered (Next trial 1/15 -> 15/15, answers at 325ms and 651ms). Stroop rule-flip mechanic retained. NOTE: filed as flexibility-color-stroop because that is the game actually played and reported; the run was requested for language-word-chain and the deep link did not re-route an already-foreground app - see the navigation finding recorded in REVIEW.md. Candidate defects (button dead-edge tap zone, Pause position drift) are recorded in the row's section 6 and require reproduction before any production edit.",
+      "note": "present",
       "identity": "verified"
     },
     {
@@ -75,7 +75,7 @@
       "parentTask": "—",
       "status": "NOT VALIDATED",
       "reason": "Note is an unfilled template: section 2 reads 'EXACT verdict text: ' and 'Context: ' with nothing after them, and the other headings are stubs. No state was evidenced. Must be re-run.",
-      "note": "present",
+      "note": "absent",
       "identity": "unverified"
     },
     {

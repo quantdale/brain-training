@@ -82,6 +82,24 @@ export type ButtonComponentProps = ButtonProps &
 // Every size meets the platform target: the compact size exists to be denser
 // (smaller text and padding), not to be harder to hit.
 const HEIGHT: Record<ButtonSize, number> = { sm: MIN_TOUCH_TARGET, md: 48, lg: 56 };
+
+/**
+ * Edge allowance beyond the painted bounds (dp).
+ *
+ * 076-f defect repair (reproduced on device): a tap landing exactly on a
+ * button's outer bound edge did not register, while a tap at its centre always
+ * did. Two causes stack here. `hitSlopToTouchTarget()` returns `null` once the
+ * control already meets the 48dp floor, so `Tappable` applied NO expansion; and
+ * React Native's hit test is boundary-exclusive, so the outermost pixel row and
+ * column of a perfectly compliant button were dead.
+ *
+ * 4 dp is chosen rather than an arbitrary generous value: it exactly fills half
+ * the 8 dp (`Spacing.two`) gap the kit leaves between sibling controls, so two
+ * adjacent buttons' hit areas MEET at the gap midpoint and never overlap. A
+ * larger slop would let one chip steal its neighbour's edge taps, which is a
+ * worse defect than the one being fixed.
+ */
+const EDGE_HIT_SLOP = 4;
 const LABEL_TYPE: Record<ButtonSize, 'bodySmall' | 'body' | 'bodyLarge'> = {
   sm: 'bodySmall',
   md: 'body',
@@ -153,6 +171,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading, ...(accessibilityState ?? {}) }}
       renderedSize={HEIGHT[size]}
+      hitSlop={EDGE_HIT_SLOP}
       style={[
         styles.base,
         fullWidth && styles.fullWidth,
