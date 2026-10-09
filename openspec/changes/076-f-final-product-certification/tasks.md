@@ -51,10 +51,12 @@
 
 ## 7. Clean checkout and terminal artifact
 
-- [ ] 7.1 Run `node scripts/certification/certify-clean-checkout.mjs` without self-test or skip flags from a disposable clean checkout, then remove that checkout. Do not report the self-test as the composite.
+- [x] 7.1 Run `node scripts/certification/certify-clean-checkout.mjs` without self-test or skip flags from a disposable clean checkout, then remove that checkout. Do not report the self-test as the composite.
+  **Terminal run (2026-10-09):** PASS 20/20 at `690fb22` from a disposable clone, no skip flags, checkout removed. Includes the §6.1 alignment so the Expo step is the declared hermetic gate. See `evidence/GATES.md` §7.1.
 - [x] 7.2 Record strict OpenSpec validation and the release APK build as separate results. If the script's OpenSpec pin contradicts the declared CI gate, align the pin and its self-test without lowering thresholds.
 - [ ] 7.3 Build and install the terminal release APK from the terminal application source. Record source SHA, APK SHA-256, size, version, package, command, toolchain, install result, and device identity.
-- [ ] 7.4 Confirm the Jest baseline remains 621 passed suites, 4 classified skipped suites, 7,237 passed tests, 5 classified skipped tests, and 5 snapshots, and record the new strict OpenSpec total without forcing the old 60/60 count.
+- [x] 7.4 Confirm the Jest baseline remains 621 passed suites, 4 classified skipped suites, 7,237 passed tests, 5 classified skipped tests, and 5 snapshots, and record the new strict OpenSpec total without forcing the old 60/60 count.
+  **Terminal run (2026-10-09):** 622 passed / 4 skipped suites, 7,241 passed / 5 skipped tests, 5 snapshots — the old baseline did **not** drop; the movement is the two additive regression guards. Strict OpenSpec 61/61. See `evidence/GATES.md` §7.4.
 
 ## 8. Ledger, review, and terminal verdict
 

@@ -68,8 +68,10 @@ blockers", which the design explicitly forbids while game proof is missing.
 | Per-domain game controls + 48dp floor | **NOT VALIDATED** | sweep owns the device |
 | **Current-device game acceptance (42)** | **0 PASS / 42 NOT VALIDATED — none on the terminal APK** | `ASSESSMENT.md` |
 | Defect repair discipline (task 4.1) | **COMPLETE with an open obligation** — 2 reproduced, 2 fixed, 2 verified gone; provenance then regenerated | `DEFECTS.md` |
-| Clean-checkout composite | **FAIL (19/20)** at `a45232f` — one gate, upstream drift; alignment fix pending | `GATES.md` |
-| Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
+| Clean-checkout composite | **PASS 20/20 at `690fb22`** — no skip flags, disposable clone removed | `GATES.md` |
+| Clean-checkout composite (historical, `a45232f`) | **FAIL 19/20** — one gate, upstream drift; superseded by the §6.1 alignment | `GATES.md` |
+| Hermetic Expo alignment gate | **PASS** | `GATES.md` |
+| Release APK build | **BUILD SUCCESSFUL**, `e243341f…`, 48,888,452 B, exact reproducibility match. **NOT installed** — device blocker | `GATES.md`, `DEVICE_BLOCKER.md` |
 | Strict OpenSpec `--strict` | **PASS (61/61)** | `GATES.md` |
 | Jest baseline | **PASS** — 622 suites / 7,241 tests / 5 snapshots | `GATES.md`, `DEFECTS.md` |
 | Terminal APK identity | **PASS** — rebuilt and device-matched | `DEFECTS.md` |
@@ -79,6 +81,7 @@ blockers", which the design explicitly forbids while game proof is missing.
 | Independent read-only review | **COMPLETE** — 7 blocking findings, all repaired | `REVIEW.md` |
 | Ending-SHA workflows | **4/4 GREEN at `b7cf09b`** | `VERDICT.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
+| Device / controller execution | **BLOCKED — `BLOCKED_HOST_ANDROID_EMULATOR`** | `DEVICE_BLOCKER.md` |
 
 ---
 
@@ -395,11 +398,16 @@ controller note graded on `de6c5fcd…` and superseded by the APK change, and 34
 slots have no controller note at all. That stays the published state until the
 sweep proves otherwise.
 
-076-f tasks complete: 2.1, 2.2, 5.1, 7.2.
+076-f tasks complete: **2.1, 2.2, 5.1, 7.1, 7.2, 7.4** (6 of 42).
 Still open: the current-device game rows (3.1–3.22), the gameplay half of 5.2,
-5.3, the nine controller journeys (6.1), the defect-repair provenance bookkeeping
-(4.1), the terminal clean-checkout composite and Jest re-verification
-(7.1/7.3/7.4), and the entire ledger/review/verdict group (8.1–8.5).
+5.3, the nine controller journeys (6.1), the defect-repair device reverification
+(4.1), the terminal APK install and device hash (7.3), and the entire
+ledger/review/verdict group (8.1–8.5).
+
+**Why the sweep could not run:** the dedicated Android emulator died of host
+memory exhaustion and cannot be restarted — see
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md). Every remaining open task needs a
+device. The controller is not the blocker; it is operational.
 
 ---
 
@@ -426,16 +434,23 @@ gate in `GATES.md` §8.4.
 
 | Remaining work | Blocker | Owner action |
 |---|---|---|
-| 42 current-device game rows (42 slots, **0 accepted on the terminal APK**) | none — repository-owned work, owed | none |
-| 9 stateful controller journeys | none — repository-owned work, owed | none |
-| game-control labels + 48dp per domain | same | none |
-| `5.3` / parent `14.3` | depends on the above | none |
-| terminal clean-checkout composite aligned with the declared gate set | none — repository-owned work, owed | none |
+| 42 current-device game rows (42 slots, **0 accepted on the terminal APK**) | `BLOCKED_HOST_ANDROID_EMULATOR` | free the host — see `DEVICE_BLOCKER.md` for the exact recovery steps |
+| 9 stateful controller journeys | same device blocker; the controller itself is operational | same |
+| game-control labels + 48dp per domain | same device blocker | same |
+| `5.3` / parent `14.3` | depends on the above | same |
+| terminal clean-checkout composite aligned with the declared gate set | **DONE** — PASS 20/20 at `690fb22` | none |
+| terminal APK install + device hash | `BLOCKED_HOST_ANDROID_EMULATOR` | free the host — reboot, or terminate PID 50120 so ports 5554/5555 and the WHPX partition release |
 | iOS runtime | not validated | iOS device/runtime access |
 
 The controller is **not** the blocker: authentication succeeded and both smokes
-passed on the OpenDesign endpoint. Everything still owed above is
-repository-owned.
+passed on the OpenDesign endpoint. Everything still owed above except the last
+row is repository-owned work awaiting a device.
+
+**Resumption point:** read
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md), free the host, boot the dedicated
+AVD, then resume the campaign prompt at **§3** (install + device hash), §4 (the
+42-game sweep), §5 (accessibility gameplay half + the nine journeys), and §7
+(the exit-gate review and the ending-SHA workflow wait).
 
 The tooling for resumption is ready and its failure modes are already fixed:
 `cert076f-repair.sh` (identity check + note-at-end + capture-timing),

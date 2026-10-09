@@ -13,14 +13,20 @@
 > are history until the prompt's exit gate lands. Do **not** execute the
 > historical 076 redesign waves listed in the wave plan below.
 >
-> **Reconciled 2026-10-09.** Do not read the checkpoint text below as current.
-> Measured corrections: the rendering-dependency closure changed (**2** files,
-> not 0), the terminal artifact is `b293a02` /
-> `e243341fd4f9…` (not `c324960` / `de6c5fcd…`), Jest is **622 suites /
-> 7,241 tests** (not 621 / 7,237), and the controller is **unblocked** (the
-> Google free-tier quota is history). The ledgers moved back: parent tasks
-> `6.1`, `6.3` and `6.5` are unchecked and 076-f is at 4/42. Per-finding record:
+> **Reconciled 2026-10-09, then `BLOCKED_HOST_ANDROID_EMULATOR`.** Do not read
+> the checkpoint text below as current. Measured corrections: the
+> rendering-dependency closure changed (**2** files, not 0), the terminal artifact
+> is `b293a02` / `e243341fd4f9…` (not `c324960` / `de6c5fcd…`), Jest is **622
+> suites / 7,241 tests** (not 621 / 7,237), and the controller is **unblocked**
+> (the Google free-tier quota is history). The ledgers moved back: parent tasks
+> `6.1`, `6.3` and `6.5` are unchecked and 076-f is at 6/42. Per-finding record:
 > `openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
+>
+> The clean-checkout composite then passed **20/20**. The device lane then blocked:
+> the dedicated emulator died of host memory exhaustion and cannot be restarted, so
+> there is **no evidence** for the 42-game rows, the nine journeys, the gameplay
+> half of accessibility, or the terminal APK install and device hash. See
+> `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
 
 **Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 **Campaign id:** `076-product-wide-ui-ux-reboot`
@@ -126,21 +132,28 @@ tests) green, iOS honestly NOT VALIDATED, no abandoned worktrees. Terminal
 evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 (WAVE14_EVIDENCE.md + per-wave records).
 
-## Current checkpoint — 2026-10-09 (reconciled; this is the current truth)
+## Current checkpoint — 2026-10-09 (reconciled; device lane blocked)
 
 - **Execution authority:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
 - **Starting SHA:** `709ae55` — `main` == `origin/main`, worktree clean, one worktree.
 - **Terminal identity:** application source `b293a02e1cd5df260a66dd886c1d279978b68994`,
   release APK `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
-  (48,888,452 B, x86_64, `com.braintraining.app` 0.1.0/1000). Final
-  confirmation comes from the prompt's section-3 rebuild.
-- **Ledgers:** 076-f `tasks.md` 4 checked / 38 unchecked; parent ledger 58 checked.
+  (48,888,452 B, x86_64, `com.braintraining.app` 0.1.0/1000). Built and hashed on
+  the host — an **exact reproducibility match** — but **not installed and not
+  device-hashed**.
+- **Ledgers:** 076-f `tasks.md` 6 checked / 36 unchecked; parent ledger 58 checked.
 - **Games:** 42 assessment slots, **0 accepted on the terminal APK**.
 - **Provenance:** 302 rows; 194 game frames `SOURCE_NOT_EQUIVALENT`; 92 route rows
   `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`; generator
   exits non-zero by design while the dependency surface is dirty.
+- **Repository gates measured without a device:** clean-checkout composite
+  **PASS 20/20**, strict OpenSpec **61/61**, full Jest **622 / 7,241 / 5
+  snapshots**, release APK **BUILD SUCCESSFUL**.
 - **Controller:** operational on the owner-directed OpenDesign endpoint; both
   smokes PASS. Nine journeys still owed.
+- **BLOCKER:** `BLOCKED_HOST_ANDROID_EMULATOR` — see
+  `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
+  Every remaining gate needs a device.
 - **Verdict:** `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
 
 ## Progress log

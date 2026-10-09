@@ -16,12 +16,38 @@
 > | Jest 621 / 7,237 | **622 suites / 7,241 tests / 5 snapshots** — two additive regression guards; the old baseline did not drop |
 > | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\env`. Both smokes PASS. |
 >
-> **Ledger state:** 076-f `tasks.md` **4 checked / 38 unchecked** (was 21/21);
-> parent `076-product-wide-ui-ux-reboot/tasks.md` **58 checked** (was 61).
+> **076-f correction #2 — 2026-10-09, `BLOCKED_HOST_ANDROID_EMULATOR` (the current
+> terminal state of the device lane).** The dedicated emulator died of host memory
+> exhaustion and cannot be restarted, so the device-owned work could not run.
+> Measured: free RAM fell to **676 MB of 32 GB**; `qemu-system-x86_64-headless.exe`
+> (PID 50120) is unreapable and holds ports 5554/5555 plus the WHPX partition;
+> every new launch aborts with *"It seems too many emulator instances are running
+> on this machine."* Owner action: reboot the host (or terminate PID 50120), boot
+> `braintraining-ui35`, then resume the campaign prompt at §3. Evidence,
+> recovery attempts, exact steps:
+> `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
+>
+> **Repository-owned gates measured WITHOUT a device, all at `690fb22`:**
+>
+> | Gate | Result |
+> | --- | --- |
+> | Full clean-checkout composite (disposable clone, no skip flags) | **PASS — 20/20** (was FAIL 19/20) |
+> | Hermetic Expo alignment gate (now run inside the composite) | **PASS** |
+> | Strict OpenSpec `@1.9.0 validate --all --strict` | **PASS 61/61** |
+> | Release APK build x86_64 from `b293a02` | **BUILD SUCCESSFUL** — `e243341f…`, 48,888,452 B, exact reproducibility match |
+> | Full Jest | **622 / 7,241 / 5 snapshots** — the 621/7,237 baseline did not drop |
+> | Provenance regeneration | **302 rows**; 194 `SOURCE_NOT_EQUIVALENT`; 92 route rows `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`; **0** rows usable as terminal-APK evidence |
+>
+> **NO evidence exists for:** the 42 current-device game rows, the nine
+> controller journeys, the gameplay half of accessibility, or the terminal APK
+> install and device hash (task `7.3`). The controller itself is operational.
+>
+> **Ledger state:** 076-f `tasks.md` **6 checked / 36 unchecked** (2.1, 2.2, 5.1,
+> 7.1, 7.2, 7.4); parent `076-product-wide-ui-ux-reboot/tasks.md` **58 checked**.
 > `assessment.json` reads **42 NOT VALIDATED, none on the terminal APK** — 42
-> assessment *slots*, not 42 accepted games. The verdict remains
+> assessment *slots*, not 42 accepted games. Verdict:
 > `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Per-finding detail:
-> `openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
+> `…/evidence/RECONCILIATION.md`.
 
 > **ACTIVE CLOSURE BINDING (2026-10-08):** closure is bound to
 > **`openspec/changes/076-f-final-product-certification`**. This file's 076

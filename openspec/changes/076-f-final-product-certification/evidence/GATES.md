@@ -12,27 +12,66 @@ APK `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
 > terminal identity". Those are the **route-evidence** identities. They are kept
 > below, labelled historical.
 
-## 7.1 The full clean-checkout composite — RAN at `a45232f`, result recorded
+## 7.1 The full clean-checkout composite — RAN, result recorded
 
 Run exactly as the task requires, from a disposable clean checkout, with **no**
 `--self-test`, `--skip-install`, or `--allow-jest-not-validated`:
 
 ```bash
-git clone --no-hardlinks <repo> /tmp/bt-cert076f-clean
-cd /tmp/bt-cert076f-clean
+git clone --no-hardlinks <repo> D:/Temp/bt-cert076f-clean
+cd D:/Temp/bt-cert076f-clean
 node scripts/certification/certify-clean-checkout.mjs
 ```
 
-Checkout proven clean before the run: no inherited `apps/mobile/android`,
-`apps/mobile/ios`, `node_modules`, or `.expo` (all gitignored, so the clone was
-genuinely clean), at commit `a45232f`. The checkout was removed afterwards.
+### Terminal run — SHA `690fb22cab83ef6a3e9bdfa8c8c23fa960367339` — **PASS, 20/20**
 
-**Composite result: `FAIL` — 19 of 20 labeled gates passed, 1 failed.** The
-tally counts the 20 labeled `run()` gates. A 21st, unlabeled pass/fail result
-(`tracked_mutation_after_clean_run=PASS`, from `trackedMutation()`) is recorded
-separately. This is the composite's own verdict and is reported as-is. It is
-**not** the self-test; the self-test (`--self-test`, 10 checks) passing is a
-different, weaker thing and is never reported as certification.
+The composite was re-run after the Expo-gate alignment (campaign prompt §6.1
+and §6.2), from a disposable clone at the terminal application source
+(`b293a02` is still the last commit that changes an app or build input). The
+checkout was **removed afterwards, including on the earlier failed attempt**.
+No `--self-test`, `--skip-install`, or `--allow-jest-not-validated` flag was
+passed, and `tracked_mutation_after_clean_run=PASS` confirms the run did not
+mutate the checkout.
+
+| # | Gate | Result |
+| --- | --- | --- |
+| 1 | app npm ci | PASS |
+| 2 | repository state | PASS |
+| 3 | task ownership | PASS |
+| 4 | OpenSpec (`@1.9.0 validate --all --strict`) | PASS — **61 passed, 0 failed (61 items)** |
+| 5 | registry | PASS |
+| 6 | provenance (`--base=HEAD^`) | PASS |
+| 7 | provenance self-test | PASS (13 checks) |
+| 8 | jest signal self-test | PASS |
+| 9 | offline boundary | PASS |
+| 10 | secret boundary | PASS |
+| 11 | workflow hygiene | PASS (4 files scanned) |
+| 12 | dependency audit | PASS (10 accepted advisories, no unallowlisted moderate+ production findings) |
+| 13 | affected-area map sync | PASS |
+| 14 | runtime QA contract | PASS |
+| 15 | typecheck | PASS |
+| 16 | lint | PASS |
+| 17 | web export | PASS |
+| 18 | **expo alignment** (the declared hermetic gate) | **PASS** |
+| 19 | full Jest | PASS — **622 suites / 7,241 tests / 5 snapshots** |
+| 20 | jest signal | PASS (`pass: true`) |
+| — | tracked mutation (separate, unlabeled check) | PASS (`tracked_mutation_after_clean_run=PASS`) |
+
+**`certify-clean-checkout: PASS`** — the composite's own verdict, reported
+as-is. The composite does **not** assemble an Android artifact, so §7.2 records
+that separately.
+
+**The composite still does not cover**, and must not be read as covering:
+
+- the Android release APK build, install, and device hash (recorded in §7.3);
+- any device or controller execution — the 42 game rows, the nine journeys and
+  the gameplay half of the accessibility requirement;
+- iOS runtime, which needs a macOS host.
+
+### Historical run — SHA `a45232f` — `FAIL — 19/20`
+
+The earlier composite run is retained as history because it is exactly what the
+*shipped command* produced before the Expo-gate alignment:
 
 | # | Gate | Result |
 | --- | --- | --- |
@@ -58,7 +97,7 @@ different, weaker thing and is never reported as certification.
 | 20 | jest signal | PASS (skip-signal allowlist validation) |
 | — | tracked mutation (separate, unlabeled check) | PASS (`tracked_mutation_after_clean_run=PASS`) |
 
-### The one failing gate is classified, not excused
+### The one failing gate in the historical run is classified, not excused
 
 `Expo Doctor` failed on **"Patch version mismatches"** — 8 Expo packages one or
 two patch versions behind what `https://api.expo.dev/v2/versions/latest`
@@ -81,23 +120,26 @@ the repository's own settled decision, not an interpretation invented here:
 
 The hermetic gate that *does* answer the repository-owned question — "does the
 app declare the Expo-family versions its own installed SDK requires?" — was run
-separately and **PASSES**:
+separately and **PASSED**:
 
 ```bash
 node scripts/validate-expo-alignment.mjs   # 22/22 aligned, 0 findings
 ```
 
-**Open repository finding (tracked in `.agent/KNOWN_ISSUES.md`):**
-`certify-clean-checkout.mjs` still treats the network `expo-doctor` as a hard
-gate while the declared CI gate set does not, and it does not run the hermetic
+**Resolved by the campaign prompt §6.1 alignment (commits `aa8dddd` and
+`690fb22`).** The composite now runs that hermetic gate as its Expo step, with
+four self-test checks that fail closed in both directions. The terminal run
+above is therefore **20/20 PASS**, and the network `expo-doctor` remains only
+what CI always made it: a separate, weekly-only, advisory result. No threshold
+was lowered. Historical detail of the finding, retained:
+
+**Historical record of the finding (now CLOSED):**
+`certify-clean-checkout.mjs` treated the network `expo-doctor` as a hard gate
+while the declared CI gate set did not, and did not run the hermetic
 `validate-expo-alignment.mjs` at all. That is the same class of
 script-versus-declared-gate contradiction that task 7.2 fixed for the OpenSpec
-pin. The fix is specified in section 6 of the campaign prompt — align the script
-with the declared gate, run the hermetic alignment gate in the composite
-instead, do **not** lower Jest/audit/OpenSpec thresholds, and extend the
-self-test so the script cannot drift back. It is applied and re-run at the
-terminal gates stage, not mid-certification, so the historical result recorded
-above stays exactly what the shipped command produced.
+pin. The fix specified in campaign-prompt §6 was applied and the composite
+re-run; see the terminal run above.
 
 ## 7.2 Separate results that the script does not imply
 
@@ -159,17 +201,44 @@ cd apps/mobile/android
 | ABI | x86_64 |
 | Gradle / JVM | 9.3.1 / Eclipse Adoptium 17.0.20+8 |
 | Node / npm | v24.3.0 / 11.4.2 |
-| Install result | installed and independently device-hashed |
-| Device | `emulator-5554`, AVD `braintraining-ui35`, `sdk_gphone64_x86_64`, 1080×2400, API 36 |
+| Build result | **BUILD SUCCESSFUL in 2m 33s**, 495 actionable tasks, APK produced |
+| Install result | **NOT PERFORMED — see the device blocker below** |
+| Device | **none — see the device blocker below** |
 
-### The rebuild hash is re-measured, not assumed
+### The rebuild hash is re-measured, and it matched — that is evidence, not assumption
 
-Reproducibility is not assumed. The section-3 rebuild of this campaign rebuilds
-from `b293a02` on the dedicated emulator, pulls `base.apk`, hashes it, and
-records the result here. `de6c5fcd…` / `c324960` is the **previous** artifact and
-is retained as history: it was byte-identical across the built APK, the route
-manifest, and the device install, and it is the artifact the 90/90 route matrix
-and eight current-device rows were measured on.
+Reproducibility is not assumed. The section-3 rebuild of this campaign rebuilt
+from `b293a02e1cd5df260a66dd886c1d279978b68994` with the canonical x86_64
+release command and hashed the produced artifact directly:
+
+```
+APK_SHA256 = e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f
+SIZE       = 48,888,452 bytes
+```
+
+**Exact match with the identity recorded at `f760ee4`.** That is a genuine
+reproducibility measurement and it is recorded as such. It is *not* the
+device-hash check that §7.3 also requires — see the blocker below.
+
+`de6c5fcd…` / `c324960` is the **previous** artifact and is retained as history:
+it was byte-identical across the built APK, the route manifest, and the device
+install, and it is the artifact the 90/90 route matrix and eight current-device
+rows were measured on.
+
+### Device blocker — install and device-hash NOT PERFORMED
+
+The dedicated emulator died mid-certification and could not be restarted. The
+exact blocker, its evidence, and the recovery steps are recorded in
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md). Consequences for this section:
+
+- the APK was built and hashed on the host, **not** installed on a device;
+- `base.apk` was **not** pulled and device-hashed;
+- task **7.3 stays unchecked**, because it requires the install result and the
+  device identity.
+
+Everything downstream of the device — the 42 current-device game rows, the nine
+controller journeys, and the gameplay half of the accessibility requirement —
+is also blocked by the same thing.
 
 ## 7.4 Jest baseline
 

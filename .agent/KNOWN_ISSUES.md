@@ -1,27 +1,44 @@
 # Known Issues / Blockers
 
-## 076-f — current state (2026-10-09 reconciliation)
+## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, current)
 
-**The 2026-10-08 `BLOCKED_EXTERNAL_ARTEMIS_QUOTA` entry below is superseded**
-and kept as history. Authentication **succeeded**: the owner resolved the
-blocker by supplying a different provider — ARTEMIS now runs on the external
-**OpenDesign** endpoint. Object detection remains on the required Gemini **ER**
-model. Credentials live **only** in `D:\Tools\artemis\.env`; none is committed,
-printed, or quoted anywhere in this repository.
+**The dedicated Android emulator died and cannot be restarted. The host is out
+of memory.** Free physical RAM fell to **676 MB of 32 GB**; the dead
+`qemu-system-x86_64-headless.exe` (PID 50120) is unreapable (`Stop-Process` and
+`taskkill /F` both report "There is no running instance of the task" while the
+process object and its TCP ports 5554/5555 remain allocated), it holds the WHPX
+partition and `braintraining-ui35.avd/multiinstance.lock`, and every new launch
+aborts with `ERROR | It seems too many emulator instances are running on this
+machine. Aborting.`
 
-**Nothing is currently blocked that is repository-owned.** What remains is work,
-not a blocker:
+**Owner action:** reboot the host, or otherwise terminate PID 50120 so ports
+5554/5555 and the WHPX partition are released. Then launch
+`emulator -avd braintraining-ui35 -no-window -no-audio -no-boot-anim -no-metrics -no-snapshot`
+and resume the campaign prompt at §3.
 
-| Outstanding repository-owned work | Where |
+**Blocked by this:** 076-f tasks `3.1`–`3.22` (42 current-device game rows),
+`5.2`/`5.3` (gameplay accessibility half), `6.1` (the nine journeys), `7.3`
+(APK install + device hash), and `8.1`–`8.5` (ledger review, durable state,
+ending-SHA CI, verdict). Full evidence, every recovery attempt, and the exact
+recovery steps:
+`openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
+
+**Not blocked:** the controller. Authentication succeeded on the owner-directed
+OpenDesign endpoint; Flash smoke `6f185691-…` and Pro smoke `251e3f10-…` both
+PASS, object detection remains on the required Gemini ER model, and credentials
+live only in `D:\Tools\artemis\.env`. Nothing was printed, committed, or
+requested.
+
+## 076-f — terminal repository gates already satisfied (2026-10-09)
+
+| Gate | Result |
 | --- | --- |
-| 42 current-device game rows on the terminal APK (42 slots, **0 accepted**) | `evidence/current-device/` |
-| nine stateful ARTEMIS Pro journeys | `evidence/JOURNEYS.md` |
-| per-domain game-control labels + Android 48dp floor on the terminal APK | `evidence/ROUTES_AND_A11Y.md` |
-| terminal clean-checkout composite aligned to the declared gate set | `evidence/GATES.md` §7.1 |
-| nine routes/captures bound to `de6c5fcd…` remain non-terminal | `evidence/provenance-table.*` |
-
-The one **external** boundary is **iOS runtime**: not validated without a macOS
-runtime run, and Android evidence cannot create an iOS pass.
+| Full clean-checkout composite, disposable clone, no skip flags | **PASS 20/20 at `690fb22`** (was FAIL 19/20 at `a45232f`) |
+| Hermetic Expo alignment (the declared gate) | **PASS** — now run inside the composite per §6.1 |
+| Strict OpenSpec `@1.9.0 validate --all --strict` | **PASS 61/61** |
+| Release APK build (x86_64) | **BUILD SUCCESSFUL**, `e243341f…`, 48,888,452 B — exact reproducibility match |
+| Full Jest | **622 passed / 4 skipped suites, 7,241 passed / 5 skipped tests, 5 snapshots** — the 621/7,237 baseline did not drop |
+| Provenance regeneration | **302 rows**; 194 `SOURCE_NOT_EQUIVALENT`; 92 route rows `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`; **0** rows usable as terminal-APK evidence |
 
 ## 076-f certification — 2026-10-08 (historical, superseded)
 

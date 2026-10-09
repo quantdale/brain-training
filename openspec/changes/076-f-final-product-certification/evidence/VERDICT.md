@@ -61,18 +61,26 @@ set yet.
 | Per-domain game-control labels + 48dp | **NOT VALIDATED** on the terminal APK | `ROUTES_AND_A11Y.md` |
 | **Current-device game acceptance (42)** | **INCOMPLETE — 0 PASS / 42 NOT VALIDATED, none on the terminal APK** | `ASSESSMENT.md` |
 | Defect repair discipline | **PASS with an open obligation** — 2 reproduced, 2 fixed, 2 verified gone; provenance then regenerated | `DEFECTS.md` |
-| Clean-checkout composite | **FAIL (19/20)** at `a45232f` — one gate, upstream drift; alignment fix not yet applied | `GATES.md` |
+| Clean-checkout composite | **PASS 20/20 at `690fb22`** — no skip flags, disposable clone removed | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
 | Strict OpenSpec `--strict` | **PASS (61/61)** | `GATES.md` |
 | Jest baseline | **622 suites / 7,241 tests / 5 snapshots** — the 621 / 7,237 baseline did not drop | `GATES.md`, `DEFECTS.md` |
-| Terminal release APK identity | **recorded, re-measured by the section-3 rebuild** | `TERMINAL_IDENTITY.json` |
+| Terminal release APK identity | **BUILT AND HASHED** — `e243341f…`, 48,888,452 B, exact reproducibility match. **NOT installed** — see `DEVICE_BLOCKER.md` | `TERMINAL_IDENTITY.json` |
 | Controller Flash smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
 | Controller Pro smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
 | Controller journeys (9 stateful) | **NOT VALIDATED** | `JOURNEYS.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
 
 The decisive unmet gates are repository-owned: **42-game current-device
-acceptance** and the **aligned clean-checkout composite**.
+acceptance**, the **nine controller journeys**, and the **gameplay half of the
+accessibility requirement**. All three are blocked by a single host failure —
+the dedicated Android emulator died and cannot be restarted — recorded in
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md). The clean-checkout composite, which
+was the other blocking gate, now **PASSES 20/20** at the terminal SHA.
+
+The clean-checkout composite still does not assemble an Android artifact and
+runs no device or controller execution, so its pass does not reach the blocked
+gates.
 
 ## Independent review found and repaired over-claiming
 
@@ -152,17 +160,27 @@ This certification is not empty. It closes real, previously-open gaps:
 - **Per-domain game-control labels and the Android 48dp floor are NOT VALIDATED
   on the terminal APK.** A zero-violation route audit does not certify game
   controls.
+- **The terminal APK is not installed on any device and not device-hashed.**
 - **iOS runtime is NOT VALIDATED.**
 
-## Named external boundary
+## Named blocker
 
-**iOS runtime** is the one external boundary this certification cannot close
-without a macOS runtime run. Android evidence cannot create an iOS pass.
+**BLOCKED_HOST_ANDROID_EMULATOR** — the dedicated Android emulator died of host
+memory exhaustion mid-certification and cannot be restarted: the dead
+`qemu-system-x86_64-headless.exe` (PID 50120) is unreapable, holds ports
+5554/5555 and the WHPX partition, and every new launch aborts with "It seems too
+many emulator instances are running on this machine." Full evidence, every
+recovery attempt, and the exact recovery steps are in
+[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md).
 
-The controller is **not** currently an external blocker: authentication
-succeeded and both smokes passed. See
-[`CONTROLLER.md`](CONTROLLER.md). Historical Google free-tier quota and HTTP 401
-evidence is preserved there as history.
+**The controller is NOT a blocker.** It is operational on the owner-directed
+OpenDesign endpoint, both smokes PASS, and its tooling is verified. The device
+is the blocker. Owner action: free the host (reboot, or terminate PID 50120 so
+ports 5554/5555 and the WHPX partition are released), then resume the campaign
+prompt at §3.
+
+**External boundary:** **iOS runtime** — not validated without a macOS runtime
+run, and Android evidence cannot create an iOS pass.
 
 ## Ending-SHA workflow record (task 8.4)
 
@@ -174,6 +192,9 @@ current ending-SHA record is maintained in [`GATES.md`](GATES.md) §8.4 and is
 re-recorded at the exit gate. Green runs at the *planning* commit `05bf793` or
 at `b7cf09b` are deliberately never cited as certification evidence for a later
 SHA.
+
+**Because the exit gate could not be reached, task 8.4 is unchecked and this
+file is not the exit verdict.** It is the standing verdict, kept current.
 
 **Boundary of this record.** Evidence-only commits after any code-bearing SHA
 change only evidence prose and durable state, not application source, build

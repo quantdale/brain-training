@@ -1,6 +1,44 @@
 # Durable Validation Record
 
-## 076-f evidence reconciliation — 2026-10-09 (current checkpoint)
+## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, current)
+
+The device lane is blocked: the dedicated Android emulator died of host memory
+exhaustion and cannot be restarted. `qemu-system-x86_64-headless.exe` (PID
+50120) is unreapable, holds ports 5554/5555 and the WHPX partition, and every
+new emulator launch aborts with "It seems too many emulator instances are
+running on this machine." Full evidence, recovery attempts and the exact
+recovery steps: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_BLOCKER.md`.
+
+**Consequence:** the 42 current-device game rows, the nine controller journeys,
+the gameplay half of accessibility, and the terminal APK install/device-hash
+have **no evidence**. None of them is green and none is claimed. The controller
+itself is operational.
+
+### Repository-owned gates measured WITHOUT a device
+
+| Gate | Result |
+| --- | --- |
+| Full clean-checkout composite, disposable clone, **no** `--self-test` / `--skip-install` / `--allow-jest-not-validated` | **PASS — 20/20 at `690fb22`** |
+| — Expo step (the declared hermetic gate, added by §6.1) | **PASS** |
+| — OpenSpec step | **PASS — 61 passed, 0 failed (61 items)** |
+| — full Jest step | **PASS — 622 suites / 7,241 tests / 5 snapshots** |
+| — jest signal step | **PASS — `pass: true`** |
+| — tracked mutation after the clean run | **PASS** |
+| Strict OpenSpec `@fission-ai/openspec@1.9.0 validate --all --strict` | **PASS 61/61** |
+| Release APK build, x86_64, from `b293a02` | **BUILD SUCCESSFUL** — `e243341f…`, 48,888,452 B, exact reproducibility match |
+| `scripts/validate-repo-state.mjs` | PASS |
+| `scripts/validate-provenance.mjs --check` | PASS — "No provenance drift detected" |
+| `scripts/validate-secrets.mjs --check` | PASS — 3,246 tracked text files scanned, CLEAN |
+| `certify-clean-checkout.mjs --self-test` | PASS (14 checks; 10 before §6.1) |
+| `tsc --noEmit` | exit 0 |
+| `expo lint` | clean |
+| `scripts/certification/build-provenance.mjs` | exits 1 **by design** — the rendering-dependency surface is dirty (2 files). This is the reconciled behaviour, not a regression. |
+
+The APK was **not** installed on a device and its `base.apk` was **not** pulled
+and device-hashed, so task `7.3` stays unchecked and the artifact identity is
+host-verified only.
+
+## 076-f evidence reconciliation — 2026-10-09 (previous checkpoint)
 
 **The 2026-10-08 checkpoint below is superseded.** An apply review found the
 control documents had drifted from the code, the artifact and the controller.
