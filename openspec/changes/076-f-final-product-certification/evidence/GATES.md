@@ -299,6 +299,10 @@ Preceding SHA `690fb22cab83ef6a3e9bdfa8c8c23fa960367339` was also 4/4 green
 (App CI `37934796557`, Repository Integrity `37934796675`, Android Build Smoke
 `37934796561`, iOS Build Smoke `37934796632`).
 
+The final evidence commit of this pass (`4841c671c429df0a1419e26919d9147ceb86ff66`,
+evidence-only) changed no application or build input, so the terminal artifact
+identity and the runs above remain binding for it.
+
 **This is a checkpoint record, not an exit-gate record.** Task 8.4 stays
 unchecked: the exit gate requires a read-only review after the sweep and the
 terminal gates, and the device-owned work has no evidence yet (see
