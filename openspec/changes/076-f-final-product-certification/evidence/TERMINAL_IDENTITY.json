@@ -1,0 +1,19 @@
+{
+  "_comment": "Single machine-readable identity of the terminal application artifact for 076-f. Both scripts/certification/build-provenance.mjs and scripts/certification/build-assessment.mjs read THIS file, so the identity is stated once and cannot drift between them. Update it only with a real build record: terminalSourceSha = the latest commit that changes an app or build input; terminalApkSha256 = the SHA-256 of the release APK built from that tree and hashed off the device. An evidence-only commit does not change it.",
+  "terminalSourceSha": "b293a02e1cd5df260a66dd886c1d279978b68994",
+  "terminalApkSha256": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+  "terminalApkBytes": 48888452,
+  "packageId": "com.braintraining.app",
+  "versionName": "0.1.0",
+  "versionCode": 1000,
+  "abi": "x86_64",
+  "buildCommand": "cd apps/mobile/android && ./gradlew.bat :app:assembleRelease --console=plain -PreactNativeArchitectures=x86_64",
+  "device": "emulator-5554 / AVD braintraining-ui35 / sdk_gphone64_x86_64 1080x2400 API 36",
+  "deviceVerification": "base.apk pulled from the device hashes to terminalApkSha256 (recorded at f760ee4; re-measured and re-recorded by the section-3 rebuild)",
+  "supersedes": {
+    "terminalSourceSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+    "terminalApkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+    "terminalApkBytes": 48888204,
+    "why": "the 076-f session-header and button hit-slop defect repairs (b293a02) changed the shared session chrome, so every game screen and every shared Button became affected surfaces"
+  }
+}

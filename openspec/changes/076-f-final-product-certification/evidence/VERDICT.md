@@ -3,9 +3,17 @@
 **Change:** `076-f-final-product-certification`
 **Task:** 8.5 — record **exactly one** verdict.
 **Parent ledger:** `openspec/changes/076-product-wide-ui-ux-reboot/tasks.md`
-**Terminal application source:** `c324960c7619d305f01d60587f9e74c4ca93ca6a`
-**Terminal APK:** `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`
-(48,888,204 bytes, `com.braintraining.app` 0.1.0/1000, x86_64)
+**Terminal application source:** `b293a02e1cd5df260a66dd886c1d279978b68994`
+**Terminal APK:** `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
+(48,888,452 bytes, `com.braintraining.app` 0.1.0/1000, x86_64)
+
+> **Reconciled 2026-10-09.** An earlier version of this file named terminal
+> source `c324960…` and terminal APK `de6c5fcd…`, reported `5 PASS / 37 NOT
+> VALIDATED`, and described the dependency closure as unchanged. All three were
+> false: the 076-f defect repairs moved the artifact and changed the closure, and
+> `assessment.json` had already been regenerated to **42 NOT VALIDATED** on
+> `de6c5fcd…`. That history is preserved below, under *Historical record*. Do not
+> read it as the current state.
 
 ---
 
@@ -34,46 +42,44 @@ And it fixes the tie-breaker explicitly:
 
 Game acceptance is **repository-owned work**. A missing or invalid controller
 credential does not convert un-observed game acceptance into an external
-dependency — it leaves repository-owned work undone. The design states the
-consequence directly:
+dependency — it leaves repository-owned work undone.
 
-> If [the controller] remains blocked … **leave game rows and task 14.4
-> unaccepted**. The verdict remains `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
-> because game acceptance is repository-owned work that has not been observed.
-
-**Current-device game acceptance is incomplete.** That alone fixes the verdict.
+**Current-device game acceptance is 42 NOT VALIDATED, 0 PASS, all graded on
+`de6c5fcd…` — an APK that is not the terminal APK.** That alone fixes the
+verdict. The clean-checkout composite is also not aligned with the declared gate
+set yet.
 
 ## Gate-by-gate state at close
 
 | Repository-owned gate | State | Where |
 | --- | --- | --- |
-| Evidence provenance table | **PASS** — 302 derived rows | `PROVENANCE.md` |
-| Source equivalence (4a6fc53 → terminal source) | **PASS** — 0 dependency-closure changes | `SOURCE_EQUIVALENCE.md` |
-| Route matrix 90/90 + 2 scroll pairs | **PRESERVED** — 0 recaptures needed | `ROUTES_AND_A11Y.md` |
-| Accessibility audits (measured nodes) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
-| Reduced-motion accessibility | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
-| Per-domain game-control labels + 48dp | **NOT VALIDATED** | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42 games)** | **INCOMPLETE — 5 PASS, 37 NOT VALIDATED** | `ASSESSMENT.md` |
-| Defect repair discipline | **PASS** — no defect reproduced, no production edit | `DEFECTS.md` |
-| Clean-checkout composite | **FAIL (19/20)** — one gate, upstream drift | `GATES.md` |
+| Evidence provenance table | **PASS** — 302 derived rows, identities read from `TERMINAL_IDENTITY.json` | `PROVENANCE.md` |
+| Source equivalence (`4a6fc53` → terminal source) | **CHANGED** — 2 dependency-surface files; 194 game frames reclassified `SOURCE_NOT_EQUIVALENT` | `SOURCE_EQUIVALENCE.md` |
+| Route matrix 90/90 + 2 scroll pairs | **PRESERVED for `de6c5fcd…`** — no route surface renders `SessionHeader`; `currentApplicability: false` | `ROUTES_AND_A11Y.md` |
+| Accessibility audits (measured nodes, `de6c5fcd…`) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
+| Reduced-motion accessibility | **NOT VALIDATED** on the terminal APK | `ROUTES_AND_A11Y.md` |
+| Per-domain game-control labels + 48dp | **NOT VALIDATED** on the terminal APK | `ROUTES_AND_A11Y.md` |
+| **Current-device game acceptance (42)** | **INCOMPLETE — 0 PASS / 42 NOT VALIDATED, none on the terminal APK** | `ASSESSMENT.md` |
+| Defect repair discipline | **PASS with an open obligation** — 2 reproduced, 2 fixed, 2 verified gone; provenance then regenerated | `DEFECTS.md` |
+| Clean-checkout composite | **FAIL (19/20)** at `a45232f` — one gate, upstream drift; alignment fix not yet applied | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
 | Strict OpenSpec `--strict` | **PASS (61/61)** | `GATES.md` |
-| Jest baseline | **PASS — exact match** (621/4 suites, 7,237/5 tests, 5 snapshots) | `GATES.md` |
-| Terminal release APK identity | **PASS — byte-identical rebuild** | `GATES.md` |
-| Controller Flash smoke | **PASS** | `CONTROLLER.md` |
-| Controller Pro smoke | **PASS** | `CONTROLLER.md` |
+| Jest baseline | **622 suites / 7,241 tests / 5 snapshots** — the 621 / 7,237 baseline did not drop | `GATES.md`, `DEFECTS.md` |
+| Terminal release APK identity | **recorded, re-measured by the section-3 rebuild** | `TERMINAL_IDENTITY.json` |
+| Controller Flash smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
+| Controller Pro smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
 | Controller journeys (9 stateful) | **NOT VALIDATED** | `JOURNEYS.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
 
-The decisive unmet gate is the third row of the blocking group: **42-game
-current-device acceptance is incomplete**, and it is repository-owned.
+The decisive unmet gates are repository-owned: **42-game current-device
+acceptance** and the **aligned clean-checkout composite**.
 
 ## Independent review found and repaired over-claiming
 
 Task 8.2 ran a three-lane read-only review (provenance / assessment / gates).
-It found **six blocking findings**, and every one was repaired before this
-verdict was written. The most important one is worth stating plainly, because
-it is the exact failure this change exists to prevent:
+It found **six blocking findings**, and every one was repaired before the
+earlier verdict was written. The most important one is worth stating plainly,
+because it is the exact failure this change exists to prevent:
 
 - **A game was marked PASS on evidence that did not support it, and its filed
   device frame was a different game.** `flexibility-card-sort` had no scored
@@ -91,130 +97,113 @@ it is the exact failure this change exists to prevent:
   verdict, not prose about how feedback works.
 - **The provenance generator claimed to "fail loudly" and did not.** A
   dependency-closure change was only logged while every game row stayed
-  hard-coded `SOURCE_EQUIVALENT_HISTORICAL`. It now exits non-zero and refuses
-  to emit equivalence labels when the closure changed.
+  hard-coded `SOURCE_EQUIVALENT_HISTORICAL`. It now refuses to emit that label
+  for a changed closure and exits non-zero.
 
 Consequence: the parent ledger moves **backwards** where it must. Parent `6.2`
 and task `3.2` are un-checked again, because their evidence no longer satisfies
 the acceptance criteria. A checkbox that cannot survive review is not a
 checkbox.
 
-At review time the counts were 2 PASS / 40 NOT VALIDATED. The re-run sweep then
-added `attention-visual-search`, `attention-target-count` and
-`flexibility-card-sort` (the last re-run after the review downgraded it),
-giving **5 PASS / 37 NOT VALIDATED** at close.
+## The 2026-10-09 reconciliation moved it backwards again
+
+The 2026-10-09 apply review found the ledgers had not followed `b7cf09b`. That
+cost **17 more 076-f boxes** and **3 more parent boxes**, and it is recorded
+finding-by-finding in [`RECONCILIATION.md`](RECONCILIATION.md). The clearest
+single symptom: `assessment.json` had been regenerated to **42 NOT VALIDATED**
+while `VERDICT.md` still advertised `5 PASS / 37 NOT VALIDATED`, and
+`provenance-table.md` still labelled 194 game frames source-equivalent after the
+closure that renders them had changed.
 
 ## What is genuinely established
 
 This certification is not empty. It closes real, previously-open gaps:
 
 - **Provenance is no longer a hypothesis.** It is derived from the committed
-  manifests by `build-provenance.mjs`, and the rendering-dependency closure is
-  machine-verified **unchanged** since the game-capture source. All 194 game
-  frames are now explicitly classified `SOURCE_EQUIVALENT_HISTORICAL` and are
-  explicitly **not** terminal-APK captures. That was the exact failure that
-  reopened Campaign 076.
-- **The provenance chain is closed end to end.** The rebuilt release APK is
-  **byte-identical** to the reviewed route-evidence APK and to the APK pulled
-  off the live device — all three `de6c5fcd…` at 48,888,204 bytes. The reviewed
-  evidence and the terminal source are demonstrably the same artifact.
+  manifests by `build-provenance.mjs`, and it now records the terminal identity
+  from one file (`TERMINAL_IDENTITY.json`) that `build-assessment.mjs` reads too,
+  so the two can no longer disagree.
 - **The stale durable notes are corrected** as dated corrections, with the
-  historical checkpoints left historical. Evidence SHA `7e7374b` has its own
-  four green runs and no longer "lacks remote verification".
+  historical checkpoints left historical.
 - **The clean-checkout composite actually ran** (it never had before — only its
-  self-test had), and its OpenSpec pin is aligned to the declared CI gate with a
-  self-test that now fails closed on drift.
-- **The controller blocker is reclassified correctly.** The credential is not
-  invalid; the blocker is free-tier **quota**. The exact external repair is
-  named and needs no repository change.
+  self-test had), and its OpenSpec pin is aligned to the declared CI gate with
+  a self-test that now fails closed on drift.
+- **The controller blocker is resolved**, not merely classified: the owner
+  supplied a different provider (external OpenDesign endpoint,
+  `mimo-v2.6-pro`), object detection stayed on the required Gemini ER model, and
+  the credential lives only in `D:\Tools\artemis\.env`. Both smokes PASS.
+- **The provenance chain was closed end to end** for the *previous* artifact: the
+  rebuilt release APK was byte-identical to the reviewed route-evidence APK and
+  to the APK pulled off the live device, all three `de6c5fcd…`. That is a real
+  result and it is now correctly labelled as belonging to `de6c5fcd…`.
 
 ## What is not established, and why
 
-- **37 of 42 games are NOT VALIDATED.** Not "failed" — *not observed well
-  enough*. The authorised controller is throttled to 15 LLM requests/minute on
-  the only model with budget, and its circuit breaker opens under that
-  pressure, so runs stall before recording states. Four distinct failure modes
-  were caught by review and refused as evidence: an unfilled note skeleton, a
-  run that died before writing a note, a run that **mis-navigated and played a
-  different game** producing a detailed note about the wrong board, and a
-  device frame filed under the wrong game. Those are exactly the errors this
-  change exists to prevent, and each is recorded rather than smoothed over.
+- **42 of 42 games are NOT VALIDATED on the terminal APK.** Not "failed" —
+  *not observed on the artifact that will ship*. Eight rows carry controller
+  notes graded on `de6c5fcd…`; every one of them is superseded by the APK
+  change, and 34 rows have no controller note at all.
 - **The nine stateful journeys are NOT VALIDATED.** ADB gameplay is never
-  substituted for the controller, so they wait on the same external repair.
-- **Reduced motion is NOT VALIDATED.** It is OS-driven and must be observed
-  with the device in "Remove animations", not asserted from the presence of a
-  code hook.
+  substituted for the controller.
+- **Reduced motion is NOT VALIDATED on the terminal APK.** It is OS-driven and
+  must be observed with the device in "Remove animations", not asserted from the
+  presence of a code hook. The 30 reduced-motion surfaces measured on
+  `de6c5fcd…` stay bound to that APK.
+- **Per-domain game-control labels and the Android 48dp floor are NOT VALIDATED
+  on the terminal APK.** A zero-violation route audit does not certify game
+  controls.
 - **iOS runtime is NOT VALIDATED.**
 
-## Named external blocker and exact repair
+## Named external boundary
 
-**Blocker:** the configured Google credential is on the **free tier**.
+**iOS runtime** is the one external boundary this certification cannot close
+without a macOS runtime run. Android evidence cannot create an iOS pass.
 
-| Model | Measured budget | Kind |
-| --- | --- | --- |
-| `gemini-3.8-flash` | 20/day | daily cap |
-| `gemini-3.7-flash` | 20/day | daily cap |
-| `gemini-3.5-flash-lite` | 500/day | daily cap |
-| `gemini-3.1-flash-lite` | 15/minute | rate limit (only workable lane) |
-
-**Exact repair (owner action, credentials/payment):** move the configured Google
-credential to a paid plan, **or** supply a credential with paid-tier quota,
-configured **only** in the external ARTEMIS environment file
-(`D:\Tools\artemis\.env`). No repository change is required to accept it.
-
-Then resume from `tasks.md` sections 3 and 6: re-run the current-device sweep
-(`scripts/qa/cert076f-repair.sh` already carries the tightened identity-check
-prompt), then the nine journeys (`scripts/qa/cert076f-journeys.sh`), then
-regenerate the assessment (`node scripts/certification/build-assessment.mjs`).
-
-**Disclosure of the one external environment change made during this
-certification:** ARTEMIS's `config/artemis.jsonc` default model was rerouted to
-a model the credential can actually serve, because the shipped default is
-day-capped at 20 requests and ARTEMIS's SDK retries the *same* model rather
-than falling back. Same provider, same credential, same controller. Original
-preserved as `artemis.jsonc.bak-cert076f`. This is recorded prominently because
-the previous checkpoint logged "no provider configuration changed" as a
-positive property and that is no longer true of this run.
+The controller is **not** currently an external blocker: authentication
+succeeded and both smokes passed. See
+[`CONTROLLER.md`](CONTROLLER.md). Historical Google free-tier quota and HTTP 401
+evidence is preserved there as history.
 
 ## Ending-SHA workflow record (task 8.4)
 
-`main` was committed and pushed; the four required workflows were then verified
-at the **ending SHA `684396a7`** (`684396a`), all completed GREEN:
+The last ending-SHA record published here was for `684396a7` (`684396a`), with
+App CI `37758437026`, Repository Integrity `37758437146`, Android Build Smoke
+`37758437133`, iOS Build Smoke `37758437093` — all green. **That is now a
+historical record for a SHA that is not the ending SHA of this campaign.** The
+current ending-SHA record is maintained in [`GATES.md`](GATES.md) §8.4 and is
+re-recorded at the exit gate. Green runs at the *planning* commit `05bf793` or
+at `b7cf09b` are deliberately never cited as certification evidence for a later
+SHA.
 
-| Workflow | Run ID | SHA | Conclusion |
-| --- | --- | --- | --- |
-| App CI | `37758437026` | `684396a7` | **success** |
-| Repository Integrity | `37758437146` | `684396a7` | **success** |
-| Android Build Smoke | `37758437133` | `684396a7` | **success** |
-| iOS Build Smoke | `37758437093` | `684396a7` | **success** |
-
-The same four were also green at the preceding SHA `47043998` (App CI
-`37755208334`, Repository Integrity `37755208277`, Android Build Smoke
-`37755208452`, iOS Build Smoke `37755208486`) — recorded so the chain is visible.
-Preceding SHAs again: `52de91e8` (App CI `37752185548`, Repository Integrity
-`37752185537`) and `adeb18c` (Repository Integrity `37749496971`, Android Build
-Smoke `37749496967`). Green runs at the **planning** commit are deliberately
-never cited as certification evidence.
-
-**Boundary of this record.** Commits made *after* `684396a7` to add this very
-record change only evidence prose and durable state — no application source,
-build input, lockfile, workflow, or test. That is the same source-equivalence
-argument used throughout this change, and it is re-verifiable: if any later
-commit touches an application or build input, the four workflows must be
-re-verified at that commit and this record updated. Nothing here claims a green
-run for a SHA that does not have one.
+**Boundary of this record.** Evidence-only commits after any code-bearing SHA
+change only evidence prose and durable state, not application source, build
+input, lockfile, workflow, or test — so they do not require a rebuild. That is
+re-verifiable: if any later commit touches an application or build input, the
+terminal identity changes and every gate bound to it is re-measured.
 
 ## Rollback / continuation
 
-Nothing in the product was changed, so there is nothing to roll back. `main` is
-buildable and startable. The work is recoverable from this directory alone: the
-assessment regenerates from the filed rows, provenance regenerates from the
-committed manifests, and every claim above is tied to a file in `evidence/`.
+Nothing in the product was changed by this document. `main` is buildable and
+startable. The work is recoverable from this directory alone: the assessment
+regenerates from the filed rows, provenance regenerates from the committed
+manifests plus `TERMINAL_IDENTITY.json`, and every claim above is tied to a file
+in `evidence/`.
 
 ## What this verdict does not say
 
-- It does not say the product is broken. Five games were reviewed and passed;
-  the rest are *unobserved*, not defective.
+- It does not say the product is broken. Five games were reviewed and passed on
+  `de6c5fcd…`; the rest are *unobserved on the terminal APK*, not defective.
 - It does not withdraw any green gate. Everything that passed still passed.
 - It does not certify release acceptance. The parent ledger remains the
   acceptance ledger, and no parent task is checked by this document.
+
+---
+
+## Historical record (2026-10-09, superseded — do not read as current)
+
+The previous version of this file reported terminal source `c324960…`, terminal
+APK `de6c5fcd…` (48,888,204 bytes), `5 PASS / 37 NOT VALIDATED`, Jest 621 / 7,237,
+reduced motion NOT VALIDATED, 0 dependency-closure changes, and ending SHA
+`684396a7`. Every one of those statements was true of the tree it described and
+none is true of the tree this campaign is closing. It is retained here so the
+correction is auditable.

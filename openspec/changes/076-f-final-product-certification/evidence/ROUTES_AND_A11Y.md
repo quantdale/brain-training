@@ -9,32 +9,55 @@
 Task 5.1 says to preserve the reviewed matrix "unless a relevant source change
 invalidates a surface" and to "recapture only the affected combinations".
 
-Measured in [`SOURCE_EQUIVALENCE.md`](SOURCE_EQUIVALENCE.md): since the terminal
-application source `c324960`, **no application, build-input, or script source
-has changed at all** — every commit after it is evidence, planning, and
-documentation. The matrix was captured *from* `c324960`/`de6c5fcd…`, so there is
-no intervening change that could invalidate any of its surfaces.
+### What changed since the matrix was captured
+
+The matrix was captured from `c324960` / `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`.
+Since then the 076-f defect repairs (`b293a02`) changed **two shared
+gameplay-presentation files** and built a new terminal artifact
+(`e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`). An earlier
+version of this section claimed that *no* application, build-input, or script
+source had changed at all. That was false, and it is the reconciliation finding
+that unchecked 076-f task 5.1's neighbours.
+
+What is **not** invalidated, measured in
+[`SOURCE_EQUIVALENCE.md`](SOURCE_EQUIVALENCE.md):
+
+- `SessionHeader` renders only through `GameHost`, and **no route surface
+  renders it** (`grep -rn SessionHeader apps/mobile/src` → only
+  `components/game-host/game-host.tsx`).
+- The only shared-primitive change that reaches route screens is
+  `button.tsx`'s 4 dp hit-slop, which alters **no rendered pixel** — it widens
+  the touch target. It therefore does not invalidate pixel stills or
+  already-measured 48 dp bounds.
+- The two route screens that were themselves edited (`app/(tabs)/index.tsx`,
+  `app/progress-detail.tsx`) were edited **before** the matrix was captured, so
+  the matrix already depicts them.
 
 | Evidence | Count | Identity | Status |
 | --- | --- | --- | --- |
-| Route pairs `final-matrix-de6c5fcd/` | 90/90 | `de6c5fcd…` / `c324960…` | **PRESERVED** — 3 profiles (default, compact, fs2/2×) × 2 themes × 15 surfaces |
-| Results-scroll pairs `final-scroll-de6c5fcd/` | 2/2 | `de6c5fcd…` / `c324960…` | **PRESERVED** |
+| Route pairs `final-matrix-de6c5fcd/` | 90/90 | `de6c5fcd…` / `c324960…` | **PRESERVED** — 3 profiles (default, compact, fs2/2×) × 2 themes × 15 surfaces. `SOURCE_EQUIVALENT_HISTORICAL`, `currentApplicability: false` |
+| Results-scroll pairs `final-scroll-de6c5fcd/` | 2/2 | `de6c5fcd…` / `c324960…` | **PRESERVED** — same classification |
 
-Repeating the matrix would be redundant work, and the change design explicitly
-rejects that. **Combinations requiring recapture: none.**
+**Combinations requiring recapture: none.** The hit-slop change does not move
+or repaint anything, and no route renders `SessionHeader`.
 
 Two independent properties keep this from being a stale claim:
 
 1. The matrix rows carry their own `apkSha256` + `codeSha` per surface, so the
    binding is asserted per capture, not per folder.
-2. `build-provenance.mjs` recomputes the source diff on every run; if a future
-   commit touched a route surface, that run would stop reporting the clean
-   dependency closure.
+2. `build-provenance.mjs` recomputes the surface diff on every run **and exits
+   non-zero while the surface is dirty**; it records `render` and `input`
+   effects per changed file, and a changed file with no recorded effect
+   disqualifies every historical row.
 
-Note the boundary that the previous campaign lost: preserving the matrix is
-possible *because* source equivalence holds. It does **not** convert those
-frames into terminal-APK proof of gameplay, and it does not stand in for the
-current-device game checks.
+**The boundary, stated in both directions:** preserving the matrix does **not**
+convert those frames into terminal-APK captures. Every one of the 92 route rows
+records `currentApplicability: false`, because `de6c5fcd…` is not the terminal
+APK. The matrix is preserved as reviewed evidence *for the artifact that
+produced it*; terminal-APK route proof is a separate, still-owed result. And the
+route rows also carry `interactionClosureChanged: true`: tap-registration and
+target-size claims drawn from `de6c5fcd…` were not re-measured on the terminal
+artifact. Section 5.2 measures them there.
 
 ## 5.2 Accessibility and layout coverage
 
@@ -74,17 +97,20 @@ question and are answered in the table below as they are measured.
 
 ### Coverage against the requirement
 
-| Required condition | Status | Evidence |
-| --- | --- | --- |
-| default light | **COVERED** | 15 surfaces, 0 violations |
-| default dark | **COVERED** | 15 surfaces, 0 violations |
-| 2× text | **COVERED** | fs2 light + dark, 30 surfaces, 0 violations (incl. the reflowed Progress-detail badge) |
-| compact viewport | **COVERED** | compact light + dark, 30 surfaces, 0 violations |
-| normal/large viewport | **COVERED** | the default profile is the normal viewport (1080×2400 @ 420dpi); compact is the narrow case |
-| reduced motion | **COVERED** | see below — 30 surfaces, 0 violations, 14 occluded excluded |
-| representative gameplay, all eight domains | **IN PROGRESS / QUOTA-BLOCKED** | driven through the authorised controller under `current-device/` |
-| actual game-control labels + 48dp floor | **IN PROGRESS / QUOTA-BLOCKED** | measured per game as its current-device row lands |
-| occluded/unmeasured excluded from pass count | **ENFORCED** | 32 occluded nodes (routes) + 14 (reduced motion) enumerated and excluded |
+Every condition below was measured on `de6c5fcd…`. **None** is measured on the
+terminal artifact `e243341f…`.
+
+| Required condition | Status | Evidence | Artifact |
+| --- | --- | --- | --- |
+| default light | **COVERED** | 15 surfaces, 0 violations | `de6c5fcd…` |
+| default dark | **COVERED** | 15 surfaces, 0 violations | `de6c5fcd…` |
+| 2× text | **COVERED** | fs2 light + dark, 30 surfaces, 0 violations (incl. the reflowed Progress-detail badge) | `de6c5fcd…` |
+| compact viewport | **COVERED** | compact light + dark, 30 surfaces, 0 violations | `de6c5fcd…` |
+| normal/large viewport | **COVERED** | the default profile is the normal viewport (1080×2400 @ 420dpi); compact is the narrow case | `de6c5fcd…` |
+| reduced motion | **COVERED on `de6c5fcd…`** | see below — 30 surfaces, 0 violations, 14 occluded excluded | `de6c5fcd…` |
+| representative gameplay, all eight domains | **NOT VALIDATED on the terminal APK** | driven through the authorised controller under `current-device/` | — |
+| actual game-control labels + 48dp floor | **NOT VALIDATED on the terminal APK** | measured per game as its current-device row lands | — |
+| occluded/unmeasured excluded from pass count | **ENFORCED** | 32 occluded nodes (routes) + 14 (reduced motion) enumerated and excluded | — |
 
 The change design pre-declared this gap and forbids papering over it:
 
@@ -92,7 +118,7 @@ The change design pre-declared this gap and forbids papering over it:
 > enlarged-text route captures exist but reduced motion was not reviewed, THEN
 > the accessibility and layout acceptance requirement remains incomplete.
 
-### Reduced motion — COVERED
+### Reduced motion — COVERED on `de6c5fcd…`, NOT VALIDATED on the terminal APK
 
 Reduced motion is OS-driven (`AccessibilityInfo.isReduceMotionEnabled()`, which
 the app subscribes to once via a shared store in
@@ -122,20 +148,33 @@ Artifacts: [`reduced-motion/captures.json`](reduced-motion/captures.json),
 occluded nodes are enumerated with reasons in those files and are **kept out of
 the pass count**, exactly as the requirement demands.
 
-This closes the gap the change design pre-declared and forbade papering over:
-the accessibility and layout acceptance requirement is no longer incomplete for
-lack of reduced-motion review. What remains open is the **gameplay** half —
-per-domain game-control labels and the 48dp floor measured on live game boards,
-which needs the authorised controller and is quota-blocked.
+**The 2026-10-09 reconciliation bound these captures to `de6c5fcd…`.**
+`reduced-motion/captures.json` records that APK, so the 30 surfaces are valid
+evidence **for that APK's route surfaces** and are not evidence for
+`e243341f…`. They do not close 076-f task 5.2, which is why 5.2 stays open.
+`game-intro` in that set renders `Button`, not `SessionHeader`, and no preserved
+route surface renders `SessionHeader`, so **no route combination requires
+recapture for reduced motion either**. The 4 dp hit slop does not by itself
+invalidate pixel stills or already-measured 48 dp bounds.
+
+Still outstanding for 5.2 on the terminal artifact: representative gameplay from
+all eight domains with actual game-control labels and the Android 48dp floor
+measured on live game boards.
 
 ## 5.3 Parent task 14.3
 
 **NOT CHECKED.** The requirement is conjunctive — "only after every required
-profile and gameplay condition is satisfied". Every **profile** condition is now
-satisfied, including reduced motion (30 surfaces, 0 violations). What is still
-outstanding is the **gameplay** half: representative gameplay from all eight
-domains with actual game-control labels and the Android 48dp floor measured on
-live game boards. That needs the authorised controller, which is quota-blocked
-(see [`CONTROLLER.md`](CONTROLLER.md)). Checking `14.3` now would be exactly the
-bulk-checking this change exists to prevent, so it stays unchecked and
-`NOT VALIDATED`.
+profile and gameplay condition is satisfied". Every **profile** condition is
+satisfied **on `de6c5fcd…`**, including reduced motion (30 surfaces, 0
+violations), but those captures are bound to `de6c5fcd…` and are not terminal-APK
+evidence. What is still outstanding is the **gameplay** half: representative
+gameplay from all eight domains with actual game-control labels and the Android
+48dp floor measured on live game boards **on the terminal artifact**. Checking
+`14.3` now would be exactly the bulk-checking this change exists to prevent, so
+it stays unchecked and `NOT VALIDATED`.
+
+**Note on the controller:** an earlier version of this file described the
+gameplay half as "quota-blocked". That is historical — the controller is
+operational on the owner-directed OpenDesign endpoint (see
+[`CONTROLLER.md`](CONTROLLER.md)). The remaining work is repository-owned, not
+externally blocked.

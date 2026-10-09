@@ -1,5 +1,28 @@
 # Durable Project State
 
+> **CORRECTION — 2026-10-09 (076-f evidence reconciliation; this is the current
+> checkpoint).** The 076-f closure checkpoint below still reads: dependency
+> closure **unchanged**, terminal APK **byte-identical** to
+> `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`, Jest
+> **621 / 7,237**, and the live blocker **Google free-tier quota**. Every one of
+> those four statements is now false and is kept below as history.
+>
+> Measured truth at `709ae55` (`main` == `origin/main`, worktree clean):
+>
+> | Claim in the checkpoint below | Measured now |
+> | --- | --- |
+> | dependency closure `0` files | **2 files** — `apps/mobile/src/components/game-ui/session-header.tsx` (rendered layout) and `apps/mobile/src/components/ui/button.tsx` (4 dp hit-slop, input only) |
+> | terminal APK byte-identical to `de6c5fcd…` | the terminal application source is `b293a02e1cd5df260a66dd886c1d279978b68994` and the terminal APK is `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` (48,888,452 B); `de6c5fcd…` / `c324960` is the **route-evidence** artifact |
+> | Jest 621 / 7,237 | **622 suites / 7,241 tests / 5 snapshots** — two additive regression guards; the old baseline did not drop |
+> | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\env`. Both smokes PASS. |
+>
+> **Ledger state:** 076-f `tasks.md` **4 checked / 38 unchecked** (was 21/21);
+> parent `076-product-wide-ui-ux-reboot/tasks.md` **58 checked** (was 61).
+> `assessment.json` reads **42 NOT VALIDATED, none on the terminal APK** — 42
+> assessment *slots*, not 42 accepted games. The verdict remains
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Per-finding detail:
+> `openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
+
 > **ACTIVE CLOSURE BINDING (2026-10-08):** closure is bound to
 > **`openspec/changes/076-f-final-product-certification`**. This file's 076
 > checkpoint below is retained as history. Two of its statements are stale and
@@ -104,8 +127,11 @@ journey ran on the direct emulator-local ADB lane. Evidence:
 `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`. Previous update: 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
 **Active campaign:** `076-product-wide-ui-ux-reboot`
+**Active execution prompt:** `.agent/EXECUTION_PROMPT.md` →
+`.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`
+(076-f evidence reconciliation and terminal closure)
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
-**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` reopened for evidence/certification correction; blocked gates explicitly retained in the change's evidence/ dir. Earlier completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
+**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` reopened for evidence/certification correction; blocked gates explicitly retained in the change's evidence/ dir. Certification sub-change `076-f-final-product-certification` is executing `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md` (day mode, one dedicated emulator, no host-input automation). Earlier completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
 **Last campaign:** `076-product-wide-ui-ux-reboot`
 **Last campaign status:** REOPENED
 **Last campaign verdict:** `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`

@@ -61,14 +61,14 @@ blockers", which the design explicitly forbids while game proof is missing.
 | Gate | Status | Evidence |
 |---|---|---|
 | Evidence provenance table | **PASS** — 302 derived rows | `PROVENANCE.md`, `provenance-table.{md,json}` |
-| Source equivalence (`4a6fc53` → terminal source) | **PASS** — 0 dependency-closure changes | `SOURCE_EQUIVALENCE.md` |
+| Source equivalence (`4a6fc53` → terminal source) | **CHANGED** — 2 dependency-surface files; 194 game frames reclassified `SOURCE_NOT_EQUIVALENT` | `SOURCE_EQUIVALENCE.md` |
 | Route matrix 90/90 + 2 scroll pairs | **PRESERVED** — 0 recaptures needed | `ROUTES_AND_A11Y.md` |
-| Accessibility audits (measured nodes) | **PASS** — 90 surfaces, 0 violations | `ROUTES_AND_A11Y.md` |
-| Reduced-motion accessibility | **PASS** — 30 surfaces, 0 violations, 14 occluded excluded | `ROUTES_AND_A11Y.md` |
-| Per-domain game controls + 48dp floor | **IN PROGRESS** | sweep running |
-| **Current-device game acceptance (42)** | **IN PROGRESS** — 0/42 on current APK | `ASSESSMENT.md` |
-| Defect repair discipline (task 4.1) | **COMPLETE** — 2 reproduced, 2 fixed, 2 verified gone | `DEFECTS.md` |
-| Clean-checkout composite | **FAIL (19/20)** — one gate, upstream drift | `GATES.md` |
+| Accessibility audits (measured nodes, `de6c5fcd…`) | **PASS** — 90 surfaces, 0 violations | `ROUTES_AND_A11Y.md` |
+| Reduced-motion accessibility | **PASS on `de6c5fcd…`** — 30 surfaces, 0 violations, 14 occluded excluded. **NOT VALIDATED on the terminal APK.** | `ROUTES_AND_A11Y.md` |
+| Per-domain game controls + 48dp floor | **NOT VALIDATED** | sweep owns the device |
+| **Current-device game acceptance (42)** | **0 PASS / 42 NOT VALIDATED — none on the terminal APK** | `ASSESSMENT.md` |
+| Defect repair discipline (task 4.1) | **COMPLETE with an open obligation** — 2 reproduced, 2 fixed, 2 verified gone; provenance then regenerated | `DEFECTS.md` |
+| Clean-checkout composite | **FAIL (19/20)** at `a45232f` — one gate, upstream drift; alignment fix pending | `GATES.md` |
 | Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
 | Strict OpenSpec `--strict` | **PASS (61/61)** | `GATES.md` |
 | Jest baseline | **PASS** — 622 suites / 7,241 tests / 5 snapshots | `GATES.md`, `DEFECTS.md` |
@@ -92,21 +92,36 @@ closure diff exits non-zero and refuses to emit equivalence labels.
 
 | Family | Rows | Classification |
 |---|---|---|
-| Route pairs | 90 | `CURRENT_APK` |
-| Results-scroll pairs | 2 | `CURRENT_APK` |
-| Game frames | 194 | `SOURCE_EQUIVALENT_HISTORICAL` |
+| Route pairs | 90 | `SOURCE_EQUIVALENT_HISTORICAL`, `currentApplicability: false` |
+| Results-scroll pairs | 2 | `SOURCE_EQUIVALENT_HISTORICAL`, `currentApplicability: false` |
+| Game frames | 194 | **`SOURCE_NOT_EQUIVALENT`** |
 | Rejected/quarantined | 16 | `NOT_APPLICABLE` |
+| **Rows usable as terminal-APK evidence** | **0** | — |
 
-**Machine-verified result:** zero files changed in the spec's rendering
-dependency closure (game boards, game host, `game-ui`, theme, `sdk`, `routing`,
-registry, content, hooks, constants, `android`, `ios`) between game-capture
-source `4a6fc53` and the terminal source. Only two non-test production files
-changed in that range, both presentation-only: the Home stage-numeral ink and
-the Progress-detail badge reflow.
+**Machine-verified result (corrected 2026-10-09).** The earlier version of this
+section claimed *zero* files changed in the rendering dependency closure. That
+was wrong on two counts: the surface list omitted
+`apps/mobile/src/components/ui`, and the claim predated the 076-f repairs.
+Measured now, the closure is **two files**, both shared gameplay presentation:
 
-Therefore all 194 game frames are labelled `SOURCE_EQUIVALENT_HISTORICAL` and
-are explicitly **not** terminal-APK captures. That distinction is exactly what
-the previous campaign lost.
+| File | Effect |
+|---|---|
+| `apps/mobile/src/components/game-ui/session-header.tsx` | **render** — a layout change to every game session screen |
+| `apps/mobile/src/components/ui/button.tsx` | **input** — a 4 dp hit-slop only; no rendered pixel moves |
+
+Four non-test production files changed in the `4a6fc53..HEAD` range: the two
+above plus `app/(tabs)/index.tsx` and `app/progress-detail.tsx` (both route
+screens, both already reflected in the `de6c5fcd…` route matrix).
+
+Because `SessionHeader` renders **only** through `GameHost`, the route surfaces
+keep a faithful still and stay `SOURCE_EQUIVALENT_HISTORICAL` — but they are
+bound to `de6c5fcd…`, which is not the terminal APK, so every one of them
+records `currentApplicability: false`. The 194 game frames lose their
+source-equivalence outright: their rendered closure changed.
+
+The generator still **exits non-zero** while the surface is dirty. That is
+deliberate — the reconciliation finding was that the exit code had gone green
+while the table kept claiming equivalence.
 
 ---
 
@@ -294,25 +309,35 @@ composite was certifying a **weaker** validation than the project claims to run.
 Aligned, with four new self-test checks that fail closed on drift (6 → 10 checks).
 No threshold lowered.
 
+### Jest baseline corrected
+
 | Gate | Result |
 |---|---|
 | Strict OpenSpec | **PASS 61/61** (new total after adding this change; the old 60/60 is not forced) |
-| Jest | **622 suites / 7,241 tests / 5 snapshots** |
+| Jest | **622 suites / 7,241 tests / 5 snapshots** — the 621 / 7,237 baseline did **not** drop; the movement is the two additive regression guards |
 | Release APK | **BUILD SUCCESSFUL**, byte-verified |
+
+The earlier version of §7.4 recorded an *exact* 621 / 7,237 match as the current
+terminal state. That number belongs to the pre-guard tree. Because the ledger's
+number no longer matched the tree, task 7.4 was unchecked at the 2026-10-09
+reconciliation and is re-verified against the terminal run.
 
 ---
 
 ## 10. Accessibility and layout (tasks 5.1–5.3)
 
-| Condition | Status | Coverage |
-|---|---|---|
-| default light / dark | **COVERED** | 30 surfaces, 0 violations |
-| 2× text | **COVERED** | 30 surfaces, 0 violations |
-| compact viewport | **COVERED** | 30 surfaces, 0 violations |
-| normal viewport | **COVERED** | default profile |
-| **reduced motion** | **COVERED** | 30 surfaces, 0 violations, 14 occluded excluded |
-| representative gameplay, 8 domains | in progress | sweep running |
-| game-control labels + 48dp floor | in progress | sweep running |
+Every condition below was measured on the artifact named in its row. None of
+them is measured on the terminal APK `e243341f…`.
+
+| Condition | Status | Coverage | Artifact |
+|---|---|---|---|
+| default light / dark | **COVERED** | 30 surfaces, 0 violations | `de6c5fcd…` |
+| 2× text | **COVERED** | 30 surfaces, 0 violations | `de6c5fcd…` |
+| compact viewport | **COVERED** | 30 surfaces, 0 violations | `de6c5fcd…` |
+| normal viewport | **COVERED** | default profile | `de6c5fcd…` |
+| **reduced motion** | **COVERED on `de6c5fcd…`** — 30 surfaces, 0 violations, 14 occluded excluded. **NOT VALIDATED on the terminal APK.** | 30 surfaces | `de6c5fcd…` |
+| representative gameplay, 8 domains | **NOT VALIDATED** | — | — |
+| game-control labels + 48dp floor | **NOT VALIDATED** | — | — |
 
 Reduced motion is OS-driven (`AccessibilityInfo.isReduceMotionEnabled()`), so it
 was verified by putting the device into Android's "Remove animations" state and
@@ -321,6 +346,13 @@ re-capturing — not by asserting the code has a hook.
 Occluded nodes are enumerated with reasons and kept **out of the pass count**
 (32 on routes, 14 under reduced motion). The route audit is explicitly **not**
 claimed to certify game controls — that gap is stated, not smoothed over.
+
+The reduced-motion set in `evidence/reduced-motion/captures.json` is bound to
+`de6c5fcd…`. `game-intro` in that set renders `Button`, not `SessionHeader`, and
+no preserved route surface renders `SessionHeader`, so no route combination
+requires recapture — see `SOURCE_EQUIVALENCE.md` §Route impact note. The 4 dp hit
+slop does not by itself invalidate pixel stills or already-measured 48 dp
+bounds.
 
 ---
 
@@ -345,24 +377,36 @@ them.
 
 ## 12. Ledger state
 
-| Ledger | Checked | Unchecked |
-|---|---|---|
-| 076-f `tasks.md` | 21 | 21 |
-| Parent `076-product-wide-ui-ux-reboot/tasks.md` | 61 | 21 |
+**Corrected 2026-10-09.** The table below reported the state at `b7cf09b`. The
+2026-10-09 reconciliation then moved the ledgers backwards again, because
+evidence-only commits had left checked boxes pointing at superseded rows.
 
-Parent boxes moved **with their evidence linked in the same commit**, never in
-bulk: `6.1`, `6.3`, `14.8` (and `6.2` moved *backwards* on review).
+| Ledger | Checked at `b7cf09b` | **Checked now** | Unchecked now |
+|---|---|---|---|
+| 076-f `tasks.md` | 21 | **4** | **38** |
+| Parent `076-product-wide-ui-ux-reboot/tasks.md` | 61 | **58** | 24 |
 
-076-f tasks complete: 1.1–1.3, 2.1–2.2, 3.1–3.4, 4.1, 5.1, 6.2, 7.1–7.4, 8.1–8.5.
-Remaining 21 are the current-device game rows (3.5–3.21), the gameplay half of
-5.2, 5.3, and the nine controller journeys (6.1).
+Checked now, 076-f: **2.1, 2.2, 5.1, 7.2.**
+Checked now, parent (the 3 that moved): `6.1`, `6.3`, `6.5` were un-checked.
+
+**42 current-device rows means 42 assessment slots, not 42 accepted games.** The
+measured state is **42 slots, 0 accepted on the terminal APK**: 8 slots carry a
+controller note graded on `de6c5fcd…` and superseded by the APK change, and 34
+slots have no controller note at all. That stays the published state until the
+sweep proves otherwise.
+
+076-f tasks complete: 2.1, 2.2, 5.1, 7.2.
+Still open: the current-device game rows (3.1–3.22), the gameplay half of 5.2,
+5.3, the nine controller journeys (6.1), the defect-repair provenance bookkeeping
+(4.1), the terminal clean-checkout composite and Jest re-verification
+(7.1/7.3/7.4), and the entire ledger/review/verdict group (8.1–8.5).
 
 ---
 
-## 13. Ending SHA and CI
+## 13. Ending SHA and CI (historical — recorded for `b7cf09b`)
 
 `main` == `origin/main` == **`b7cf09b`**, worktree clean, single worktree, no
-abandoned branches. **All four workflows green at the ending SHA:**
+abandoned branches. **All four workflows were green at that SHA:**
 
 | Workflow | Result |
 |---|---|
@@ -371,8 +415,10 @@ abandoned branches. **All four workflows green at the ending SHA:**
 | Android Build Smoke | success |
 | iOS Build Smoke | success |
 
-Green runs at the *planning* commit are deliberately never cited as
-certification evidence.
+That is a historical record for `b7cf09b`, not for the ending SHA of this
+campaign. Green runs at the *planning* commit `05bf793` are likewise never cited
+as certification evidence. The current ending-SHA record is written at the exit
+gate in `GATES.md` §8.4.
 
 ---
 
@@ -380,11 +426,16 @@ certification evidence.
 
 | Remaining work | Blocker | Owner action |
 |---|---|---|
-| 42 current-device game rows | sweep running | none — in progress |
-| 9 stateful controller journeys | sweep owns the device | none — queued after |
-| game-control labels + 48dp per domain | same sweep | none |
+| 42 current-device game rows (42 slots, **0 accepted on the terminal APK**) | none — repository-owned work, owed | none |
+| 9 stateful controller journeys | none — repository-owned work, owed | none |
+| game-control labels + 48dp per domain | same | none |
 | `5.3` / parent `14.3` | depends on the above | none |
+| terminal clean-checkout composite aligned with the declared gate set | none — repository-owned work, owed | none |
 | iOS runtime | not validated | iOS device/runtime access |
+
+The controller is **not** the blocker: authentication succeeded and both smokes
+passed on the OpenDesign endpoint. Everything still owed above is
+repository-owned.
 
 The tooling for resumption is ready and its failure modes are already fixed:
 `cert076f-repair.sh` (identity check + note-at-end + capture-timing),

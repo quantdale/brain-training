@@ -5,6 +5,15 @@
 and security gates, and parent-task mapping. **Repair repository-owned Critical
 or High findings before acceptance.**
 
+> **Superseded 2026-10-09.** This review audited the documents as they stood
+> **before** the reconciliation in `RECONCILIATION.md`. Its findings and repairs
+> are historical and remain valid as a record. Two of its statements are no
+> longer true and must not be quoted: the 92 route rows were **not** `CURRENT_APK`
+> (they are `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`,
+> bound to `de6c5fcd…` which is not the terminal APK), and the 194 game frames are
+> now `SOURCE_NOT_EQUIVALENT` rather than source-equivalent. A fresh exit-gate
+> review is run after the sweep and the terminal gates.
+
 ## How the review was run
 
 Three independent read-only reviewers in parallel, each on one area, each

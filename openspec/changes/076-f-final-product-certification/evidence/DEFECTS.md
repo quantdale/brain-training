@@ -51,45 +51,53 @@ and independently device-hashed (pulled `base.apk` → `e243341f…`, exact matc
 Delta is +248 bytes.
 
 **Consequence for evidence:** the six accepted game rows were captured on
-`de6c5fcd…`. The fix touches the shared pause control and every `Button`, so
-game screens are **affected surfaces** and those rows require re-verification on
-`e243341f…`. Unaffected evidence (the route matrix, whose surfaces were captured
-on `de6c5fcd…` and whose rendering dependency is unchanged by a chrome hit-target
-and layout fix) retains its original artifact identity per the spec's
-"unaffected evidence retains its original artifact identity" rule.
+`de6c5fcd…`, and `de6c5fcd…` is **not** the terminal APK. The fix touches the
+shared session chrome and every `Button`, so game screens are **affected
+surfaces** and those rows require re-verification on
+`e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`. All six were
+superseded by `b7cf09b` and the whole 42-game sweep was relaunched against the
+new artifact.
 
-## Standing result before 2026-10-09: no production edit made
+The route matrix is the *other* half of the same rule and is recorded
+separately: its surfaces render `Button` but not `SessionHeader`, and the
+hit-slop change alters no rendered pixel, so the reviewed 90/90 matrix stands for
+the artifact that produced it while every route row records
+`currentApplicability: false`. See `SOURCE_EQUIVALENCE.md` §Route impact note.
 
-As of this record, **no runtime defect has been reproduced** by the current-device
-acceptance checks, so **no production code has been edited** by this change.
+## Standing result: the tree is NOT untouched — two defects were reproduced and repaired
 
-This is the branch the change spec describes:
+**Corrected 2026-10-09.** An earlier version of this section said "no runtime
+defect has been reproduced" and "no production code has been edited", and listed
+only `index.tsx` and `progress-detail.tsx`. That was false at the time it was
+written and is kept here only as history. The 076-f current-device checks DID
+reproduce two defects, and both were repaired with guards — see the top of this
+file.
 
-> **Scenario: No defect is reproduced** — WHEN a reviewer wants a different
-> visual treatment but no runtime defect is reproduced, THEN production
-> presentation, mechanics, and persistence remain unchanged.
+The honest current statement:
 
-Nothing was "improved" because someone preferred a different look. The locked
-Training Studio direction, game mechanics, scoring, persistence, economy,
-workout ownership, offline behaviour and registry semantics are untouched. No
-successor redesign and no Change 077 was started.
+- **Two** runtime defects were reproduced on device, both in shared session
+  chrome, and **two** production edits were made (`session-header.tsx`,
+  `button.tsx`).
+- The non-test production diff from the game-capture source `4a6fc53` is
+  **four files**, not two:
 
-## Evidence that the tree really is untouched
+  ```
+  git diff --name-only 4a6fc53..HEAD -- apps/ | grep -v __tests__
+  apps/mobile/src/app/(tabs)/index.tsx
+  apps/mobile/src/app/progress-detail.tsx
+  apps/mobile/src/components/game-ui/session-header.tsx
+  apps/mobile/src/components/ui/button.tsx
+  ```
 
-The only non-test production files that differ from the game-capture source
-`4a6fc53` are the two presentation fixes the *previous* campaign already made
-and filed (Home stage numeral ink at `eff5de0`, Progress-detail 2× badge wrap at
-`c324960`):
-
-```
-git diff --name-only 4a6fc53..HEAD -- apps/ | grep -v __tests__
-apps/mobile/src/app/(tabs)/index.tsx
-apps/mobile/src/app/progress-detail.tsx
-```
-
-Both predate this change and both carry their own regression guards (the guard
-for the badge reflow was verified to fail before the fix and pass after). This
-change added no third edit.
+  The first two predate this change and carry their own regression guards. The
+  last two are this change's own repairs.
+- Scoring, persistence, economy, workout ownership, offline behavior and registry
+  semantics are still untouched, and no successor redesign or Change 077 was
+  started.
+- Task 4.1's condition — "update artifact provenance" — was unmet at the time
+  the earlier text was written; it is satisfied by the regenerated provenance
+  table bound to `TERMINAL_IDENTITY.json`, and the task is re-checked only
+  against that.
 
 ## What would happen if a defect were reproduced
 

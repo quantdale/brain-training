@@ -22,9 +22,25 @@ Every game state and route used for acceptance SHALL have a provenance record id
 - **WHEN** the rendering dependency graph for a previously reviewed frame is unchanged
 - **THEN** the record may classify it as source-equivalent historical evidence and MUST still state that it is not a capture from the terminal APK
 
+#### Scenario: Historical frame is not terminal-APK evidence
+- **WHEN** a frame was captured from any APK other than the terminal APK
+- **THEN** the record MUST state `currentApplicability: false` for that row even when the frame remains a faithful picture of its surface
+
 #### Scenario: Dependency changed
 - **WHEN** an intervening change affects the board, game host, shared gameplay presentation, theme tokens, game rendering, game navigation, native configuration, or common runtime behavior represented by a frame
 - **THEN** that frame is not accepted as current evidence and the affected state is recaptured or marked NOT VALIDATED
+
+#### Scenario: Rendered closure changed
+- **WHEN** the recorded change alters the rendered output of a surface a frame depicts
+- **THEN** the generator MUST NOT label that frame source-equivalent, MUST record the named state `SOURCE_NOT_EQUIVALENT` with `currentApplicability: false` and `recaptureRequired: true`, MUST still emit the table, and MUST exit non-zero
+
+#### Scenario: Change affects input handling only
+- **WHEN** the recorded change alters hit-testing or another input behavior and not rendered output
+- **THEN** rendered stills MAY remain source-equivalent history, every interaction claim drawn from them MUST be recorded as invalidated, and the generator MUST still exit non-zero while the dependency surface is dirty
+
+#### Scenario: Effect of a changed file is not measured
+- **WHEN** a file in the dependency-surface diff has no recorded effect
+- **THEN** the generator MUST treat the effect as unknown, MUST NOT label any historical frame source-equivalent, and MUST exit non-zero
 
 #### Scenario: Accepted route matrix is unchanged
 - **WHEN** no relevant source change affects the reviewed 90-route matrix

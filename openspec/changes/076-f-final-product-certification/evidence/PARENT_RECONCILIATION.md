@@ -23,12 +23,28 @@ The 25 are the 20 game-domain tasks in sections 6–13 plus `14.2`, `14.3`,
 `14.4`, `14.7`, `14.8`. `14.5` and `14.6` were already checked and are **not**
 reopened — there is no contradiction with them.
 
-Parent ledger after this change: **60/82 checked, 22 unchecked**.
+Parent ledger as of `b7cf09b`: **61/82 checked, 21 unchecked**.
 Three boxes moved, each in the commit that links its evidence — `6.1`, `6.3`
 (from PASS current-device rows) and `14.8` (durable state + push + no abandoned
 worktrees). One box moved **backwards** during independent review: `6.2` was
 checked on a row that review then downgraded, so it was un-checked again. See
 [`REVIEW.md`](REVIEW.md). Nothing else moved, and nothing was bulk-checked.
+
+## 2026-10-09 reconciliation — **58/82 checked, 24 unchecked**
+
+Three of those boxes moved **backwards again**, because `b7cf09b` superseded the
+rows they were checked on without touching the ledger:
+
+| Task | Game | Why it is unchecked |
+| --- | --- | --- |
+| `6.1` | `attention-odd-one-out` | its `ASSESSMENT.md` row is `NOT VALIDATED` and explicitly says it is **not terminal-candidate evidence**. Graded on `de6c5fcd…`; the 076-f repairs changed the shared session chrome, so every game screen is an affected surface. |
+| `6.3` | `attention-symbol-tracker` | same. |
+| `6.5` | `attention-visual-search` | same. |
+
+`14.8` **stays checked as a historical checkpoint** — it is not proof that durable
+state is current, and `.agent/STATE.md` was updated again at the reconciliation
+and again at the exit gate. No other parent box moved in the reconciliation
+commit.
 
 ## Vocabulary
 

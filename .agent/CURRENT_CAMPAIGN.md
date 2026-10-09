@@ -6,6 +6,21 @@
 > This campaign's `tasks.md` remains the product-acceptance ledger; 076-f
 > authorises checking a parent box only when that task's own linked evidence
 > exists. Read 076-f `evidence/VERDICT.md` for the current status.
+>
+> **ACTIVE EXECUTION (2026-10-09):** execute
+> `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
+> That prompt is the execution authority; this file and the checkpoints below it
+> are history until the prompt's exit gate lands. Do **not** execute the
+> historical 076 redesign waves listed in the wave plan below.
+>
+> **Reconciled 2026-10-09.** Do not read the checkpoint text below as current.
+> Measured corrections: the rendering-dependency closure changed (**2** files,
+> not 0), the terminal artifact is `b293a02` /
+> `e243341fd4f9…` (not `c324960` / `de6c5fcd…`), Jest is **622 suites /
+> 7,241 tests** (not 621 / 7,237), and the controller is **unblocked** (the
+> Google free-tier quota is history). The ledgers moved back: parent tasks
+> `6.1`, `6.3` and `6.5` are unchecked and 076-f is at 4/42. Per-finding record:
+> `openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
 
 **Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 **Campaign id:** `076-product-wide-ui-ux-reboot`
@@ -47,7 +62,7 @@ contracts.
    matrices, ARTEMIS journeys, impact-map gates, release APK, iOS status,
    final coverage manifest + visual decision report, durable state, push (14.x).
 
-## Current checkpoint — 2026-10-08 (superseded by 076-f; see banner above)
+## Historical 076-f checkpoint — 2026-10-09 (superseded by the reconciliation above)
 
 Source `c324960` fixes the captured 2× badge clipping and stale HUD CI assertion;
 all four source-SHA workflows GREEN. New APK `de6c5fcd…` installed/hash checked;
@@ -110,6 +125,23 @@ fallback executed), repo gates + validators + full jest (616 suites / 7,210
 tests) green, iOS honestly NOT VALIDATED, no abandoned worktrees. Terminal
 evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 (WAVE14_EVIDENCE.md + per-wave records).
+
+## Current checkpoint — 2026-10-09 (reconciled; this is the current truth)
+
+- **Execution authority:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
+- **Starting SHA:** `709ae55` — `main` == `origin/main`, worktree clean, one worktree.
+- **Terminal identity:** application source `b293a02e1cd5df260a66dd886c1d279978b68994`,
+  release APK `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
+  (48,888,452 B, x86_64, `com.braintraining.app` 0.1.0/1000). Final
+  confirmation comes from the prompt's section-3 rebuild.
+- **Ledgers:** 076-f `tasks.md` 4 checked / 38 unchecked; parent ledger 58 checked.
+- **Games:** 42 assessment slots, **0 accepted on the terminal APK**.
+- **Provenance:** 302 rows; 194 game frames `SOURCE_NOT_EQUIVALENT`; 92 route rows
+  `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`; generator
+  exits non-zero by design while the dependency surface is dirty.
+- **Controller:** operational on the owner-directed OpenDesign endpoint; both
+  smokes PASS. Nine journeys still owed.
+- **Verdict:** `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
 
 ## Progress log
 

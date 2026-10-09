@@ -8,6 +8,31 @@
 
 **Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 **Execute:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`
+**Mode:** day. One dedicated emulator. No host mouse, host keyboard, or
+desktop-focus automation. ARTEMIS at `D:\Tools\artemis` is the only gameplay and
+journey driver; ADB may only install, log, screenshot and dump hierarchy.
+
+**Current controller fact (2026-10-09, re-probed and still true):**
+authentication was restored by an owner-directed move to the external
+**OpenDesign** endpoint. Object detection remains on the required Gemini **ER**
+model. Credentials stay only in `D:\Tools\artemis\.env`. Do **not** copy that
+endpoint configuration into Git, do not switch provider again unless
+authentication fails and the owner has already selected the replacement, and do
+not revert to the Google free tier. See
+`openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
+
+**Reconciled 2026-10-09 (supersedes the quota-only correction below):** the
+quota-only statement was true of the Google route and is now historical. The
+ledgers were also moved back — 076-f `tasks.md` is **4 checked / 38 unchecked**
+and the parent ledger is **58 checked**, because `b7cf09b` superseded the
+accepted game rows without updating the boxes. Evidence:
+`…/076-f-final-product-certification/evidence/RECONCILIATION.md`.
+
+**Terminal identity:** application source
+`b293a02e1cd5df260a66dd886c1d279978b68994`, APK
+`e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
+(48,888,452 B). Recorded once in
+`…/076-f-final-product-certification/evidence/TERMINAL_IDENTITY.json`.
 
 ## Historical execution prompt — Campaign 076 redesign
 

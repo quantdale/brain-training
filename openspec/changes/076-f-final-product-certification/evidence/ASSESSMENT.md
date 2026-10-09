@@ -18,6 +18,18 @@ current-device rows. One row per registered game. **Only** `PASS`, `FIXED`,
   parent tasks are already checked get a fresh row here regardless — those
   existing checks are **not** treated as this review (task 3.21).
 
+## What artifact the rows were graded on
+
+Every filed row records **`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d`** as its `APK under test`.
+That is the APK these rows were graded on. It is **derived from the rows
+themselves**, not hardcoded, and it is **not** a claim that it is the terminal
+APK.
+
+The terminal artifact for this change is **`e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`**. No filed row was
+graded on it, so **no row in this assessment is acceptance evidence for the
+terminal artifact.** Rows graded on another APK are retained as history and must
+be re-run on the terminal APK before a PASS is published.
+
 ## Summary
 
 | Status | Count |

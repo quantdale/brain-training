@@ -1,6 +1,36 @@
 # Durable Validation Record
 
-## 076-f certification checkpoint — 2026-10-08 (current, BLOCKED)
+## 076-f evidence reconciliation — 2026-10-09 (current checkpoint)
+
+**The 2026-10-08 checkpoint below is superseded.** An apply review found the
+control documents had drifted from the code, the artifact and the controller.
+Measured corrections, all re-verifiable:
+
+| Claim in the 2026-10-08 entry | Measured at `709ae55` |
+| --- | --- |
+| Rendering-dependency closure since `4a6fc53`: **0 files** | **2 files** — `apps/mobile/src/components/game-ui/session-header.tsx` (rendered layout) and `apps/mobile/src/components/ui/button.tsx` (4 dp hit-slop, input only). The generator's surface list was missing `apps/mobile/src/components/ui`. |
+| Terminal APK **byte-identical** to `de6c5fcd…` | Terminal application source is `b293a02e1cd5df260a66dd886c1d279978b68994`; terminal APK is `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` (48,888,452 B). `de6c5fcd…` / `c324960` is the route-evidence artifact. |
+| Full Jest baseline **exact match 621 / 7,237** | **622 passed / 4 skipped suites, 7,241 passed / 5 skipped tests, 5 snapshots.** Two additive regression guards; the old baseline did not drop. |
+| Controller blocked by free-tier quota | Authentication **succeeded** — owner-directed move to the external OpenDesign endpoint. Flash `6f185691-…`, Pro `251e3f10-…`, both PASS. Object detection stays on the required Gemini ER model. |
+| Current-device game acceptance IN PROGRESS | **42 assessment slots, 0 accepted on the terminal APK.** `assessment.json` counts `{"NOT VALIDATED":42}`. |
+| Provenance 302 rows derived | Still 302 rows, but **0** rows are usable as terminal-APK evidence: 194 game frames `SOURCE_NOT_EQUIVALENT`, 92 route rows `SOURCE_EQUIVALENT_HISTORICAL` with `currentApplicability: false`. |
+
+**Ledger state:** 076-f `tasks.md` **4 checked / 38 unchecked** (2.1, 2.2, 5.1,
+7.2); parent ledger **58 checked**. Verdict unchanged:
+`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Per-finding record:
+`openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
+
+`node scripts/certification/build-provenance.mjs` **exits non-zero by design**
+while the dependency surface is dirty — that is the reconciled behaviour, not a
+regression to fix. `scripts/validate-repo-state.mjs` PASS. Strict OpenSpec
+**61/61** PASS.
+
+### Workflow runs at the reconciliation SHA
+
+Recorded when the reconciliation commit lands; see `GATES.md` §8.4. The
+2026-10-08 run ids below are historical.
+
+## 076-f certification checkpoint — 2026-10-08 (superseded — kept as history)
 
 Validation record for `openspec/changes/076-f-final-product-certification`.
 Full detail lives in that change's `evidence/` directory; this entry is the

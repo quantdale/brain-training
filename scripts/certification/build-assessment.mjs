@@ -81,6 +81,29 @@ const GAMES = [
  */
 const MANUAL = path.join(ROWS, 'manual-review.json');
 
+/**
+ * The APK the current-device rows were actually graded on.
+ *
+ * This used to be a hardcoded `de6c5fcd…`, which is how the assessment kept
+ * publishing the pre-defect-repair artifact after the 076-f repairs had moved
+ * the candidate to `e243341f…`.  It is now READ from the filed rows' own
+ * `APK under test:` line, so it always names the artifact those rows really
+ * describe — and it is reported beside the terminal identity, never in place
+ * of it.
+ */
+function gradedApk() {
+  const seen = new Map();
+  for (const [, id] of GAMES) {
+    const f = path.join(ROWS, id, 'review.md');
+    if (!existsSync(f)) continue;
+    const m = /APK under test: `([0-9a-f]{64})`/.exec(readFileSync(f, 'utf8'));
+    if (m) seen.set(m[1], (seen.get(m[1]) ?? 0) + 1);
+  }
+  if (seen.size === 0) return { apk: null, disagreement: [] };
+  const best = [...seen.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return { apk: best, disagreement: [...seen.keys()].filter((k) => k !== best) };
+}
+
 function expectedTitle(id) {
   const domains = ['attention', 'flexibility', 'language', 'logic', 'math', 'memory', 'spatial', 'speed'];
   const first = id.split('-')[0];
@@ -189,6 +212,14 @@ function loadManualVerdicts() {
 }
 
 const manualVerdicts = loadManualVerdicts();
+const graded = gradedApk();
+
+let terminalIdentity = null;
+try {
+  terminalIdentity = JSON.parse(readFileSync(path.join(EV, 'TERMINAL_IDENTITY.json'), 'utf8'));
+} catch {
+  terminalIdentity = null;
+}
 
 const rows = GAMES.map(([domain, id, parentTask]) => {
   const c = classify(id, manualVerdicts);
@@ -217,6 +248,36 @@ lines.push('- A historical frame never becomes a current-device row. The 22 game
 lines.push('  parent tasks are already checked get a fresh row here regardless — those');
 lines.push('  existing checks are **not** treated as this review (task 3.21).');
 lines.push('');
+lines.push('## What artifact the rows were graded on');
+lines.push('');
+if (graded.apk === null) {
+  lines.push('No filed current-device row records an APK, so no artifact is claimed for them.');
+} else {
+  lines.push(`Every filed row records **\`${graded.apk}\`** as its \`APK under test\`.`);
+  lines.push('That is the APK these rows were graded on. It is **derived from the rows',
+  );
+  lines.push('themselves**, not hardcoded, and it is **not** a claim that it is the terminal');
+  lines.push('APK.');
+  const terminal = terminalIdentity?.terminalApkSha256;
+  if (terminal && terminal !== graded.apk) {
+    lines.push('');
+    lines.push(`The terminal artifact for this change is **\`${terminal}\`**. No filed row was`);
+    lines.push('graded on it, so **no row in this assessment is acceptance evidence for the');
+    lines.push('terminal artifact.** Rows graded on another APK are retained as history and must');
+    lines.push('be re-run on the terminal APK before a PASS is published.');
+  } else if (terminal) {
+    lines.push('');
+    lines.push(`That **is** the terminal artifact \`${terminal}\` recorded in`);
+    lines.push('`TERMINAL_IDENTITY.json`.');
+  }
+}
+if (graded.disagreement.length > 0) {
+  lines.push('');
+  lines.push(`**Mixed-artifact rows detected:** ${graded.disagreement.length} other APK`);
+  lines.push('hash(es) appear in the filed rows. A mixed-artifact evidence set is not a');
+  lines.push('single-artifact certification and must be resolved.');
+}
+lines.push('');
 lines.push('## Summary');
 lines.push('');
 lines.push(`| Status | Count |`);
@@ -243,7 +304,21 @@ lines.push('');
 writeFileSync(path.join(EV, 'ASSESSMENT.md'), `${lines.join('\n')}\n`, 'utf8');
 writeFileSync(
   path.join(EV, 'assessment.json'),
-  `${JSON.stringify({ generatedAt: new Date().toISOString(), apk: 'de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d', counts, rows }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      // The APK the rows were graded on - read from the rows, never hardcoded.
+      apk: graded.apk,
+      // The terminal artifact this change is published against.
+      terminalApk: terminalIdentity?.terminalApkSha256 ?? null,
+      terminalSource: terminalIdentity?.terminalSourceSha ?? null,
+      mixedArtifactRows: graded.disagreement.length > 0,
+      counts,
+      rows,
+    },
+    null,
+    2,
+  )}\n`,
   'utf8',
 );
 console.log('assessment rows:', rows.length);

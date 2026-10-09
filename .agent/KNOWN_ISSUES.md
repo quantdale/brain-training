@@ -1,6 +1,29 @@
 # Known Issues / Blockers
 
-## 076-f certification — current blocker (2026-10-08)
+## 076-f — current state (2026-10-09 reconciliation)
+
+**The 2026-10-08 `BLOCKED_EXTERNAL_ARTEMIS_QUOTA` entry below is superseded**
+and kept as history. Authentication **succeeded**: the owner resolved the
+blocker by supplying a different provider — ARTEMIS now runs on the external
+**OpenDesign** endpoint. Object detection remains on the required Gemini **ER**
+model. Credentials live **only** in `D:\Tools\artemis\.env`; none is committed,
+printed, or quoted anywhere in this repository.
+
+**Nothing is currently blocked that is repository-owned.** What remains is work,
+not a blocker:
+
+| Outstanding repository-owned work | Where |
+| --- | --- |
+| 42 current-device game rows on the terminal APK (42 slots, **0 accepted**) | `evidence/current-device/` |
+| nine stateful ARTEMIS Pro journeys | `evidence/JOURNEYS.md` |
+| per-domain game-control labels + Android 48dp floor on the terminal APK | `evidence/ROUTES_AND_A11Y.md` |
+| terminal clean-checkout composite aligned to the declared gate set | `evidence/GATES.md` §7.1 |
+| nine routes/captures bound to `de6c5fcd…` remain non-terminal | `evidence/provenance-table.*` |
+
+The one **external** boundary is **iOS runtime**: not validated without a macOS
+runtime run, and Android evidence cannot create an iOS pass.
+
+## 076-f certification — 2026-10-08 (historical, superseded)
 
 **BLOCKED_EXTERNAL_ARTEMIS_QUOTA — billing, not code.** Supersession of the
 authentication blocker below: re-probed under 076-f, the configured Google

@@ -3,8 +3,16 @@
 **Change:** `076-f-final-product-certification`
 **Tasks:** 7.1 (composite), 7.2 (strict OpenSpec + release APK as separate
 results), 7.3 (terminal APK identity), 7.4 (Jest baseline + new OpenSpec total)
+**Terminal identity:** source `b293a02e1cd5df260a66dd886c1d279978b68994`,
+APK `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
+(48,888,452 bytes) — see [`TERMINAL_IDENTITY.json`](TERMINAL_IDENTITY.json).
 
-## 7.1 The full clean-checkout composite — RUN, result recorded
+> **Reconciled 2026-10-09.** An earlier version of this file presented source
+> `c324960` / APK `de6c5fcd…` and an exact 621-suite Jest match as "the current
+> terminal identity". Those are the **route-evidence** identities. They are kept
+> below, labelled historical.
+
+## 7.1 The full clean-checkout composite — RAN at `a45232f`, result recorded
 
 Run exactly as the task requires, from a disposable clean checkout, with **no**
 `--self-test`, `--skip-install`, or `--allow-jest-not-validated`:
@@ -22,10 +30,9 @@ genuinely clean), at commit `a45232f`. The checkout was removed afterwards.
 **Composite result: `FAIL` — 19 of 20 labeled gates passed, 1 failed.** The
 tally counts the 20 labeled `run()` gates. A 21st, unlabeled pass/fail result
 (`tracked_mutation_after_clean_run=PASS`, from `trackedMutation()`) is recorded
-separately below rather than folded into the tally. This is the
-composite's own verdict and is reported as-is. It is **not** the self-test; the
-self-test (`--self-test`, 10 checks) passing is a different, weaker thing and is
-never reported as certification.
+separately. This is the composite's own verdict and is reported as-is. It is
+**not** the self-test; the self-test (`--self-test`, 10 checks) passing is a
+different, weaker thing and is never reported as certification.
 
 | # | Gate | Result |
 | --- | --- | --- |
@@ -61,11 +68,10 @@ currently publishes (`expo` 57.0.24 vs ~57.0.27, `expo-router` 57.0.22 vs
 This is **upstream drift, not a repository defect**, and that classification is
 the repository's own settled decision, not an interpretation invented here:
 
-- `.github/workflows/repository-integrity.yml` runs `npx expo-doctor` only on
-  the **weekly schedule**, with `continue-on-error: true`, and an explicit
+- `.github/workflows/repository-integrity.yml` runs `npx expo-doctor` only on the
+  **weekly schedule**, with `continue-on-error: true`, and an explicit
   classification step labels a failure **"UPSTREAM DRIFT, not a repository
-  defect"** because "expo-doctor reports repository failures for upstream patch
-  releases".
+  defect"**.
 - Change 069 **removed** the network doctor from the push path precisely because
   "it resolves its expected versions from `https://api.expo.dev/v2/versions/latest`,
   so the gate can go red with zero repository changes".
@@ -81,14 +87,17 @@ separately and **PASSES**:
 node scripts/validate-expo-alignment.mjs   # 22/22 aligned, 0 findings
 ```
 
-**Recorded as an open repository finding (see `KNOWN_ISSUES` update):**
+**Open repository finding (tracked in `.agent/KNOWN_ISSUES.md`):**
 `certify-clean-checkout.mjs` still treats the network `expo-doctor` as a hard
 gate while the declared CI gate set does not, and it does not run the hermetic
 `validate-expo-alignment.mjs` at all. That is the same class of
-script-versus-declared-gate contradiction that task 7.2 fixes for the OpenSpec
-pin. It is left in place here rather than edited mid-certification, so this
-composite result stays exactly what the shipped command produced. The fix is
-specified in the finding and is not a threshold change.
+script-versus-declared-gate contradiction that task 7.2 fixed for the OpenSpec
+pin. The fix is specified in section 6 of the campaign prompt — align the script
+with the declared gate, run the hermetic alignment gate in the composite
+instead, do **not** lower Jest/audit/OpenSpec thresholds, and extend the
+self-test so the script cannot drift back. It is applied and re-run at the
+terminal gates stage, not mid-certification, so the historical result recorded
+above stays exactly what the shipped command produced.
 
 ## 7.2 Separate results that the script does not imply
 
@@ -104,10 +113,11 @@ regretted: adding change `076-f-final-product-certification` legitimately raises
 the item count to **61**. Deleting the change to preserve a number would be the
 wrong move and was not made.
 
-### OpenSpec pin alignment — corrected
+### OpenSpec pin alignment — corrected and still holding
 
-The composite's OpenSpec step ran `@fission-ai/openspec@1.6.0 validate --all`,
-while `.agent/GOVERNANCE.json` (`openspec-validate-strict`) and
+The composite's OpenSpec step previously ran
+`@fission-ai/openspec@1.6.0 validate --all`, while
+`.agent/GOVERNANCE.json` (`openspec-validate-strict`) and
 `.github/workflows/repository-integrity.yml` both declare
 `@fission-ai/openspec@1.9.0 validate --all --strict`. The composite was
 therefore certifying a **weaker** validation than the gate the project claims to
@@ -121,66 +131,61 @@ run. Task 7.2 directs exactly this fix.
 - **No threshold was lowered.** `--strict` is strictly stronger than what ran
   before; Jest, audit, and OpenSpec thresholds are untouched.
 
-### Release APK build — PASS (recorded separately)
+Re-verified at the 2026-10-09 reconciliation: the pin is still
+`@fission-ai/openspec@1.9.0 validate --all --strict` and the self-test still
+guards it, so **7.2 stays checked**.
+
+### Release APK build — recorded separately
 
 See §7.3. The composite does not assemble an Android artifact at all, so this
 result is recorded here and never implied by the script's result.
 
 ## 7.3 Terminal release APK identity
 
-Built from the terminal application source with the canonical x86_64 release
-command:
+Canonical x86_64 release command:
 
 ```bash
 cd apps/mobile/android
 ./gradlew.bat :app:assembleRelease --console=plain -PreactNativeArchitectures=x86_64
-# BUILD SUCCESSFUL in 2m 37s · 495 actionable tasks
 ```
 
 | Field | Value |
 | --- | --- |
-| Source SHA | `c324960c7619d305f01d60587f9e74c4ca93ca6a` (terminal application source; later commits are evidence/docs only) |
-| APK SHA-256 | `de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d` |
-| Size | 48,888,204 bytes |
+| Source SHA | `b293a02e1cd5df260a66dd886c1d279978b68994` — the last commit that changes an app or build input; every later commit is evidence-only |
+| APK SHA-256 | `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` |
+| Size | 48,888,452 bytes |
 | Version name / code | 0.1.0 / 1000 |
 | Package | `com.braintraining.app` |
 | ABI | x86_64 |
-| Gradle | 9.3.1 |
-| JVM | Eclipse Adoptium 17.0.20+8 |
+| Gradle / JVM | 9.3.1 / Eclipse Adoptium 17.0.20+8 |
 | Node / npm | v24.3.0 / 11.4.2 |
 | Install result | installed and independently device-hashed |
 | Device | `emulator-5554`, AVD `braintraining-ui35`, `sdk_gphone64_x86_64`, 1080×2400, API 36 |
 
-### The rebuilt hash matched — that is evidence, not assumption
+### The rebuild hash is re-measured, not assumed
 
-The rebuilt `app-release.apk` is **byte-identical** to the APK the 90-route
-matrix was captured on, and to the APK installed on the device. All three
-independently hash to `de6c5fcd…` at 48,888,204 bytes:
-
-1. `final-matrix-de6c5fcd/captures.json` build record → `de6c5fcd…`
-2. freshly built `app/build/outputs/apk/release/app-release.apk` → `de6c5fcd…`
-3. `base.apk` pulled from `emulator-5554` → `de6c5fcd…`
-
-Design decision 5 said a rebuilt hash *may* match and that "a match is evidence,
-not an assumption". It matched. This closes the provenance chain: the reviewed
-route evidence, the device under test, and the terminal source are demonstrably
-the same artifact.
+Reproducibility is not assumed. The section-3 rebuild of this campaign rebuilds
+from `b293a02` on the dedicated emulator, pulls `base.apk`, hashes it, and
+records the result here. `de6c5fcd…` / `c324960` is the **previous** artifact and
+is retained as history: it was byte-identical across the built APK, the route
+manifest, and the device install, and it is the artifact the 90/90 route matrix
+and eight current-device rows were measured on.
 
 ## 7.4 Jest baseline
 
-Confirmed exactly, from the composite's own full Jest step:
+Two baselines, and the difference is additive, not a substitution:
 
-| Quantity | Required baseline | Measured |
+| Quantity | Old baseline (route-evidence tree) | Measured after the 076-f guards |
 | --- | --- | --- |
-| Passed suites | 621 | **621** |
+| Passed suites | 621 | **622** |
 | Classified skipped suites | 4 | **4** |
-| Passed tests | 7,237 | **7,237** |
+| Passed tests | 7,237 | **7,241** |
 | Classified skipped tests | 5 | **5** |
 | Snapshots | 5 | **5** |
 
 ```
-Test Suites: 4 skipped, 621 passed, 621 of 625 total
-Tests:       5 skipped, 7237 passed, 7242 total
+Test Suites: 4 skipped, 622 passed, 622 of 626 total
+Tests:       5 skipped, 7241 passed, 7246 total
 Snapshots:   5 passed, 5 total
 ```
 
@@ -192,5 +197,18 @@ opt-in performance/memory probe owned and dated in
 `tracked_mutation_after_clean_run=PASS`. Nothing is hidden by retrying or
 disabling.
 
-Strict OpenSpec total recorded alongside: **61 passed, 0 failed (61 items)**,
-superseding the old 60/60 figure for the reason given above.
+The old baseline did not drop. The only movement is the two additive regression
+guards (`session-header.layout.test.tsx`, `button-edge-tap.test.tsx`) plus the
+deliberate `game-host.test.tsx` contract correction. Because the number in the
+ledger no longer matched the tree, task 7.4 was unchecked at the 2026-10-09
+reconciliation and is re-verified against the terminal run.
+
+Strict OpenSpec total recorded alongside: **61 passed, 0 failed (61 items)**.
+
+## 8.4 Ending-SHA workflow record
+
+Populated at the exit gate. The last record published here was for
+`684396a7` — App CI `37758437026`, Repository Integrity `37758437146`, Android
+Build Smoke `37758437133`, iOS Build Smoke `37758437093`, all green — and it is
+**historical**: it is not the ending SHA of this campaign. Green runs at
+`05bf793` or `b7cf09b` are likewise never cited as the ending-SHA result.

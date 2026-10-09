@@ -5,6 +5,17 @@
 **Rule enforced:** a doctor "Ready" is not authentication, and a controller RPC
 success is not a journey.
 
+> **Current status (2026-10-09 reconciliation).** Authentication **succeeded**.
+> The owner resolved the blocker by moving ARTEMIS to a different provider (the
+> external OpenDesign endpoint); object detection remains on the required Gemini
+> ER model; the credential lives only in `D:\Tools\artemis\env`. Flash smoke
+> `6f185691-…` and Pro smoke `251e3f10-…` both PASS. Task `6.2` — "if
+> authentication remains externally blocked" — was therefore **un-checked**: a
+> checked `6.2` would falsely assert the blocked branch is current. The Google
+> free-tier quota and HTTP 401 material below is **historical** and is kept as
+> history, not as the live disposition. Task `6.1` (the nine journeys) stays
+> open and is owned by this campaign.
+
 ## 2.1 Doctor, then an authenticated request with a created task
 
 `uv run artemis doctor` → **Status: Ready** (Python 3.12.11, system config
@@ -31,7 +42,7 @@ returns `400/401` for an invalid key and `429 RESOURCE_EXHAUSTED` with a named
 No credential value is printed, committed, or quoted anywhere in this
 repository. Raw traces stay external under `D:\Tools\artemis\traces\`.
 
-## The free-tier constraint (measured, not assumed)
+## The free-tier constraint (historical — the Google route is no longer active)
 
 Direct read-only probes of the Gemini endpoint, printing only status and the
 declared quota:
@@ -179,9 +190,9 @@ provider change rather than a billing change. Everything previously recorded
 about Google free-tier quota remains true of the Google credential and is kept
 as history.
 
-## Exact external repair required to finish certification
+## Exact repair that was applied, and what was still owed at the earlier close
 
-The blocker is **billing, not code**. It was measured four separate times during
+The blocker was **billing, not code**. It was measured four separate times during
 this change, each after the free-tier budget recovered and then exhausted again
 mid-sweep:
 
@@ -192,22 +203,14 @@ mid-sweep:
 | 3 | `gemini-3.1-flash-lite` | 15/minute cap — cannot run ARTEMIS at all (0 steps recorded) |
 | 4 | `gemini-3.5-flash-lite` again after its budget recovered | produced more accepted rows, then 429 again |
 
-Final state at close: **both usable models return 429**, `retry-in: 12h51m`, and
-the last run recorded **0 steps**. This is not a pacing problem that patience
-solves — the daily allowance is simply smaller than the workload.
+Final state of the Google route at the earlier close: **both usable models return
+429**, `retry-in: 12h51m`, and the last run recorded **0 steps**. That is a
+daily-allowance problem, not a pacing problem.
 
-To complete the controller-led journeys and the remaining current-device game
-checks, the owner must do one of:
-
-1. **Move the configured Google credential to a paid plan** (the free tier is the
-   constraint: 20/day on `gemini-3.x-flash`, 500/day on `gemini-3.5-flash-lite`,
-   15/minute on `gemini-3.1-flash-lite`), **or**
-2. Supply a different credential with paid-tier quota, configured **only** in
-   the external ARTEMIS environment file.
-
-After that, re-run section 3 (game acceptance) and section 6 (Pro journeys) of
-`openspec/changes/076-f-final-product-certification/tasks.md`. The tooling is
-ready and its failure modes are already fixed:
+That route was then superseded: the owner supplied a **different provider** and the
+controller became operational (see *Provider switch to OpenDesign* above). The
+Google quota material is retained because it is a true measurement of that
+credential, and because the object detector still runs on Google.
 
 - `scripts/qa/cert076f-repair.sh` — re-runs only the games whose row is not yet
   accepted, with a tightened prompt that makes the controller state the
