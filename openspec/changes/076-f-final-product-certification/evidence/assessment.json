@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T09:21:51.288Z",
+  "generatedAt": "2026-10-10T10:37:18.661Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
@@ -149,7 +149,7 @@
       "game": "logic-code-cracker",
       "parentTask": "9.1",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -194,7 +194,7 @@
       "game": "math-equation-builder",
       "parentTask": "10.1",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
