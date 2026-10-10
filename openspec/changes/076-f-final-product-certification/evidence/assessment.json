@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-10T04:14:12.067Z",
+  "generatedAt": "2026-10-10T05:11:58.733Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 3,
-    "NOT VALIDATED": 39
+    "PASS": 4,
+    "NOT VALIDATED": 38
   },
   "rows": [
     {
@@ -49,9 +49,9 @@
       "domain": "attention",
       "game": "attention-visual-search",
       "parentTask": "6.5",
-      "status": "NOT VALIDATED",
-      "reason": "RE-RUN after the controller mis-navigated on the first attempt. This run's note opens with the identity line 'On-screen game title: Visual Search', which the tightened prompt requires before playing. All six states are evidenced for the correct game: active board is the odd-tile search board (2x2 grid expanding in later rounds, 'Find the odd tile', Round 1/12, Score, Pause, countdown timer); scored feedback is QUOTED verbatim ('Round failed' with subtitle 'Time's up - the odd tile was tile X' and the correct tile highlighted); pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume/Quit) with resume confirmed; result screen itemised (Score 0, Accuracy 0%, Rounds passed 0/4, Best streak 0, Avg response 0ms, Fastest response -, XP 10, Reward +10 XP +2 coins, Play again/Done); taps registered immediately with safe exit and re-open; no defects observed. Search mechanic retained.\n\nSUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence.",
-      "note": "absent",
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Visual Search' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
       "identity": "verified"
     },
     {
