@@ -166,6 +166,16 @@ for g in "${GAMES[@]}"; do
   fi
   mkdir -p "$dest"
   name="cert076f-game-$g"
+  # Reset the app to a cold state BEFORE handing the device to the controller.
+  # Without this the previous game stays foregrounded and its deep link is
+  # delivered to the already-running instance, so the journey documents the
+  # WRONG game's board. Measured three times in this campaign: tasks for
+  # attention-visual-search filed notes describing Signal Watch's GO mechanic.
+  # This is an app reset, not gameplay driving - AGENTS.md allows ADB to
+  # 'install, log, screenshot, dump hierarchy' and 'APK install/reset'.
+  echo "    resetting app state (force-stop)"
+  adb -s "$BT_DEVICE" shell am force-stop com.braintraining.app >/dev/null 2>&1
+  sleep 2
   echo "=== [$(date +%H:%M:%S)] $g ==="
   (cd "$ARTEMIS" && timeout "$ARTEMIS_TIMEOUT" uv run artemis run "$(prompt_for "$g")" \
     "${ARTEMIS_FLAGS[@]}" --test-name "$name") \
