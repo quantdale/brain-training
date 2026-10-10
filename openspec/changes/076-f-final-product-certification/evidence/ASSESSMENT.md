@@ -59,8 +59,8 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | language | `language-context-fit` | 8.1 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(Pending observation)" for the active board. No state was evidenced. Must be re-run. |
 | language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | language | `language-word-chain` | 8.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
+| language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
