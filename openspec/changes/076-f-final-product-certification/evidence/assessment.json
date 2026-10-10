@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T14:04:58.185Z",
+  "generatedAt": "2026-10-10T14:32:57.849Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
@@ -365,7 +365,7 @@
       "game": "speed-quick-compare",
       "parentTask": "13.3",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
