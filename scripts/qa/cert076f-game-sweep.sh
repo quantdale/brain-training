@@ -219,9 +219,36 @@ for g in "${GAMES[@]}"; do
     (cd "$REPO" && node scripts/qa/game-name.mjs "$g" 2>/dev/null)
   }
   WANT_NAME=$(expected_name)
-  # Every section of the log must carry real content: a heading with nothing under
-  # it is not evidence. 60 chars is above any heading-plus-parenthesis stub.
-  MIN_SECTION_CHARS="${BT_MIN_SECTION_CHARS:-60}"
+  # Every section of the log must carry real content. Two guards, because one is
+  # not enough: a section can be long yet still be a template stub. Measured:
+  # a note whose sections 2-6 read "- Exact verdict text:" / "- Source round:"
+  # with nothing after them cleared a 60-char floor and was accepted.
+  #  - length: valid measured sections run 300-1350 chars; stubs run 90-120.
+  #  - stub field: a '- Some label:' with an empty value is a field never filled.
+  # Both guards are scoped to the SECTION body, never to the whole file: a stub
+  # line in one section must not reject a note whose other sections are real.
+  MIN_SECTION_CHARS="${BT_MIN_SECTION_CHARS:-200}"
+  section_body() {
+    awk -v s="^## $1[.]" '
+      $0 ~ s {insec=1; next}
+      inseci && /^## / {insec=0}
+      insec {buf = buf $0 "\n"}
+      END {printf "%s", buf}' "$2"
+  }
+  # A section is a template when MOST of its lines are labelled fields left empty
+  # ("- Exact verdict text:" with nothing after). A single such line followed by a
+  # real list is legitimate content, so this is a ratio, not a presence test:
+  # measured stubs run 3-4 empty fields out of 4 lines, real notes run 0-1 out of 7.
+  body_is_template() {
+    local body="$1" total stubs ratio_num ratio_den
+    total=$(printf '%s\n' "$body" | grep -cE '[^[:space:]]')
+    stubs=$(printf '%s\n' "$body" | grep -cE '^[-*] *[^:]{2,60}: *$')
+    [ "$total" -gt 0 ] || return 0
+    [ "$stubs" -gt 0 ] || return 1
+    ratio_num=$(( stubs * 2 ))
+    ratio_den=$total
+    [ "$ratio_num" -ge "$ratio_den" ]
+  }
   note_complete() {
     local f="$1"
     [ -s "$f" ] || return 1
@@ -239,12 +266,9 @@ for g in "${GAMES[@]}"; do
     local sec
     for sec in 1 2 3 4 5 6; do
       local body
-      body=$(awk -v s="^## $sec[.]" '
-        $0 ~ s {insec=1; next}
-        inseci && /^## / {insec=0}
-        insec {buf = buf $0 "\n"}
-        END {printf "%s", buf}' "$f")
-      if [ "${#body}" -lt "$MIN_SECTION_CHARS" ]; then
+      body=$(section_body "$sec" "$f")
+      # A section that is only a labelled-but-empty field list is a template.
+      if [ "${#body}" -lt "$MIN_SECTION_CHARS" ] || body_is_template "$body"; then
         return 1
       fi
     done
