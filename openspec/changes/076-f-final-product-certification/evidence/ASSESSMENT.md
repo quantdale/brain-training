@@ -80,7 +80,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | memory | `memory-sequence-memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | spatial | `spatial-coordinate-turn` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | spatial | `spatial-fold-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| spatial | `spatial-grid-nav` | 12.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-grid-nav` | 12.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | spatial | `spatial-mental-rotation` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
