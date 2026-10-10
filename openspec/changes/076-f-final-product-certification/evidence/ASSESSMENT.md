@@ -65,7 +65,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | logic | `logic-order-path` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-rule-grid` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-rule-grid` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-equation-builder` | 10.1 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-fast-math` | 10.2 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-missing-operator` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
