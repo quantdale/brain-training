@@ -69,7 +69,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | math | `math-equation-builder` | 10.1 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-fast-math` | 10.2 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-missing-operator` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| math | `math-number-line-estimation` | 10.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-number-line-estimation` | 10.4 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | math | `math-value-ordering` | 10.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory-grid-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
