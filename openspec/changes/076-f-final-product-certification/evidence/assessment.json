@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T17:12:54.318Z",
+  "generatedAt": "2026-10-10T17:39:38.410Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
@@ -86,7 +86,7 @@
       "game": "flexibility-rule-flip",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },

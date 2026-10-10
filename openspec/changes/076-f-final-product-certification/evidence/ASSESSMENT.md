@@ -54,7 +54,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 
 SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence. |
 | flexibility | `flexibility-cue-shift` | — | unverified | absent | **NOT VALIDATED** | Note is an unfilled template: section 2 reads 'EXACT verdict text: ' and 'Context: ' with nothing after them, and the other headings are stubs. No state was evidenced. Must be re-run. |
-| flexibility | `flexibility-rule-flip` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| flexibility | `flexibility-rule-flip` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | flexibility | `flexibility-task-switch` | 7.5 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(To be populated)" for scored feedback, pause and result. No state was evidenced. Must be re-run. |
 | language | `language-context-fit` | 8.1 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(Pending observation)" for the active board. No state was evidenced. Must be re-run. |
 | language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
