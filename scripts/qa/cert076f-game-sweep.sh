@@ -158,6 +158,23 @@ ARTEMIS_FLAGS=(
 # prompts). 1500s cut runs off with only sections 5-6 unfilled, which is worth
 # nothing, so the budget is set above the measured completion time.
 ARTEMIS_TIMEOUT="${BT_GAME_TIMEOUT:-3000}"
+# Killing the `artemis run` client does NOT stop the daemon's task: the daemon
+# keeps executing, keeps writing notes, and keeps holding the device so the next
+# game cannot start. Measured in this campaign - a client killed mid-run was
+# still writing its review note minutes later and blocking the queue. The sweep
+# therefore records the daemon session it started and stops it on any abnormal
+# exit, via the daemon's own /api/stop endpoint.
+CURRENT_SESSION=""
+cleanup() {
+  if [ -n "$CURRENT_SESSION" ]; then
+    echo "[cleanup] stopping daemon session $CURRENT_SESSION"
+    (cd "$REPO" && node scripts/qa/artemis-stop.mjs "$CURRENT_SESSION") || true
+    CURRENT_SESSION=""
+  fi
+}
+trap 'cleanup; exit 130' INT TERM
+trap 'cleanup' EXIT
+
 for g in "${GAMES[@]}"; do
   dest="$EV/$g"
   if [ -s "$dest/review.md" ]; then
@@ -182,6 +199,9 @@ for g in "${GAMES[@]}"; do
     >"$dest/artemis.log" 2>&1
   rc=$?
   echo "    client rc=$rc"
+  # Capture the daemon session the client was given, so an interrupted sweep can
+  # stop it instead of leaving it to finish on its own.
+  CURRENT_SESSION=$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$dest/artemis.log" 2>/dev/null | head -1)
   # The ARTEMIS CLI hard-codes a 1800 s client-side wait (`interfaces/cli/commands/run.py`
   # `wait_for_daemon_task(..., timeout=1800.0)`). Measured on this provider a complete
   # game journey needs ~35-60 min, so the client returns "Timed out after 1800.0s"
