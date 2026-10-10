@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T21:48:26.002Z",
+  "generatedAt": "2026-10-10T22:19:45.430Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
@@ -248,7 +248,7 @@
       "game": "memory-grid-recall",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
+      "reason": "controller produced no usable review note",
       "note": "absent",
       "identity": "unreviewed"
     },
