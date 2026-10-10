@@ -18,6 +18,14 @@ set -u
 # D:\Toolsrtemis\.env supplies the real one.
 unset OPENAI_API_KEY
 
+# Same CreateProcess/.cmd scrcpy issue as the game sweep: prepend the real
+# scrcpy.exe directory so recording starts instead of failing with WinError 2.
+SCRCPY_DIR=$(ls -d "$LOCALAPPDATA"/Microsoft/WinGet/Packages/Genymobile.scrcpy_*/scrcpy-win64-v* 2>/dev/null | head -1)
+if [ -n "$SCRCPY_DIR" ]; then
+  export PATH="$SCRCPY_DIR:$PATH"
+  echo "[info] scrcpy resolved to $SCRCPY_DIR"
+fi
+
 REPO="D:/Documents/tryPython/brain-training"
 ARTEMIS="D:/Tools/artemis"
 EV="$REPO/openspec/changes/076-f-final-product-certification/evidence/journeys"

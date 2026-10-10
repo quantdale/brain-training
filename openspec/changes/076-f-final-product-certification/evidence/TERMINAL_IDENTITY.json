@@ -8,8 +8,8 @@
   "versionCode": 1000,
   "abi": "x86_64",
   "buildCommand": "cd apps/mobile/android && ./gradlew.bat :app:assembleRelease --console=plain -PreactNativeArchitectures=x86_64",
-  "device": "not installed in the 2026-10-09 closure pass; historical device was emulator-5554 / AVD braintraining-ui35",
-  "deviceVerification": "NOT a current device pull. Historical base.apk pull at f760ee4 matched this hash. The 2026-10-09 section-3 rebuild hashed the host APK and matched e243341f; base.apk was not pulled. Task 7.3 stays unchecked.",
+  "device": "emulator-5570 / AVD braintraining-ui35 (Android 15, SDK 35, sdk_gphone64_x86_64 1080x2400) — 2026-10-10 install; the previous dedicated emulator-5554 was lost to the host memory blocker and this AVD was relaunched on a fresh port after the host recovered",
+  "deviceVerification": "VERIFIED on the current device 2026-10-10. The terminal APK was installed with `adb -s emulator-5570 install -r` (package com.braintraining.app), the installed base.apk was pulled from /data/app/.../base.apk and hashed: SHA-256 e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f, 48,888,452 bytes — an exact match to the host release APK and to this file's terminalApkSha256. Cold launch verified: `am start -W -n com.braintraining.app/.MainActivity` returned LaunchState COLD, Status ok, TotalTime 2399ms, MainActivity held mCurrentFocus, zero ANRs. Closes task 7.3.",
   "supersedes": {
     "terminalSourceSha": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
     "terminalApkSha256": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",

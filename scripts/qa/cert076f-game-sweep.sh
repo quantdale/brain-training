@@ -19,9 +19,30 @@ set -u
 # D:\Toolsrtemis\.env supplies the real one.
 unset OPENAI_API_KEY
 
+# ARTEMIS spawns `scrcpy` through CreateProcess, which cannot execute a .cmd
+# wrapper. The only scrcpy on this host PATH is the .cmd shim, so every spawn
+# failed with WinError 2 and the video-segment tools retried until timeout.
+SCRCPY_DIR=$(ls -d "$LOCALAPPDATA"/Microsoft/WinGet/Packages/Genymobile.scrcpy_*/scrcpy-win64-v* 2>/dev/null | head -1)
+if [ -n "$SCRCPY_DIR" ]; then
+  export PATH="$SCRCPY_DIR:$PATH"
+  echo "[info] scrcpy resolved to $SCRCPY_DIR"
+else
+  echo "[warn] scrcpy directory not found"
+fi
+
 REPO="D:/Documents/tryPython/brain-training"
 ARTEMIS="D:/Tools/artemis"
 EV="$REPO/openspec/changes/076-f-final-product-certification/evidence/current-device"
+
+# Terminal artifact identity, from evidence/TERMINAL_IDENTITY.json and verified
+# on this device in this session: the installed base.apk hashes to the same
+# SHA-256 as the host release APK (48,888,452 bytes, com.braintraining.app
+# 0.1.0/1000, ABI x86_64). The pre-076-f rows below were graded on the
+# superseded de6c5fcd... APK and are archived under _superseded-de6c5fcd/.
+TERMINAL_APK="e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f"
+TERMINAL_APK_BYTES="48,888,452"
+TERMINAL_SOURCE="b293a02e1cd5df260a66dd886c1d279978b68994"
+BT_DEVICE="${BT_DEVICE:-emulator-5570}"
 export BT_AVD_NAME=braintraining-ui35
 
 # Ordered so the 20 games whose PARENT redesign task is still unchecked (076-f
@@ -75,19 +96,40 @@ GAMES=(
 
 mkdir -p "$EV"
 
+# Optional subset override for resumable batching: BT_GAME_LIST="a b c" runs only
+# those games (still subject to the per-game resume guard below).
+if [ -n "${BT_GAME_LIST:-}" ]; then
+  read -r -a GAMES <<<"$BT_GAME_LIST"
+fi
+
+
 prompt_for() {
   cat <<EOF
 Locked app: com.braintraining.app. The deep link braintraining://game/$1 opens this game directly.
-Perform ONE current-device game-state acceptance journey and record it in note key 'game_state_review_log' with exactly these headings:
+Perform ONE current-device game-state acceptance journey for THIS game ($1) and record it in note key 'game_state_review_log' with exactly these headings:
 ## 1. Active Play Board  (board/stimulus content, every visible control and its literal label, round/score/timer chips, whether instructions are visible, whether the board is legible with clear hierarchy)
-## 2. Scored Feedback   (tap answers until a SCORED FEEDBACK appears - a correct/incorrect verdict or timeout reveal. Report the EXACT verdict text. An intro screen or unanswered board is NOT feedback)
+## 2. Scored Feedback   (a correct/incorrect verdict OR a timeout reveal both count. Report the EXACT verdict text. An intro screen or unanswered board is NOT feedback)
 ## 3. Pause & Resume     (open the PAUSE overlay, quote its buttons, then RESUME)
 ## 4. Final Result Screen (report every score/stat line and the reward exactly)
 ## 5. Input & Exit       (did taps register immediately? then exit to the games list and re-open this game to prove safe exit and return)
 ## 6. Defects            (clipped text, low contrast, hidden/unreachable action, overlap, unresponsive input - or 'none observed')
-End on the final RESULT screen.
+
+START HERE, IN THIS ORDER:
+1. Force-stop the app and fire the deep link from a cold state: run 'adb shell am force-stop com.braintraining.app' then 'adb shell am start -a android.intent.action.VIEW -d braintraining://game/$1'. Do NOT rely on whatever game is already on screen - a previous game may still be open and its board looks nothing like this one.
+2. CONFIRM IDENTITY BEFORE PLAYING: read the on-screen game title and confirm it is this game's own title and mechanic description. If the screen is a different game, re-fire the deep link from cold. A journey recorded for the wrong game is worthless.
+3. Only then start the game and work through sections 1-6 in order.
+
+EFFICIENCY CONTRACT - you have a hard wall-clock budget and an incomplete note is worth nothing:
+- Fill EVERY heading, in order, before you end. A note with a '_Pending' section is rejected.
+- Round timers here are roughly 10-15 seconds. Do NOT spend many turns trying to land an answer tap: after at most 3 unsuccessful answer attempts in a round, LET THE ROUND TIME OUT and capture the timeout reveal - that is valid scored feedback for section 2.
+- The round timer freezes while the PAUSE overlay is up, so open Pause and use 'adb shell uiautomator dump' beneath the overlay when you need the full board tree in one step.
+- Use 'adb shell uiautomator dump' + 'adb shell screencap' for evidence; do not wait on the LLM to describe a screenshot.
+- Reaching the RESULT screen requires playing every round. Waiting out timeouts is a legitimate and often the only way to get there - prefer it over burning turns.
+- Keep note updates SHORT and factual. Update the note once per heading, not once per observation.
+End on the final RESULT screen with all six headings filled.
 EOF
 }
+
 
 # Pro, not Flash: measured on the same game (attention-odd-one-out) the Flash
 # reactive loop ran UNBOUNDED - 120 steps / 351 LLM calls and never wrote its
@@ -111,6 +153,11 @@ ARTEMIS_FLAGS=(
   --disable-planner-validation
 )
 
+# Hard wall-clock budget per game. Measured on this provider: a complete journey
+# needs ~35-45 min (six rounds of a ~12s timer plus LLM latency on ~150k-token
+# prompts). 1500s cut runs off with only sections 5-6 unfilled, which is worth
+# nothing, so the budget is set above the measured completion time.
+ARTEMIS_TIMEOUT="${BT_GAME_TIMEOUT:-3000}"
 for g in "${GAMES[@]}"; do
   dest="$EV/$g"
   if [ -s "$dest/review.md" ]; then
@@ -120,25 +167,105 @@ for g in "${GAMES[@]}"; do
   mkdir -p "$dest"
   name="cert076f-game-$g"
   echo "=== [$(date +%H:%M:%S)] $g ==="
-  (cd "$ARTEMIS" && timeout 1500 uv run artemis run "$(prompt_for "$g")" \
+  (cd "$ARTEMIS" && timeout "$ARTEMIS_TIMEOUT" uv run artemis run "$(prompt_for "$g")" \
     "${ARTEMIS_FLAGS[@]}" --test-name "$name") \
     >"$dest/artemis.log" 2>&1
   rc=$?
-  echo "    artemis rc=$rc"
+  echo "    client rc=$rc"
+  # The ARTEMIS CLI hard-codes a 1800 s client-side wait (`interfaces/cli/commands/run.py`
+  # `wait_for_daemon_task(..., timeout=1800.0)`). Measured on this provider a complete
+  # game journey needs ~35-60 min, so the client returns "Timed out after 1800.0s"
+  # (rc=1) while the DAEMON keeps executing: the task finishes minutes later and its
+  # note is completed then. So the client return code alone is not the outcome —
+  # poll the daemon's session notes until the note has all six headings filled.
+  POLL_BUDGET="${BT_POLL_BUDGET:-3000}"
+  # Only harvest a session created during THIS game's attempt. Without this a
+  # previous run's trace for the same game would be mistaken for this run's.
+  SESSION_MAX_AGE="${BT_SESSION_MAX_AGE:-5400}"
+  # Identity: a session belongs to THIS game when its task plan or review log
+  # names the game's own deep link / registry id. The test name never lands in
+  # stdout.log, and matching on the newest session alone mis-attributes a run
+  # (measured: one sweep harvested a note describing the PREVIOUS game), so the
+  # match is always on the game id.
+  find_note() {
+    # Echo the note path for the newest FRESH session that genuinely documents
+    # THIS game. Three conditions, all required: the session is fresh, it names
+    # the game's deep link (or id) in its plan, the note is complete, AND the note
+    # body names this game's own display title. The last one is what rejects a
+    # note that carried the right id in its header but documented another game.
+    local cand n age
+    for cand in $(ls -t "$ARTEMIS/traces" 2>/dev/null | grep -E "^[0-9a-f]{8}-" | head -10); do
+      n="$ARTEMIS/traces/$cand/notes/game_state_review_log.md"
+      [ -s "$n" ] || continue
+      age=$(( $(date +%s) - $(stat -c %Y "$ARTEMIS/traces/$cand" 2>/dev/null || stat -f %m "$ARTEMIS/traces/$cand" 2>/dev/null || echo 0) ))
+      [ "$age" -le "$SESSION_MAX_AGE" ] || continue
+      if grep -q "game/$g\b" "$ARTEMIS/traces/$cand/notes/task_plan.md" 2>/dev/null ||
+         grep -q "game/$g\b" "$n" 2>/dev/null; then
+        if note_complete "$n"; then
+          echo "$n"
+          return 0
+        fi
+      fi
+    done
+    return 1
+  }
+  # The registry display name for this game, so a note can be REJECTED when it
+  # describes a different game. Measured failure: the controller wrote a note whose
+  # own header named the right game id but whose sections documented the PREVIOUS
+  # game (its result screen carried attention-odd-one-out.results ids). A header
+  # naming the id proves nothing; the body must name this game's own title.
+  expected_name() {
+    # Print the registry display name for this game id.
+    (cd "$REPO" && node scripts/qa/game-name.mjs "$g" 2>/dev/null)
+  }
+  WANT_NAME=$(expected_name)
+  # Every section of the log must carry real content: a heading with nothing under
+  # it is not evidence. 60 chars is above any heading-plus-parenthesis stub.
+  MIN_SECTION_CHARS="${BT_MIN_SECTION_CHARS:-60}"
+  note_complete() {
+    local f="$1"
+    [ -s "$f" ] || return 1
+    grep -qi "_Pending" "$f" && return 1
+    # The body must name this game's own title. A case-folded substring match is
+    # used because Git Bash's grep aborts on `-i` combined with `-F`.
+    if [ -n "$WANT_NAME" ]; then
+      local fold="$(printf '%s' "$WANT_NAME" | tr '[:upper:]' '[:lower:]')"
+      local hay="$(tr '[:upper:]' '[:lower:]' < "$f")"
+      case "$hay" in
+        *"$fold"*) : ;;
+        *) return 1 ;;
+      esac
+    fi
+    local sec
+    for sec in 1 2 3 4 5 6; do
+      local body
+      body=$(awk -v s="^## $sec[.]" '
+        $0 ~ s {insec=1; next}
+        inseci && /^## / {insec=0}
+        insec {buf = buf $0 "\n"}
+        END {printf "%s", buf}' "$f")
+      if [ "${#body}" -lt "$MIN_SECTION_CHARS" ]; then
+        return 1
+      fi
+    done
+    return 0
+  }
 
-  # Locate the newest session dir holding this test name's notes.
-  sess=$(ls -t "$ARTEMIS/traces" 2>/dev/null | grep -E "^[0-9a-f]{8}-" | head -1)
+  echo "    polling daemon for up to ${POLL_BUDGET}s (client rc is not the outcome)..."
+  waited=0
   note=""
-  for cand in $(ls -t "$ARTEMIS/traces" | grep -E "^[0-9a-f]{8}-" | head -4); do
-    if [ -s "$ARTEMIS/traces/$cand/notes/game_state_review_log.md" ]; then
-      # Confirm this session actually belongs to our test name.
-      if grep -q "$name" "$ARTEMIS/traces/$cand/stdout.log" 2>/dev/null; then
-        note="$ARTEMIS/traces/$cand/notes/game_state_review_log.md"
-        sess="$cand"
+  while [ "$waited" -lt "$POLL_BUDGET" ]; do
+    if note=$(find_note); then
+      if note_complete "$note"; then
+        echo "    note complete after ${waited}s of daemon polling"
         break
       fi
     fi
+    sleep 20
+    waited=$((waited + 20))
   done
+  note=$(find_note || true)
+  sess=$(basename "$(dirname "$(dirname "${note:-/x/y}")")" 2>/dev/null || echo none)
 
   {
     echo "# Current-device acceptance — \`$g\`"
@@ -147,11 +274,14 @@ for g in "${GAMES[@]}"; do
     echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`pro\` (lean: checker/step-summarizer/committee/planner-validation/video disabled - see ../../CONTROLLER.md), locked app \`com.braintraining.app\`"
     echo "- Test name: \`$name\`"
     echo "- ARTEMIS session: \`$sess\` (raw trace external to Git)"
-    echo "- Device: emulator-5554 / AVD braintraining-ui35"
-    echo "- APK under test: \`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d\` (48,888,204 bytes, com.braintraining.app 0.1.0/1000)"
-    echo "- Controller exit code: $rc"
-    if [ -n "$note" ]; then
-      echo "- Controller review note: PRESENT"
+    echo "- Device: $BT_DEVICE / AVD braintraining-ui35 (Android 15, SDK 35, sdk_gphone64_x86_64 1080x2400)"
+    echo "- APK under test: \`$TERMINAL_APK\` ($TERMINAL_APK_BYTES bytes, com.braintraining.app 0.1.0/1000), built from source $TERMINAL_SOURCE"
+    echo "- Device hash: installed base.apk matched $TERMINAL_APK exactly (pulled from $BT_DEVICE)"
+    echo "- Controller exit code: $rc (the CLI client's own 1800 s wait cap, NOT the journey outcome)"
+    if note_complete "${note:-/dev/null}"; then
+      echo "- Controller review note: PRESENT (all six headings filled)"
+    elif [ -n "$note" ]; then
+      echo "- Controller review note: PRESENT BUT INCOMPLETE — this row is NOT VALIDATED"
     else
       echo "- Controller review note: ABSENT — this row is NOT VALIDATED"
     fi
