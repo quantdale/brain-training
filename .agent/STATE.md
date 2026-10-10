@@ -27,6 +27,46 @@
 > | Jest 621 / 7,237 | **622 suites / 7,241 tests / 5 snapshots** — two additive regression guards; the old baseline did not drop |
 > | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\.env`. Both smokes PASS. |
 >
+> **076-f correction #5 — 2026-10-10, current sweep state (3 of 42 games
+> validated on the terminal APK).** The device lane is restored (correction #4) and
+> the 42-game current-device sweep is running through ARTEMIS. Completed and
+> identity-verified on `e243341f…`:
+> `attention-odd-one-out` (Odd One Out), `attention-sustained-vigilance`
+> (Signal Watch), `attention-symbol-tracker` (Symbol Tracker).
+>
+> Three sweep defects were found and fixed in this session, each of which had
+> been silently producing wrong or empty acceptance rows:
+>
+> 1. **scrcpy could not start** (`WinError 2`) because `CreateProcess` cannot run
+>    a `.cmd` shim and the WinGet `scrcpy.exe` sits outside `PATH`. Every
+>    video-segment tool then retried until the task timed out. Fixed by
+>    prepending the real `scrcpy.exe` directory.
+> 2. **Session identity was matched on the test name in `stdout.log`**, where that
+>    name never appears, so a note describing one game was filed under another.
+>    Identity now requires the game's deep link in the task plan, a fresh
+>    session, and the note body naming the game's own registry title.
+> 3. **Completeness was judged from six headings alone**, so a note with five of
+>    six sections empty was accepted. Sections must now carry real content and
+>    must not be a labelled-but-empty template.
+>
+> A fourth, and the dominant one: the deep link does not re-route an
+> already-foreground app, so a task for one game documented the previous game's
+> board. The sweep now force-stops the app before handing the device over.
+>
+> **One runtime defect reproduced (D3):** the shared `Button` applies
+> `opacity: 0.5` when disabled, which collapses the GO control's fill and label
+> to ~1.08:1 contrast in the post-trial state. Filed in
+> `evidence/DEFECTS_CURRENT.md`, deliberately **not** repaired yet because the
+> fix is shared chrome used by all 42 games and would invalidate every row
+> captured so far.
+>
+> **Ledger:** 076-f `tasks.md` 8 checked / 34 unchecked (7.3 closed this
+> session). Assessment: **PASS 3, NOT VALIDATED 39**. Verdict unchanged:
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
+>
+> **070-f ledger state below is historical.** Post-reboot ledger state:
+> `openspec/changes/076-f-final-product-certification/tasks.md`.
+>
 > **CORRECTION #4 — 2026-10-10, the device lane is RESTORED (supersedes
 > correction #2's `BLOCKED_HOST_ANDROID_EMULATOR`).** The host was **not** rebooted
 > (uptime is continuous since Oct 8 03:20), and PID 50120 is **still** unreapable

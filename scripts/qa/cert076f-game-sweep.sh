@@ -288,12 +288,37 @@ for g in "${GAMES[@]}"; do
   echo "    polling daemon for up to ${POLL_BUDGET}s (client rc is not the outcome)..."
   waited=0
   note=""
+  idle=0
   while [ "$waited" -lt "$POLL_BUDGET" ]; do
     if note=$(find_note); then
       if note_complete "$note"; then
         echo "    note complete after ${waited}s of daemon polling"
         break
       fi
+    fi
+    # A finished task with an incomplete note must not hold the sweep for the
+    # whole poll budget. The daemon keeps a task's process alive only while it
+    # runs, so 'no artemis process AND no trace touched recently' means this
+    # game is not going to finish and the row will be NOT VALIDATED.
+    if ! pgrep -f "artemis run" >/dev/null 2>&1; then
+      newest=$(ls -t "$ARTEMIS/traces" 2>/dev/null | head -1)
+      if [ -n "$newest" ]; then
+        age=$(( $(date +%s) - $(stat -c %Y "$ARTEMIS/traces/$newest" 2>/dev/null || echo 0) ))
+        if [ "$age" -gt 240 ]; then
+          idle=$((idle + 20))
+          if [ "$idle" -ge 120 ]; then
+            echo "    daemon task ended with an incomplete note — moving on"
+            break
+          fi
+        else
+          idle=0
+        fi
+      else
+        idle=$((idle + 20))
+        if [ "$idle" -ge 120 ]; then break; fi
+      fi
+    else
+      idle=0
     fi
     sleep 20
     waited=$((waited + 20))
