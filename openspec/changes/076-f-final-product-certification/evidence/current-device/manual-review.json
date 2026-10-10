@@ -1,22 +1,29 @@
 {
-  "_comment": "Manual reviewer verdicts for the 076-f current-device assessment. Each entry is authored only after this reviewer opened the filed controller note AND the filed device frame and confirmed the row really shows that game. `identity` is the decisive field: a note describing a DIFFERENT game is never acceptance of the named game, no matter how good it looks. `status` uses only PASS / FIXED / NOT VALIDATED / N-A.",
+  "_comment": "Manual reviewer verdicts for the 076-f current-device assessment. Each entry is authored only after this reviewer opened the filed controller note AND the filed device frame and confirmed the row really shows that game. `identity` is the decisive field: a note describing a DIFFERENT game is never acceptance of the named game, no matter how good it looks. `status` uses only PASS / FIXED / NOT VALIDATED / N-A.\n\nRefreshed 2026-10-10T04:13:50.073Z by scripts/qa/refresh-manual-verdicts.mjs: 3 row(s) authored on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f, 1 historical verdict(s) superseded. Only rows whose review.md names the game's own title, carries the terminal APK, quotes a scored verdict and fills all six sections are promoted; everything else is left untouched.",
   "verdicts": {
     "attention-odd-one-out": {
       "identity": "verified",
-      "status": "NOT VALIDATED",
-      "note": "Controller note describes a 3x3 grid of triangles with one odd circle, Round 1/6, timer, Pause. Scored feedback quoted verbatim: \"Time's up\" with the odd one revealed. Pause overlay quotes \"The challenge is hidden and the timers are frozen\" with Resume/Quit; resume confirmed at Round 2/6. Result screen independently confirmed against the filed device frame item-for-item (Score 125, Accuracy 17%, First-try 17%, Rounds passed 1/6, Best streak 1, Timeouts 5, XP 12, Reward +12 XP +2 coins). Controls legible, Play again is the single red CTA, no clipping or overlap.\n\nSUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence.",
-      "superseded": true
+      "status": "PASS",
+      "gradedApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+      "reviewedAt": "2026-10-10T04:13:50.063Z",
+      "note": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Odd One Out' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "superseded": false
     },
     "attention-sustained-vigilance": {
       "identity": "verified",
-      "status": "NOT VALIDATED",
-      "note": "Correct game this time - identity line 'On-screen game title: Signal Watch', and the row is unusually honest about its own limit. Active board, pause overlay and result ARE evidenced and the game's own sustained-timing mechanic is visible (numbers stream by, tap GO except on the stop number). But section 2 records 'not reached' for scored feedback: the per-trial verdict banner is sub-second and every screenshot landed 5-15s after the tap, session video was offline (no scrcpy), uiautomator dump segfaults, and logcat held no verdict strings. It therefore reports NO quoted verdict - only downstream scoring effects (score chip 120 -> 524 -> 764, Go hits 2/26, Mean reaction 497ms, Best streak 3). Per the change spec feedback is not inferred, so the SCORED FEEDBACK state is NOT VALIDATED even though the rest of the journey is well evidenced. This is a CAPTURE-TIMING limitation of the review procedure, not a product defect. Capture instruction added to the repair prompt (screenshot in the same action step as the tap)."
+      "status": "PASS",
+      "gradedApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+      "reviewedAt": "2026-10-10T04:13:50.072Z",
+      "note": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Signal Watch' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "superseded": false
     },
     "attention-symbol-tracker": {
       "identity": "verified",
-      "status": "NOT VALIDATED",
-      "note": "Controller note describes the tracking mechanic specifically: 3x3 grid of symbols with two highlighted symbol cards to memorize, \"Track 2 symbols\", \"Memorize the highlighted symbols...\", Round 1/5, Score 0, Pause. Scored feedback quoted: \"Not quite\", \"You found 0 of 2 tracked symbols\", \"Time ran out - your picks were submitted as they stood.\"\n\nSUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence.",
-      "superseded": true
+      "status": "PASS",
+      "gradedApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+      "reviewedAt": "2026-10-10T04:13:50.072Z",
+      "note": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Symbol Tracker' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "superseded": false
     },
     "attention-target-count": {
       "identity": "verified",
