@@ -1,5 +1,15 @@
 # Device blocker — 076-f (2026-10-09)
 
+> **RESOLVED 2026-10-10 — the device lane is restored. Read [`DEVICE_RECOVERY.md`](DEVICE_RECOVERY.md)
+> first.** The prompt that sent the resuming session claimed the host had been
+> rebooted; it had not. What actually unblocked the device was discovering that
+> the blocker was a **port-5554 collision**, not a held WHPX partition: the zombie
+> still owns 5554/5555, but a fresh port allocates a new VM and the guest boots.
+> `braintraining-ui35` is now running as `emulator-5570`, the terminal APK is
+> installed on it, and the pulled `base.apk` hashes to the terminal APK exactly.
+>
+> The measurements and the ten attempts below are kept unchanged as history.
+
 **Change:** `076-f-final-product-certification`
 **Scope:** every requirement in the campaign prompt that needs an Android device:
 §3 (install + device hash), §4 (42 current-device game rows), §5 (the gameplay

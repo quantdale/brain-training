@@ -27,8 +27,21 @@
 > | Jest 621 / 7,237 | **622 suites / 7,241 tests / 5 snapshots** — two additive regression guards; the old baseline did not drop |
 > | blocker = Google free-tier quota | authentication **succeeded**: ARTEMIS was moved to the owner-directed external OpenDesign endpoint, object detection stayed on the required Gemini ER model, credentials live only in `D:\Tools\artemis\.env`. Both smokes PASS. |
 >
-> **076-f correction #2 — 2026-10-09, `BLOCKED_HOST_ANDROID_EMULATOR` (the current
-> terminal state of the device lane).** The dedicated emulator died of host memory
+> **CORRECTION #4 — 2026-10-10, the device lane is RESTORED (supersedes
+> correction #2's `BLOCKED_HOST_ANDROID_EMULATOR`).** The host was **not** rebooted
+> (uptime is continuous since Oct 8 03:20), and PID 50120 is **still** unreapable
+> — `taskkill /F` reports "There is no running instance of the task" and WMI
+> `Terminate` returns 0 while the process object, its 1571 handles and ports
+> 5554/5555 survive. What was NOT known on Oct 9 is that the **WHPX partition was
+> released**: a new VM allocates, and the blocker's "every launch aborts with too
+> many emulator instances" was a port-5554 collision, not a hypervisor lock.
+> The dedicated AVD `braintraining-ui35` was therefore relaunched headless on a
+> **fresh port** (`--port 5570`), giving `emulator-5570`, online with
+> `sys.boot_completed=1`. Free RAM at launch was ~1.4 GB (target ≥6 GB), so the
+> host remains memory-constrained. See `evidence/DEVICE_RECOVERY.md`.
+>
+> **076-f correction #2 — 2026-10-09, `BLOCKED_HOST_ANDROID_EMULATOR` (historical
+> as a current-state claim; superseded by correction #4).** The dedicated emulator died of host memory
 > exhaustion and cannot be restarted, so the device-owned work could not run.
 > Measured: free RAM fell to **676 MB of 32 GB**; `qemu-system-x86_64-headless.exe`
 > (PID 50120) is unreapable and holds ports 5554/5555 plus the WHPX partition;
