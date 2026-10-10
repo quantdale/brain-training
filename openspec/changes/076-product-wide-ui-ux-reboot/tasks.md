@@ -47,11 +47,15 @@
 
 ## 6. Attention game modules (own only each named game's directory)
 
-- [ ] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
-- [ ] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
-- [ ] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
+- [x] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
+  **Re-checked 2026-10-10 with linked current-device evidence on the terminal APK `e243341f…`.** The earlier NOT VALIDATED classification is superseded: `openspec/changes/076-f-final-product-certification/evidence/current-device/attention-odd-one-out/review.md` captures active board, quoted feedback ("Found it!" / Score 125, and timeout reveal "Time's up"), pause/resume, final result and input responsiveness, and the odd-one-out selection mechanic is retained. Frames from `de6c5fcd…` remain historical and are not terminal-APK captures.
+- [x] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
+  **Re-checked 2026-10-10 with linked current-device evidence on the terminal APK `e243341f…`.** Evidence: `…/076-f…/current-device/attention-sustained-vigilance/review.md` (resource-id namespace `attention-sustained-vigilance.*`), quoted feedback, pause/resume, final result, and the sustained-timing mechanic retained. A contrast defect in the shared GO control is filed under 076-f task 4.1 and is not closed.
+- [x] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
+  **Re-checked 2026-10-10 with linked current-device evidence on the terminal APK `e243341f…`.** Evidence: `…/076-f…/current-device/attention-symbol-tracker/review.md`, quoted feedback, pause/resume, final result, tracking mechanic retained.
 - [x] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
-- [ ] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
+- [x] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
+  **Re-checked 2026-10-10 with linked current-device evidence on the terminal APK `e243341f…`.** Evidence: `…/076-f…/current-device/attention-visual-search/review.md`, quoted feedback, pause/resume, final result, search mechanic retained.
 
 ## 7. Flexibility game modules
 
