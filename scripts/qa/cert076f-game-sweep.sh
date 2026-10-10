@@ -289,36 +289,46 @@ for g in "${GAMES[@]}"; do
   waited=0
   note=""
   idle=0
+  last_note_size=-1
   while [ "$waited" -lt "$POLL_BUDGET" ]; do
     if note=$(find_note); then
       if note_complete "$note"; then
         echo "    note complete after ${waited}s of daemon polling"
         break
       fi
-    fi
-    # A finished task with an incomplete note must not hold the sweep for the
-    # whole poll budget. The daemon keeps a task's process alive only while it
-    # runs, so 'no artemis process AND no trace touched recently' means this
-    # game is not going to finish and the row will be NOT VALIDATED.
-    if ! pgrep -f "artemis run" >/dev/null 2>&1; then
-      newest=$(ls -t "$ARTEMIS/traces" 2>/dev/null | head -1)
-      if [ -n "$newest" ]; then
-        age=$(( $(date +%s) - $(stat -c %Y "$ARTEMIS/traces/$newest" 2>/dev/null || echo 0) ))
-        if [ "$age" -gt 240 ]; then
+      # A finished task with an incomplete note must not hold the sweep for the
+      # whole poll budget. Measured: a task that ended at 13:39 with three of six
+      # sections filled kept the sweep polling because its only exit condition
+      # was 'the note is complete'. The daemon keeps a task's process alive only
+      # while it runs, so 'no artemis process AND this game's note has not grown
+      # for four minutes' means the row is already lost.
+      if ! pgrep -f "artemis run" >/dev/null 2>&1; then
+        size=$(stat -c %s "$note" 2>/dev/null || echo 0)
+        if [ "$size" -eq "$last_note_size" ]; then
           idle=$((idle + 20))
-          if [ "$idle" -ge 120 ]; then
-            echo "    daemon task ended with an incomplete note — moving on"
+          if [ "$idle" -ge 240 ]; then
+            echo "    daemon task ended with an incomplete (unchanged) note - row is NOT VALIDATED"
             break
           fi
         else
           idle=0
+          last_note_size="$size"
         fi
       else
-        idle=$((idle + 20))
-        if [ "$idle" -ge 120 ]; then break; fi
+        idle=0
+        last_note_size=-1
       fi
     else
-      idle=0
+      # No note at all: if the daemon task has also gone, do not wait it out.
+      if ! pgrep -f "artemis run" >/dev/null 2>&1; then
+        idle=$((idle + 20))
+        if [ "$idle" -ge 240 ]; then
+          echo "    daemon task ended without producing a note - row is NOT VALIDATED"
+          break
+        fi
+      else
+        idle=0
+      fi
     fi
     sleep 20
     waited=$((waited + 20))
