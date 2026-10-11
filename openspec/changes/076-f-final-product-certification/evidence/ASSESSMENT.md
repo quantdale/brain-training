@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 16 |
-| NOT VALIDATED | 26 |
+| PASS | 18 |
+| NOT VALIDATED | 24 |
 | **Total** | **42** |
 
 ## Assessment
@@ -73,8 +73,8 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | memory | `memory-grid-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory-pair-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory-pattern-tap-back` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| memory | `memory-prospective-cue` | 11.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| memory | `memory-running-order` | 11.6 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-prospective-cue` | 11.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Cue Keeper' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
+| memory | `memory-running-order` | 11.6 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Running Order' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | memory | `memory-sequence-memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | spatial | `spatial-coordinate-turn` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | spatial | `spatial-fold-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
