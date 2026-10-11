@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T03:17:09.466Z",
+  "generatedAt": "2026-10-11T04:15:22.631Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 4,
-    "NOT VALIDATED": 38
+    "PASS": 5,
+    "NOT VALIDATED": 37
   },
   "rows": [
     {
@@ -373,10 +373,10 @@
       "domain": "speed",
       "game": "speed-reaction-time",
       "parentTask": "—",
-      "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
-      "identity": "unreviewed"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Reaction Time' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "speed",
