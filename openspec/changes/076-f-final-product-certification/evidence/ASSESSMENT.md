@@ -84,7 +84,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | spatial | `spatial-mental-rotation` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | speed | `speed-quick-compare` | 13.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
 | speed | `speed-reaction-time` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-tap-rush` | 13.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
