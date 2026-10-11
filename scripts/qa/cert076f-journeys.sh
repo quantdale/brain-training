@@ -49,8 +49,35 @@ for entry in "${JOURNEYS[@]}"; do
   key="${entry%%|*}"
   goal="${entry#*|}"
   dest="$EV/$key"
-  if [ -s "$dest/journey.md" ] && ! grep -q "NOT VALIDATED" "$dest/journey.md"; then
-    echo "[skip] $key"
+  # A row is only "done" when it carries a SUBSTANTIVE journey log. A file that
+  # exists is not evidence: the controller can return a note that is the template
+  # with every field empty ('- Personal record:' and nothing after), and accepting
+  # that as a pass is exactly the over-claim this campaign exists to catch.
+  journey_complete() {
+    local f="$1"
+    [ -s "$f" ] || return 1
+    # The two headings that must each carry real content.
+    grep -q '^## Executed steps' "$f" || return 1
+    grep -q '^## Observed outcome' "$f" || return 1
+    # Template stubs: a labelled field with no value after the colon.
+    if grep -qE '^[-*] *[A-Za-z][A-Za-z ]{2,40}: *$' "$f"; then return 1; fi
+    # Each required section must carry at least this much real text.
+    local sec
+    for sec in 'Planned steps' 'Executed steps' 'Observed outcome' 'Defects'; do
+      local body
+      body=$(awk -v s="^## $sec" '
+        $0 ~ s {insec=1; next}
+        insec && /^## / {insec=0}
+        insec {buf = buf $0 "\n"}
+        END {printf "%s", buf}' "$f")
+      if [ "${#body}" -lt "${BT_MIN_JOURNEY_CHARS:-80}" ]; then
+        return 1
+      fi
+    done
+    return 0
+  }
+  if journey_complete "$dest/journey.md"; then
+    echo "[skip] $key (complete)"
     continue
   fi
   mkdir -p "$dest"
@@ -74,10 +101,28 @@ A request that did not execute the journey is NOT a pass - say so explicitly." \
   note=""
   [ -n "${sess:-}" ] && [ -s "$ARTEMIS/traces/$sess/notes/journey_log.md" ] && note="$ARTEMIS/traces/$sess/notes/journey_log.md"
 
-  if [ -n "$note" ]; then
-    note_status="PRESENT"
+  if [ -n "$note" ] && journey_complete "$note"; then
+    note_status="PRESENT (all four sections carry substantive content)"
+  elif [ -n "$note" ]; then
+    note_status="PRESENT BUT INCOMPLETE — this journey is NOT VALIDATED"
   else
     note_status="ABSENT — this journey is NOT VALIDATED"
+  fi
+
+  # The daemon keeps executing after the CLI client's 1500 s wait cap, so poll
+  # for the session note before deciding the journey is not valid.
+  if [ "$note_status" != "PRESENT (all four sections carry substantive content)" ]; then
+    for _ in $(seq 1 "${BT_JOURNEY_POLL:-45}"); do
+      sleep 20
+      [ -n "${sess:-}" ] || break
+      n2="$ARTEMIS/traces/$sess/notes/journey_log.md"
+      [ -s "$n2" ] || continue
+      if journey_complete "$n2"; then
+        note="$n2"
+        note_status="PRESENT (all four sections carry substantive content)"
+        break
+      fi
+    done
   fi
 
   {
@@ -85,17 +130,19 @@ A request that did not execute the journey is NOT a pass - say so explicitly." \
     echo
     echo "- Controller: external ARTEMIS (D:\\Tools\\artemis), profile \`pro\`, locked app \`com.braintraining.app\`"
     echo "- ARTEMIS session: \`${sess:-unknown}\` (raw trace external to Git)"
-    echo "- Device: emulator-5554 / AVD braintraining-ui35"
-    echo "- APK under test: \`de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d\`"
-    echo "- Controller exit code: $rc"
+    echo "- Device: ${BT_DEVICE:-emulator-5570} / AVD braintraining-ui35 (Android 15, SDK 35, sdk_gphone64_x86_64 1080x2400)"
+    echo "- APK under test: \`${TERMINAL_APK:-e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f}\` (48,888,452 bytes, com.braintraining.app 0.1.0/1000), built from source b293a02e1cd5df260a66dd886c1d279978b68994"
+    echo "- Device hash: installed base.apk matched ${TERMINAL_APK:-e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f} exactly (pulled from ${BT_DEVICE:-emulator-5570})"
+    echo "- Controller exit code: $rc (the CLI client's own 1500 s wait cap, NOT the journey outcome)"
     echo "- Journey log: $note_status"
     echo
-    if [ -n "$note" ]; then
+    if [ "$note_status" = "PRESENT (all four sections carry substantive content)" ]; then
       cat "$note"
     else
-      echo "_No journey log produced. **NOT VALIDATED** — see artemis.log._"
+      echo "_No substantive journey log was produced. **This journey is NOT VALIDATED.**_"
+      echo "_See artemis.log for the controller's own output; do not treat a returned file as acceptance._"
     fi
   } >"$dest/journey.md"
-  echo "    rc=$rc sess=$sess"
+  echo "    rc=$rc sess=$sess -> $note_status"
 done
 echo "=== JOURNEYS COMPLETE $(date -Iseconds) ==="
