@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 5 |
-| NOT VALIDATED | 37 |
+| PASS | 7 |
+| NOT VALIDATED | 35 |
 | **Total** | **42** |
 
 ## Assessment
@@ -50,44 +50,42 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | flexibility | `flexibility-card-sort` | — | verified | absent | **NOT VALIDATED** | RE-RUN after the first attempt was downgraded (findings F1/F2: no scored verdict, no pause/result, and a mis-filed frame belonging to attention-target-count). This run evidences the correct game decisively - the result-screen stats are card-sort's own layout (Accuracy, Speed, After rule switches, Discovery rounds, Best streak, Mistakes, XP), which no other game has. Active board: Round 1/10-10/10, score chips, Pause, rule banners 'Match by SHAPE' / 'Match by COLOR', 2x2 option-card grid. Scored feedback is now QUOTED (verdict 'Correct!' with descriptive match text 'Matched by shape: red circle') rather than the rule-switch notice that was wrongly quoted before. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume) with resume confirmed. Result screen itemised: 'Solid work', score 900, Accuracy 90%, Speed 0%, After rule switches 100%, Discovery rounds 67%, Best streak 5, Mistakes 1, XP 38, Reward +38 XP +7 coins, Progress saved. Taps immediate with safe exit and re-open; no defects observed. Sorting mechanic retained.
 
 SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence. |
-| flexibility | `flexibility-color-stroop` | 7.2 | verified | absent | **NOT VALIDATED** | Played the correct game decisively - board resource-ids are flexibility-color-stroop.* with 'Rule: INK'/'Rule: WORD' flip mechanics, four answer chips labelled red/blue/green/yellow. Scored feedback QUOTED verbatim and correctly distinguished from timeout: Trial 3 'Wrong!' / 'It was yellow' / '325ms' (red ✕ card), Trial 4 'Correct!' / '651ms' (green ✓ card), and a gold ⏱ 'Time's up!' / 'It was green' / '1500ms' card explicitly identified as timeout feedback rather than scored feedback. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume red-primary / Quit) with resume restoring the exact Trial 3 card and the timer proven frozen during pause. Result screen itemised: 'Keep training', score 128, Accuracy 7%, Correct 1/15, Best streak 1, Post-flip correct 0, XP 11, 'Reward +11 XP · +2 coins', 'Progress saved', Play again/Done. Inputs registered (Next trial 1/15 -> 15/15, answers at 325ms and 651ms). Stroop rule-flip mechanic retained. NOTE: filed as flexibility-color-stroop because that is the game actually played and reported; the run was requested for language-word-chain and the deep link did not re-route an already-foreground app - see the navigation finding recorded in REVIEW.md. Candidate defects (button dead-edge tap zone, Pause position drift) are recorded in the row's section 6 and require reproduction before any production edit.
-
-SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence. |
+| flexibility | `flexibility-color-stroop` | 7.2 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Color Stroop' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | flexibility | `flexibility-cue-shift` | — | unverified | absent | **NOT VALIDATED** | Note is an unfilled template: section 2 reads 'EXACT verdict text: ' and 'Context: ' with nothing after them, and the other headings are stubs. No state was evidenced. Must be re-run. |
-| flexibility | `flexibility-rule-flip` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| flexibility | `flexibility-task-switch` | 7.5 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(To be populated)" for scored feedback, pause and result. No state was evidenced. Must be re-run. |
+| flexibility | `flexibility-rule-flip` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| flexibility | `flexibility-task-switch` | 7.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Task Switch' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | language | `language-context-fit` | 8.1 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(Pending observation)" for the active board. No state was evidenced. Must be re-run. |
-| language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| language | `language-word-chain` | 8.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-order-path` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| logic | `logic-rule-grid` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| math | `math-equation-builder` | 10.1 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| math | `math-fast-math` | 10.2 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| math | `math-missing-operator` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| math | `math-number-line-estimation` | 10.4 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| math | `math-value-ordering` | 10.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-grid-recall` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-pair-recall` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-pattern-tap-back` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-prospective-cue` | 11.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-running-order` | 11.6 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| memory | `memory-sequence-memory` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| spatial | `spatial-coordinate-turn` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| spatial | `spatial-fold-match` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| spatial | `spatial-grid-nav` | 12.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| spatial | `spatial-mental-rotation` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
-| speed | `speed-quick-compare` | 13.3 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
+| language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-chain` | 8.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-order-path` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-rule-grid` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-equation-builder` | 10.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-fast-math` | 10.2 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-missing-operator` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-number-line-estimation` | 10.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| math | `math-value-ordering` | 10.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-grid-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-pair-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-pattern-tap-back` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-prospective-cue` | 11.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-running-order` | 11.6 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory-sequence-memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-coordinate-turn` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-fold-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-grid-nav` | 12.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-mental-rotation` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| speed | `speed-quick-compare` | 13.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-reaction-time` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Reaction Time' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| speed | `speed-tap-rush` | 13.5 | unreviewed | absent | **NOT VALIDATED** | controller produced no usable review note |
+| speed | `speed-tap-rush` | 13.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 
 ## What a NOT VALIDATED row means
 

@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T04:15:22.631Z",
+  "generatedAt": "2026-10-11T05:17:09.033Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 5,
-    "NOT VALIDATED": 37
+    "PASS": 7,
+    "NOT VALIDATED": 35
   },
   "rows": [
     {
@@ -67,9 +67,9 @@
       "domain": "flexibility",
       "game": "flexibility-color-stroop",
       "parentTask": "7.2",
-      "status": "NOT VALIDATED",
-      "reason": "Played the correct game decisively - board resource-ids are flexibility-color-stroop.* with 'Rule: INK'/'Rule: WORD' flip mechanics, four answer chips labelled red/blue/green/yellow. Scored feedback QUOTED verbatim and correctly distinguished from timeout: Trial 3 'Wrong!' / 'It was yellow' / '325ms' (red ✕ card), Trial 4 'Correct!' / '651ms' (green ✓ card), and a gold ⏱ 'Time's up!' / 'It was green' / '1500ms' card explicitly identified as timeout feedback rather than scored feedback. Pause overlay quoted ('Paused', 'The challenge is hidden and the timers are frozen.', Resume red-primary / Quit) with resume restoring the exact Trial 3 card and the timer proven frozen during pause. Result screen itemised: 'Keep training', score 128, Accuracy 7%, Correct 1/15, Best streak 1, Post-flip correct 0, XP 11, 'Reward +11 XP · +2 coins', 'Progress saved', Play again/Done. Inputs registered (Next trial 1/15 -> 15/15, answers at 325ms and 651ms). Stroop rule-flip mechanic retained. NOTE: filed as flexibility-color-stroop because that is the game actually played and reported; the run was requested for language-word-chain and the deep link did not re-route an already-foreground app - see the navigation finding recorded in REVIEW.md. Candidate defects (button dead-edge tap zone, Pause position drift) are recorded in the row's section 6 and require reproduction before any production edit.\n\nSUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d. The 076-f defect repair for pause-control drift and the dead edge-tap zone changed the shared session chrome (the pause control is now anchored in a pinned trailing zone), so every game screen is an AFFECTED surface and this row requires re-verification on e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. Retained as historical; not terminal-candidate evidence.",
-      "note": "absent",
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Color Stroop' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
       "identity": "verified"
     },
     {
@@ -86,7 +86,7 @@
       "game": "flexibility-rule-flip",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -94,10 +94,10 @@
       "domain": "flexibility",
       "game": "flexibility-task-switch",
       "parentTask": "7.5",
-      "status": "NOT VALIDATED",
-      "reason": "Controller note is an unfilled skeleton: \"(To be populated)\" for scored feedback, pause and result. No state was evidenced. Must be re-run.",
-      "note": "absent",
-      "identity": "unverified"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Task Switch' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "language",
@@ -113,7 +113,7 @@
       "game": "language-sentence-builder",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -122,7 +122,7 @@
       "game": "language-word-chain",
       "parentTask": "8.3",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -131,7 +131,7 @@
       "game": "language-word-match",
       "parentTask": "8.4",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -140,7 +140,7 @@
       "game": "language-word-scramble",
       "parentTask": "8.5",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -149,7 +149,7 @@
       "game": "logic-code-cracker",
       "parentTask": "9.1",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -158,7 +158,7 @@
       "game": "logic-deduction-table",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -167,7 +167,7 @@
       "game": "logic-next-sequence",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -176,7 +176,7 @@
       "game": "logic-order-path",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -185,7 +185,7 @@
       "game": "logic-rule-grid",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -194,7 +194,7 @@
       "game": "math-equation-builder",
       "parentTask": "10.1",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -203,7 +203,7 @@
       "game": "math-fast-math",
       "parentTask": "10.2",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -212,7 +212,7 @@
       "game": "math-missing-operator",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -221,7 +221,7 @@
       "game": "math-number-line-estimation",
       "parentTask": "10.4",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -230,7 +230,7 @@
       "game": "math-value-ordering",
       "parentTask": "10.5",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -239,7 +239,7 @@
       "game": "memory",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -248,7 +248,7 @@
       "game": "memory-grid-recall",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -257,7 +257,7 @@
       "game": "memory-pair-recall",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -266,7 +266,7 @@
       "game": "memory-pattern-tap-back",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -275,7 +275,7 @@
       "game": "memory-prospective-cue",
       "parentTask": "11.5",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -284,7 +284,7 @@
       "game": "memory-running-order",
       "parentTask": "11.6",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -293,7 +293,7 @@
       "game": "memory-sequence-memory",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -302,7 +302,7 @@
       "game": "spatial-coordinate-turn",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -311,7 +311,7 @@
       "game": "spatial-fold-match",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -320,7 +320,7 @@
       "game": "spatial-grid-nav",
       "parentTask": "12.3",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -329,7 +329,7 @@
       "game": "spatial-mental-rotation",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -338,7 +338,7 @@
       "game": "spatial-transform-match",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -347,7 +347,7 @@
       "game": "speed-color-match",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -356,7 +356,7 @@
       "game": "speed-order-sweep",
       "parentTask": "—",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -365,7 +365,7 @@
       "game": "speed-quick-compare",
       "parentTask": "13.3",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     },
@@ -383,7 +383,7 @@
       "game": "speed-tap-rush",
       "parentTask": "13.5",
       "status": "NOT VALIDATED",
-      "reason": "controller produced no usable review note",
+      "reason": "no current-device row yet",
       "note": "absent",
       "identity": "unreviewed"
     }
