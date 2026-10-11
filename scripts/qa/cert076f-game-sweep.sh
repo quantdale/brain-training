@@ -211,7 +211,15 @@ for g in "${GAMES[@]}"; do
   POLL_BUDGET="${BT_POLL_BUDGET:-3000}"
   # Only harvest a session created during THIS game's attempt. Without this a
   # previous run's trace for the same game would be mistaken for this run's.
-  SESSION_MAX_AGE="${BT_SESSION_MAX_AGE:-5400}"
+  #
+  # The freshness window is measured from when the sweep STARTED this game, not
+  # from the client's return, and it covers the whole attempt: client wait plus the
+  # daemon's own execution time. A first version measured age from the moment
+  # find_note ran, which silently discarded a perfectly good note whose daemon
+  # task had finished 8 minutes before the client returned - the row was filed
+  # NOT VALIDATED with the complete note sitting unused on disk.
+  SESSION_MAX_AGE="${BT_SESSION_MAX_AGE:-7200}"
+  GAME_START_EPOCH=$(date +%s)
   # Identity: a session belongs to THIS game when its task plan or review log
   # names the game's own deep link / registry id. The test name never lands in
   # stdout.log, and matching on the newest session alone mis-attributes a run
@@ -228,7 +236,12 @@ for g in "${GAMES[@]}"; do
       n="$ARTEMIS/traces/$cand/notes/game_state_review_log.md"
       [ -s "$n" ] || continue
       age=$(( $(date +%s) - $(stat -c %Y "$ARTEMIS/traces/$cand" 2>/dev/null || stat -f %m "$ARTEMIS/traces/$cand" 2>/dev/null || echo 0) ))
-      [ "$age" -le "$SESSION_MAX_AGE" ] || continue
+      # Age is measured from when this game's attempt began, so a session that
+      # finished before the client returned is still in range.
+      started_age=$(( $(stat -c %Y "$ARTEMIS/traces/$cand" 2>/dev/null || stat -f %m "$ARTEMIS/traces/$cand" 2>/dev/null || echo 0) - GAME_START_EPOCH ))
+      if [ "$started_age" -lt -600 ] || [ "$started_age" -gt "$SESSION_MAX_AGE" ]; then
+        continue
+      fi
       if grep -q "game/$g\b" "$ARTEMIS/traces/$cand/notes/task_plan.md" 2>/dev/null ||
          grep -q "game/$g\b" "$n" 2>/dev/null; then
         if note_complete "$n"; then

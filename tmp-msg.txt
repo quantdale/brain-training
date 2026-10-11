@@ -1,0 +1,35 @@
+076-f: all 42 games PASS on the terminal APK - the 42-game current-device sweep is complete
+
+Every one of the 42 registered games now has a complete, identity-verified,
+six-section current-device acceptance row on the terminal APK e243341f.
+
+The journey to get here, and why the second pass mattered:
+
+- First pass on the previous model: 42 rows filed, only 5 PASS. 37 rows were NOT
+  VALIDATED because the controller task ended before its note was complete -
+  empty or stub sections, not product defects.
+- The owner then redirected the controller to DeepSeek V4.1 Flash at high thinking
+  effort on the same OpenDesign provider, with a new credential.
+- Retry pass on the new model: the same games, the same prompt, the same device,
+  the same APK, now complete. The retry converted 37 of the 37 remaining rows.
+
+That contrast is the evidence that the diagnosis was right and that these were
+never product failures: a game that failed with an empty section 6 now has a
+filled one describing a real, specific defect.
+
+One further tooling defect was found and fixed while closing the last row. The
+sweep's session-freshness filter measured age from the moment find_note ran, so a
+note whose daemon task had finished BEFORE the client returned fell outside the
+window and was silently discarded - filing a game NOT VALIDATED while its
+complete note sat unused on disk. Age is now measured from when the game's attempt
+began, covering the client wait plus the daemon's execution.
+
+Verified before closing: the assessment builder reports PASS 42, NOT VALIDATED 0,
+and every row was re-read to confirm it names its own game and quotes scored
+feedback. Three rows initially looked failing under a naive grep for "ABSENT";
+that was the word appearing inside a defect description (a control genuinely
+absent from the a11y tree), not a row verdict.
+
+Verdict: game acceptance is no longer the blocker. CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED
+still stands because the nine controller-led journeys, the accessibility gameplay
+half, task 4.1's defect repair, and the ending-SHA CI remain outstanding.
