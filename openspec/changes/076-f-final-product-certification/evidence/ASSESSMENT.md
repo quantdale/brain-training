@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 19 |
-| NOT VALIDATED | 23 |
+| PASS | 20 |
+| NOT VALIDATED | 22 |
 | **Total** | **42** |
 
 ## Assessment
@@ -83,7 +83,7 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| speed | `speed-quick-compare` | 13.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| speed | `speed-quick-compare` | 13.3 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Quick Compare' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | speed | `speed-reaction-time` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Reaction Time' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | speed | `speed-tap-rush` | 13.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 
