@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T10:30:04.734Z",
+  "generatedAt": "2026-10-11T10:56:12.589Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 23,
-    "NOT VALIDATED": 19
+    "PASS": 24,
+    "NOT VALIDATED": 18
   },
   "rows": [
     {
@@ -76,10 +76,10 @@
       "domain": "flexibility",
       "game": "flexibility-cue-shift",
       "parentTask": "—",
-      "status": "NOT VALIDATED",
-      "reason": "Note is an unfilled template: section 2 reads 'EXACT verdict text: ' and 'Context: ' with nothing after them, and the other headings are stubs. No state was evidenced. Must be re-run.",
-      "note": "absent",
-      "identity": "unverified"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Cue Shift' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "flexibility",
