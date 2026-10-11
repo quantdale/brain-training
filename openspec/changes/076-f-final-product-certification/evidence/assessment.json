@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T12:45:18.226Z",
+  "generatedAt": "2026-10-11T13:13:17.463Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 31,
-    "NOT VALIDATED": 11
+    "PASS": 33,
+    "NOT VALIDATED": 9
   },
   "rows": [
     {
@@ -238,19 +238,19 @@
       "domain": "memory",
       "game": "memory",
       "parentTask": "—",
-      "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
-      "identity": "unreviewed"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Memory' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "memory",
       "game": "memory-grid-recall",
       "parentTask": "—",
-      "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
-      "identity": "unreviewed"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Grid Recall' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "memory",

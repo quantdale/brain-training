@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 31 |
-| NOT VALIDATED | 11 |
+| PASS | 33 |
+| NOT VALIDATED | 9 |
 | **Total** | **42** |
 
 ## Assessment
@@ -65,8 +65,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 | math | `math-missing-operator` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Missing Operator' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | math | `math-number-line-estimation` | 10.4 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Number Line' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | math | `math-value-ordering` | 10.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Value Order' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| memory | `memory` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| memory | `memory-grid-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| memory | `memory` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Memory' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
+| memory | `memory-grid-recall` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Grid Recall' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | memory | `memory-pair-recall` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory-pattern-tap-back` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | memory | `memory-prospective-cue` | 11.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Cue Keeper' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
