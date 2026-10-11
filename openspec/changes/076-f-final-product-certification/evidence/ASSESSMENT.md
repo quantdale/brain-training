@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 9 |
-| NOT VALIDATED | 33 |
+| PASS | 11 |
+| NOT VALIDATED | 31 |
 | **Total** | **42** |
 
 ## Assessment
@@ -57,8 +57,8 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | language | `language-context-fit` | 8.1 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Context Fit' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | language | `language-word-chain` | 8.3 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Chain' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-match` | 8.4 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Match' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
+| language | `language-word-scramble` | 8.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Scramble' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
