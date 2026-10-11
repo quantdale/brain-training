@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 26 |
-| NOT VALIDATED | 16 |
+| PASS | 28 |
+| NOT VALIDATED | 14 |
 | **Total** | **42** |
 
 ## Assessment
@@ -56,8 +56,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 | language | `language-word-match` | 8.4 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Match' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | language | `language-word-scramble` | 8.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Scramble' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | logic | `logic-code-cracker` | 9.1 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Code Cracker' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| logic | `logic-deduction-table` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| logic | `logic-next-sequence` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| logic | `logic-deduction-table` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Deduction Table' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
+| logic | `logic-next-sequence` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Next in Sequence' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | logic | `logic-order-path` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-rule-grid` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | math | `math-equation-builder` | 10.1 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Equation Builder' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
