@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 7 |
-| NOT VALIDATED | 35 |
+| PASS | 9 |
+| NOT VALIDATED | 33 |
 | **Total** | **42** |
 
 ## Assessment
@@ -54,9 +54,9 @@ SUPERSEDED-BY-APK-CHANGE: graded on de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848
 | flexibility | `flexibility-cue-shift` | — | unverified | absent | **NOT VALIDATED** | Note is an unfilled template: section 2 reads 'EXACT verdict text: ' and 'Context: ' with nothing after them, and the other headings are stubs. No state was evidenced. Must be re-run. |
 | flexibility | `flexibility-rule-flip` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | flexibility | `flexibility-task-switch` | 7.5 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Task Switch' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| language | `language-context-fit` | 8.1 | unverified | absent | **NOT VALIDATED** | Controller note is an unfilled skeleton: "(Pending observation)" for the active board. No state was evidenced. Must be re-run. |
+| language | `language-context-fit` | 8.1 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Context Fit' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | language | `language-sentence-builder` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
-| language | `language-word-chain` | 8.3 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| language | `language-word-chain` | 8.3 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Chain' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | language | `language-word-match` | 8.4 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | language | `language-word-scramble` | 8.5 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | logic | `logic-code-cracker` | 9.1 | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |

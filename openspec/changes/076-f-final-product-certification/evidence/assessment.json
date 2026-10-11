@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T05:17:09.033Z",
+  "generatedAt": "2026-10-11T05:52:06.577Z",
   "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
   "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
   "mixedArtifactRows": false,
   "counts": {
-    "PASS": 7,
-    "NOT VALIDATED": 35
+    "PASS": 9,
+    "NOT VALIDATED": 33
   },
   "rows": [
     {
@@ -103,10 +103,10 @@
       "domain": "language",
       "game": "language-context-fit",
       "parentTask": "8.1",
-      "status": "NOT VALIDATED",
-      "reason": "Controller note is an unfilled skeleton: \"(Pending observation)\" for the active board. No state was evidenced. Must be re-run.",
-      "note": "absent",
-      "identity": "unverified"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Context Fit' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "language",
@@ -121,10 +121,10 @@
       "domain": "language",
       "game": "language-word-chain",
       "parentTask": "8.3",
-      "status": "NOT VALIDATED",
-      "reason": "no current-device row yet",
-      "note": "absent",
-      "identity": "unreviewed"
+      "status": "PASS",
+      "reason": "Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Word Chain' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it.",
+      "note": "present",
+      "identity": "verified"
     },
     {
       "domain": "language",
