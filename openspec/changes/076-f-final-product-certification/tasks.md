@@ -12,29 +12,49 @@
 ## 3. Current-device game acceptance
 
 - [x] 3.1 On the current release candidate, accept `attention-odd-one-out` active, scored feedback, pause/resume, result, input, and visual states; check parent task 6.1 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/attention-odd-one-out/review.md`. Parent task 6.1 checked with this linked evidence.
   **Terminal run (2026-10-10):** PASS on `e243341f…` via ARTEMIS session `cca7832f-43de-4a3a-abee-a4f57470359b`. Board anatomy (3×3 tiles, one deviation), quoted verdicts ("Found it!" with Score 125, and timeout reveal "Time's up"), pause/resume verbatim, result itemised (Score 125, Accuracy 17%, First-try rate 17%, Rounds passed 1/6, Best streak 1, Timeouts 5, XP 12, Reward +12 XP · +2 coins), first-try input responsiveness, and safe exit/re-open all confirmed. Odd-one-out selection mechanic retained. Evidence: `evidence/current-device/attention-odd-one-out/review.md`. Parent task 6.1 checked with this linked evidence.
 - [x] 3.2 Accept `attention-sustained-vigilance` the same way; check parent task 6.2 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/attention-sustained-vigilance/review.md`. Parent task 6.2 checked with this linked evidence.
   **Terminal run (2026-10-10):** PASS on `e243341f…` via ARTEMIS session `174c9016-6927-43e6-bd7a-4f62f1d9ddbb`. Verified against the game's own resource-id namespace `attention-sustained-vigilance.*`. Quoted verdicts ("Missed one" with a11y desc "Missed, no tap in time. Blank. Stop number 6."), pause/resume verbatim, result itemised (Score 591, Go hits 1/26, Stop numbers held 4/4, Commissions 0, Mean reaction 862 ms, Best streak 1, XP 25), immediate input, safe exit/re-open. Sustained-timing mechanic retained. **One defect filed (D3):** the GO control's label collapses to ~1.08:1 contrast when disabled — see `evidence/DEFECTS_CURRENT.md`. Parent task 6.2 checked with this linked evidence.
 - [x] 3.3 Accept `attention-symbol-tracker` the same way; check parent task 6.3 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/attention-symbol-tracker/review.md`. Parent task 6.3 checked with this linked evidence.
   **Terminal run (2026-10-10):** PASS on `e243341f…`. Quoted verdicts ("Not quite" / "You found 0 of 2 tracked symbols"), pause/resume with the timer proven frozen, result itemised (Final score 0, Accuracy 0%, Rounds passed 0/5, Best recall 0, Best streak 0, XP 10), immediate input, safe exit/re-open. Tracking mechanic retained. Section 6 files two observations requiring their own reproduction (a transient missing Next-round a11y node on Round 1's reveal, and a duplicate Score chip). Evidence: `evidence/current-device/attention-symbol-tracker/review.md`. Parent task 6.3 checked with this linked evidence.
 - [x] 3.4 Accept `attention-visual-search` the same way; check parent task 6.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/attention-visual-search/review.md`. Parent task 6.5 checked with this linked evidence.
   **Terminal run (2026-10-10):** PASS on `e243341f…`. Quoted verdicts ("Round failed" / "Time's up — the odd tile was tile 1"), pause/resume confirmed, result itemised (Score 0, Accuracy 0%, Rounds passed 0/6, Best streak 0, Avg response 0ms, Fastest response —, XP 10, Reward +10 XP · +2 coins, Progress saved), immediate input, safe exit/re-open. Search mechanic retained. Section 6 files two observations (the result screen's Rounds-passed denominator not matching the 12-round session, and the full participation reward granted on a 0%-accuracy all-timeout session). Evidence: `evidence/current-device/attention-visual-search/review.md`. Parent task 6.5 checked with this linked evidence.
-- [ ] 3.5 Accept `flexibility-color-stroop` the same way; check parent task 7.2 only with linked evidence.
-- [ ] 3.6 Accept `flexibility-task-switch` the same way; check parent task 7.5 only with linked evidence.
-- [ ] 3.7 Accept `language-context-fit` the same way; check parent task 8.1 only with linked evidence.
-- [ ] 3.8 Accept `language-word-chain` the same way; check parent task 8.3 only with linked evidence.
-- [ ] 3.9 Accept `language-word-match` the same way; check parent task 8.4 only with linked evidence.
-- [ ] 3.10 Accept `language-word-scramble` the same way; check parent task 8.5 only with linked evidence.
-- [ ] 3.11 Accept `logic-code-cracker` the same way; check parent task 9.1 only with linked evidence.
-- [ ] 3.12 Accept `math-equation-builder` the same way; check parent task 10.1 only with linked evidence.
-- [ ] 3.13 Accept `math-fast-math` the same way; check parent task 10.2 only with linked evidence.
-- [ ] 3.14 Accept `math-number-line-estimation` the same way; check parent task 10.4 only with linked evidence.
-- [ ] 3.15 Accept `math-value-ordering` the same way; check parent task 10.5 only with linked evidence.
-- [ ] 3.16 Accept `memory-prospective-cue` the same way; check parent task 11.5 only with linked evidence.
-- [ ] 3.17 Accept `memory-running-order` the same way; check parent task 11.6 only with linked evidence.
-- [ ] 3.18 Accept `spatial-grid-nav` the same way; check parent task 12.3 only with linked evidence.
-- [ ] 3.19 Accept `speed-quick-compare` the same way; check parent task 13.3 only with linked evidence.
-- [ ] 3.20 Accept `speed-tap-rush` the same way; check parent task 13.5 only with linked evidence.
+- [x] 3.5 Accept `flexibility-color-stroop` the same way; check parent task 7.2 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/flexibility-color-stroop/review.md`. Parent task 7.2 checked with this linked evidence.
+- [x] 3.6 Accept `flexibility-task-switch` the same way; check parent task 7.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/flexibility-task-switch/review.md`. Parent task 7.5 checked with this linked evidence.
+- [x] 3.7 Accept `language-context-fit` the same way; check parent task 8.1 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/language-context-fit/review.md`. Parent task 8.1 checked with this linked evidence.
+- [x] 3.8 Accept `language-word-chain` the same way; check parent task 8.3 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/language-word-chain/review.md`. Parent task 8.3 checked with this linked evidence.
+- [x] 3.9 Accept `language-word-match` the same way; check parent task 8.4 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/language-word-match/review.md`. Parent task 8.4 checked with this linked evidence.
+- [x] 3.10 Accept `language-word-scramble` the same way; check parent task 8.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/language-word-scramble/review.md`. Parent task 8.5 checked with this linked evidence.
+- [x] 3.11 Accept `logic-code-cracker` the same way; check parent task 9.1 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/logic-code-cracker/review.md`. Parent task 9.1 checked with this linked evidence.
+- [x] 3.12 Accept `math-equation-builder` the same way; check parent task 10.1 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/math-equation-builder/review.md`. Parent task 10.1 checked with this linked evidence.
+- [x] 3.13 Accept `math-fast-math` the same way; check parent task 10.2 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/math-fast-math/review.md`. Parent task 10.2 checked with this linked evidence.
+- [x] 3.14 Accept `math-number-line-estimation` the same way; check parent task 10.4 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/math-number-line-estimation/review.md`. Parent task 10.4 checked with this linked evidence.
+- [x] 3.15 Accept `math-value-ordering` the same way; check parent task 10.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/math-value-ordering/review.md`. Parent task 10.5 checked with this linked evidence.
+- [x] 3.16 Accept `memory-prospective-cue` the same way; check parent task 11.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/memory-prospective-cue/review.md`. Parent task 11.5 checked with this linked evidence.
+- [x] 3.17 Accept `memory-running-order` the same way; check parent task 11.6 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/memory-running-order/review.md`. Parent task 11.6 checked with this linked evidence.
+- [x] 3.18 Accept `spatial-grid-nav` the same way; check parent task 12.3 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/spatial-grid-nav/review.md`. Parent task 12.3 checked with this linked evidence.
+- [x] 3.19 Accept `speed-quick-compare` the same way; check parent task 13.3 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/speed-quick-compare/review.md`. Parent task 13.3 checked with this linked evidence.
+- [x] 3.20 Accept `speed-tap-rush` the same way; check parent task 13.5 only with linked evidence.
+  **Terminal run (2026-10-11/12):** PASS on `e243341f`.... Complete six-section current-device row; the game's own mechanic is retained. Evidence: `evidence/current-device/speed-tap-rush/review.md`. Parent task 13.5 checked with this linked evidence.
 - [ ] 3.21 Add current-device rows for the 22 games whose parent redesign tasks are already checked, without treating those existing checks as this review.
 - [x] 3.22 Publish the one-row-per-game assessment using only PASS, FIXED, NOT VALIDATED, or justified N/A. Do not count an intro, unanswered board, or filename as scored feedback.
   **Terminal run (2026-10-10):** `evidence/assessment.json` published with one row per registered game and only the four permitted values: **PASS 4** (`attention-odd-one-out`, `attention-sustained-vigilance`, `attention-symbol-tracker`, `attention-visual-search`), **NOT VALIDATED 38**. Generated by `node scripts/certification/build-assessment.mjs`, which fails closed: a row is PASS only when its review.md names the terminal APK, quotes a scored verdict, fills every required section, and carries a reviewer verdict whose identity is verified. The 38 NOT VALIDATED rows are honest — no intro screen, unanswered board or filename was counted as scored feedback for any of them.
