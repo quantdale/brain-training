@@ -32,8 +32,8 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 
 | Status | Count |
 | --- | --- |
-| PASS | 38 |
-| NOT VALIDATED | 4 |
+| PASS | 39 |
+| NOT VALIDATED | 3 |
 | **Total** | **42** |
 
 ## Assessment
@@ -75,7 +75,7 @@ That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb9
 | spatial | `spatial-coordinate-turn` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Coordinate Turn' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | spatial | `spatial-fold-match` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Fold Match' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | spatial | `spatial-grid-nav` | 12.3 | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Grid Navigator' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
-| spatial | `spatial-mental-rotation` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
+| spatial | `spatial-mental-rotation` | — | verified | present | **PASS** | Re-graded on the terminal APK e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f. The row's own review.md names 'Mental Rotation' as its on-screen title, carries the terminal APK in its 'APK under test' line, quotes scored feedback verbatim in section 2, and fills all six sections with device evidence. Verified by re-reading the filed review.md; the device frame is filed beside it. |
 | spatial | `spatial-transform-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-color-match` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
 | speed | `speed-order-sweep` | — | unreviewed | absent | **NOT VALIDATED** | no current-device row yet |
