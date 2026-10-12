@@ -60,22 +60,73 @@
 ## 7. Flexibility game modules
 
 - [x] 7.1 Redesign and individually play/capture `flexibility-card-sort` active, feedback, pause/end states.
-- [ ] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
+- [x] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `flexibility-color-stroop` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/flexibility-color-stroop/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 7.3 Redesign and individually play/capture `flexibility-cue-shift` states.
 - [x] 7.4 Redesign and individually play/capture `flexibility-rule-flip` states.
-- [ ] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
+- [x] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `flexibility-task-switch` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/flexibility-task-switch/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 
 ## 8. Language game modules
 
-- [ ] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
+- [x] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `language-context-fit` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/language-context-fit/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 8.2 Redesign and individually play/capture `language-sentence-builder` states.
-- [ ] 8.3 Redesign and individually play/capture `language-word-chain` states.
-- [ ] 8.4 Redesign and individually play/capture `language-word-match` states.
-- [ ] 8.5 Redesign and individually play/capture `language-word-scramble` states.
+- [x] 8.3 Redesign and individually play/capture `language-word-chain` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `language-word-chain` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/language-word-chain/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
+- [x] 8.4 Redesign and individually play/capture `language-word-match` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `language-word-match` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/language-word-match/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
+- [x] 8.5 Redesign and individually play/capture `language-word-scramble` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  The full-state review lives in `openspec/changes/076-f-final-product-certification/evidence/current-device/language-word-scramble/review.md`, and the disabled action control of this row is one of the two
+  surfaces the 076-f shared-Button repair repaints, so it was re-observed on the new terminal APK from the
+  live board in both themes: `evidence/d3-affected-games-reobserved.json` measures fill
+  #ECEAE5 / label #4A4B4E = 7.25:1 in light and #17181B / #B9BABC = 9.14:1 in dark, both above the 4.5:1 AA
+  threshold and both equal to the design tokens the repair specifies, which rules out any remaining opacity
+  compositing. All enabled controls and all behaviour are untouched, so the rest of the row still asserts the
+  same states it did on the previous APK.
 
 ## 9. Logic game modules
 
-- [ ] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
+- [x] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  The full-state review lives in `openspec/changes/076-f-final-product-certification/evidence/current-device/logic-code-cracker/review.md`, and the disabled action control of this row is one of the two
+  surfaces the 076-f shared-Button repair repaints, so it was re-observed on the new terminal APK from the
+  live board in both themes: `evidence/d3-affected-games-reobserved.json` measures fill
+  #ECEAE5 / label #4A4B4E = 7.25:1 in light and #17181B / #B9BABC = 9.14:1 in dark, both above the 4.5:1 AA
+  threshold and both equal to the design tokens the repair specifies, which rules out any remaining opacity
+  compositing. All enabled controls and all behaviour are untouched, so the rest of the row still asserts the
+  same states it did on the previous APK.
 - [x] 9.2 Redesign and individually play/capture `logic-deduction-table` states.
 - [x] 9.3 Redesign and individually play/capture `logic-next-sequence` states.
 - [x] 9.4 Redesign and individually play/capture `logic-order-path` states.
@@ -83,11 +134,39 @@
 
 ## 10. Math game modules
 
-- [ ] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
-- [ ] 10.2 Redesign and individually play/capture `math-fast-math` states.
+- [x] 10.1 Redesign and individually play/capture `math-equation-builder` active, feedback, pause/end states (canary acceptance included).
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `math-equation-builder` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/math-equation-builder/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
+- [x] 10.2 Redesign and individually play/capture `math-fast-math` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `math-fast-math` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/math-fast-math/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 10.3 Redesign and individually play/capture `math-missing-operator` states.
-- [ ] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
-- [ ] 10.5 Redesign and individually play/capture `math-value-ordering` states.
+- [x] 10.4 Redesign and individually play/capture `math-number-line-estimation` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `math-number-line-estimation` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/math-number-line-estimation/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
+- [x] 10.5 Redesign and individually play/capture `math-value-ordering` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `math-value-ordering` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/math-value-ordering/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 
 ## 11. Memory game modules
 
@@ -95,15 +174,36 @@
 - [x] 11.2 Redesign and individually play/capture `memory-grid-recall` states.
 - [x] 11.3 Redesign and individually play/capture `memory-pair-recall` states.
 - [x] 11.4 Redesign and individually play/capture `memory-pattern-tap-back` states.
-- [ ] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
-- [ ] 11.6 Redesign and individually play/capture `memory-running-order` states.
+- [x] 11.5 Redesign and individually play/capture `memory-prospective-cue` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `memory-prospective-cue` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/memory-prospective-cue/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
+- [x] 11.6 Redesign and individually play/capture `memory-running-order` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `memory-running-order` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/memory-running-order/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 11.7 Redesign and individually play/capture `memory-sequence-memory` states.
 
 ## 12. Spatial game modules
 
 - [x] 12.1 Redesign and individually play/capture `spatial-coordinate-turn` active, feedback, pause/end states.
 - [x] 12.2 Redesign and individually play/capture `spatial-fold-match` states.
-- [ ] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
+- [x] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `spatial-grid-nav` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/spatial-grid-nav/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 12.4 Redesign and individually play/capture `spatial-mental-rotation` states.
 - [x] 12.5 Redesign and individually play/capture `spatial-transform-match` states.
 
@@ -111,9 +211,23 @@
 
 - [x] 13.1 Redesign and individually play/capture `speed-color-match` active, feedback, pause/end states.
 - [x] 13.2 Redesign and individually play/capture `speed-order-sweep` states.
-- [ ] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
+- [x] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `speed-quick-compare` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/speed-quick-compare/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 - [x] 13.4 Redesign and individually play/capture `speed-reaction-time` states.
-- [ ] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
+- [x] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
+  **Re-checked 2026-10-12 with the D3 fix on APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6` (source `d5787ec2857b0fd856d2e04ad346316d70951f6c`).**
+  `speed-tap-rush` still has a complete, identity-verified row on the terminal APK (`openspec/changes/076-f-final-product-certification/evidence/current-device/speed-tap-rush/review.md`):
+  active board, quoted scored feedback, pause/resume with the timer proven frozen, itemised final result,
+  immediate input, and the game's own mechanic retained. The row is classified UNAFFECTED by the 076-f D3
+  repair in `evidence/d3-impact.json` — a shared-Button disabled-colour change only, which touches no
+  rendered pixel of an enabled control and no behaviour — so it remains valid evidence for every state it
+  asserts. The two affected rows were re-observed separately and did not change this row's status.
 
 ## 14. Convergence, device certification and release
 

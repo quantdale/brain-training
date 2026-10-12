@@ -1,0 +1,23 @@
+{
+  "image": "w-cc-day.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "submit-guess",
+      "bounds": [
+        97,
+        968,
+        983,
+        1094
+      ],
+      "fill": "#eceae5",
+      "label": "#4a4b4e",
+      "labelPixels": 1655,
+      "labelShare": 1.54,
+      "runnerUp": "#ffffff",
+      "contrast": 7.25,
+      "aa": true
+    }
+  ]
+}

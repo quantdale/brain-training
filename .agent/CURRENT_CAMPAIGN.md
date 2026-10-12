@@ -45,6 +45,47 @@
 > **DeepSeek V4.1 Flash at high thinking effort**, on which re-running the same 37
 > previously-failed games converted every one.
 >
+> **2026-10-12 (later) — D3 REPAIRED and re-verified; the terminal identity moved.**
+> The owner directed a minimal-delta closure instead of a full re-run, so the
+> previously-open 076-f task **4.1** was repaired rather than left open:
+>
+> - **Fix:** `apps/mobile/src/components/ui/button.tsx` dropped the whole-control
+>   `inactive: { opacity: 0.5 }` collapse. `resolveDisabled(variant, theme)` now
+>   maps a disabled button to fill `theme.backgroundElement` (transparent for the
+>   ghost variant) and label `textSecondary`, keeps `borderColor: theme.border`,
+>   and drops the filled variant's 4dp lip. `inactive = disabled` and
+>   `busy = loading` are now separate states.
+> - **Proof of the defect is covered by fail-before/pass-after regression tests**
+>   (`src/components/ui/__tests__/button-disabled-state.test.tsx`, 7 tests):
+>   3 of them FAIL against the pre-fix file from `b293a02` and all 7 PASS after
+>   the fix. They carry their own WCAG luminance/contrast implementation.
+> - **Impact:** 61 direct `Button` call sites plus 286 `GameButton` sites across
+>   all 42 domains, all through one shared component; the repair repaints no
+>   enabled control's pixel and touches no behaviour.
+>   `evidence/d3-impact.json` classifies the 42 rows: **40 unaffected, 2 affected**
+>   (`language-word-scramble`, `logic-code-cracker`).
+> - **New terminal APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`**
+>   (48,888,528 B) built from source `d5787ec`, installed on `emulator-5570` and
+>   device-hashed exactly. The old APK `e243341f…` remains the identity of the
+>   42-row review log, the nine journeys and the accessibility audit; those rows
+>   are unaffected by this repair.
+> - **Measured on device** (`evidence/d3-affected-games-reobserved.json`), both
+>   affected submit controls read from their live boards with `enabled=false`,
+>   decoded from the rendered screenshot and contrast-computed in both themes:
+>   light **#ECEAE5 / #4A4B4E = 7.25:1**, dark **#17181B / #B9BABC = 9.14:1**,
+>   both above 4.5:1 AA and both equal to the tokens the repair specifies — the
+>   pixel-level proof that no opacity compositing remains (the old collapse sat
+>   near 1.63:1). The Profile route's disabled Buy controls independently measure
+>   the same 7.25:1 / 9.14:1 pair as a deterministic second witness.
+> - **Ledger:** parent 076 is now **79 checked / 3 unchecked** — all 16 remaining
+>   game tasks are closed on the 42-row evidence plus, for the two affected rows,
+>   the re-observation above. The three open parent tasks are **14.3**, **14.4**
+>   and **14.7** (the manifest/visual-report closure), not any game.
+> - **Gates re-measured at the new SHA:** full Jest **623 suites / 7,248 tests /
+>   5 snapshots**, typecheck clean, ESLint clean (`--max-warnings=0`), strict
+>   OpenSpec **61/61**, provenance/dependency/expo/offline/secrets/workflow
+>   validators PASS, runtime-QA contract PASS.
+>
 > ---
 >
 > **Historical 2026-10-09 `BLOCKED_HOST_ANDROID_EMULATOR` record (superseded — do
@@ -195,6 +236,26 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 - **Verdict:** `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
 
 ## Progress log
+
+- 2026-10-12 (D3 minimal-delta closure): repaired the one reproduced defect that
+  was deliberately left open, then reconciled every ledger against existing
+  evidence instead of re-running the 42 reviews or the nine journeys. The
+  reconciliation is one-directional and auditable: `scripts/qa/build-d3-impact.mjs`
+  classifies each of the 42 rows as affected or unaffected by the repair, and
+  `scripts/qa/reconcile-parent-tasks.mjs` checks a parent game task only when its
+  row is unaffected (or, for the two affected rows, when the re-observation
+  evidence exists). `scripts/qa/add-d3-row-addendum.mjs` appends the
+  re-observation addendum to the two affected review rows. Measurement is
+  `scripts/qa/measure-d3-pixels.mjs` (in-process PNG decoder + WCAG 2.x contrast);
+  capture is `scripts/qa/verify-d3-disabled.mjs` (both themes via
+  `uimode night` plus a cold restart per theme). The classifier is the thing that
+  had to be corrected twice: a 5th/95th-percentile luminance split degenerates
+  when a disabled Button's fill is >95% of its own region, so the final version
+  takes FILL = most common exact colour and LABEL = most common non-fill colour.
+  The cross-check on that choice is the label glyph count, which is identical for
+  a given control across both themes (924 px for Submit, 1655 px for Submit
+  guess) because it is the same text at the same size. No 42-row status was
+  weakened and no checkbox was moved without linked evidence.
 
 - Closure recovery: reconciled `eff5de0` source and `6e31d41e` intermediate APK;
   actual new gap acquisition is 21/22 (Tap Rush feedback missing). Matrix has

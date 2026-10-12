@@ -65,3 +65,43 @@ Reached after all 4 rounds (each resolved by exhausting the 10-guess budget; non
 `result.png` + `result.xml` are captured from the terminal APK on the
 current device after the journey, and are the reviewer's independent check
 on the controller report above.
+
+## 2026-10-12 addendum — 076-f D3 disabled-control re-observation
+
+The disabled action control above is one of the two 42-row surfaces that
+change 076-f's shared-Button repair actually repaints, so it was
+re-observed on the new terminal APK
+`c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+(48,888,528 bytes, source `d5787ec2857b0fd856d2e04ad346316d70951f6c`), read
+straight off the live board from the accessibility hierarchy
+(`logic-code-cracker.submit-guess` [Submit guess], enabled=false, bounds [97,968][983,1094]).
+
+Decoding the device screenshot and computing WCAG 2.x contrast between the
+control's fill and its label glyphs:
+
+- light: fill #ECEAE5, label #4A4B4E — 7.25:1
+- dark: fill #17181B, label #B9BABC — 9.14:1
+
+Both are above the 4.5:1 AA threshold and both equal the tokens the
+repair specifies (backgroundElement / textSecondary), which is the
+pixel-level proof that the whole-control `opacity: 0.5` collapse is
+gone; the previous collapse sat near 1.63:1. The label glyph count is
+identical across the two themes for the same control, which confirms the
+measurement is reading the text and not antialiasing.
+
+Evidence:
+`openspec/changes/076-f-final-product-certification/evidence/d3-affected-games-reobserved.json`
+
+Every other state asserted in this row — the active board, the quoted
+scored feedback, pause/resume with the timer proven frozen, the itemised
+final result, immediate input, and the game's own mechanic — is asserted
+about ENABLED controls, which the repair does not repaint, and about
+behaviour, which it does not touch. Those assertions therefore still hold
+unchanged on this new APK; only the disabled-control appearance above is
+superseded.
+
+## Addendum verdict
+
+Row still PASS on `c8c3d46c` — the superseded disabled-control appearance
+has been replaced with measured, token-exact, AA-passing evidence in both
+themes.

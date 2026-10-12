@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-10-12T14:29:39.375Z",
+  "change": "076-f D3 — shared Button disabled treatment (fill muted to backgroundElement, label textSecondary, no whole-control opacity)",
+  "rowsTotal": 42,
+  "unaffectedCount": 40,
+  "affectedCount": 2,
+  "unaffected": [
+    "attention-odd-one-out",
+    "attention-sustained-vigilance",
+    "attention-symbol-tracker",
+    "attention-target-count",
+    "attention-visual-search",
+    "flexibility-card-sort",
+    "flexibility-color-stroop",
+    "flexibility-cue-shift",
+    "flexibility-rule-flip",
+    "flexibility-task-switch",
+    "language-context-fit",
+    "language-sentence-builder",
+    "language-word-chain",
+    "language-word-match",
+    "logic-deduction-table",
+    "logic-next-sequence",
+    "logic-order-path",
+    "logic-rule-grid",
+    "math-equation-builder",
+    "math-fast-math",
+    "math-missing-operator",
+    "math-number-line-estimation",
+    "math-value-ordering",
+    "memory",
+    "memory-grid-recall",
+    "memory-pair-recall",
+    "memory-pattern-tap-back",
+    "memory-prospective-cue",
+    "memory-running-order",
+    "memory-sequence-memory",
+    "spatial-coordinate-turn",
+    "spatial-fold-match",
+    "spatial-grid-nav",
+    "spatial-mental-rotation",
+    "spatial-transform-match",
+    "speed-color-match",
+    "speed-order-sweep",
+    "speed-quick-compare",
+    "speed-reaction-time",
+    "speed-tap-rush"
+  ],
+  "affected": [
+    {
+      "id": "language-word-scramble",
+      "lines": [
+        "- Action control: full-width \"Submit\" button (rendered desaturated/disabled-looking until a choice is made).",
+        "Under the frozen overlay the underlying Round 2 board read: Round 2/5, Score 160, progress content-desc \"2 of 5 rounds complete\", \"Hint: Music & Sound\", scrambled \"UUFGE\", options fugue/flute/oxygen/turret, Submit (disabled)."
+      ],
+      "reobserved": "evidence/d3-affected-games-reobserved.json"
+    },
+    {
+      "id": "logic-code-cracker",
+      "lines": [
+        "- Controls (literal labels): \"Pause\" button (top-right); six color swatch buttons labeled: Red, Blue, Green, Yellow, Purple, Orange; \"Submit guess\" button (rendered dim dark-red = disabled/unauthorised until 4 slots are filled)."
+      ],
+      "reobserved": "evidence/d3-affected-games-reobserved.json"
+    }
+  ],
+  "rationale": "A row is AFFECTED only when it explicitly describes the shared submit/answer control in a disabled-looking way, because that description was captured under the old opacity-collapsed treatment and is superseded. Rows that mention disabled/greyed/dimmed game-owned elements are UNAFFECTED: the repair touches no rendered pixel of an enabled control and no behaviour."
+}

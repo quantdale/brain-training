@@ -1,0 +1,35 @@
+{
+  "image": "v-light-profile.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "streak-buy-freeze",
+      "bounds": [
+        793,
+        1492,
+        1038,
+        1618
+      ],
+      "fill": "#eceae5",
+      "label": "#4a4b4e",
+      "labelPixels": 1477,
+      "contrast": 7.25,
+      "aa": true
+    },
+    {
+      "rid": "streak-buy-shield",
+      "bounds": [
+        793,
+        1670,
+        1038,
+        1796
+      ],
+      "fill": "#eceae5",
+      "label": "#4a4b4e",
+      "labelPixels": 1472,
+      "contrast": 7.25,
+      "aa": true
+    }
+  ]
+}

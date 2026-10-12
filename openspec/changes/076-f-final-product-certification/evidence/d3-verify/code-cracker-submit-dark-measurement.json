@@ -1,0 +1,23 @@
+{
+  "image": "w-cc-light.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "submit-guess",
+      "bounds": [
+        97,
+        968,
+        983,
+        1094
+      ],
+      "fill": "#17181b",
+      "label": "#b9babc",
+      "labelPixels": 1655,
+      "labelShare": 1.54,
+      "runnerUp": "#1b1d21",
+      "contrast": 9.14,
+      "aa": true
+    }
+  ]
+}

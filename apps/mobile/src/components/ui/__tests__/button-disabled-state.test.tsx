@@ -76,7 +76,7 @@ function blend(fg: string, bg: string, alpha: number): string {
  */
 function findLabelProps(node: unknown): string | undefined {
   const seen = new Set<unknown>();
-  const stack: Array<Record<string, unknown>> = [node as Record<string, unknown>];
+  const stack: Record<string, unknown>[] = [node as Record<string, unknown>];
   while (stack.length) {
     const cur = stack.pop();
     if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
@@ -86,7 +86,7 @@ function findLabelProps(node: unknown): string | undefined {
       return props.themeColor as string;
     }
     const kids = (cur as { props?: { children?: unknown } }).props?.children;
-    if (Array.isArray(kids)) stack.push(...(kids as Array<Record<string, unknown>>));
+    if (Array.isArray(kids)) stack.push(...(kids as Record<string, unknown>[]));
     else if (kids) stack.push(kids as Record<string, unknown>);
   }
   return undefined;

@@ -6502,3 +6502,44 @@ them (campaign §7/§8). One fresh artifact DID come from CI
 - Commits created: 1 (docs-only durable-state closure)
 - R1 final state: **CLOSED**
 - Final certification classification: **FINAL CERTIFICATION: COMPLETE**
+
+## 076-f D3 repair — 2026-10-12 re-measurement (minimal-delta closure)
+
+Applies to the repaired shared Button's disabled state only. All figures below
+are read from the device, not from tokens: `scripts/qa/measure-d3-pixels.mjs`
+decodes the captured PNG in-process and computes WCAG 2.x relative-luminance
+contrast between the control's fill and its label glyphs.
+
+- Terminal identity after the repair: source `d5787ec2857b0fd856d2e04ad346316d70951f6c`,
+  APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+  (48,888,528 B), installed and device-hashed on `emulator-5570`
+  (AVD `braintraining-ui35`, Android 15 / SDK 35, 1080x2400).
+- Defect repaired: whole-control `opacity: 0.5` on the disabled Button, which
+  produced roughly **1.63:1** label/fill contrast.
+- Measured after the repair, on the two D3-affected live game boards
+  (`language-word-scramble.submit`, `logic-code-cracker.submit-guess`, both
+  read with `enabled=false` from the accessibility hierarchy):
+  - light: fill `#eceae5`, label `#4a4b4e` — **7.25:1**
+  - dark: fill `#17181b`, label `#b9babc` — **9.14:1**
+- Independent deterministic witness, same shared component, disabled state on
+  the Profile route's `streak-buy-freeze` / `streak-buy-shield` /
+  `streak-buy-recovery`: the identical **7.25:1** light and **9.14:1** dark pair.
+- All four measurements equal the design tokens the repair specifies, so no
+  opacity compositing remains, and all are above the 4.5:1 WCAG AA threshold.
+- Label-classifier stability cross-check: the label glyph pixel count is
+  identical across the two themes for the same control (924 px for Submit,
+  1655 px for Submit guess), which is expected because it is the same text at
+  the same size; this is the evidence that the classifier reads glyphs rather
+  than antialiasing.
+- Affected-row scope: 40 of the 42 game rows are classified UNAFFECTED (the
+  repair repaints no enabled control's pixel and changes no behaviour); the
+  2 affected rows carry a re-observation addendum. No 42-row status was
+  weakened, and no parent checkbox was moved without linked evidence.
+- Regression coverage: 7 fail-before/pass-after tests in
+  `apps/mobile/src/components/ui/__tests__/button-disabled-state.test.tsx` —
+  **3 fail** against the pre-fix file at `b293a02`, **7 pass** after.
+- Gates re-measured at the new SHA: full Jest **623 suites / 7,248 tests /
+  5 snapshots**; typecheck clean; ESLint clean at `--max-warnings=0`; strict
+  OpenSpec **61/61**; provenance, dependency-audit, expo-alignment, offline,
+  secret-scan and workflow-hygiene validators PASS; runtime-QA contract PASS;
+  `validate-repo-state.mjs` PASS.

@@ -1,0 +1,23 @@
+{
+  "image": "w-ws-dark.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "submit",
+      "bounds": [
+        97,
+        1221,
+        983,
+        1347
+      ],
+      "fill": "#17181b",
+      "label": "#b9babc",
+      "labelPixels": 924,
+      "labelShare": 0.86,
+      "runnerUp": "#1b1d21",
+      "contrast": 9.14,
+      "aa": true
+    }
+  ]
+}

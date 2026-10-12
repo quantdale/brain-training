@@ -1,0 +1,121 @@
+{
+  "capturedFor": "076-f D3 — re-observation of the two D3-affected game rows on the new terminal APK",
+  "comment": [
+    "D3 replaced the whole-control opacity:0.5 collapse with a token-driven disabled",
+    "treatment (fill backgroundElement, label textSecondary, no opacity), so the two",
+    "game rows that describe a disabled-looking submit control had to be re-observed",
+    "on the new APK. Both were re-observed from their live game boards, in both",
+    "themes, by decoding the rendered screenshot and computing the WCAG 2.x contrast",
+    "ratio between the button fill and the label glyphs."
+  ],
+  "apk": {
+    "sha256": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+    "bytes": 48888528,
+    "source": "d5787ec2857b0fd856d2e04ad346316d70951f6c"
+  },
+  "device": {
+    "serial": "emulator-5570",
+    "avd": "braintraining-ui35",
+    "sdk": 35,
+    "android": "15",
+    "viewPort": [1080, 2400]
+  },
+  "method": {
+    "steps": [
+      "Force-stop the app, cold-launch it via the per-game deep link braintraining://game/<id>.",
+      "Dismiss the intro tutorial and start the game so the live board renders.",
+      "Read the accessibility hierarchy and require the control to be present with enabled=false.",
+      "Screencap the device and decode the PNG in-process.",
+      "Classify the control's pixels by exact colour: FILL = most common colour, LABEL = most common non-fill colour.",
+      "Compute the WCAG 2.x relative-luminance contrast ratio between them."
+    ],
+    "stability": "The LABEL pixel count is identical for a given control across themes (924 px for the Submit labels, 1655 px for Submit guess), which is expected because it is the same text at the same size; only the colours change. This is the cross-check that the classifier is picking the glyphs and not an antialiasing artefact."
+  },
+  "results": [
+    {
+      "row": "language-word-scramble",
+      "control": "language-word-scramble.submit",
+      "labelText": "Submit",
+      "bounds": [97, 1221, 983, 1347],
+      "enabled": false,
+      "themes": [
+        {
+          "theme": "light",
+          "screenshot": "word-scramble-submit-light.png",
+          "hierarchy": "word-scramble-submit-light.xml",
+          "fill": "#eceae5",
+          "label": "#4a4b4e",
+          "labelPixels": 924,
+          "labelShare": 0.86,
+          "contrast": 7.25,
+          "wcagAA": true
+        },
+        {
+          "theme": "dark",
+          "screenshot": "word-scramble-submit-dark.png",
+          "hierarchy": "word-scramble-submit-dark.xml",
+          "fill": "#17181b",
+          "label": "#b9babc",
+          "labelPixels": 924,
+          "labelShare": 0.86,
+          "contrast": 9.14,
+          "wcagAA": true
+        }
+      ],
+      "supersedes": [
+        "language-word-scramble/review.md:8",
+        "language-word-scramble/review.md:9"
+      ]
+    },
+    {
+      "row": "logic-code-cracker",
+      "control": "logic-code-cracker.submit-guess",
+      "labelText": "Submit guess",
+      "bounds": [97, 968, 983, 1094],
+      "enabled": false,
+      "themes": [
+        {
+          "theme": "light",
+          "screenshot": "code-cracker-submit-light.png",
+          "hierarchy": "code-cracker-submit-light.xml",
+          "fill": "#eceae5",
+          "label": "#4a4b4e",
+          "labelPixels": 1655,
+          "labelShare": 1.54,
+          "contrast": 7.25,
+          "wcagAA": true
+        },
+        {
+          "theme": "dark",
+          "screenshot": "code-cracker-submit-dark.png",
+          "hierarchy": "code-cracker-submit-dark.xml",
+          "fill": "#17181b",
+          "label": "#b9babc",
+          "labelPixels": 1655,
+          "labelShare": 1.54,
+          "contrast": 9.14,
+          "wcagAA": true
+        }
+      ],
+      "supersedes": [
+        "logic-code-cracker/review.md:8",
+        "logic-code-cracker/review.md:9"
+      ]
+    }
+  ],
+  "supportingDeterministicCaptures": [
+    {
+      "surface": "Profile route disabled Buy controls (streak-buy-freeze / streak-buy-shield / streak-buy-recovery)",
+      "comment": "Same shared Button component rendered disabled, used as a deterministic second witness because the buy controls are disabled whenever the coin balance is insufficient, independent of game progression.",
+      "light": { "fill": "#eceae5", "label": "#4a4b4e", "contrast": 7.25, "wcagAA": true },
+      "dark": { "fill": "#17181b", "label": "#b9babc", "contrast": 9.14, "wcagAA": true }
+    }
+  ],
+  "tokenIdentity": {
+    "comment": "The measured colours equal the design tokens the repair specifies, pixel for pixel, so no opacity compositing remains.",
+    "backgroundElement": { "light": "#ECEAE5", "dark": "#17181B" },
+    "textSecondary": { "light": "#4A4B4E", "dark": "#B9BABC" },
+    "oldDefect": "opacity:0.5 over the whole control produced roughly 1.63:1, below the 4.5:1 WCAG AA threshold"
+  },
+  "verdict": "PASS — both D3-affected game rows now have measured, identity-verified evidence for the disabled submit control on the new APK, in both themes, at 7.25:1 (light) and 9.14:1 (dark), both above the 4.5:1 AA threshold."
+}

@@ -1,0 +1,23 @@
+{
+  "image": "w-ws-day.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "submit",
+      "bounds": [
+        97,
+        1221,
+        983,
+        1347
+      ],
+      "fill": "#eceae5",
+      "label": "#4a4b4e",
+      "labelPixels": 924,
+      "labelShare": 0.86,
+      "runnerUp": "#ffffff",
+      "contrast": 7.25,
+      "aa": true
+    }
+  ]
+}

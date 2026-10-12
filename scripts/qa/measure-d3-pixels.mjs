@@ -101,14 +101,21 @@ function main() {
   const img = decodePng(fs.readFileSync(PNG));
   const out = { image: path.basename(PNG), width: img.width, height: img.height, buttons: [] };
 
-  // `streak-buy-freeze` bounds from the captured hierarchy: [793,1492][1038,1618].
-  // Sample the button fill near its left edge and the label pixels across its
-  // middle rows, taking the median of each so a single stray pixel cannot swing
-  // the measurement.
-  const regions = [
+  // Regions to measure, in `x1,y1,x2,y2` order. Defaults to the
+  // Profile route's disabled Buy controls; pass --region rid,x1,y1,x2,y2 to
+  // measure any other disabled control.
+  let regions = [
     { rid: 'streak-buy-freeze', b: [793, 1492, 1038, 1618] },
     { rid: 'streak-buy-shield', b: [793, 1670, 1038, 1796] },
   ];
+  const regionArg = process.argv.indexOf('--region');
+  if (regionArg > 0 && process.argv[regionArg + 1]) {
+    const parts = String(process.argv[regionArg + 1]).split(',');
+    const b = parts.slice(1).map(Number);
+    if (parts.length === 5 && b.every((n) => Number.isFinite(n))) {
+      regions = [{ rid: parts[0], b }];
+    }
+  }
   for (const r of regions) {
     const [x1, y1, x2, y2] = r.b;
     // Collect every pixel strictly inside the border, then classify by luminance
@@ -122,32 +129,38 @@ function main() {
         pxls.push({ p, l: lum(p) });
       }
     }
-    const lums = pxls.map((s) => s.l).sort((a, b) => a - b);
-    const pLo = lums[Math.floor(lums.length * 0.05)];
-    const pHi = lums[Math.floor(lums.length * 0.95)];
-    // The fill is whichever extreme dominates the pixel count (the larger area),
-    // so the label is the minority extreme in both themes.
-    const darkCount = pxls.filter((s) => s.l < (pLo + pHi) / 2).length;
-    const fillIsDark = darkCount > pxls.length / 2;
-    const fillPx = pxls.filter((s) => fillIsDark ? s.l <= pLo : s.l >= pHi);
-    const labelPx = pxls.filter((s) => fillIsDark ? s.l >= pHi : s.l <= pLo);
-    // Median of each class, which is stable against antialiasing.
-    const med = (arr) => {
-      if (!arr.length) return [0, 0, 0];
-      const rs = arr.map((s) => s.p[0]).sort((a, b) => a - b);
-      const gs = arr.map((s) => s.p[1]).sort((a, b) => a - b);
-      const bs = arr.map((s) => s.p[2]).sort((a, b) => a - b);
-      const m = arr.length >> 1;
-      return [rs[m], gs[m], bs[m]];
-    };
-    const fill = med(fillPx);
-    const label = med(labelPx);
+    // Classify by exact colour, not by luminance percentiles: a disabled
+    // Button's fill can be >95% of the region, which makes a 5th/95th
+    // percentile split degenerate (both land on the fill).
+    const hexOf = (c) => c.map((v) => v.toString(16).padStart(2, '0')).join('');
+    const counts = new Map();
+    for (const s of pxls) {
+      const k = hexOf(s.p);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const parse = (h) => [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16),
+    ];
+    // FILL = the most common colour (the background band).
+    const fillHex = ranked[0][0];
+    // LABEL = the most common colour that is NOT the fill. This is the glyph
+    // colour: it carries the same pixel count in both themes (the same text at
+    // the same size), while stray antialiasing/highlight pixels are far rarer.
+    const nonFill = ranked.filter(([c]) => c !== fillHex);
+    const labelHex = nonFill.length ? nonFill[0][0] : fillHex;
+    const fill = parse(fillHex);
+    const label = parse(labelHex);
     out.buttons.push({
       rid: r.rid,
       bounds: r.b,
-      fill: hex(fill),
-      label: hex(label),
-      labelPixels: labelPx.length,
+      fill: `#${fillHex}`,
+      label: `#${labelHex}`,
+      labelPixels: counts.get(labelHex) || 0,
+      labelShare: Number((100 * (counts.get(labelHex) || 0) / pxls.length).toFixed(2)),
+      runnerUp: nonFill.length > 1 ? `#${nonFill[1][0]}` : null,
       contrast: Number(contrast(fill, label).toFixed(2)),
       aa: contrast(fill, label) >= 4.5,
     });

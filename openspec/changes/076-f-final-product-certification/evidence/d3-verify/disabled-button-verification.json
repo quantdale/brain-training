@@ -1,0 +1,52 @@
+{
+  "device": "emulator-5570",
+  "at": "2026-10-12T14:41:29.229Z",
+  "themes": [
+    {
+      "theme": "light",
+      "nodes": 145,
+      "disabledControls": [
+        {
+          "rid": "streak-buy-freeze",
+          "label": "Buy Freeze for 100 coins",
+          "bounds": "[793,1492][1038,1618]"
+        },
+        {
+          "rid": "streak-buy-shield",
+          "label": "Buy Shield for 150 coins",
+          "bounds": "[793,1670][1038,1796]"
+        },
+        {
+          "rid": "streak-buy-recovery",
+          "label": "Buy Recovery for 200 coins",
+          "bounds": "[793,1849][1038,1975]"
+        }
+      ],
+      "enabledControlCount": 4,
+      "png": "D:\\Documents\\tryPython\\brain-training\\openspec\\changes\\076-f-final-product-certification\\evidence\\d3-verify\\v-light-profile.png"
+    },
+    {
+      "theme": "dark",
+      "nodes": 145,
+      "disabledControls": [
+        {
+          "rid": "streak-buy-freeze",
+          "label": "Buy Freeze for 100 coins",
+          "bounds": "[793,1492][1038,1618]"
+        },
+        {
+          "rid": "streak-buy-shield",
+          "label": "Buy Shield for 150 coins",
+          "bounds": "[793,1670][1038,1796]"
+        },
+        {
+          "rid": "streak-buy-recovery",
+          "label": "Buy Recovery for 200 coins",
+          "bounds": "[793,1849][1038,1975]"
+        }
+      ],
+      "enabledControlCount": 4,
+      "png": "D:\\Documents\\tryPython\\brain-training\\openspec\\changes\\076-f-final-product-certification\\evidence\\d3-verify\\v-dark-profile.png"
+    }
+  ]
+}

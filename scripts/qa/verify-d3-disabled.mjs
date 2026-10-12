@@ -66,34 +66,42 @@ function ctr(b) {
 }
 
 const ROUTES = [
-  ['e-rewards', 'braintraining://rewards'],
-  ['e-profile', 'braintraining://profile'],
-  ['e-progress', 'braintraining://progress'],
-  ['e-data', 'braintraining://data-management'],
+  ['v-light-profile', 'braintraining://profile'],
 ];
 
-function main() {
-  const report = { device: DEVICE, at: new Date().toISOString(), captures: [] };
+function captureBothThemes() {
+  const report = { device: DEVICE, at: new Date().toISOString(), themes: [] };
   adb(['shell', 'am', 'force-stop', PKG]);
   sleepSync(1500);
-
-  for (const [tag, uri] of ROUTES) {
-    deepLink(uri);
-    sleepSync(5500);
-    const d = dump(tag);
-    report.captures.push({
-      route: uri,
+  for (const theme of ['light', 'dark']) {
+    adb(['shell', 'cmd', 'uimode', 'night', theme === 'dark' ? 'yes' : 'no']);
+    sleepSync(4000);
+    // Force-stop AFTER the theme change so the app re-reads the scheme on a
+    // cold start instead of repainting a stale one.
+    adb(['shell', 'am', 'force-stop', PKG]);
+    sleepSync(2000);
+    deepLink('braintraining://profile');
+    sleepSync(7000);
+    const d = dump(`v-${theme}-profile`);
+    report.themes.push({
+      theme,
       nodes: d.length,
       disabledControls: d
         .filter((n) => n.clickable && n.enabled === 'false')
         .map((n) => ({ rid: n.rid, label: n.text || n.desc, bounds: n.bounds })),
       enabledControlCount: d.filter((n) => n.clickable && n.enabled === 'true').length,
+      png: shot(`v-${theme}-profile`),
     });
-    shot(tag);
   }
+  // Restore the system default theme.
+  adb(['shell', 'cmd', 'uimode', 'night', 'auto']);
+  return report;
+}
 
-  fs.writeFileSync(path.join(OUT, 'disabled-button-routes.json'), `${JSON.stringify(report, null, 2)}\n`);
-  console.log(JSON.stringify(report.captures.map((c) => ({ route: c.route, disabled: c.disabledControls, enabled: c.enabledControlCount })), null, 2));
+function main() {
+  const report = captureBothThemes();
+  fs.writeFileSync(path.join(OUT, 'disabled-button-verification.json'), `${JSON.stringify(report, null, 2)}`);
+  console.log(JSON.stringify(report, null, 2));
 }
 
 main();
