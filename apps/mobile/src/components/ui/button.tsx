@@ -127,6 +127,48 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
 }
 
 /**
+ * 076-f defect D3: an explicit, theme-aware DISABLED treatment.
+ *
+ * The whole-control `opacity: 0.5` collapsed BOTH the fill and the label
+ * toward the background. For a filled variant whose label already uses the
+ * dark `*On` ink (e.g. dark primary: fill `#FF4A57`, label `#2B0508`),
+ * compositing both at 50% over the dark stage landed the pair ~1.08:1 apart —
+ * the label was gone, and gone precisely on the shared GO control the player
+ * needs after a trial resolves. Measured, not assumed.
+ *
+ * The treatment below dims only the FILL to a soft neutral and moves the label
+ * to the theme's readable `textSecondary`, so the text keeps its own contrast
+ * against the dimmed fill while the button still reads as inactive:
+ * distinguishable from an enabled button (muted fill, muted label) but legible
+ * and never disappearing. Both slots come from existing semantic tokens, so
+ * light and dark are handled by one expression rather than two, and the label
+ * contrast is derived rather than eyeballed.
+ *
+ * `textSecondary` is the label slot rather than `textMuted`, which is a
+ * MEASURED choice: on the light palette `textMuted` (#9A9A94) against the
+ * dimmed fill (#ECEAE5) is only 2.35:1 — the same unreadable outcome the
+ * repair exists to remove. `textSecondary` clears the 4.5:1 AA floor and the
+ * 7:1 AAA floor in BOTH palettes (light 7.25:1, dark 9.14:1) and is still
+ * visibly quieter than the enabled label's full-strength `text`, so the
+ * disabled state stays obvious.
+ *
+ * `loading` is NOT routed through this: a busy button keeps its full-strength
+ * fill and shows a spinner, which is a different state with a different
+ * meaning ("working" vs "unavailable").
+ */
+const DISABLED_FILL = 'backgroundElement';
+const DISABLED_LABEL = 'textSecondary';
+
+/** Colour slots for a disabled button, per variant. */
+function resolveDisabled(variant: ButtonVariant, theme: ColorTheme) {
+  // `ghost` is already borderless/transparent, so it keeps no fill and simply
+  // drops to the muted label; the filled and secondary variants take the soft
+  // neutral surface so they read as unavailable rather than absent.
+  const background = variant === 'ghost' ? 'transparent' : theme[DISABLED_FILL];
+  return { background, label: DISABLED_LABEL as ThemeColor };
+}
+
+/**
  * Full-width-able action button. Press feedback comes from {@link Tappable}, so
  * haptics, reduced motion and the platform target are inherited rather than
  * re-implemented.
@@ -157,19 +199,31 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
 ) {
   const theme = useTheme();
   const colors = resolveVariant(variant, theme);
-  const inactive = disabled || loading;
+  // Disabled and loading are separate states with separate appearances: only a
+  // DISABLED button gets the explicit muted treatment (076-f D3). A loading
+  // button keeps its enabled fill and shows a spinner, so the two are not
+  // conflated and the busy control still reads as the live CTA.
+  const inactive = disabled;
+  const busy = loading;
+  const disabledColors = resolveDisabled(variant, theme);
+  const background = inactive ? disabledColors.background : colors.background;
+  const labelColor = inactive ? disabledColors.label : colors.label;
   const hasLip = variant === 'primary' || variant === 'danger' || variant === 'success';
+  // A disabled filled button drops its 4 dp lip: that shadow is the pressed-key
+  // affordance and belongs to an actionable control, so keeping it would make an
+  // unavailable button read as pressable. Sizing and layout are unchanged.
+  const showLip = hasLip && !inactive;
 
   const body = (
     <Tappable
       ref={ref}
       testID={testID}
       onPress={onPress}
-      disabled={inactive}
+      disabled={inactive || busy}
       pressedScale={PRESS_SCALE.cta}
       accessibilityLabel={accessibilityLabel ?? (sublabel ? `${label}. ${sublabel}` : label)}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: inactive, busy: loading, ...(accessibilityState ?? {}) }}
+      accessibilityState={{ disabled: inactive, busy, ...(accessibilityState ?? {}) }}
       renderedSize={HEIGHT[size]}
       hitSlop={EDGE_HIT_SLOP}
       style={[
@@ -179,30 +233,29 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
           // minHeight (not height) so a 2x system font scale grows the button
           // instead of clipping its label.
           minHeight: HEIGHT[size],
-          backgroundColor: colors.background,
-          borderColor: colors.border,
+          backgroundColor: background,
+          borderColor: inactive ? theme.border : colors.border,
           borderRadius: Radii.medium,
         },
         variant === 'ghost' && styles.outlined,
-        hasLip && styles.lipInner,
-        inactive && styles.inactive,
+        showLip && styles.lipInner,
         style,
       ]}
       pressedStyle={variant === 'primary' ? { backgroundColor: theme.accentStrong } : { opacity: 0.86 }}
       {...rest}>
-      {loading ? (
+      {busy ? (
         <ActivityIndicator color={theme[colors.label]} size="small" />
       ) : (
         <>
           {icon ? <View style={styles.icon}>{icon}</View> : null}
           <View style={styles.labels}>
-            <ThemedText type={LABEL_TYPE[size]} themeColor={colors.label} numberOfLines={2} style={styles.label}>
+            <ThemedText type={LABEL_TYPE[size]} themeColor={labelColor} numberOfLines={2} style={styles.label}>
               {label}
             </ThemedText>
             {sublabel ? (
               <ThemedText
                 type="caption"
-                themeColor={colors.label}
+                themeColor={labelColor}
                 numberOfLines={1}
                 style={styles.sublabel}>
                 {sublabel}
@@ -215,7 +268,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
     </Tappable>
   );
 
-  if (!hasLip) {
+  if (!showLip) {
     return body;
   }
   // The lip wrapper keeps the testID, ref and accessibility contract on the
@@ -247,9 +300,6 @@ const styles = StyleSheet.create({
   },
   lipInner: {
     marginBottom: 4,
-  },
-  inactive: {
-    opacity: 0.5,
   },
   icon: {
     alignItems: 'center',
