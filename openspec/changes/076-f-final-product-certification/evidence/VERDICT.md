@@ -286,7 +286,31 @@ dependency and does not by itself force the blocked verdict; the repository-owne
 
 ## Ending-SHA workflow record (task 8.4)
 
-**ENDING SHA `5a50eb71be7d86ed12d96bc15298b3d848057976` — all four GREEN, push-triggered, `main` == `origin/main`.**
+**ENDING SHA `e09d4c7` — all four GREEN, push-triggered. `main` was at this SHA with a clean worktree when the four runs completed.**
+
+| Workflow | Run ID | Steps | Conclusion |
+| --- | --- | --- | --- |
+| App CI | 38296114996 | 24 (1 job) | **success** |
+| Repository Integrity | 38296115055 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 38296115174 | 18 (1 job) | **success** |
+| iOS Build Smoke | 38296115017 | 15 (1 job) | **success** |
+
+Every step is `success` in all four runs; none is skipped.
+
+The ending SHA moved past the round below because the documentation commits that
+followed it are evidence-tree changes. The record cycle is the documented method
+and is now understood precisely: all four workflows declare
+`concurrency: <workflow>-${{ github.ref }}` with `cancel-in-progress: true`, so a
+push cancels the previous commit's still-running jobs. A commit whose CI is still
+running cannot therefore survive the next push, and a fully green ending SHA
+requires the winning push to be the last one. That is why `4468685` and `64aaa33`
+are 3-of-4 rather than green — see the cancelled-run disclosure below. The commit
+that documents these runs necessarily follows them, so it is documentation-only
+and its own four runs were left to complete with no further push.
+
+**Superseded ending SHA `5a50eb71be7d86ed12d96bc15298b3d848057976`** — all four
+likewise GREEN, push-triggered, and retained as history because HEAD has since
+moved past it:
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
@@ -294,15 +318,6 @@ dependency and does not by itself force the blocked verdict; the repository-owne
 | Repository Integrity | 38291051629 | 16 (2 jobs) | **success** |
 | Android Build Smoke | 38291051702 | 18 (1 job) | **success** |
 | iOS Build Smoke | 38291051671 | 15 (1 job) | **success** |
-
-Every step is `success` in all four runs; none is skipped. The ending SHA moved
-past the round below because the D3 repair (`d5787ec`) and the reconciliation and
-CI-record commits that followed it are application- and evidence-tree changes
-that landed after it. The record cycle is the documented method: the commit that
-records these runs necessarily follows them, so the runs were measured against
-the tree that was HEAD and pushed before the record commit, not against the
-record commit itself. That property is stated here rather than hidden, exactly as
-for the earlier round.
 
 **Superseded ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928`** — all four
 likewise GREEN, push-triggered, worktree clean, and retained as history because
@@ -326,7 +341,8 @@ These runs are at the tree that is HEAD, from a push, with a clean worktree and 
 - bf37e6b - 38214631249, 38214631306, 38214631242, 38214631402
 - e3cfb8f - 38217246446, 38217246390, 38217246457, 38217246383  (ending SHA until the D3 repair moved HEAD)
 - 8f12b1c - 38220311950, 38220311860, 38220311984, 38220311941
-- 5a50eb7 - 38291051610, 38291051629, 38291051702, 38291051671  (ENDING SHA)
+- 5a50eb7 - 38291051610, 38291051629, 38291051702, 38291051671
+- e09d4c7 - 38296114996, 38296115055, 38296115174, 38296115017  (ENDING SHA)
 
 Only **push-triggered** rounds are listed. `8f12b1c` additionally has a
 **scheduled** Repository Integrity re-run (`38254204716`, 2026-10-12, success) which
@@ -337,7 +353,13 @@ recorded ID is not a real, green run at the exact SHA the record claims.
 
 Manual-dispatch rounds that were also 4/4 green: 6f8ce8d (38200103535, 38200106308, 38200108857, 38200112643) and 74ce010 (38204896955, 38204900670, 38204903056, 38204906568).
 
-**Runs recorded as cancelled, not green - eight from this session:** 38202372875, 38202372885, 38202372888, 38202372929, 38204813925, 38204813938, 38204813950, 38204813977.
+**Runs recorded as cancelled, not green — six from the earlier session:** 38202372875 (iOS @`a79bae1`), 38202372885 (App CI @`a79bae1`), 38202372888 (Android @`a79bae1`), 38204813925 (App CI @`74ce010`), 38204813938 (Android @`74ce010`), 38204813977 (iOS @`74ce010`).
+
+**Three more, cancelled on 2026-10-13 by the concurrency policy, not by failure:** 38295096279 (Android Build Smoke @ `64aaa33`), 38293852381 (iOS Build Smoke @ `4468685`), 38293852315 (Android Build Smoke @ `4468685`).
+
+An earlier version of this list named eight IDs as cancelled, two of which (`38202372929` and `38204813950`, both Repository Integrity) were in fact **green** and had completed before the superseding push landed. That is corrected here: each of `a79bae1` and `74ce010` is a **3-of-4 cancelled** round, not a 4-of-4 one. Neither is listed as a green push round, and listing its Repository Integrity run as cancelled would have been wrong in the opposite direction.
+
+All four workflows are declared with `concurrency: <workflow>-${{ github.ref }}` and `cancel-in-progress: true`, so pushing a new commit to `main` cancels that workflow's still-running jobs for the previous commit. That is why `4468685` and `64aaa33` do not have complete four-workflow green sets: their runs were superseded while in flight, which is a property of the concurrency policy, not a failing build. It also explains the record cycle — a commit whose CI is still running cannot survive the next push, so a fully green ending SHA requires that the winning push be the last one. The ending-SHA round above (`5a50eb7`) is green because its four runs completed before the following push arrived. Every cancelled and green ID in this section was re-read from the workflow list by `scripts/qa/verify-ci-record.mjs` before being recorded here, which is how the two green-but-listed-as-cancelled IDs were found.
 
 **Why the record needed several rounds, stated plainly.** Recording a push-triggered result has an inherent cycle: the run happens at the pushed SHA, and the commit that records that result then becomes a new HEAD that is itself pushed and run. Six push rounds plus manual-dispatch rounds were taken to converge on a record with no commit following it. This is a property of the recording method, not a repository defect, and every round is listed above for its own SHA with none relabelled.
 

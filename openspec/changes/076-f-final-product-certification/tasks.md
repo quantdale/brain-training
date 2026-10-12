@@ -124,24 +124,22 @@
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-  **Round 2 (2026-10-13) — current ending SHA `5a50eb71be7d86ed12d96bc15298b3d848057976` (`main` == `origin/main`).** All four workflows recorded **GREEN** at this exact SHA, each step `success` and none skipped:
+  **Round 3 (2026-10-13) — current ending SHA `e09d4c7` (`main` was at this SHA, clean worktree, when the four runs completed).** All four workflows recorded **GREEN** at this exact SHA, every step `success` and none skipped:
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |
-  | App CI | `38291051610` | 24 (1 job) | **success** |
-  | Repository Integrity | `38291051629` | 16 (2 jobs) | **success** |
-  | Android Build Smoke | `38291051702` | 18 (1 job) | **success** |
-  | iOS Build Smoke | `38291051671` | 15 (1 job) | **success** |
+  | App CI | `38296114996` | 24 (1 job) | **success** |
+  | Repository Integrity | `38296115055` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38296115174` | 18 (1 job) | **success** |
+  | iOS Build Smoke | `38296115017` | 15 (1 job) | **success** |
 
-  This round exists because the ending SHA moved: the D3 repair (`d5787ec`) and the
-  reconciliation/CI-record commits that followed it landed after round 1 below, so
-  round 1's SHA is no longer HEAD and its record is retained as history rather than
-  as the live ending SHA. The record-cycle property is unchanged and is stated
-  openly rather than hidden — the commit that records these four runs necessarily
-  follows them, so the runs were measured against exactly the tree that was HEAD
-  and pushed before the record commit, not against the record commit itself.
+  This round exists because the ending SHA moved again after round 2, for the same reason it moved after round 1: the intervening commits are evidence-tree changes. **The record cycle is now understood rather than merely stated.** All four workflows declare `concurrency: <workflow>-${{ github.ref }}` with `cancel-in-progress: true`, so a push cancels the previous commit's still-running jobs — a commit whose CI is in flight cannot survive the next push, and a fully green ending SHA requires the winning push to be the last one. That is why rounds at `4468685` and `64aaa33` are **3-of-4**, not green: two workflows each were superseded mid-run, which is the concurrency policy and not a failing build. All nine cancelled run IDs are disclosed explicitly in `evidence/VERDICT.md`, and the commit that records round 3 is documentation-only with its own runs left to complete under no further push.
 
-  **Round 1 (2026-10-12) — superseded ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928`;** now retained as history because the D3 repair moved HEAD past it. All four were likewise recorded **GREEN** at that SHA (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Five earlier rounds that were also 4/4 green (`bdde89c`, `31d7163`, `ce3a319`, `d4aa81e`, `bf37e6b`, plus two manual-dispatch rounds at `6f8ce8d` and `74ce010`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
+  Every recorded run ID, green and cancelled alike, is re-read from the workflow list by `scripts/qa/verify-ci-record.mjs`, which fails unless each green ID is a real, `push`-triggered, `success` run at the exact SHA the record claims, each cancelled ID really is cancelled, exactly one round is marked ENDING SHA, every round covers all four release checks, and no recorded run belongs to a non-release workflow. It currently verifies **36 green IDs across 9 rounds plus 9 cancelled IDs**. That guard exists because run IDs written from memory are indistinguishable from real ones: it caught four fabricated IDs and two mislabelled runs while this record was being written.
+
+  **Round 2 (2026-10-13) — superseded ending SHA `5a50eb71be7d86ed12d96bc15298b3d848057976`;** retained as history because HEAD moved past it. All four were likewise **GREEN** at that SHA: App CI `38291051610` (24 steps), Repository Integrity `38291051629` (16 steps, 2 jobs), Android Build Smoke `38291051702` (18 steps), iOS Build Smoke `38291051671` (15 steps), every step success and none skipped.
+
+  **Round 1 (2026-10-12) — superseded ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928`;** now retained as history because the D3 repair moved HEAD past it. All four were likewise recorded **GREEN** at that SHA (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Five earlier rounds that were also 4/4 green (`bdde89c` — manual dispatch, not push —, `31d7163`, `ce3a319`, `d4aa81e`, `bf37e6b`, plus two manual-dispatch rounds at `6f8ce8d` and `74ce010`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |

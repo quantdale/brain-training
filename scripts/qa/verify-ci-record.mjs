@@ -25,10 +25,26 @@ const PUSH_ROUNDS = [
   ['bf37e6b', 4, 'push', ''],
   ['e3cfb8f', 4, 'push', 'ending SHA until the D3 repair moved HEAD'],
   ['8f12b1c', 4, 'push', ''],
-  ['5a50eb7', 4, 'push', 'ENDING SHA'],
+  ['5a50eb7', 4, 'push', ''],
+  ['e09d4c7', 4, 'push', 'ENDING SHA'],
 ];
 
 const WORKFLOWS = ['App CI', 'Repository Integrity', 'Android Build Smoke', 'iOS Build Smoke'];
+
+// Cancelled run IDs the record discloses. These are excluded from the push-round
+// coverage check precisely because they were cancelled, so they need their own
+// check: the ID must be real, must be cancelled, and must be a release check.
+const CANCELLED = [
+  ['38202372875', 'a79bae1, iOS Build Smoke'],
+  ['38202372885', 'a79bae1, App CI'],
+  ['38202372888', 'a79bae1, Android Build Smoke'],
+  ['38204813925', '74ce010, App CI'],
+  ['38204813938', '74ce010, Android Build Smoke'],
+  ['38204813977', '74ce010, iOS Build Smoke'],
+  ['38295096279', '64aaa33, Android Build Smoke'],
+  ['38293852381', '4468685, iOS Build Smoke'],
+  ['38293852315', '4468685, Android Build Smoke'],
+];
 
 function ghList() {
   return JSON.parse(execFileSync('gh', ['run', 'list', '--limit', '250', '--json', 'databaseId,name,conclusion,headSha,event,status'], { encoding: 'utf8' }));
@@ -85,6 +101,20 @@ for (const [sha, count, expectedEvent, note] of PUSH_ROUNDS) {
   }
 }
 
+// 4. Disclosed cancelled runs must be real, cancelled, and release checks. A cancelled
+//    run that is actually green would mean the disclosure over-claims a gap; a
+//    cancelled run that is actually a failure would mean it under-claims one.
+for (const [id, why] of CANCELLED) {
+  const r = runs.find((x) => String(x.databaseId) === id);
+  if (!r) {
+    problems.push(`cancelled run ${id} (${why}) not found in the last 250 workflow runs`);
+    continue;
+  }
+  if (!WORKFLOWS.includes(r.name)) problems.push(`cancelled run ${id} is ${r.name}, not a release check`);
+  if (r.conclusion !== 'cancelled') problems.push(`cancelled run ${id} (${r.name}) is ${r.conclusion || r.status}, expected cancelled`);
+  if (verbose) console.log(`cancelled ${id} (${r.name} @${r.headSha.slice(0, 7)}) OK`);
+}
+
 // 3. Every workflow named in a round line must be one of the four release checks.
 for (const l of roundLines) {
   for (const id of /- ([0-9, ]+)/.exec(l)[1].split(',').map((s) => s.trim())) {
@@ -98,4 +128,4 @@ if (problems.length) {
   for (const p of problems) console.error('  ' + p);
   process.exit(1);
 }
-console.log(`CI record verified: ${seenRoundSha.size} push rounds, ${seenRoundSha.size * 4} run IDs all real, green and at their claimed SHA; exactly one ENDING SHA.`);
+console.log(`CI record verified: ${seenRoundSha.size} push rounds, ${seenRoundSha.size * 4} run IDs all real, green and at their claimed SHA; exactly one ENDING SHA; ${CANCELLED.length} disclosed cancelled runs all real and cancelled.`);
