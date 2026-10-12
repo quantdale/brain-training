@@ -84,7 +84,7 @@ does not supply the missing game proof.
 | Terminal release APK identity | **BUILT, HASHED AND INSTALLED** — `e243341f…`, 48,888,452 B; installed `base.apk` pulled off the device and hashed to the identical value | `TERMINAL_IDENTITY.json` |
 | Controller Flash / Pro authenticated smokes | **PASS** | `CONTROLLER.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
-| Workflows at the ending SHA `74ce010` | **4/4 GREEN** - see `## Ending-SHA workflow record` |
+| Workflows at the ending SHA 31d7163 | **4/4 GREEN** (push-triggered) - see `## Ending-SHA workflow record` |
 
 **What changed since the 2026-10-09 verdict.** The three blocking
 repository-owned gates — 42-game acceptance, the nine journeys, and the
@@ -222,25 +222,22 @@ run, and Android evidence cannot create an iOS pass.
 
 ## Ending-SHA workflow record (task 8.4)
 
-**Final ending-SHA record - all four GREEN at 74ce0108ba8996d326d423e368e3e292fe957bae.**
+**Final ending-SHA record - all four GREEN at 31d7163608a194cf8d0f4d81e08a7057b574d19a.**
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
-| App CI | 38204896955 | 24 | **success** |
-| Repository Integrity | 38204900670 | 16 (2 jobs) | **success** |
-| Android Build Smoke | 38204903056 | 18 | **success** |
-| iOS Build Smoke | 38204906568 | 15 | **success** |
+| App CI | 38207110816 | 24 | **success** |
+| Repository Integrity | 38207110755 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 38207110705 | 18 | **success** |
+| iOS Build Smoke | 38207110733 | 15 | **success** |
 
-Each was triggered with gh workflow run <file> --ref main from a clean worktree at this exact ending SHA and polled to a terminal conclusion.
+These four are the **push-triggered** runs at the ending SHA, which is the cleanest form of the record: no manual dispatch, no window between the trigger and the commit, and every workflow ran against exactly the tree that is HEAD.
 
-**This is the exit-gate record.** The CI round runs at the SHA that is HEAD when it is triggered, and each recording commit then moves HEAD, so the round was taken at the final ending SHA with no commit following it.
+**This is the exit-gate record.** Earlier manual-dispatch rounds were taken at bdde89c, 6f8ce8d and 74ce010, and each recording commit then moved the ending SHA - so a run at any of those is not a run at the ending SHA. The push-triggered round removes that gap entirely.
 
-**Earlier green rounds, retained for their own SHA only, none of which is the ending SHA:**
+**Manual-dispatch rounds that were 4/4 green, retained for their own SHA only:** bdde89c (38197292094, 38197294979, 38197297723, 38197300413); 6f8ce8d (38200103535, 38200106308, 38200108857, 38200112643); 74ce010 (38204896955, 38204900670, 38204903056, 38204906568). None is the ending SHA.
 
-- 6f8ce8d - 38200103535, 38200106308, 38200108857, 38200112643
-- bdde89c - 38197292094, 38197294979, 38197297723, 38197300413
-
-**Runs recorded as cancelled, not green - eight from this session.** They were superseded when the ending SHA moved and are never cited as an ending-SHA result: 38204813925, 38204813938, 38204813977, 38204813950, 38202372875, 38202372885, 38202372888, 38202372929.
+**Runs recorded as cancelled, not green - eight from this session.** They were superseded when the ending SHA moved and are never cited as an ending-SHA result: 38202372875, 38202372885, 38202372888, 38202372929, 38204813925, 38204813938, 38204813950, 38204813977.
 
 **No application or build-input change has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994.** Every commit after it touches only .agent/, openspec/ and evidence/. The terminal artifact identity e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f is therefore unchanged, and every device gate measured on it stays bound to it. That is re-verifiable: if any later commit touches an application or build input, the terminal identity changes and every gate bound to it must be re-measured.
 

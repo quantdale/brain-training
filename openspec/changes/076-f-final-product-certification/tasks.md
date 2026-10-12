@@ -116,14 +116,14 @@
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `74ce0108ba8996d326d423e368e3e292fe957bae` (`main` == `origin/main`, worktree clean at record time). Each was triggered with `gh workflow run <file> --ref main` (workflow_dispatch) and polled to terminal status.
+  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `31d7163608a194cf8d0f4d81e08a7057b574d19a` (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs, which removes the gap between trigger and commit: every workflow ran against exactly the tree that is HEAD. Manual-dispatch rounds at `bdde89c`, `6f8ce8d` and `74ce010` were also 4/4 green and are retained for their own SHAs, none of which is the ending SHA.
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |
-  | App CI | `38204896955` | 24 | **success** |
-  | Repository Integrity | `38204900670` | 16 (2 jobs) | **success** |
-  | Android Build Smoke | `38204903056` | 18 | **success** |
-  | iOS Build Smoke | `38204906568` | 15 | **success** |
+  | App CI | `38207110816` | 24 | **success** |
+  | Repository Integrity | `38207110755` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38207110705` | 18 | **success** |
+  | iOS Build Smoke | `38207110733` | 15 | **success** |
 
   Four earlier runs from this session (`38197119888/…892/…897/…908`) are recorded as **cancelled**, not green — they were superseded while the ending SHA was still being pushed and were replaced by the four above.
 - [x] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.
