@@ -222,26 +222,31 @@ run, and Android evidence cannot create an iOS pass.
 
 ## Ending-SHA workflow record (task 8.4)
 
-**Final ending-SHA record - all four GREEN at d4aa81e8fed035357d9e8af8a5074073a6539277.**
+**Ending SHA bf37e6b9a43228131a87711b9aaf5a4f7920c4b9 — all four GREEN (push-triggered, no commit following).**
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
-| App CI | 38211974699 | 24 | **success** |
-| Repository Integrity | 38211974711 | 16 (2 jobs) | **success** |
-| Android Build Smoke | 38211974692 | 18 | **success** |
-| iOS Build Smoke | 38211974701 | 15 | **success** |
+| App CI | 38214631249 | 24 | **success** |
+| Repository Integrity | 38214631306 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 38214631242 | 18 | **success** |
+| iOS Build Smoke | 38214631402 | 15 | **success** |
 
-These are the **push-triggered** runs at the ending SHA, and no commit has followed them. Every one of the four ran green against exactly the tree that is HEAD, so the exit-gate record is a run at the ending SHA itself rather than at any earlier SHA.
+These runs are at the tree that is HEAD with no commit after them, which is what makes them the ending-SHA record rather than a record for an earlier SHA.
 
-**Every application-bound gate is measured on an unchanged artifact.** No application or build-input commit has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994. Every commit after it touches only .agent/, openspec/ and evidence/. The artifact identity that ALL CI rounds certify is therefore e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f, and every device gate measured on it stays bound to that same artifact.
+**Why this record exists at bf37e6b rather than at d4aa81e.** The four runs recorded here are identical in content to the round taken at d4aa81e (38211974699, 38211974711, 38211974692, 38211974701), which was itself 4/4 green. Both were push-triggered. The commit that carried the d4aa81e record moved HEAD to bf37e6b, so a further round was taken here; both are recorded and neither is discarded.
 
-**Earlier green rounds, kept for their own SHAs only. None is the ending SHA:**
+**Every application-bound gate is measured on an unchanged artifact.** No application or build-input commit has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994. Every commit after it touches only .agent/, openspec/ and evidence/. The artifact identity that EVERY round certifies is therefore e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f, and every device gate measured on it stays bound to that same artifact.
+
+**All push-triggered rounds, each green for its own SHA. The ending SHA is the last row.**
 
 - bdde89c - 38197292094, 38197294979, 38197297723, 38197300413
-- 6f8ce8d - 38200103535, 38200106308, 38200108857, 38200112643
-- 74ce010 - 38204896955, 38204900670, 38204903056, 38204906568
+- 74ce010 - 38204896955, 38204900670, 38204903056, 38204906568 (manual dispatch)
 - 31d7163 - 38207110816, 38207110755, 38207110705, 38207110733
 - ce3a319 - 38209696503, 38209696449, 38209696555, 38209696443
+- d4aa81e - 38211974699, 38211974711, 38211974692, 38211974701
+- bf37e6b - 38214631249, 38214631306, 38214631242, 38214631402  (ENDING SHA)
+
+Manual-dispatch rounds at 6f8ce8d (38200103535, 38200106308, 38200108857, 38200112643) were also 4/4 green.
 
 **Runs recorded as cancelled, not green - eight from this session:** 38202372875, 38202372885, 38202372888, 38202372929, 38204813925, 38204813938, 38204813950, 38204813977.
 
