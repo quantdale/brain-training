@@ -1,0 +1,2590 @@
+{
+  "generatedAt": "2026-10-12T22:58:11.210Z",
+  "title": "Campaign 076 matched before/after visual gallery",
+  "identities": {
+    "before": {
+      "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+      "apkShort": "d631ab9a",
+      "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+      "note": "pre-redesign baseline; NOT rebuilt and NOT relabelled"
+    },
+    "afterMatrix": {
+      "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+      "apkShort": "de6c5fcd",
+      "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+      "note": "post-redesign route matrix; retains its own identity"
+    },
+    "afterTerminal": {
+      "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+      "apkShort": "c8c3d46c",
+      "source": "d5787ec",
+      "note": "repaired terminal APK; tutorial frames captured on it"
+    }
+  },
+  "summary": {
+    "routeMatched": 20,
+    "routeThemeMismatch": 0,
+    "routeAfterOnly": 70,
+    "tutorialMatched": 42,
+    "tutorialAfterOnly": 0,
+    "gameResultMatched": 0,
+    "gameResultThemeMismatch": 38,
+    "gameResultBeforeMissing": 4,
+    "totalMatchedPairs": 62
+  },
+  "pairs": {
+    "routes": [
+      {
+        "surface": "default/dark/data-management",
+        "before": {
+          "file": "before/default/dark/data-management.png",
+          "sha256": "1abfaeb63e26b4534523effc22bdccedd817042054cc943fb14da1af0aaeb51d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/game-detail",
+        "before": {
+          "file": "before/default/dark/game-detail.png",
+          "sha256": "34b61383fb9a872eb8551cd8653b70e2f10d37962b4f8d0ab58f4446300def85",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/game-intro",
+        "before": {
+          "file": "before/default/dark/game-intro.png",
+          "sha256": "d3cce98c39c84a0699f996eb5429475ac676b67cb89dc7c77d07d438aabfa222",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/games",
+        "before": {
+          "file": "before/default/dark/games.png",
+          "sha256": "3c742f7a32876dabf010610f612427afb238b8973d24ae91519cdacb2aaa65f9",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/home",
+        "before": {
+          "file": "before/default/dark/home.png",
+          "sha256": "1bee85c80ebad2b33fff50dc7923b12efe99f64570f1a9f0ec76a97cccca4fb7",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/profile",
+        "before": {
+          "file": "before/default/dark/profile.png",
+          "sha256": "5ae0c60bcf6b2a3709484926cc68f091629d2bc93530b3384cc063d1d810daa6",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/progress",
+        "before": {
+          "file": "before/default/dark/progress.png",
+          "sha256": "a6c539de6254649eaf2c61b63b9902bf8dd178667716f4099e881702e3311d96",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/dark/rewards",
+        "before": {
+          "file": "before/default/dark/rewards.png",
+          "sha256": "2fc418149f95da5d04a8fadd8d4b7f9d8e0ce85d10a19693dc2f633b1e5b4106",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "dark"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        }
+      },
+      {
+        "surface": "default/light/data-management",
+        "before": {
+          "file": "before/default/light/data-management.png",
+          "sha256": "52a6f8001bc465239971b82ff90c152eeb900f07d5f823ee09c01cdb85cd3696",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/game-detail",
+        "before": {
+          "file": "before/default/light/game-detail.png",
+          "sha256": "d30f9a7cec0313cd93f4bae06abd24b84a768582b43e195a8bf47676d67ae3dd",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/game-intro",
+        "before": {
+          "file": "before/default/light/game-intro.png",
+          "sha256": "dc0666eb7eebe9199bba34edc7bc3f605f4fb2f6d43eb356408eab1cecca19c6",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/games",
+        "before": {
+          "file": "before/default/light/games.png",
+          "sha256": "60a3f1fa3ed71c825537eed1da872bc2a547b7566b1ddcf7b11495ae5d1ed2c8",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/home",
+        "before": {
+          "file": "before/default/light/home.png",
+          "sha256": "4944f2d5c80dd7c38f048490169705fcb163fb63acf5e310663a0139eabfddd7",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/profile",
+        "before": {
+          "file": "before/default/light/profile.png",
+          "sha256": "128f7d34fa3485e732079c38e1b5113a4cce4af1d6e04115e2f7cdedff78b46c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/progress",
+        "before": {
+          "file": "before/default/light/progress.png",
+          "sha256": "5067bd0fb8623437709188fffe5d1a44e2430c67b2cba4378b9da14ce2921af8",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "default/light/rewards",
+        "before": {
+          "file": "before/default/light/rewards.png",
+          "sha256": "e0f11cb2e52ede1607c410235496afac7ab38391a9997de589ad6bb7086837cb",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "fs2/light/game-intro",
+        "before": {
+          "file": "before/font-scale-2/light/game-intro.png",
+          "sha256": "42705e59ce3c7d549870ab4bc02966b51e0f1ce23dfcdd65168f1cb95cd62291",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "fs2/light/home",
+        "before": {
+          "file": "before/font-scale-2/light/home.png",
+          "sha256": "8c209a643e89539ca0ec8af58c53e4c6bed8b20f44b9e83569cde8a689f24253",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "fs2/light/profile",
+        "before": {
+          "file": "before/font-scale-2/light/profile.png",
+          "sha256": "a654f9374c4ea603f41f34801ab91ccdf2a7ef8f35dfaea95c58afdeeacf867d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      },
+      {
+        "surface": "fs2/light/progress",
+        "before": {
+          "file": "before/font-scale-2/light/progress.png",
+          "sha256": "c172042bcb586a1a2ae91c82f0cd8346d45aa39d461764bf3d1016a1e6890e6d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light"
+        },
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        }
+      }
+    ],
+    "tutorials": [
+      {
+        "game": "attention-odd-one-out",
+        "name": "Odd One Out",
+        "category": "Attention",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/attention-odd-one-out-tutorial.png",
+          "sha256": "c7937bda3d5d1525937f20266325d08f99ab8cb8ffa8484f1941808d67aa9389",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/attention-odd-one-out-light.png",
+          "sha256": "901d7a66308d3ad47b5f71b6cd4654bcf5b094d79d05e1efe6c5732b67ccb5ea",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "attention-sustained-vigilance",
+        "name": "Signal Watch",
+        "category": "Attention",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/attention-sustained-vigilance-tutorial.png",
+          "sha256": "1b4f5f050fb77e2857c2da47ca0850a0e1552445e32b365075f23bc72e39f99e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/attention-sustained-vigilance-light.png",
+          "sha256": "14f25a97ba806ddb0def76071515af55cbc5796172de486133c6dd209c9049ff",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "attention-symbol-tracker",
+        "name": "Symbol Tracker",
+        "category": "Attention",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/attention-symbol-tracker-tutorial.png",
+          "sha256": "4a5472a71f8984aba0a4905577b086fd911d84bdb3c24a54952bbb47d5a2370e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/attention-symbol-tracker-light.png",
+          "sha256": "f3442849d975db2347002ad15f253d0c0a631b99a74891faf9ed5997799a0e1b",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "attention-target-count",
+        "name": "Target Count",
+        "category": "Attention",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/attention-target-count-tutorial.png",
+          "sha256": "a24502a020aa5a239b71208ca49ba61fb41e4dcf6f44097ebfd7626af241241b",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/attention-target-count-light.png",
+          "sha256": "38860b20fee635386146484e3b24ebb24969d5b4b72912ed7219db06998eea31",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "attention-visual-search",
+        "name": "Visual Search",
+        "category": "Attention",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/attention-visual-search-tutorial.png",
+          "sha256": "ab52d4a50b2894804f28ce9ec7225c65d27ef90323d1d50596342a73c71b3b06",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/attention-visual-search-light.png",
+          "sha256": "318a3161e0d3146c9368b0e68962378b5465b2a5dc2a7771c68e20d82e89591f",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "flexibility-card-sort",
+        "name": "Card Sort",
+        "category": "Flexibility",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/flexibility-card-sort-tutorial.png",
+          "sha256": "e162318e14d605805b750195160e5bbc0db257cf32a97986330463fc9b3a5657",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/flexibility-card-sort-light.png",
+          "sha256": "46d9e6ad6a9b8ada1b5c9496ea992cd051e286a7fe13d31c66965757e6d530d9",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "flexibility-color-stroop",
+        "name": "Color Stroop",
+        "category": "Flexibility",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/flexibility-color-stroop-tutorial.png",
+          "sha256": "aafe095437267353dd1f731bfe813dee0a56439f730df37de251f8baf62ed320",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/flexibility-color-stroop-light.png",
+          "sha256": "971d23340945dd9fb6b661731fac7bd72c476ee6872787a1fb19241a47c03864",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "flexibility-cue-shift",
+        "name": "Cue Shift",
+        "category": "Flexibility",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/flexibility-cue-shift-tutorial.png",
+          "sha256": "df4542dc291e8667f23250713906d6bc81e1a43b4b996b1ee2d52c5b807503ad",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/flexibility-cue-shift-light.png",
+          "sha256": "4783e7d9ddc83db6445f82ebc68a52f9164a47e06fbce421454af63859506b04",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "flexibility-rule-flip",
+        "name": "Rule Flip",
+        "category": "Flexibility",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/flexibility-rule-flip-tutorial.png",
+          "sha256": "49ab982448b5c4606d3d92be3eda5b1d196699bfc66c5963bd9bf7b6f347a400",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/flexibility-rule-flip-light.png",
+          "sha256": "fefcccfb8c6cc06c289298127ba65ee8944367d28c23bda8f52e2985528447fb",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "flexibility-task-switch",
+        "name": "Task Switch",
+        "category": "Flexibility",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/flexibility-task-switch-tutorial.png",
+          "sha256": "742598bd66cfca5dbda018a5f0429deed6c1ad14813559276e369cab91649d83",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/flexibility-task-switch-light.png",
+          "sha256": "1d8731287127309a789659c047d667098aa815f72931c02f6ee577501374a209",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "language-context-fit",
+        "name": "Context Fit",
+        "category": "Language",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/language-context-fit-tutorial.png",
+          "sha256": "b20478eb52d7a0bb6f03cf2d20f425fb307ed79a1d2c2d86ea65ef76b1bd2c5e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/language-context-fit-light.png",
+          "sha256": "98e4ef4ff380b99d513150095f83c9d83aa5ff0e12f54cac5249b913b214b103",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "language-sentence-builder",
+        "name": "Sentence Builder",
+        "category": "Language",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/language-sentence-builder-tutorial.png",
+          "sha256": "29769c0a36b47bdfb4835dcfd68642336713b3d8ba6f5c8040b3592377e846cc",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/language-sentence-builder-light.png",
+          "sha256": "71ee4cb3f99c4e8722002bdfaf138369967c6d4001d753f51cab6cefdd63dc17",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "language-word-chain",
+        "name": "Word Chain",
+        "category": "Language",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/language-word-chain-tutorial.png",
+          "sha256": "efc8279ed256ba4d0b483307058c0f393cf7c64f96718c7d5896bdf767a84e0d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/language-word-chain-light.png",
+          "sha256": "a6720c1b4c1f9c73c481db8052ed5882f186fb1190f8e2cbf81e415b0a52f894",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "language-word-match",
+        "name": "Word Match",
+        "category": "Language",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/language-word-match-tutorial.png",
+          "sha256": "9a08340eaf8312dc083658ba75604e20d85a1731f8f23d5e8b1f1897060aca6d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/language-word-match-light.png",
+          "sha256": "169c1c01ee1c05698b5cf40d61ef0f3f819acbc031ebeafdae4dcb6886c8ccd3",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "language-word-scramble",
+        "name": "Word Scramble",
+        "category": "Language",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/language-word-scramble-tutorial.png",
+          "sha256": "78354c28ee5ed5a6e6a24008614bd37950a916fb0e14446912ecaf990f89ae57",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/language-word-scramble-light.png",
+          "sha256": "9b98fa8a852e2016026ae8601a9f00b76fdcbd880b6649fd4f6c622bfa4d3221",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "logic-code-cracker",
+        "name": "Code Cracker",
+        "category": "Logic & Problem Solving",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/logic-code-cracker-tutorial.png",
+          "sha256": "b967e56f00c5278cb916e45a1faf829b1050dbb8f9257d1f27d489a57b696ab0",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/logic-code-cracker-light.png",
+          "sha256": "8835326d672547f9b11c3538d5d34baaaf3979a0f60c53e8245208375c88c962",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "logic-deduction-table",
+        "name": "Deduction Table",
+        "category": "Logic & Problem Solving",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/logic-deduction-table-tutorial.png",
+          "sha256": "40b884389c6a40a3321ec7cb3b73eac003483b0221231829554bb34f82de7a22",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/logic-deduction-table-light.png",
+          "sha256": "8d62016bb7690bff93c7eddf5dbfb534d68362a0cf881cf56237798a23ae031e",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "logic-next-sequence",
+        "name": "Next in Sequence",
+        "category": "Logic & Problem Solving",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/logic-next-sequence-tutorial.png",
+          "sha256": "322891e41e1a1e45f9cae55f6ba9ccc9897fe745cd12207ed0e6346a42bd7aa7",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/logic-next-sequence-light.png",
+          "sha256": "aa16a4b3d51d6466a5b68db0d73df9f62804e3c1a27bed9951416378ac46e785",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "logic-order-path",
+        "name": "Order Path",
+        "category": "Logic & Problem Solving",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/logic-order-path-tutorial.png",
+          "sha256": "4dde69437034356719703b66444d618074f634ea5eb58ab2e25d5dc096b1ea97",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/logic-order-path-light.png",
+          "sha256": "21557802872d86389113740deeaeab4cc1cd8a4c774c25649d9c2b23baaff433",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "logic-rule-grid",
+        "name": "Rule Grid",
+        "category": "Logic & Problem Solving",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/logic-rule-grid-tutorial.png",
+          "sha256": "5af54f562b2dfca4f9a164c3f1f742a62e51979f8917b5354413f1594003e36b",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/logic-rule-grid-light.png",
+          "sha256": "8018bcbc70a529a11321a40db8200f5a0d0d73b88375123cb504eba5bc9924d4",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "math-equation-builder",
+        "name": "Equation Builder",
+        "category": "Math",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/math-equation-builder-tutorial.png",
+          "sha256": "b8bae672ffe1759b0f6a15ec405470e7834482438f4db009827ae0b29da93c60",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/math-equation-builder-light.png",
+          "sha256": "be4f92e900663feb0af5984a1f8e28c403154e078df782e8876d7ad62ecda055",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "math-fast-math",
+        "name": "Fast Math",
+        "category": "Math",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/math-fast-math-tutorial.png",
+          "sha256": "f8cb1f52a25f39edf098750fa059c909f853fbf7f11f28816e28c1d30f5415cb",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/math-fast-math-light.png",
+          "sha256": "a124a99271143bc54854d443c26e8f4cf8bd8abf0e3ecd2d5a0d0259571efe86",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "math-missing-operator",
+        "name": "Missing Operator",
+        "category": "Math",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/math-missing-operator-tutorial.png",
+          "sha256": "c6edd29ce6abd7db9d444864efbac38146768e4a8ed6081b9cf690343828aa62",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/math-missing-operator-light.png",
+          "sha256": "40a42c0e2864c7f6bdef627a4c9d988d2593c8266beb4e0ef34eee48792e19aa",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "math-number-line-estimation",
+        "name": "Number Line",
+        "category": "Math",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/math-number-line-estimation-tutorial.png",
+          "sha256": "b73b2be445ce4d533505ce194e3978f1dffdfd6e3393a78460348472eeb88d3d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/math-number-line-estimation-light.png",
+          "sha256": "d8c2f6041d33caad62cdc9e2de5925c20db125b96de57258f2cadb73cbe7d0fc",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "math-value-ordering",
+        "name": "Value Order",
+        "category": "Math",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/math-value-ordering-tutorial.png",
+          "sha256": "1249676c9caccc2748ed14a344a1b1557c896d21ce8d6bfce00a216180b17f4c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/math-value-ordering-light.png",
+          "sha256": "c8835d4f05c8616228de434b473802252b8e0c117042327a373d393d87c08e8b",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory",
+        "name": "Memory",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-tutorial.png",
+          "sha256": "af3293783bc9f708571de4a083b06e9d04fd398b7187de1faa13288c67ffea06",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-light.png",
+          "sha256": "405e0a15a47aeb34b9822b787390325d24f90c7413f3b7fcde05e26e110bf5fd",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-grid-recall",
+        "name": "Grid Recall",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-grid-recall-tutorial.png",
+          "sha256": "4cac7eaba162f666ccb0bcac806511c6c9e35490d0429be71a593535047868e5",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-grid-recall-light.png",
+          "sha256": "c808b1c6f73e6c6afb9baf75bd6e0cdca507d3be359905e95cb5d2851fefa1d2",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-pair-recall",
+        "name": "Pair Recall",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-pair-recall-tutorial.png",
+          "sha256": "71401174c4c30f47e3dc0f3954b24e49eedb6b576dab15863a1d6e5eb49e3f0c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-pair-recall-light.png",
+          "sha256": "04ba9ee7b7e08bc5ef7e5049bde47acaec7f29f28a732500293e451efd4ddb7e",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-pattern-tap-back",
+        "name": "Pattern Tap Back",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-pattern-tap-back-tutorial.png",
+          "sha256": "b10d06cc066b44a6ba7db2f36c68e9bfb29506da8e339e67714c8617d301b13c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-pattern-tap-back-light.png",
+          "sha256": "1f5cfe67fda059d63a7c2fffaaffdd4b73519557a72525aa00c8f997c4b29c97",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-prospective-cue",
+        "name": "Cue Keeper",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-prospective-cue-tutorial.png",
+          "sha256": "c1add492cab15202cfb3932e0787e859b4d12cd51f6020841212ffbf75d87403",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-prospective-cue-light.png",
+          "sha256": "4fa0ad6615b1170f9563504e2d0b33b2f1feb01c1a1b34eb6d0385af4dd27d44",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-running-order",
+        "name": "Running Order",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-running-order-tutorial.png",
+          "sha256": "4b6435572af41b7063f5f6ecdc462d47d5b0aab469bb634f1281e4313f732697",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-running-order-light.png",
+          "sha256": "164dbe2a7ffb5ba0672c5d018f9ca746c0323b19a8cd47e5db161105fdb18ac2",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "memory-sequence-memory",
+        "name": "Sequence Memory",
+        "category": "Memory",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/memory-sequence-memory-tutorial.png",
+          "sha256": "c741a202da5d829d25ad3e2bc971d143119a1642c96ea2448e9d3fa1e30fa85e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/memory-sequence-memory-light.png",
+          "sha256": "109a7056e0afc9fbd79c490d75506634af3e45fbb16dd22e633a0b260d06894b",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "spatial-coordinate-turn",
+        "name": "Coordinate Turn",
+        "category": "Spatial",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/spatial-coordinate-turn-tutorial.png",
+          "sha256": "5db634fbb7061e7120bdc97bd708d20737a0285da646491327e95b4803d25f34",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/spatial-coordinate-turn-light.png",
+          "sha256": "a1ae4c74d86092da80c1ed32e75eb59195dac1a6ed4e12f002362b0c9e72bae9",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "spatial-fold-match",
+        "name": "Fold Match",
+        "category": "Spatial",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/spatial-fold-match-tutorial.png",
+          "sha256": "e9f878d6e40b656cfcff4dbd0306532cb91e9d6f28e3011b9d2006430cc8578c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/spatial-fold-match-light.png",
+          "sha256": "16eab72cbc3fa15d50346443077f1ff84e89f882e8e2b3409fcda429cff1199e",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "spatial-grid-nav",
+        "name": "Grid Navigator",
+        "category": "Spatial",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/spatial-grid-nav-tutorial.png",
+          "sha256": "0fc21e3b734b6fd76c3f8d197708060a921b58dc219a0324cd8ac6f428b20914",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/spatial-grid-nav-light.png",
+          "sha256": "44d97906253ce1e5e0200a848e43c234284879d6c6d569ac60fd7e348e81b51b",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "spatial-mental-rotation",
+        "name": "Mental Rotation",
+        "category": "Spatial",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/spatial-mental-rotation-tutorial.png",
+          "sha256": "45dc3810099de06c68225aa166a48d17a8d88c59ec6e40019a6ae3375acf324e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/spatial-mental-rotation-light.png",
+          "sha256": "b7d60a33c41b3a91347e4bc787d06b5ec3bb8e278aa6e272afc917b10a9d0486",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "spatial-transform-match",
+        "name": "Transform Match",
+        "category": "Spatial",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/spatial-transform-match-tutorial.png",
+          "sha256": "5f321b793c267f335787660d576f7a724b252e056606ecd72b91a1526dfeb143",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/spatial-transform-match-light.png",
+          "sha256": "1101ef6b78112ccf65aed9dda2ea5b826c096af1f52e65e280baf5e42ce56ef8",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "speed-color-match",
+        "name": "Color Match",
+        "category": "Speed",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/speed-color-match-tutorial.png",
+          "sha256": "05c6efa274d0a5909665fcf4ccd05b62a37cf59d61d892d4c97837d8f56e3d27",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/speed-color-match-light.png",
+          "sha256": "aae8fce8deee2369e31b03dd5cd1d20361d5a537e5c15f8936d98812668deac4",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "speed-order-sweep",
+        "name": "Order Sweep",
+        "category": "Speed",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/speed-order-sweep-tutorial.png",
+          "sha256": "0e9bf5080fefdcd931fd6bff0c865783192d488ace388c1fc6eccc70ee6f525d",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/speed-order-sweep-light.png",
+          "sha256": "977c4c397799f70a29154199862e900a9dc875620f1400fad8e96b13340516b2",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "speed-quick-compare",
+        "name": "Quick Compare",
+        "category": "Speed",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/speed-quick-compare-tutorial.png",
+          "sha256": "7067789a1b6c40cc0b3fff5f2c186f8aea3a17ca67658a93e2d000339c5e62e8",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/speed-quick-compare-light.png",
+          "sha256": "9dbe23ee0eea105bb57dc0ac4d6c18d83e17584b7d959164a752d240082db38a",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "speed-reaction-time",
+        "name": "Reaction Time",
+        "category": "Speed",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/speed-reaction-time-tutorial.png",
+          "sha256": "a25d597f51e8a9564be360bf63a64068b965cfcb133adb6bb6bd6cb720ec7dfa",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/speed-reaction-time-light.png",
+          "sha256": "29a9eccd5a8f6d62cbf81336bf96b5c04f7169d3457585a19bf010556c64dcbc",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      },
+      {
+        "game": "speed-tap-rush",
+        "name": "Tap Rush",
+        "category": "Speed",
+        "state": "tutorial",
+        "theme": "light",
+        "before": {
+          "file": "before-captures/speed-tap-rush-tutorial.png",
+          "sha256": "bcbb6b3106c7dd9f493d3e118a205ca517d8b7538c793ae9aa00dd3d8b705eb0",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "source": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+          "theme": "light"
+        },
+        "after": {
+          "file": "terminal-tutorials-c8c3d46c/speed-tap-rush-light.png",
+          "sha256": "15044831bf6dabd97d6d05bde20afdf85020d6c95ed51fb7b96e41c887a95f1a",
+          "apk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+          "theme": "light"
+        }
+      }
+    ],
+    "gameResults": []
+  },
+  "gaps": {
+    "routeThemeMismatch": [],
+    "routeAfterOnly": [
+      {
+        "surface": "default/light/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/light/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/light/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "default/dark/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/default/dark/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/home",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/games",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/game-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/progress",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/profile",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/rewards",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/data-management",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/game-intro",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/light/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/light/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/home",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/games",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/game-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/progress",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/profile",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/rewards",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/data-management",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/game-intro",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "compact/dark/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/compact/dark/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/games",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/game-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/rewards",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/data-management",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/light/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/light/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "light"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/home",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/home.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/games",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/games.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/progress",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/progress.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/progress-activity",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/progress-activity.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/progress-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/progress-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/profile",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/profile.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/rewards",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/rewards.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/data-management",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/data-management.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/results",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/results.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/game-intro",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/game-intro.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/progress-domain",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/progress-domain.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/progress-game",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/progress-game.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/storage-unavailable",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/storage-unavailable.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/bootstrap-recovery",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/bootstrap-recovery.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      },
+      {
+        "surface": "fs2/dark/game-detail",
+        "after": {
+          "file": "final-matrix-de6c5fcd/fs2/dark/game-detail.png",
+          "apk": "de6c5fcd19de2428af39b5f44a8e80ee1a9a037c4848c98ddb05ddcfd678903d",
+          "source": "c324960c7619d305f01d60587f9e74c4ca93ca6a",
+          "theme": "dark"
+        },
+        "reason": "no historical before capture on the pre-redesign build"
+      }
+    ],
+    "tutorialAfterOnly": [],
+    "gameResultThemeMismatch": [
+      {
+        "game": "attention-odd-one-out",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/attention-odd-one-out/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-attention-odd-one-out-result.png",
+          "sha256": "e5a566395eb3dae7763923e6ad6938a0957d4a04a8548a09e7df4eb1dabefb40",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "attention-sustained-vigilance",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/attention-sustained-vigilance/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-attention-sustained-vigilance-result.png",
+          "sha256": "4d1d5308e32e2ee13572f8d065a5b72ecb7fd3d4af72cc0411b30bafafa6f980",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "attention-symbol-tracker",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/attention-symbol-tracker/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-attention-symbol-tracker-result.png",
+          "sha256": "e32e165e2c9f9d25725b447dbd6ba49b56afeba05726b73930c7934b05e9872f",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "attention-target-count",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/attention-target-count/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-attention-target-count-result.png",
+          "sha256": "8353b968c64c52b1a1ff587c619b93453effaab0af35382293ad702bc1c054da",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "attention-visual-search",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/attention-visual-search/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-attention-visual-search-result.png",
+          "sha256": "b8a64adc9a8a8d775a6e6bb7de095595946a93037d467468f50484e8de5b9714",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "flexibility-color-stroop",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/flexibility-color-stroop/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-flexibility-color-stroop-result.png",
+          "sha256": "b268995e2425cd701b767e1352ee1cff644f1211da6beecb6813e58db4c7b5bc",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "flexibility-cue-shift",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/flexibility-cue-shift/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-flexibility-cue-shift-result.png",
+          "sha256": "d63c968c7fb61a0351f1e309390f8ba8e3db6f2d1991da9e3a706df234ffdf8a",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "flexibility-rule-flip",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/flexibility-rule-flip/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-flexibility-rule-flip-result.png",
+          "sha256": "934ad08ecd2642ce0e2e131b5148667140a4e55040892d34b90ab1827b2ecc37",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "language-context-fit",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/language-context-fit/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-language-context-fit-result.png",
+          "sha256": "075b2a7f2f79da238c6c9dc06ddb0ca184a2146587da2d0a4fe6680c4e683baa",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "language-sentence-builder",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/language-sentence-builder/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-language-sentence-builder-result.png",
+          "sha256": "eff1b28a75ece55313f1588adb10f5537f0797c71984c8522e92fe85d1e93a7c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "language-word-chain",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/language-word-chain/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-language-word-chain-result.png",
+          "sha256": "3cc2f761fa0a8b879ec4e0a53f603a46dc7df7af534b2984d41fbf6be3d2c0f5",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "language-word-match",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/language-word-match/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-language-word-match-result.png",
+          "sha256": "fd0c8b0873ca06fe38bcc6eb47abe9c3b0e7954141374bd47fccccdf2377359c",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "language-word-scramble",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/language-word-scramble/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-language-word-scramble-result.png",
+          "sha256": "d26dd0f65a7fd8de54f4a5c3dafc1c01761311f86acbfb1f3830e8cb1ea0e3e7",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "logic-code-cracker",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/logic-code-cracker/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/logic-code-cracker-result.png",
+          "sha256": "9a37ce0782b3fad8e1c47d0f0ff77eee729c84f696a3f142ba54d5eceb05e349",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-plain"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "logic-deduction-table",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/logic-deduction-table/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-logic-deduction-table-result.png",
+          "sha256": "44560311f2cbd38094705f5e8175d48979b189f9f27e583836c4dd042b35842f",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "logic-next-sequence",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/logic-next-sequence/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-logic-next-sequence-result.png",
+          "sha256": "b94d62cbdf19e08dee5d8699a6d72ff10a54433cad7dadf64b9de1178e25ae82",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "logic-order-path",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/logic-order-path/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-logic-order-path-result.png",
+          "sha256": "89dc59ccf8595315575850b98a97c230c11b5cda4486e5bbb8b6de9ee95e8e8b",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "logic-rule-grid",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/logic-rule-grid/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-logic-rule-grid-result.png",
+          "sha256": "161ca7e50fe4264049fa4d3057b402371cbe6e6ce72be005c4803605d414a8be",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "math-equation-builder",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/math-equation-builder/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-math-equation-builder-result.png",
+          "sha256": "29dedbe342d076ce369a7c8fbcb47c70f2b4e856b8108a1483391c7db77617cc",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "math-fast-math",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/math-fast-math/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-math-fast-math-result.png",
+          "sha256": "f526b436a66b76d45f399be68e64270c1ce727667791a3f491ddad832900f8dc",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "math-missing-operator",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/math-missing-operator/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-math-missing-operator-result.png",
+          "sha256": "bc6e4e34f5eb6d717fa49c17e4a7e958554890832a42223c66eadce856356e74",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "math-number-line-estimation",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/math-number-line-estimation/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-math-number-line-estimation-result.png",
+          "sha256": "a0f9839c836b2483fcc8e786137dd1af68026463247bacb467af853aaf2bf5e8",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "math-value-ordering",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/math-value-ordering/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-math-value-ordering-result.png",
+          "sha256": "5f715599f1cf5bfc6be79a573901714167d8f7737a7db94f0e9781d40358bdd9",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-memory-result.png",
+          "sha256": "2a08f9a6d5d8a9bb1519bef5d7806ab8d537ad7b48d87f05da150947c954c6b3",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory-grid-recall",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-grid-recall/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-memory-grid-recall-result.png",
+          "sha256": "1cca19e23ca86a34cf9856b38f7eecbb2e15744fe3255ceb830b93e254497622",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory-pair-recall",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-pair-recall/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/memory-pair-recall-result.png",
+          "sha256": "3d60e8094457b658a6b92b280906e21aed7db9d5ca951072a2d8cf4185417d9e",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-plain"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory-pattern-tap-back",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-pattern-tap-back/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-memory-pattern-tap-back-result.png",
+          "sha256": "83b7bea2831d573144894247af1f6db18dccdfcec7b6d8e32eeef851c83572e9",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory-prospective-cue",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-prospective-cue/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-memory-prospective-cue-result.png",
+          "sha256": "7d2cc346e36c05ebe910ac7d815f73d299b2e64ed040b44582f9f0ecde1138fe",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "memory-sequence-memory",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-sequence-memory/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-memory-sequence-memory-result.png",
+          "sha256": "00e31490098bbe019263432ded795d3663e43fa125e94895f080a3d6fd0488fb",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "spatial-coordinate-turn",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/spatial-coordinate-turn/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-spatial-coordinate-turn-result.png",
+          "sha256": "398948a44c6e115145e8d3fa6fa67571c71164d6ef8c3fdf6f2adee59ce09a21",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "spatial-fold-match",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/spatial-fold-match/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-spatial-fold-match-result.png",
+          "sha256": "21047330acfe645ece6cb3b06f372fb934fb1202eb8a5c070f7a5b4b765bc0df",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "spatial-mental-rotation",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/spatial-mental-rotation/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-spatial-mental-rotation-result.png",
+          "sha256": "f5b38b1bbf67e91c073985a77ae7ebe60e5df685bb05fb2022623385b1ddce58",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "spatial-transform-match",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/spatial-transform-match/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-spatial-transform-match-result.png",
+          "sha256": "0d1071a515a562b042f1a7a1b20fe2b754aa2d54177f15c3ae5d4bb34f55b075",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "speed-color-match",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/speed-color-match/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-speed-color-match-result.png",
+          "sha256": "b28307ead2ff5c4925a1da597f5ac4efa085f04dedf3500736924d2e3830fa27",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "speed-order-sweep",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/speed-order-sweep/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-speed-order-sweep-result.png",
+          "sha256": "c28be4bc2a738ed071129767f320900c467c9313aec81c100d8b67d2f0459119",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "speed-quick-compare",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/speed-quick-compare/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-speed-quick-compare-result.png",
+          "sha256": "31dabe35f302793d907c007eb91143f8d01b129c5d1c7ca22eb6486c81842072",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "speed-reaction-time",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/speed-reaction-time/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-speed-reaction-time-result.png",
+          "sha256": "839dc2f570020dd3f2a53abc3fe7b07550aa11b444b56899c564f8ef24a37a32",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      },
+      {
+        "game": "speed-tap-rush",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/speed-tap-rush/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "before": {
+          "file": "before-captures/base-speed-tap-rush-result.png",
+          "sha256": "919d46c57ce51383d136f302b0174ab2eb5610354d5ab2f39b995829ea73ca34",
+          "apk": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+          "theme": "light",
+          "kind": "standalone-base"
+        },
+        "reason": "before light vs after dark"
+      }
+    ],
+    "gameResultBeforeMissing": [
+      {
+        "game": "flexibility-card-sort",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/flexibility-card-sort/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "beforeKinds": [
+          "workout-leg1:workout-leg1-flexibility-card-sort-result.png"
+        ],
+        "reason": "only a workout-leg before result exists (workout-leg1), which is a different surface from a standalone result"
+      },
+      {
+        "game": "flexibility-task-switch",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/flexibility-task-switch/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "beforeKinds": [
+          "workout-leg4:workout-leg4-flexibility-task-switch-result.png"
+        ],
+        "reason": "only a workout-leg before result exists (workout-leg4), which is a different surface from a standalone result"
+      },
+      {
+        "game": "memory-running-order",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/memory-running-order/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "beforeKinds": [
+          "workout-leg3:workout-leg3-memory-running-order-result.png"
+        ],
+        "reason": "only a workout-leg before result exists (workout-leg3), which is a different surface from a standalone result"
+      },
+      {
+        "game": "spatial-grid-nav",
+        "state": "result",
+        "after": {
+          "file": "076-f-final-product-certification/evidence/current-device/spatial-grid-nav/result.png",
+          "apk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+          "theme": "dark"
+        },
+        "beforeKinds": [
+          "workout-leg2:workout-leg2-spatial-grid-nav-result.png"
+        ],
+        "reason": "only a workout-leg before result exists (workout-leg2), which is a different surface from a standalone result"
+      }
+    ]
+  }
+}

@@ -90,6 +90,15 @@
 - [x] 5.3 Check parent task 14.3 only after every required profile and gameplay condition is satisfied.
   **Terminal run (2026-10-12):** every required profile and gameplay condition named in 5.2 is now satisfied on the terminal APK — default light/dark, 2× text, compact and normal/large viewports, reduced motion, actual game-control labels with the 48dp floor, and representative gameplay across all eight domains. Parent task 14.3 is therefore checked, with the linked evidence at `evidence/ROUTES_AND_A11Y.md` and the 42 `current-device/<game>/review.md` rows.
 
+  **Corrected 2026-10-13.** The profile and gameplay conditions above are satisfied and that part stands.
+  What the earlier sentence got wrong is the inference drawn from it: satisfying them is not the same as
+  satisfying parent 14.3, which additionally requires **matched** before/after matrices for compact/large
+  layouts and reduced-motion. No historical before profile exists for either, so those matched matrices
+  cannot be produced without rebuilding the pre-redesign baseline, and **parent 14.3 stays unchecked** —
+  while task 5.3 itself remains done, because its condition is about profiles and gameplay, not about the
+  image pairing 14.3 also demands. Exact missing surfaces: `evidence/coverage-matrix.json` and
+  `evidence/VISUAL_DECISION.md` §6.
+
 ## 6. Controller journeys
 
 - [x] 6.1 After authentication succeeds, execute and inspect first-run, daily workout, scored gameplay, interrupted resume, standalone completion, full workout completion, results and progress, diagnostics or storage recovery, and applicable background/foreground interruption. Record trace ID, APK, planned steps, executed steps, and outcome for each.
@@ -116,9 +125,27 @@
 
   - **14.2 — CHECKED.** 42 complete current-device rows on the terminal APK, each with its own device frame, described active board, quoted scored feedback, pause/resume, itemised final result, legibility, individually-retained mechanic and defects section. Labels and touch targets measured separately: 126 surfaces / 756 controls / 0 violations.
   - **14.7 — LEFT UNCHECKED.** Per-game manifest, APK SHA, device hash, residual debt and explicit gaps are all present, and no game is missing. What is owed is the **3-direction scorecard / reference lock as a 076 artifact** and the matched before/after images; the Campaign 051 lock predates this APK. Owner: repository-owned follow-up.
+
+  - **14.7 — superseded 2026-10-13: now CHECKED.** The above understated what was already present, and what
+    it called owed is now published: the per-game/route coverage matrix
+    (`evidence/coverage-matrix.json`, 216 rows), the visual decision report
+    (`evidence/VISUAL_DECISION.md`), the three-direction scorecard and reference lock
+    (`evidence/proto-scorecard.md`, `evidence/REFERENCE_LOCK.md`), the
+    matched-image index, all three APK identities, and the residual gaps. The scorecard and lock are linked
+    as the decision records they are — graded on the prototypes before the redesign landed — rather than
+    restated as terminal-APK evidence.
   - **14.8 — CHECKED.** Durable `.agent/` state updated at every meaningful checkpoint with earlier records preserved as history; work committed and pushed to `origin/main`; one worktree, one branch, no orphans, no untracked drift.
 
-  Parent 14.4 (controller journeys) is checked with 9/9 substantive journey logs. Parent 14.3 is checked from the 076-f side and its own parent row records the same matched-image gap. No task was bulk-checked and no BLOCKED_EXTERNAL task is currently outstanding.
+  Parent 14.4 (controller journeys) is checked with 9/9 substantive journey logs. Parent 14.3 is checked from the 076-f side and its own parent row records the same matched-image gap.
+
+
+  **Corrected 2026-10-13.** Parent **14.7** is checked from the 076-f side. Parent **14.3 remains open**,
+  for the one reason this campaign cannot manufacture from existing evidence: it requires matched
+  before/after matrices for compact/large layouts and reduced-motion, and no historical before profile
+  exists for either. Additionally every historical game board measured light while every accepted game row
+  measured dark, so no game board result frame is pairable at all. Both facts are measured from the pixels,
+  not assumed from filenames, and both are recorded as exact missing surfaces rather than filled with
+  after-only observations. No task was bulk-checked and no BLOCKED_EXTERNAL task is currently outstanding.
 - [x] 8.2 Run read-only review of provenance, accessibility and layout, build and security gates, and parent-task mapping. Repair repository-owned Critical or High findings before acceptance.
   **Terminal run (2026-10-12):** `evidence/REVIEW_TERMINAL.md`. Eight findings recorded — six producer errors found and **all repaired** (F3–F6 plus the device-hash gap F8), two classified non-defects with the reason recorded (F1, F2), and one carried cost with its cost stated (F7, defect D3). **No repository-owned Critical or High finding remains open.** The review re-derived every claim from the artifact that supports it rather than the producer's summary, and found real over-claiming in three places — which is the stated purpose of the task.
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
@@ -150,4 +177,12 @@
 
   Four earlier runs from this session (`38197119888/…892/…897/…908`) are recorded as **cancelled**, not green — they were superseded while the ending SHA was still being pushed and were replaced by the four above.
 - [x] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.
-  **Terminal run (2026-10-13): `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.** Game and clean-checkout proof both exist — 42/42 games PASS (40 unaffected rows on `e243341f…` + 2 recertified on `c8c3d46c…`) and the composite is 20/20 — so neither prohibition applies. The verdict is **not** blocked on task 4.1: defect D3 is now **repaired** (minimal fix in `button.tsx`, 7 fail-before/pass-after regression tests, rebuilt APK `c8c3d46c…`, 2 affected rows re-observed in both themes at 7.25:1 / 9.14:1, provenance updated). The remaining blockers are the two repository-owned, independently-executable gates the parent ledger still names: the matched terminal-APK before/after image set and the 3-direction scorecard / reference lock as a 076 artifact (**parent 14.3, 14.7**). Per the spec (*"Terminal verdict follows the weakest unmet gate"*), an open repository-owned gate keeps the verdict blocked, and "repository-complete with external blockers" requires **every** remaining gap to be external — these are not. iOS runtime is an additional external boundary (NOT VALIDATED without a macOS run). Recorded in full, with the changed reason stated, in `evidence/VERDICT.md`.
+  **Terminal run (2026-10-13): `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.** Game and clean-checkout proof both exist — 42/42 games PASS (40 unaffected rows on `e243341f…` + 2 recertified on `c8c3d46c…`) and the composite is 20/20 — so neither prohibition applies. The verdict is **not** blocked on task 4.1: defect D3 is now **repaired** (minimal fix in `button.tsx`, 7 fail-before/pass-after regression tests, rebuilt APK `c8c3d46c…`, 2 affected rows re-observed in both themes at 7.25:1 / 9.14:1, provenance updated). The remaining blockers are the two repository-owned, independently-executable gates the parent ledger still names: the matched terminal-APK before/after image set and the 3-direction scorecard / reference lock as a 076 artifact (**parent 14.3, 14.7**).
+
+  **Updated 2026-10-13.** Parent **14.7 is now closed**: the coverage manifest, visual decision report,
+  three-direction scorecard and reference lock, matched-image index, artifact hashes and residual gaps are
+  all published. The remaining blocker is the single repository-owned gate the parent ledger still names —
+  the **matched** terminal-APK before/after image set (**parent 14.3**). It stays open for the reason only
+  the owner-excluded baseline rebuild could close: matched compact/large and reduced-motion matrices have
+  no historical before profile, and no game board result frame is pairable because every historical board
+  measured light while every accepted row measured dark. Per the spec (*"Terminal verdict follows the weakest unmet gate"*), an open repository-owned gate keeps the verdict blocked, and "repository-complete with external blockers" requires **every** remaining gap to be external — these are not. iOS runtime is an additional external boundary (NOT VALIDATED without a macOS run). Recorded in full, with the changed reason stated, in `evidence/VERDICT.md`.

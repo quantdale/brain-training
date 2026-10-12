@@ -1,4 +1,37 @@
 # Durable Project State
+> **CORRECTION #8 — 2026-10-13 (current): the visual evidence gap is closed as far as
+> existing evidence honestly allows. Parent 14.7 is CHECKED; parent 14.3 stays OPEN,
+> now on one named condition only. Verdict unchanged:
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.**
+> Correction #7 is superseded in one respect: it named parent 14.3 **and** 14.7 as
+> the remaining blockers. 14.7 is now closed. 14.3 remains, and no longer for a
+> vague "matched-image gap" — the exact missing surfaces are enumerated.
+>
+> 466 source images were verified by SHA-256 and APK identity, then each image's
+> theme was **measured from mean relative luminance** rather than read from its
+> path. That measurement is what exposed the real blocker:
+>
+> - every historical game board and tutorial is **light**;
+> - every accepted game row is **dark**.
+>
+> So no game board result frame is pairable at all — 38 theme-mismatched, 4 with
+> only a workout-leg before frame (a different surface). Compact (30 surfaces) and
+> reduced-motion have no historical before profile at all; reduced-motion has no
+> images on either side, existing only as a 30-surface / 0-violation measurement.
+>
+> What was produced: **62 theme-verified matched pairs** — 20 route pairs and 42
+> game tutorial pairs. The tutorials are the only statically reachable game
+> surface, so they were captured on the terminal APK `c8c3d46c…` with **zero
+> ARTEMIS calls**, each frame proven to be the tutorial surface from its own
+> accessibility hierarchy. Nothing was relabelled: `d631ab9a…`, `de6c5fcd…` and
+> `c8c3d46c…` each keep their own identity. Artifacts:
+> `evidence/coverage-matrix.json` (216 rows), `evidence/VISUAL_DECISION.md`,
+> `evidence/matched-gallery.json`, `evidence/matched-image-index.md`.
+>
+> The remaining 14.3 gap needs either the owner-excluded baseline rebuild or a
+> light-theme terminal capture of game results, which requires completed
+> gameplay. That is stated rather than worked around.
+>
 > **CORRECTION #7 — 2026-10-13 (current): D3 REPAIRED; the sole 076-f blocker is
 > closed; verdict still `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, now on the
 > repository-owned matched-image gap (parent 14.3/14.7), not on D3.**

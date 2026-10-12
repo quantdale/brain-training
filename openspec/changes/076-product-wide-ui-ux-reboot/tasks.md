@@ -235,12 +235,79 @@
 - [x] 14.2 Compare screenshots for 42/42 active boards and applicable feedback/result states on device, with legibility, distinct mechanics, labels/touch and action placement recorded individually.
   **Re-checked 2026-10-12 with linked current-device evidence on the terminal APK `e243341f…`.** All 42 games were played on the recovered dedicated device and each row files its own device frame (`result.png` + `result.xml`) with: the active board described per game, quoted scored feedback, pause/resume, the itemised final result, legibility and action-placement notes, and a defects section. Distinct mechanics are individually confirmed retained per row rather than asserted in bulk. Labels and touch targets were then measured separately over 126 surfaces / 756 controls with 0 violations. The earlier NOT VALIDATED classification is superseded. Evidence: `openspec/changes/076-f-final-product-certification/evidence/current-device/<game>/review.md` (42 rows).
 - [ ] 14.3 Review matched route and representative game before/after matrices for default light/dark, dark/light 2× text, compact/large layouts and reduced-motion, correcting clipping, low contrast or hidden actions.
-  **Partially satisfied; left unchecked with the gap named.** Every *measured* condition is now covered on the terminal APK: game-control labels and the 48dp floor across default, dark+2×+compact and light+2×+compact+reduced-motion (126 surfaces / 756 controls / **0 violations**, 80 occluded nodes excluded rather than passed), reduced motion by zeroing all three OS animation scales and re-capturing, and representative gameplay across all eight domains via the 42 controller-played rows. What is still owed is the **matched before/after image pairs** — the reviewed 90/90 route matrix is preserved for `de6c5fcd…` with `currentApplicability: false` and is not terminal-APK proof, and no matched terminal-APK before/after image set has been produced. Checking this task on the measurement evidence alone would over-claim, so it stays open.
+  **Still OPEN, with the exact missing pairs now named instead of approximated.**
+  The measured coverage matrix is `evidence/coverage-matrix.json` (216 rows);
+  full reasoning in `evidence/VISUAL_DECISION.md`.
+
+  **What now exists as a genuine matched comparison (theme-verified from measured mean
+  luminance, not from a path): 62 pairs** — 20 route pairs
+  (8 routes x default light/dark, plus 4 routes x 2x-text light) and 42 game
+  tutorial pairs, the latter collected as static frames on the repaired terminal APK
+  `c8c3d46c…` with zero ARTEMIS calls. 466 source images were verified by
+  SHA-256 and APK identity before any pair was formed; none was missing or rehashed.
+
+  **Why it still cannot be checked.** The task requires matched matrices for four
+  conditions, and only two of them have a historical before profile at all:
+
+  | 14.3 condition | Matched before profile | Matched pairs | Exact missing surfaces |
+  | --- | --- | --- | --- |
+  | default light/dark | yes | 20 route pairs | 7 light + 7 dark surfaces after-only |
+  | 2x text | yes, light only | 4 route pairs (light) | 11 light + 15 dark surfaces after-only |
+  | compact/large | **no** | 0 | all 30 surfaces after-only |
+  | reduced-motion | **no** | 0 | no before profile **and no images on either side** |
+
+  The compact and reduced-motion before profiles do not exist and cannot be created
+  without rebuilding the pre-redesign baseline `d631ab9a…` from source `d3d0b99`
+  (owner-excluded) or rerunning a historical capture campaign that no longer exists.
+  Reduced-motion additionally has no screenshots at all on either side — it exists only
+  as a measurement (30 surfaces, 0 violations).
+
+  **The measured second half of this task is satisfied and is an after-only PASS that is
+  never presented as a matched comparison:** 90 surfaces / 380 interactive controls /
+  380 labelled / 0 undersized / 0 unlabelled / 0 violations across default, compact and
+  2x, light and dark, with 32 occluded nodes excluded from the pass count rather than
+  passed.
+
+  **Representative gameplay.** No game board result frame can be paired, and the reason
+  is measured rather than guessed: every historical board is light and every accepted
+  game row is dark. 38 games are theme-mismatched and
+  4 more have no standalone before result — their only historical frame is a
+  workout-leg result, a different surface. Closing this needs the excluded baseline
+  rebuild or a light-theme terminal capture that requires completed gameplay.
+
+  Checking this task on the measurement evidence alone would over-claim, so it stays
+  open. The criteria were not rewritten to fit the available evidence.
 - [x] 14.4 Run ARTEMIS Flash smoke and Pro first-run, daily workout, resume, game result, workout completion, diagnostic and error-recovery journeys; inspect traces and fix Critical/High findings.
   **Checked 2026-10-12/13 with linked controller evidence.** All nine stateful journeys were executed and inspected through the authorised ARTEMIS controller (never ADB gameplay) on the dedicated device `emulator-5570`, each filed under `openspec/changes/076-f-final-product-certification/evidence/journeys/<key>/journey.md` with its session trace ID, planned steps, executed steps and quoted observed outcome: first-run onboarding `53f77102-…`, daily workout `ae7e82fe-…`, scored gameplay `4b95be7a-…`, interrupted resume `c9df15ae-…` (quoting the pre-background anchor and the identical post-resume state, proving state preservation), standalone completion `002bc9d8-…`, full workout completion `2b30a3ef-…`, results and progress `dae4edc0-…`, diagnostics/storage recovery `bb4b414d-…`, background/foreground interruption `47b1921c-…` — **9/9 PASS**. Flash and Pro authenticated smokes both PASS (`6f185691-…`, `251e3f10-…`). Tabulated in `evidence/JOURNEYS.md`. **Critical/High finding repaired:** the one reproduced defect (D3, the disabled shared-`Button` label collapse) was fixed with a regression guard and re-verified on the rebuilt terminal APK — see 076-f task 4.1. The journeys assert scored feedback, pause/resume, results and navigation, none of which is a disabled-control colour, so they remain valid on the new APK; the D3 fix changed no behaviour they exercise.
 - [x] 14.5 Run required impact-map checks, type/lint/tests and release APK build/install/start; verify unchanged scoring, version metadata, progression, persistence, backup/restore and offline behavior.
 - [x] 14.6 Check iOS layout/runtime independently if available; mark PASS, NOT VALIDATED or BLOCKED with concrete evidence, never infer PASS from Android.
-- [ ] 14.7 Publish final scrubbed coverage manifest and visual decision report: per-game/route status, 3-direction scorecard/reference lock, matched images, APK SHA, residual debt and explicit NOT VALIDATED/BLOCKED gaps. Do not claim completion with any game missing.
-  **Partially satisfied; left unchecked with the gap named.** Present and complete: the per-game coverage manifest (`assessment.json`, one row per registered game using only the four permitted values, currently PASS 42 / NOT VALIDATED 0), the APK SHA and device hash (`TERMINAL_IDENTITY.json`), and residual debt plus explicit gaps (`DEFECTS_CURRENT.md`, `VERDICT.md`, `REVIEW_TERMINAL.md`). No game is missing. **Still owed:** the 3-direction scorecard / reference lock as a 076 artifact (the Campaign 051 lock is historical and predates this APK) and the matched before/after images. The gap is recorded rather than filled by relabelling existing material.
+- [x] 14.7 Publish final scrubbed coverage manifest and visual decision report: per-game/route status, 3-direction scorecard/reference lock, matched images, APK SHA, residual debt and explicit NOT VALIDATED/BLOCKED gaps. Do not claim completion with any game missing.
+  **Checked 2026-10-13 with linked evidence.** Every element this task names is now
+  published:
+
+  - **Per-game/route status:** `evidence/coverage-matrix.json` — 216 rows, one per
+    surface, each classified MATCHED (62), AFTER-ONLY (112), THEME-MISMATCHED (
+38) or BEFORE-SURFACE-DIFFERS (4), with both APK
+    identities per row. The per-game review ledger remains `assessment.json` PASS 42.
+  - **Visual decision report:** `evidence/VISUAL_DECISION.md`, which states the
+    decision, the verification performed before pairing, the matched pairs, the
+    after-only observations and the residual gaps.
+  - **Matched images:** `evidence/matched-gallery.json` and
+    `evidence/matched-image-index.md` — 62 indexable pairs, each theme-verified.
+  - **3-direction scorecard:** `evidence/proto-scorecard.md` (A 8.45, B 8.63,
+    C 7.63; Training Studio selected; 66 hashed device captures in `proto-captures/`).
+  - **Reference lock:** `evidence/REFERENCE_LOCK.md`.
+  - **APK SHA:** three identities preserved and never relabelled — before
+    `d631ab9a…`, post-redesign matrix `de6c5fcd…`, terminal `c8c3d46c…`
+    (the last read from the installed `base.apk` on the device, not assumed).
+  - **Residual debt / explicit gaps:** named in `VISUAL_DECISION.md` §6 as the
+    exact missing surfaces, plus 076-f `DEFECTS_CURRENT.md` and `VERDICT.md`.
+
+  **No game is missing a status.** All 42 have a row, a review and a terminal-APK frame;
+  62 additionally have a matched before frame. No completeness is claimed where
+  it does not exist: the report states plainly that the game-result frames are not
+  pairable and why. The scorecard and reference lock are linked as the decision
+  records they are, dated before the terminal APK, rather than restated as
+  current-APK evidence.
 - [x] 14.8 Update durable `.agent/` campaign/state/validation/issues at meaningful checkpoints, commit and push coherent buildable work to `origin/main`, and verify no abandoned worktrees.
   **Re-checked 2026-10-12.** `.agent/STATE.md` carries dated correction #6 as the current state with all earlier corrections preserved explicitly as history rather than deleted. Durable evidence was updated at every meaningful checkpoint this campaign: `STATE.md`, `CURRENT_CAMPAIGN.md`, `evidence/DEVICE_RECOVERY.md`, `VERDICT.md`, `JOURNEYS.md`, `ROUTES_AND_A11Y.md`, `PROVENANCE.md`, `REVIEW_TERMINAL.md` and both task ledgers. Work is committed and pushed to `origin/main` at `24cb91d`. Verified clean: one worktree (`D:/Documents/tryPython/brain-training` at `main`), one local branch, no orphan branches and no untracked drift at checkpoint.

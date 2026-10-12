@@ -6579,3 +6579,66 @@ contrast between the control's fill and its label glyphs.
   OpenSpec **61/61**; provenance, dependency-audit, expo-alignment, offline,
   secret-scan and workflow-hygiene validators PASS; runtime-QA contract PASS;
   `validate-repo-state.mjs` PASS.
+
+## 076 visual evidence closure — 2026-10-13
+
+Measured, not assumed. 466 source images were verified by SHA-256 and APK
+identity before any pair was formed; none was missing and none was rehashed.
+Each image was then decoded and its **theme measured from mean relative
+luminance**, because the filenames carry no theme marker and guessing from a
+path is how a mismatched comparison would be published as a match.
+
+- `before-captures/` (272): **260 light, 12 dark** — and every game board and
+  every tutorial is light.
+- `before/` (20): 12 light, 8 dark, split correctly by directory.
+- `final-matrix-de6c5fcd/` (90): 45 light, 45 dark, split correctly by directory.
+- `076-f/current-device/` (42 accepted rows): **all 42 dark.**
+
+**Result: 62 theme-verified matched pairs** — 20 route pairs (8 routes in
+default light/dark, plus 4 routes in 2x-text light) and 42 game tutorial pairs.
+The tutorial frames were collected on the repaired terminal APK `c8c3d46c…` with
+**zero ARTEMIS calls**, each proven to be the tutorial surface by the presence of
+that game's own `intro-back` and `start` controls in the accessibility hierarchy,
+not by trusting the deep link. 84 frames were captured (42 x light/dark); all 84
+verified as the requested theme, 1080x2400, and none blank.
+
+**The blocking facts, stated exactly:**
+
+- **38** games are theme-mismatched (historical board light, accepted row dark).
+- **4** games have no standalone before result — only a `workout-leg` before
+  frame, which carries workout progress chrome a standalone result does not, so
+  pairing it would fabricate equivalence.
+- **compact/large layouts:** 30 surfaces after-only, 0 matched, no historical
+  before profile.
+- **reduced-motion:** no historical before profile and **no images on either
+  side** — it exists only as a measurement (30 surfaces, 0 violations).
+- **2x text:** light has 4 matched pairs; 11 light and 15 dark surfaces are
+  after-only.
+- **default profile:** 14 surfaces (7 routes x 2 themes) after-only.
+
+**Accessibility measurement — an after-only PASS, never presented as a matched
+comparison:** 90 surfaces, 380 interactive controls, 380 labelled, 0 undersized,
+0 unlabelled, **0 violations** across default/compact/2x in light and dark, with
+32 occluded nodes excluded from the pass count rather than passed. The 42-device
+audit independently measures 126 surfaces / 756 controls / 0 violations.
+
+**Dispositions:** parent **14.7 CHECKED** (coverage manifest, visual decision
+report, three-direction scorecard and reference lock, matched-image index, three
+APK identities, residual gaps all published; no game missing a status). Parent
+**14.3 OPEN**, with the exact missing surfaces enumerated — closing it needs
+either the owner-excluded baseline rebuild or a light-theme terminal capture of
+game results, which requires completed gameplay. Verdict unchanged:
+`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
+
+Artifacts: `evidence/coverage-matrix.json`, `evidence/VISUAL_DECISION.md`,
+`evidence/matched-gallery.json`, `evidence/matched-image-index.md`,
+`evidence/image-themes.json`,
+`evidence/terminal-tutorials-c8c3d46c/` (84 frames + manifest).
+
+Tooling: `scripts/qa/verify-visual-evidence.mjs`,
+`scripts/qa/analyse-image-themes.mjs`,
+`scripts/qa/capture-terminal-tutorials.mjs`,
+`scripts/qa/verify-terminal-tutorials.mjs`,
+`scripts/qa/build-final-gallery.mjs`, `scripts/qa/build-coverage-matrix.mjs`,
+`scripts/qa/publish-visual-report.mjs`,
+`scripts/qa/verify-ledger-consistency.mjs`.

@@ -240,6 +240,28 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- 2026-10-13 (visual evidence closure): verified 466 source images by SHA-256 and
+  APK identity, then measured every image's theme from mean relative luminance
+  rather than trusting the filename. That measurement is what reframed the whole
+  task: every historical game board and tutorial is light, every accepted game row
+  is dark, so no game result frame is pairable regardless of how the routes line
+  up. Formed **62 theme-verified matched pairs** — 20 route pairs (from `before/`
+  against `final-matrix-de6c5fcd/`) and 42 game tutorial pairs. Tutorials are the
+  only statically reachable game surface, so they were captured on the terminal
+  APK `c8c3d46c…` with zero ARTEMIS calls, each frame proven to be the intro by
+  its own `intro-back`/`start` controls in the hierarchy. Published
+  `coverage-matrix.json` (216 rows), `VISUAL_DECISION.md`,
+  `matched-gallery.json`, `matched-image-index.md` and `image-themes.json`.
+  **Parent 14.7 checked; parent 14.3 left open** with the exact missing surfaces
+  enumerated (compact 30, reduced-motion none-on-either-side, 2x text 26, default
+  14, game results 42) rather than the criteria being rewritten to fit. Three
+  stale claims in the 076-f ledger that asserted 14.3 was checked and 14.7 was
+  not are corrected in place with dated corrections rather than deleted, and
+  `verify-ledger-consistency.mjs` fails if a claim is present without its
+  correction. No historical capture was relabelled: `d631ab9a…`, `de6c5fcd…` and
+  `c8c3d46c…` each keep their own identity. No ARTEMIS call, no production source
+  edit, no new OpenSpec change.
+
 - 2026-10-12 (D3 minimal-delta closure): repaired the one reproduced defect that
   was deliberately left open, then reconciled every ledger against existing
   evidence instead of re-running the 42 reviews or the nine journeys. The
