@@ -21,15 +21,15 @@ inspected**, not when `uv run artemis run` returned success.
 
 | # | Journey | Session | Executed? | Outcome |
 | --- | --- | --- | --- | --- |
-| 1 | first-run onboarding | | | |
-| 2 | daily workout launch | | | |
-| 3 | active gameplay with scored feedback | | | |
-| 4 | interrupted workout and resume | | | |
-| 5 | standalone game completion | | | |
-| 6 | full workout completion | | | |
-| 7 | results and progress reflection | | | |
-| 8 | diagnostics or storage recovery | | | |
-| 9 | applicable background/foreground interruption | | | |
+| 1 | first-run onboarding | `53f77102-71f7-430b-b352-3e3ff211d084` | yes | **PASS** (5.1 KB log) |
+| 2 | daily workout launch | `ae7e82fe-fc6b-4ae3-8023-d5aeb373d6f7` | yes | **PASS** (6.5 KB log) |
+| 3 | active gameplay with scored feedback | `4b95be7a-85ea-4444-8582-a6425547640f` | yes | **PASS** (6.3 KB log) |
+| 4 | interrupted workout and resume | `c9df15ae-9317-4845-97fa-b89b50504fcf` | yes | **PASS** (5.0 KB log) |
+| 5 | standalone game completion | `002bc9d8-475c-4b4d-8502-e3482b63dc01` | yes | **PASS** (3.7 KB log) |
+| 6 | full workout completion | `2b30a3ef-c5ae-4216-acf3-353dc39cfaeb` | yes | **PASS** (7.3 KB log) |
+| 7 | results and progress reflection | `dae4edc0-2840-4475-8a1a-46aaa5f2dd8f` | yes | **PASS** (14.3 KB log) |
+| 8 | diagnostics or storage recovery | `bb4b414d-f4f6-4600-a518-91bbb2fb3e19` | yes | **PASS** (7.6 KB log) |
+| 9 | applicable background/foreground interruption | `47b1921c-91cc-4ec4-8bd3-272f7c6f62b4` | yes | **PASS** (5.4 KB log) |
 
 Rows fill in from `scripts/qa/cert076f-journeys.sh`, which runs each journey
 through the authorised controller and files `journeys/<key>/journey.md` with

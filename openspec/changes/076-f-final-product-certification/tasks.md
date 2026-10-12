@@ -71,8 +71,12 @@
 
 ## 6. Controller journeys
 
-- [ ] 6.1 After authentication succeeds, execute and inspect first-run, daily workout, scored gameplay, interrupted resume, standalone completion, full workout completion, results and progress, diagnostics or storage recovery, and applicable background/foreground interruption. Record trace ID, APK, planned steps, executed steps, and outcome for each.
+- [x] 6.1 After authentication succeeds, execute and inspect first-run, daily workout, scored gameplay, interrupted resume, standalone completion, full workout completion, results and progress, diagnostics or storage recovery, and applicable background/foreground interruption. Record trace ID, APK, planned steps, executed steps, and outcome for each.
+  **Terminal run (2026-10-12):** all **9 of 9** journeys executed and inspected through the authorised ARTEMIS controller on the current device (`emulator-5570`) against the terminal APK `e243341f…` (48,888,452 B), and each filed under `evidence/journeys/<key>/journey.md` with its ARTEMIS session trace ID, planned steps, executed steps and quoted observed outcome. Sessions and outcomes are tabulated in `evidence/JOURNEYS.md`.
+
+  First pass filed 9 notes but 5 were the controller's template with empty fields; the journeys script accepted them because it only checked the file existed. Fixed by requiring all four headings plus 80+ real characters per section and no labelled-but-empty stub. The 5 skeletons were then re-run and now pass. Verbatim evidence includes the interrupted-resume journey quoting a pre-background anchor and the identical post-resume state ("Round 3/5", "Score 170"), proving state preservation rather than a lost session.
 - [ ] 6.2 If authentication remains externally blocked, leave parent task 14.4 unchecked with the trace evidence and exact external repair. Do not substitute ADB gameplay.
+  **Not applicable — authentication succeeded.** The owner supplied a new credential for the existing OpenDesign provider and directed DeepSeek V4.1 Flash at high thinking effort; `artemis doctor` reports Ready with that model, and an authenticated task completed (session `1873f3bd-00f5-46ce-a2b2-ea7b5ec46d7a`, 216 s). No gameplay-driving ADB substitution was used anywhere in this campaign: every journey and every game row came from the controller. Kept unchecked because the condition it tests (authentication remains externally blocked) is false, so checking it would record a false branch.
 
 ## 7. Clean checkout and terminal artifact
 
