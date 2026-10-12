@@ -33,13 +33,16 @@
 > - **Terminal APK installed and device-hashed** — the pulled `base.apk` hashes to
 >   the identical SHA-256 as the host build.
 >
-> Ledger: 076-f **38 checked / 4 unchecked**; parent 076 **65 checked / 17
-> unchecked**. The four open 076-f tasks are **4.1** (the reproduced D3 contrast
-> defect — deliberately unrepaired because the fix rebuilds shared chrome and would
-> invalidate every device row captured), **6.2** (its condition is false:
-> authentication succeeded), and **8.4/8.5** (ending-SHA CI and the final verdict).
-> Parent 14.3 and 14.7 remain open for the matched before/after image gap, named
-> individually rather than collapsed.
+> Ledger: 076-f **42 checked / 0 unchecked**; parent 076 **80 checked / 2
+> unchecked**. The 076-f tasks **4.1** and **6.2** that were open here are now
+> closed: **4.1** because D3 was repaired through the full sequence (see the
+> 2026-10-12/13 entries below and `evidence/DEFECTS_CURRENT.md`), and **6.2**
+> because authentication succeeded so its blocked-branch is void and parent 14.4
+> is instead checked on the 9/9 journeys. **8.4/8.5** are recorded at the ending
+> SHA. The only open parent tasks are **14.3** and **14.7** — the matched
+> before/after image set and the 3-direction reference lock — named individually
+> rather than collapsed. The verdict is `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
+> on those two repository-owned gates, not on D3.
 >
 > The decisive cause of the conversion was owner-directed: the controller moved to
 > **DeepSeek V4.1 Flash at high thinking effort**, on which re-running the same 37

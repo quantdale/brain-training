@@ -1,6 +1,42 @@
 # Durable Validation Record
 
-## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, current)
+## 076-f — D3 REPAIRED; terminal-closure reconciliation (2026-10-13, current)
+
+The referenced opencode session executed the D3 disabled-`Button` repair (commits
+`d5787ec` / `0483539` / `e1a60e6`) but stopped before the control-document
+reconciliation. This session completed it from measured truth.
+
+**Repair re-verified independently (not taken on faith):**
+- `apps/mobile/src/components/ui/button.tsx` — disabled control now maps to fill
+  `theme.backgroundElement` + label `textSecondary`; no whole-control `opacity`;
+  `inactive = disabled` separated from `busy = loading`.
+- Regression guard `button-disabled-state.test.tsx` (7 tests): **PASS, `EXIT=0`**.
+- **Fail-before / pass-after proven this session:** temporarily restored the
+  pre-fix `b293a02` file and re-ran → **`Tests: 3 failed, 4 passed, 7 total`,
+  `JEST_EXIT=1`**; all 7 pass with the fix. Worktree self-restored, `git status`
+  clean.
+
+**Terminal identity:** source `d5787ec`, APK
+`c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+(48,888,528 B), installed on `emulator-5570` and device-hashed exactly. The 2
+affected rows re-observed on it in both themes (light 7.25:1, dark 9.14:1); 40
+unaffected rows retain `e243341f…` per the spec's *"A fix changes the APK"*
+scenario.
+
+**Ledgers reconciled:** 076-f 4.1 checked, 6.2 resolved (auth succeeded), parent
+14.4 checked (9/9 journeys). Parent 076 = **80 checked / 2 unchecked** (14.3, 14.7).
+
+**Verdict:** still `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, now blocked on the
+repository-owned matched before/after image set + 076 reference lock (parent
+14.3/14.7), not on D3. iOS runtime is an external boundary.
+
+**Gates re-measured:** Jest **623 suites / 7,248 tests / 5 snapshots**;
+typecheck clean; ESLint clean; strict OpenSpec **61/61**; provenance + assessment
+regenerated against the new terminal identity; `validate-repo-state.mjs` PASS.
+Ending-SHA CI: see `evidence/VERDICT.md` → *Ending-SHA workflow record*.
+
+
+## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, HISTORICAL — device recovered; see 2026-10-13 entry above)
 
 The device lane is blocked: the dedicated Android emulator died of host memory
 exhaustion and cannot be restarted. `qemu-system-x86_64-headless.exe` (PID

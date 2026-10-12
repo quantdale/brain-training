@@ -3,9 +3,19 @@
 **Change:** `076-f-final-product-certification`
 **Task:** 8.5 — record **exactly one** verdict.
 **Parent ledger:** `openspec/changes/076-product-wide-ui-ux-reboot/tasks.md`
-**Terminal application source:** `b293a02e1cd5df260a66dd886c1d279978b68994`
-**Terminal APK:** `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
-(48,888,452 bytes, `com.braintraining.app` 0.1.0/1000, x86_64)
+**Terminal application source:** `d5787ec2857b0fd856d2e04ad346316d70951f6c`
+**Terminal APK:** `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+(48,888,528 bytes, `com.braintraining.app` 0.1.0/1000, x86_64)
+
+> **2026-10-13 — the terminal artifact moved when D3 was repaired.** The D3 fix
+> is application code (`d5787ec`), so `b293a02` / `e243341f…` (48,888,452 B) is
+> **no longer** the terminal artifact. Per the invariant stated at the bottom of
+> this file, an application-code change invalidates artifact inheritance, so the
+> gates bound to `e243341f…` were re-checked by impact rather than inherited:
+> 40 of 42 game rows are unaffected and keep that identity; the 2 affected rows
+> and the terminal APK identity itself are on `c8c3d46c…`. Both identities are
+> stated in full in `TERMINAL_IDENTITY.json` and
+> `d3-affected-games-reobserved.json`.
 
 > **Reconciled 2026-10-09.** An earlier version of this file named terminal
 > source `c324960…` and terminal APK `de6c5fcd…`, reported `5 PASS / 37 NOT
@@ -19,19 +29,34 @@
 
 # VERDICT: `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 
-> **2026-10-12 update.** This verdict is unchanged in **name** but its reason has
-> changed completely, and the distinction matters. It is no longer blocked for want
-> of game, journey, accessibility or clean-checkout proof — every one of those
-> gates is now PASS on the terminal APK. It is blocked on **one** repository-owned
-> obligation, named below: task **4.1** does not accept a reproduced defect being
-> left unrepaired, and defect D3 is reproduced. See *The one remaining
-> repository-owned gap*.
+> **2026-10-13 update — D3 is REPAIRED; the reason for the block has changed again.**
+> The 2026-10-12 entry below was blocked on exactly one repository-owned
+> obligation: task **4.1**, because defect **D3** was reproduced and measured but
+> left unrepaired. **That blocker is now closed.** D3 (the shared `Button`'s
+> whole-control `opacity: 0.5` disabled collapse, which drove a disabled primary
+> control's label to ~1.63:1) was repaired in `button.tsx`, guarded by 7
+> fail-before/pass-after regression tests, rebuilt into a new terminal APK
+> `c8c3d46c…`, and the two affected game rows were re-observed on it in both
+> themes (light 7.25:1, dark 9.14:1 — token-exact, above AA). Task 4.1 is checked
+> with that linked evidence, and parent 14.4 is now checked on the nine
+> controller-led journeys. See 076-f task 4.1 and `d3-affected-games-reobserved.json`.
 >
-> The forbidden verdicts remain forbidden. "Repository-complete with named external
-> blockers" requires **every independently executable repository-owned requirement
-> to pass**; releasing with a reproduced, measured, unrepaired contrast defect does
-> not meet it, and iOS runtime stays NOT VALIDATED besides. "Full validation"
-> requires every mandatory gate.
+> **The verdict name is unchanged, but the remaining blocker is now different and
+> is stated honestly rather than hidden.** It is no longer D3. It is the
+> repository-owned **matched before/after image** evidence and the 3-direction
+> scorecard / reference lock as a 076 artifact — parent tasks **14.3** and
+> **14.7** — which are independently executable repository-owned obligations that
+> have not yet been produced on the terminal APK. Per the spec (*"Terminal verdict
+> follows the weakest unmet gate"* and *"any unmet repository-owned acceptance
+> gate requires the release-acceptance-blocked verdict"*), an open repository-owned
+> gate keeps this verdict blocked; "repository-complete with external blockers"
+> requires **every** remaining gap to be external, and these are not. iOS runtime
+> is an additional external boundary (NOT VALIDATED without a macOS run).
+>
+> This is **not** a downgrade of any green gate: every gate that passed still
+> passes, and a real Critical/High accessibility defect is now fixed. The change
+> is that the sole previously-named blocker (D3) is gone and the true remaining
+> repository-owned work is named instead of relabelled.
 
 ---
 
@@ -54,14 +79,21 @@ And it fixes the tie-breaker explicitly:
 
 > Missing game or clean-checkout proof forbids repository-complete.
 
-Game acceptance is **repository-owned work**. A missing or invalid controller
-credential does not convert un-observed game acceptance into an external
-dependency — it leaves repository-owned work undone.
+Game acceptance and clean-checkout proof both exist and pass, so that specific
+prohibition does not apply. The verdict is nevertheless blocked because the
+general rule governs: **any unmet repository-owned acceptance gate** requires
+this verdict, and two remain — the matched before/after image set and the
+3-direction scorecard / reference lock (parent 14.3, 14.7). They are
+repository-owned and independently executable (the dedicated device
+`emulator-5570` is online and the reviewed 90-route matrix exists for
+`de6c5fcd…`), so they cannot be reclassified as external dependencies.
 
-**Current-device game acceptance is 42 NOT VALIDATED, 0 PASS, all graded on
-`de6c5fcd…` — an APK that is not the terminal APK.** That alone fixes the
-verdict. The clean-checkout composite was later aligned and passed; that pass
-does not supply the missing game proof.
+**Current-device game acceptance is 42 PASS on the terminal artifact** — 40 rows
+retain their `e243341f…` identity as unaffected by the D3 fix (per the spec's
+*"A fix changes the APK"* scenario: unaffected evidence retains its original
+artifact identity), and the 2 affected rows (`language-word-scramble`,
+`logic-code-cracker`) were recertified on `c8c3d46c…`. The nine controller
+journeys are 9/9 PASS.
 
 ## Gate-by-gate state at close
 
@@ -73,18 +105,19 @@ does not supply the missing game proof.
 | Route accessibility audits (`de6c5fcd…`) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
 | **Game-control accessibility on the terminal APK** | **PASS** — 126 surfaces / 756 controls, **0 violations**, 80 occluded excluded | `ROUTES_AND_A11Y.md` |
 | Reduced-motion accessibility on the terminal APK | **PASS** — all three OS animation scales zeroed, re-captured and re-audited | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42)** | **PASS 42 / NOT VALIDATED 0** — every game has a complete identity-verified row on `e243341f…` | `ASSESSMENT.md` |
-| **Controller journeys (9 stateful)** | **PASS 9/9** — substantive logs with quoted on-screen text | `JOURNEYS.md` |
-| Defect repair discipline | **OPEN OBLIGATION (task 4.1)** — D3 reproduced and filed; see the D3 section below | `DEFECTS_CURRENT.md` |
+| **Current-device game acceptance (42)** | **PASS 42 / NOT VALIDATED 0** — 40 rows on `e243341f…` (unaffected by D3) + 2 rows recertified on `c8c3d46c…` | `ASSESSMENT.md` |
+| **Controller journeys (9 stateful)** | **PASS 9/9** — substantive logs with quoted on-screen text; parent 14.4 checked | `JOURNEYS.md` |
+| Defect repair discipline (task 4.1) | **PASS — D3 REPAIRED** — minimal fix in `button.tsx`, 7 fail-before/pass-after regression tests, rebuilt APK `c8c3d46c…`, 2 affected rows re-observed in both themes (7.25:1 / 9.14:1), provenance updated | 076-f task 4.1, `d3-affected-games-reobserved.json` |
 | Clean-checkout composite | **PASS 20/20 at `24cb91d`** — no skip flags, disposable clone removed | this run |
 | Hermetic Expo alignment gate | **PASS (22/22)** | composite |
 | Strict OpenSpec `--strict` | **PASS (61/61)** | composite |
-| Jest baseline | **622 suites / 7,241 tests / 5 snapshots, 4 suites / 5 tests classified skips** — the 621/7,237 baseline did not drop | composite |
+| Jest baseline | **623 suites / 7,248 tests / 5 snapshots** — the 622/7,241 baseline did not drop; the movement is the 7 additive D3 guards | composite |
 | TypeScript / lint | **PASS** — `tsc --noEmit` exit 0, `expo lint` exit 0 | composite |
-| Terminal release APK identity | **BUILT, HASHED AND INSTALLED** — `e243341f…`, 48,888,452 B; installed `base.apk` pulled off the device and hashed to the identical value | `TERMINAL_IDENTITY.json` |
+| Terminal release APK identity | **BUILT, HASHED AND INSTALLED** — `c8c3d46c…` (48,888,528 B, source `d5787ec`); installed `base.apk` pulled off the device and hashed to the identical value. Supersedes `e243341f…`, which remains the identity of the 40 unaffected game rows, the route matrix and the accessibility audit. | `TERMINAL_IDENTITY.json` |
 | Controller Flash / Pro authenticated smokes | **PASS** | `CONTROLLER.md` |
+| Matched before/after images + 3-direction reference lock (parent 14.3, 14.7) | **OPEN — repository-owned** — the 90/90 route matrix is preserved for `de6c5fcd…` with `currentApplicability: false`; no matched terminal-APK before/after image set or 076 reference-lock artifact has been produced | parent `tasks.md` 14.3 / 14.7 |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
-| Workflows at the ending SHA e3cfb8f | **4/4 GREEN** (push-triggered) - see `## Ending-SHA workflow record` |
+| Workflows at the ending SHA (this reconciliation) | recorded in `## Ending-SHA workflow record` below |
 
 **What changed since the 2026-10-09 verdict.** The three blocking
 repository-owned gates — 42-game acceptance, the nine journeys, and the
@@ -94,31 +127,52 @@ the controller to DeepSeek V4.1 Flash at high thinking effort. On the previous
 model the sweep filed all 42 rows but only 5 were PASS; re-running the same 37
 games converted every one.
 
-## The one remaining repository-owned gap: task 4.1 / defect D3
+## The remaining repository-owned gaps: matched before/after images (14.3, 14.7)
 
-One runtime defect is reproduced, filed and measured, and is deliberately **not
-repaired**:
+Defect **D3 is now REPAIRED** (see the gate table and 076-f task 4.1). The
+remaining repository-owned gaps are the two the parent ledger still names, and
+they are stated here rather than relabelled as external:
 
-**D3 — the shared `Button` applies `opacity: 0.5` when disabled**, which collapses
-both the fill and the label of a disabled primary control toward the background.
-Measured analytically from the tokens: the GO control's `accent.base` `#FF4A57`
-fill and `accent.on` `#2B0508` label, composited at 50% over the dark stage,
-land roughly **1.08:1** apart — an invisible label exactly when the next response
-is required.
+**Parent 14.3 — matched route and representative game before/after matrices.**
+Every *measured* condition is covered on the terminal APK (game-control labels
+and the 48dp floor across default / dark+2×+compact / light+2×+compact +
+reduced-motion = 126 surfaces / 756 controls / 0 violations; reduced motion by
+zeroing all three OS animation scales; representative gameplay across all eight
+domains via the 42 controller-played rows). What is still owed is the **matched
+before/after image pairs** on the terminal APK: the reviewed 90/90 route matrix
+is preserved for `de6c5fcd…` with `currentApplicability: false` and is not
+terminal-APK proof, and no matched terminal-APK before/after image set has been
+produced.
 
-The reason it is not fixed here is recorded rather than assumed: the fix is in
-`components/ui/button.tsx`, which is shared chrome behind **all 42 games and
-every route Button**. A production edit rebuilds the release APK, giving a new
-terminal APK SHA-256, which by the change spec invalidates every device row
-captured on `e243341f…` — the 42 game rows, the 9 journeys and the 126
-accessibility surfaces. Repairing at that point would trade 56 validated
-device artifacts for one unvalidated one, and the campaign has no device budget
-left to re-earn them.
+**Parent 14.7 — final scrubbed coverage manifest and visual decision report.**
+Present and complete: the per-game coverage manifest (`assessment.json`, one row
+per registered game, PASS 42 / NOT VALIDATED 0), the APK SHA and device hash
+(`TERMINAL_IDENTITY.json`), and residual debt plus explicit gaps
+(`DEFECTS_CURRENT.md`, this file, `REVIEW_TERMINAL.md`). No game is missing.
+**Still owed:** the 3-direction scorecard / reference lock as a 076 artifact (the
+Campaign 051 lock predates this APK) and the matched before/after images.
 
-This is a scheduling decision with a stated cost, not a claim that the defect is
-acceptable. Task 4.1 therefore stays **unchecked**, and the fix, its regression
-guard, the rebuild and the full re-verification remain owed to a follow-up
-campaign. It is **not** silently deferred and it is **not** counted as closed.
+These are **repository-owned and independently executable**: the dedicated device
+`emulator-5570` is online, the reviewed 90-route matrix exists for `de6c5fcd…`,
+and the terminal APK `c8c3d46c…` is built and installed. They therefore cannot be
+reclassified as external dependencies, and per the spec an open repository-owned
+acceptance gate requires the `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` verdict.
+Producing the matched terminal-APK before/after image set and the 076 reference
+lock is the concrete follow-up that would let a future pass move to
+repository-complete (with iOS runtime still the external boundary).
+
+### What D3 was, and why it no longer blocks (historical, now closed)
+
+D3 — the shared `Button` applied `opacity: 0.5` to the whole control when
+disabled, compositing both the fill and the label toward the background and
+driving a disabled primary control's label to ~1.63:1 (invisible exactly when the
+next response is required). It was reproduced, filed and measured, and is now
+**repaired**: `button.tsx` dims only the fill to `theme.backgroundElement` and
+moves the label to `textSecondary`, guarded by 7 fail-before/pass-after tests,
+rebuilt into APK `c8c3d46c…`, and the 2 affected rows re-observed on it in both
+themes (light 7.25:1, dark 9.14:1 — token-exact, above the 4.5:1 AA floor). Task
+4.1 is checked with that evidence. This paragraph is kept so the closed blocker
+is auditable, not so it can be misread as current.
 
 ## Independent review found and repaired over-claiming
 
@@ -201,24 +255,34 @@ This certification is not empty. It closes real, previously-open gaps:
 - **The terminal APK is not installed on any device and not device-hashed.**
 - **iOS runtime is NOT VALIDATED.**
 
-## Named blocker
+## Named blockers
 
-**BLOCKED_HOST_ANDROID_EMULATOR** — the dedicated Android emulator died of host
-memory exhaustion mid-certification and cannot be restarted: the dead
-`qemu-system-x86_64-headless.exe` (PID 50120) is unreapable, holds ports
-5554/5555 and the WHPX partition, and every new launch aborts with "It seems too
-many emulator instances are running on this machine." Full evidence, every
-recovery attempt, and the exact recovery steps are in
-[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md).
+**Repository-owned (these keep the verdict blocked):** the **matched terminal-APK
+before/after image set** and the **3-direction scorecard / reference lock as a
+076 artifact** — parent tasks **14.3** and **14.7**. Independently executable on
+the online dedicated device `emulator-5570` with the already-built terminal APK
+`c8c3d46c…`; not yet produced. See *The remaining repository-owned gaps* above.
 
 **The controller is NOT a blocker.** It is operational on the owner-directed
-OpenDesign endpoint, both smokes PASS, and its tooling is verified. The device
-is the blocker. Owner action: free the host (reboot, or terminate PID 50120 so
-ports 5554/5555 and the WHPX partition are released), then resume the campaign
-prompt at §3.
+OpenDesign endpoint, both smokes PASS, and its tooling is verified. The nine
+journeys all ran through it (parent 14.4 checked); no ADB gameplay was
+substituted.
+
+**The device is NOT a blocker (historical, resolved).** The earlier
+`BLOCKED_HOST_ANDROID_EMULATOR` state — the dead `qemu-system-x86_64-headless.exe`
+PID 50120, ports 5554/5555, the WHPX partition — is **historical and resolved**.
+The host was never rebooted and PID 50120 is still unreapable, but the WHPX
+partition was in fact free: the real cause was a port-5554 collision, not a
+hypervisor lock. The AVD `braintraining-ui35` was relaunched headless on a fresh
+port as `emulator-5570` (`sys.boot_completed=1`), and the entire device lane ran
+there. Recovery evidence: [`DEVICE_RECOVERY.md`](DEVICE_RECOVERY.md); the earlier
+blocker record is preserved in [`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md) as
+history.
 
 **External boundary:** **iOS runtime** — not validated without a macOS runtime
-run, and Android evidence cannot create an iOS pass.
+run, and Android evidence cannot create an iOS pass. This is an external
+dependency and does not by itself force the blocked verdict; the repository-owned
+14.3/14.7 image gap is what does.
 
 ## Ending-SHA workflow record (task 8.4)
 
@@ -249,6 +313,19 @@ Manual-dispatch rounds that were also 4/4 green: 6f8ce8d (38200103535, 382001063
 **Why the record needed several rounds, stated plainly.** Recording a push-triggered result has an inherent cycle: the run happens at the pushed SHA, and the commit that records that result then becomes a new HEAD that is itself pushed and run. Six push rounds plus manual-dispatch rounds were taken to converge on a record with no commit following it. This is a property of the recording method, not a repository defect, and every round is listed above for its own SHA with none relabelled.
 
 **Every one of those rounds certified the same tree content.** No application or build-input commit has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994; every commit after it touches only .agent/, openspec/ and evidence/. The artifact identity every round certifies is therefore e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f, and every device gate measured on it stays bound to that same artifact. Re-verifiable: if any later commit touches an application or build input, the terminal identity changes and every gate bound to it must be re-measured.
+
+> **2026-10-13 — that invariant has since been exercised, exactly as written above.** The D3 repair (`d5787ec`) was an application-code commit, so the terminal identity moved to
+> `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+> and every gate bound to the old artifact had to be re-checked rather than
+> inherited. That was done by impact classification instead of a blanket re-run:
+> `evidence/d3-impact.json` shows **40 of 42 game rows unaffected** (the repair
+> repaints no enabled control's pixel and changes no behaviour), so those rows
+> keep their `e243341f…` identity, and the **2 affected rows**
+> (`language-word-scramble`, `logic-code-cracker`) were re-observed from their
+> live boards on the new APK in both themes. The nine controller journeys and the
+> route matrix are likewise unaffected for the same reason. This paragraph is
+> retained because the invariant it states is what forced the distinction
+> between "keeps its identity" and "must be re-measured".
 
 **Historical ending-SHA records (do not read as current):** 684396a7 (App CI 37758437026, Repository Integrity 37758437146, Android 37758437133, iOS 37758437093); 1c8fe668 (App CI 37943831586, Repository Integrity 37943831511, Android 37943831547, iOS 37943831621); f338e1c (App CI 37948059749, Repository Integrity 37948059896, Android 37948059722, iOS 37948059834).
 

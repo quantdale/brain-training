@@ -5,6 +5,11 @@
 fix, regression guard, focused validation, rebuild and re-verification, and
 updated provenance.
 
+> **2026-10-13 — D3 is REPAIRED.** The single defect below (D3) was filed here as
+> "FILED, NOT YET REPAIRED", then repaired on 2026-10-12/13 through the full task
+> 4.1 sequence. Its status line and required sequence are superseded by *Status:
+> REPAIRED* below. No other runtime defect was reproduced during the certification.
+
 ## D3 — GO response-button label is invisible in the disabled (post-trial) state
 
 **Reproduced on:** `attention-sustained-vigilance` (Signal Watch), current-device
@@ -60,24 +65,43 @@ the same collapse. Per the change spec this makes **every game screen an affecte
 surface**, and a fix changes the APK, so the 42 current-device rows would all
 require re-verification on the rebuilt artifact.
 
-### Status: **FILED, NOT YET REPAIRED**
+### Status: **REPAIRED (2026-10-12/13) — task 4.1 closed**
 
-Deliberately not patched at this point in the campaign, and this is a scheduling
-decision rather than a judgement that the defect is minor:
+The required sequence was completed end to end:
 
-1. The fix must land in `apps/mobile/src/components/ui/button.tsx`, which is
-   shared by all 42 games.
-2. A production edit rebuilds the terminal APK and therefore invalidates every
-   current-device row captured on `e243341f…`.
-3. Only 2 of 42 rows are currently captured on `e243341f…`. Repairing now would
-   discard the in-flight sweep for 40 games.
+1. **Before-evidence kept** — this file's observation above and the token-derived
+   ~1.08:1 / ~1.63:1 analysis; the regression guard re-derives the collapse
+   analytically.
+2. **Minimal fix** — `apps/mobile/src/components/ui/button.tsx`:
+   `resolveDisabled(variant, theme)` maps a disabled control to fill
+   `theme.backgroundElement` (transparent for `ghost`) and label `textSecondary`,
+   keeps `borderColor: theme.border`, drops the filled variant's 4dp lip, and
+   separates `inactive = disabled` from `busy = loading` (a busy button keeps its
+   enabled fill + spinner). The whole-control `opacity: 0.5` is gone.
+3. **Regression guard that fails before the fix** —
+   `apps/mobile/src/components/ui/__tests__/button-disabled-state.test.tsx`, 7
+   tests. **Fail-before / pass-after verified:** 3 of the 7 fail against the
+   pre-fix file at `b293a02`, all 7 pass after the fix (verified by temporarily
+   restoring the `b293a02` file and re-running). Contrast is computed with an
+   in-test WCAG 2.x implementation and asserted ≥ 4.5:1 in BOTH palettes; the
+   enabled primary button is asserted unchanged.
+4. **Focused validation** — 7/7 pass (`EXIT=0`); UI-kit focused set 13 suites /
+   89 tests.
+5. **Rebuild** — new terminal APK
+   `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+   (48,888,528 B) from source `d5787ec`, installed on `emulator-5570`, pulled
+   `base.apk` hashed to the identical value.
+6. **Re-verify affected surfaces** — `d3-impact.json` classifies 40 of 42 rows
+   **unaffected** (the repair repaints no enabled pixel and changes no behaviour)
+   and 2 **affected** (`language-word-scramble`, `logic-code-cracker`), both
+   re-observed on the new APK in both themes: light `#ECEAE5 / #4A4B4E = 7.25:1`,
+   dark `#17181B / #B9BABC = 9.14:1` — token-exact and above AA. Detail:
+   `d3-affected-games-reobserved.json`. The 40 unaffected rows retain their
+   `e243341f…` identity per the spec's *"A fix changes the APK"* scenario.
+7. **Provenance updated** — `TERMINAL_IDENTITY.json` now records `d5787ec` /
+   `c8c3d46c…`; `provenance-table.*` and `assessment.json` regenerated against it.
 
-**Required sequence when the repair is made:** keep before-evidence → apply the
-minimal fix (reduce or remove the opacity collapse for the label slot, or hold
-the label at full opacity while dimming only the fill) → add a regression guard
-that fails before the fix → run focused Jest → rebuild the release APK →
-re-verify all affected game surfaces → update `TERMINAL_IDENTITY.json` and the
-provenance table. Task 4.1 cannot be checked until that sequence is complete.
+Task 4.1 is checked with this linked evidence.
 
 ### Secondary observation recorded, not a defect
 

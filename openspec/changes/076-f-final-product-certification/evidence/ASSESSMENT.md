@@ -25,8 +25,10 @@ That is the APK these rows were graded on. It is **derived from the rows
 themselves**, not hardcoded, and it is **not** a claim that it is the terminal
 APK.
 
-That **is** the terminal artifact `e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f` recorded in
-`TERMINAL_IDENTITY.json`.
+The terminal artifact for this change is **`c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`**. No filed row was
+graded on it, so **no row in this assessment is acceptance evidence for the
+terminal artifact.** Rows graded on another APK are retained as history and must
+be re-run on the terminal APK before a PASS is published.
 
 ## Summary
 

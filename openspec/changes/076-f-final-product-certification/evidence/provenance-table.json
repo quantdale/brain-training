@@ -6,8 +6,8 @@
     "terminalIdentity": "openspec\\changes\\076-f-final-product-certification\\evidence\\TERMINAL_IDENTITY.json"
   },
   "historicalSource": "4a6fc5349c334b4324e4ea02421ebd06d87c5f64",
-  "terminalSource": "b293a02e1cd5df260a66dd886c1d279978b68994",
-  "terminalApk": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
+  "terminalSource": "d5787ec2857b0fd856d2e04ad346316d70951f6c",
+  "terminalApk": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
   "closureApk": "b2913bca9149eee752704b2529a1ddf13c877b26290b5d576d1be42355fe5d31",
   "surfaceEffects": {
     "apps/mobile/src/components/game-ui/session-header.tsx": "render",
@@ -38,7 +38,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/home.png"
     },
     {
@@ -54,7 +54,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/games.png"
     },
     {
@@ -70,7 +70,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/game-detail.png"
     },
     {
@@ -86,7 +86,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/progress.png"
     },
     {
@@ -102,7 +102,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/progress-activity.png"
     },
     {
@@ -118,7 +118,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/progress-detail.png"
     },
     {
@@ -134,7 +134,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/profile.png"
     },
     {
@@ -150,7 +150,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/rewards.png"
     },
     {
@@ -166,7 +166,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/data-management.png"
     },
     {
@@ -182,7 +182,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/results.png"
     },
     {
@@ -198,7 +198,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/game-intro.png"
     },
     {
@@ -214,7 +214,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/progress-domain.png"
     },
     {
@@ -230,7 +230,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/progress-game.png"
     },
     {
@@ -246,7 +246,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/storage-unavailable.png"
     },
     {
@@ -262,7 +262,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/light/bootstrap-recovery.png"
     },
     {
@@ -278,7 +278,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/home.png"
     },
     {
@@ -294,7 +294,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/games.png"
     },
     {
@@ -310,7 +310,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/game-detail.png"
     },
     {
@@ -326,7 +326,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/progress.png"
     },
     {
@@ -342,7 +342,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/progress-activity.png"
     },
     {
@@ -358,7 +358,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/progress-detail.png"
     },
     {
@@ -374,7 +374,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/profile.png"
     },
     {
@@ -390,7 +390,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/rewards.png"
     },
     {
@@ -406,7 +406,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/data-management.png"
     },
     {
@@ -422,7 +422,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/results.png"
     },
     {
@@ -438,7 +438,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/game-intro.png"
     },
     {
@@ -454,7 +454,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/progress-domain.png"
     },
     {
@@ -470,7 +470,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/progress-game.png"
     },
     {
@@ -486,7 +486,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/storage-unavailable.png"
     },
     {
@@ -502,7 +502,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/default/dark/bootstrap-recovery.png"
     },
     {
@@ -518,7 +518,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/home.png"
     },
     {
@@ -534,7 +534,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/games.png"
     },
     {
@@ -550,7 +550,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/game-detail.png"
     },
     {
@@ -566,7 +566,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/progress.png"
     },
     {
@@ -582,7 +582,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/progress-activity.png"
     },
     {
@@ -598,7 +598,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/progress-detail.png"
     },
     {
@@ -614,7 +614,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/profile.png"
     },
     {
@@ -630,7 +630,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/rewards.png"
     },
     {
@@ -646,7 +646,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/data-management.png"
     },
     {
@@ -662,7 +662,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/results.png"
     },
     {
@@ -678,7 +678,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/game-intro.png"
     },
     {
@@ -694,7 +694,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/progress-domain.png"
     },
     {
@@ -710,7 +710,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/progress-game.png"
     },
     {
@@ -726,7 +726,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/storage-unavailable.png"
     },
     {
@@ -742,7 +742,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/light/bootstrap-recovery.png"
     },
     {
@@ -758,7 +758,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/home.png"
     },
     {
@@ -774,7 +774,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/games.png"
     },
     {
@@ -790,7 +790,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/game-detail.png"
     },
     {
@@ -806,7 +806,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/progress.png"
     },
     {
@@ -822,7 +822,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/progress-activity.png"
     },
     {
@@ -838,7 +838,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/progress-detail.png"
     },
     {
@@ -854,7 +854,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/profile.png"
     },
     {
@@ -870,7 +870,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/rewards.png"
     },
     {
@@ -886,7 +886,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/data-management.png"
     },
     {
@@ -902,7 +902,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/results.png"
     },
     {
@@ -918,7 +918,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/game-intro.png"
     },
     {
@@ -934,7 +934,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/progress-domain.png"
     },
     {
@@ -950,7 +950,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/progress-game.png"
     },
     {
@@ -966,7 +966,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/storage-unavailable.png"
     },
     {
@@ -982,7 +982,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/compact/dark/bootstrap-recovery.png"
     },
     {
@@ -998,7 +998,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/home.png"
     },
     {
@@ -1014,7 +1014,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/games.png"
     },
     {
@@ -1030,7 +1030,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/game-detail.png"
     },
     {
@@ -1046,7 +1046,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/progress.png"
     },
     {
@@ -1062,7 +1062,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/progress-activity.png"
     },
     {
@@ -1078,7 +1078,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/progress-detail.png"
     },
     {
@@ -1094,7 +1094,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/profile.png"
     },
     {
@@ -1110,7 +1110,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/rewards.png"
     },
     {
@@ -1126,7 +1126,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/data-management.png"
     },
     {
@@ -1142,7 +1142,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/results.png"
     },
     {
@@ -1158,7 +1158,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/game-intro.png"
     },
     {
@@ -1174,7 +1174,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/progress-domain.png"
     },
     {
@@ -1190,7 +1190,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/progress-game.png"
     },
     {
@@ -1206,7 +1206,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/storage-unavailable.png"
     },
     {
@@ -1222,7 +1222,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/light/bootstrap-recovery.png"
     },
     {
@@ -1238,7 +1238,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/home.png"
     },
     {
@@ -1254,7 +1254,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/games.png"
     },
     {
@@ -1270,7 +1270,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/progress.png"
     },
     {
@@ -1286,7 +1286,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/progress-activity.png"
     },
     {
@@ -1302,7 +1302,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/progress-detail.png"
     },
     {
@@ -1318,7 +1318,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/profile.png"
     },
     {
@@ -1334,7 +1334,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/rewards.png"
     },
     {
@@ -1350,7 +1350,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/data-management.png"
     },
     {
@@ -1366,7 +1366,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/results.png"
     },
     {
@@ -1382,7 +1382,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/game-intro.png"
     },
     {
@@ -1398,7 +1398,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/progress-domain.png"
     },
     {
@@ -1414,7 +1414,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/progress-game.png"
     },
     {
@@ -1430,7 +1430,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/storage-unavailable.png"
     },
     {
@@ -1446,7 +1446,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/bootstrap-recovery.png"
     },
     {
@@ -1462,7 +1462,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; the still still depicts its surface, so the reviewed matrix stands (task 5.1) — it is simply not a terminal-APK capture",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-matrix-de6c5fcd/fs2/dark/game-detail.png"
     },
     {
@@ -1478,7 +1478,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; retained as historical route evidence for that APK",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; retained as historical route evidence for that APK",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/light/results-scrolled.png"
     },
     {
@@ -1494,7 +1494,7 @@
       "currentApplicability": false,
       "interactionClosureChanged": true,
       "recaptureRequired": false,
-      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK e243341f…; retained as historical route evidence for that APK",
+      "recaptureReason": "bound to APK de6c5fcd…, which is not the terminal APK c8c3d46c…; retained as historical route evidence for that APK",
       "frame": "openspec/changes/076-product-wide-ui-ux-reboot/evidence/final-scroll-de6c5fcd/fs2/dark/results-scrolled.png"
     },
     {

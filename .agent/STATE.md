@@ -1,4 +1,49 @@
 # Durable Project State
+> **CORRECTION #7 — 2026-10-13 (current): D3 REPAIRED; the sole 076-f blocker is
+> closed; verdict still `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, now on the
+> repository-owned matched-image gap (parent 14.3/14.7), not on D3.**
+> Correction #6 below is historical as a "blocked on 4.1" claim.
+>
+> The referenced opencode session (`ses_edd8fbb09ffeg7GuP4TrVneBzI`) had executed
+> the D3 disabled-`Button` repair — commits `d5787ec` (fix + 7 regression tests),
+> `0483539` (device proof + new terminal identity), `e1a60e6` (re-observe the 2
+> affected rows + reconcile the parent game ledger) — but stopped **before
+> finishing the control-document reconciliation**. This session completed that
+> reconciliation from measured truth and verified the repair independently:
+>
+> - **D3 is genuinely repaired and green.** `button.tsx` maps a disabled control to
+>   fill `theme.backgroundElement` / label `textSecondary` (no whole-control
+>   `opacity`). The 7-test guard `button-disabled-state.test.tsx` passes
+>   (`EXIT=0`), and **fail-before/pass-after was re-verified this session** by
+>   temporarily restoring the pre-fix `b293a02` file: **3 of 7 fail before, 7 of 7
+>   pass after** (worktree self-restored, `git status` clean).
+> - **New terminal identity:** source `d5787ec`, APK
+>   `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+>   (48,888,528 B). The 2 affected rows (`language-word-scramble`,
+>   `logic-code-cracker`) were re-observed on it in both themes (light 7.25:1,
+>   dark 9.14:1 — token-exact, above AA); 40 rows are unaffected and retain their
+>   `e243341f…` identity per the spec's *"A fix changes the APK"* scenario.
+> - **Ledgers reconciled:** 076-f task **4.1** checked (full repair evidence), task
+>   **6.2** resolved (authentication succeeded, so its blocked-branch is void and
+>   parent 14.4 is instead checked), and parent **14.4** checked on the 9/9
+>   controller-led journeys. 076-f is now **42 checked / 0 unchecked**; parent 076
+>   is **80 checked / 2 unchecked** (**14.3**, **14.7**).
+> - **Verdict recomputed honestly:** still
+>   `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, but the reason changed — it is no
+>   longer D3 (repaired). It is the repository-owned, independently-executable
+>   matched terminal-APK before/after image set and 3-direction reference lock
+>   (parent 14.3/14.7), which cannot be reclassified as external. iOS runtime is an
+>   additional external boundary. Full reasoning: `evidence/VERDICT.md`.
+> - **Gates:** Jest **623 suites / 7,248 tests / 5 snapshots** (the 622/7,241
+>   baseline did not drop; +7 additive D3 guards); typecheck/lint clean; strict
+>   OpenSpec 61/61; provenance/assessment regenerated against the new terminal
+>   identity. Ending-SHA CI is recorded in `evidence/VERDICT.md` →
+>   *Ending-SHA workflow record*.
+>
+> The device lane is on `emulator-5570` (online). The `BLOCKED_HOST_ANDROID_EMULATOR`
+> state in corrections #4/#5 is historical and resolved.
+
+
 
 > **CORRECTION #3 — 2026-10-09 record close (current).** Correction #1 below
 > still says measured truth at `709ae55`. That SHA sentence is stale as a

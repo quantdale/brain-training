@@ -1,6 +1,6 @@
 # Known Issues / Blockers
 
-## 076-f — device blocker RESOLVED; two open repository-owned debts (2026-10-12, current)
+## 076-f — device blocker RESOLVED; D3 REPAIRED; two open repository-owned debts (2026-10-13, current)
 
 **`BLOCKED_HOST_ANDROID_EMULATOR` is closed.** The historical record further below
 is kept as history and must not be read as current. The host was never rebooted and
@@ -12,13 +12,21 @@ hypervisor lock. Relaunching the same AVD on a fresh port produced `emulator-557
 with `sys.boot_completed=1`, and the entire device lane ran there. Recovery
 evidence: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_RECOVERY.md`.
 
-Measured on the terminal APK `e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`:
+Measured on the terminal APK `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`:
 42/42 games PASS, 9/9 controller journeys PASS, game-control accessibility 0
-violations over 126 surfaces / 756 controls, Jest 622 suites / 7,241 tests /
+violations over 126 surfaces / 756 controls, Jest 623 suites / 7,248 tests /
 5 snapshots, clean-checkout composite 20/20, and the terminal APK installed and
 device-hashed to an exact SHA-256 match.
 
-### Still open: D3 — disabled primary controls lose their label (task 4.1)
+### REPAIRED (2026-10-13): D3 — disabled primary controls lose their label (task 4.1)
+
+> **Now closed.** D3 was repaired through the full 076-f task 4.1 sequence:
+> `button.tsx` maps a disabled control to fill `theme.backgroundElement` and label
+> `textSecondary` (no whole-control `opacity`), guarded by 7 fail-before/pass-after
+> tests (3 fail pre-fix / 7 pass post-fix, verified), rebuilt into APK `c8c3d46c…`,
+> and the 2 affected rows re-observed in both themes (light 7.25:1, dark 9.14:1 —
+> token-exact, above AA). The text below is the original filed defect, kept as
+> history. Detail: `evidence/DEFECTS_CURRENT.md`, `d3-affected-games-reobserved.json`.
 
 The shared `Button` (`apps/mobile/src/components/ui/button.tsx`) applies
 `opacity: 0.5` to the **whole control** when disabled. A disabled primary control
@@ -27,12 +35,12 @@ game GO button the `accent.base` `#FF4A57` fill and `accent.on` `#2B0508` label 
 roughly **1.08:1** apart, so the label is invisible exactly when the next response
 is required.
 
-**Owner: repository-owned follow-up campaign.** Not repaired in 076-f because the
-fix is shared chrome behind all 42 games and every route Button; a production edit
-rebuilds the release APK and by the change spec invalidates every device row
-captured on `e243341f…` — the 42 game rows, the 9 journeys and the 126
-accessibility surfaces. Unblocking this needs a campaign that accepts that
-re-validation cost. Detail:
+**Owner: repository-owned follow-up campaign — NOW COMPLETED (2026-10-13).** This
+was left unrepaired in the earlier 076-f pass because the fix is shared chrome
+behind all 42 games and every route Button, so a production edit rebuilds the
+release APK and by the change spec invalidates every device row captured on
+`e243341f…`. That re-validation cost was accepted and paid: the APK was rebuilt
+(`c8c3d46c…`) and the 2 affected rows re-observed. Detail:
 `openspec/changes/076-f-final-product-certification/evidence/DEFECTS_CURRENT.md`.
 
 ### Still open: matched before/after images (parent 14.3, 14.7)
