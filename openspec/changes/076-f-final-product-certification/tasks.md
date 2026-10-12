@@ -124,7 +124,24 @@
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928` (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Five earlier rounds that were also 4/4 green (`bdde89c`, `31d7163`, `ce3a319`, `d4aa81e`, `bf37e6b`, plus two manual-dispatch rounds at `6f8ce8d` and `74ce010`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
+  **Round 2 (2026-10-13) — current ending SHA `5a50eb71be7d86ed12d96bc15298b3d848057976` (`main` == `origin/main`).** All four workflows recorded **GREEN** at this exact SHA, each step `success` and none skipped:
+
+  | Workflow | Run ID | Steps | Conclusion |
+  | --- | --- | --- | --- |
+  | App CI | `38291051610` | 24 (1 job) | **success** |
+  | Repository Integrity | `38291051629` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38291051702` | 18 (1 job) | **success** |
+  | iOS Build Smoke | `38291051671` | 15 (1 job) | **success** |
+
+  This round exists because the ending SHA moved: the D3 repair (`d5787ec`) and the
+  reconciliation/CI-record commits that followed it landed after round 1 below, so
+  round 1's SHA is no longer HEAD and its record is retained as history rather than
+  as the live ending SHA. The record-cycle property is unchanged and is stated
+  openly rather than hidden — the commit that records these four runs necessarily
+  follows them, so the runs were measured against exactly the tree that was HEAD
+  and pushed before the record commit, not against the record commit itself.
+
+  **Round 1 (2026-10-12) — superseded ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928`;** now retained as history because the D3 repair moved HEAD past it. All four were likewise recorded **GREEN** at that SHA (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Five earlier rounds that were also 4/4 green (`bdde89c`, `31d7163`, `ce3a319`, `d4aa81e`, `bf37e6b`, plus two manual-dispatch rounds at `6f8ce8d` and `74ce010`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |

@@ -286,7 +286,27 @@ dependency and does not by itself force the blocked verdict; the repository-owne
 
 ## Ending-SHA workflow record (task 8.4)
 
-**ENDING SHA e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928 — all four GREEN, push-triggered, worktree clean.**
+**ENDING SHA `5a50eb71be7d86ed12d96bc15298b3d848057976` — all four GREEN, push-triggered, `main` == `origin/main`.**
+
+| Workflow | Run ID | Steps | Conclusion |
+| --- | --- | --- | --- |
+| App CI | 38291051610 | 24 (1 job) | **success** |
+| Repository Integrity | 38291051629 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 38291051702 | 18 (1 job) | **success** |
+| iOS Build Smoke | 38291051671 | 15 (1 job) | **success** |
+
+Every step is `success` in all four runs; none is skipped. The ending SHA moved
+past the round below because the D3 repair (`d5787ec`) and the reconciliation and
+CI-record commits that followed it are application- and evidence-tree changes
+that landed after it. The record cycle is the documented method: the commit that
+records these runs necessarily follows them, so the runs were measured against
+the tree that was HEAD and pushed before the record commit, not against the
+record commit itself. That property is stated here rather than hidden, exactly as
+for the earlier round.
+
+**Superseded ending SHA `e3cfb8f0b6b79c6e964dcb07fc5d12a6ee380928`** — all four
+likewise GREEN, push-triggered, worktree clean, and retained as history because
+HEAD has since moved past it:
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
