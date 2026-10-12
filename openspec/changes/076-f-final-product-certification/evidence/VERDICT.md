@@ -19,6 +19,20 @@
 
 # VERDICT: `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
 
+> **2026-10-12 update.** This verdict is unchanged in **name** but its reason has
+> changed completely, and the distinction matters. It is no longer blocked for want
+> of game, journey, accessibility or clean-checkout proof — every one of those
+> gates is now PASS on the terminal APK. It is blocked on **one** repository-owned
+> obligation, named below: task **4.1** does not accept a reproduced defect being
+> left unrepaired, and defect D3 is reproduced. See *The one remaining
+> repository-owned gap*.
+>
+> The forbidden verdicts remain forbidden. "Repository-complete with named external
+> blockers" requires **every independently executable repository-owned requirement
+> to pass**; releasing with a reproduced, measured, unrepaired contrast defect does
+> not meet it, and iOS runtime stays NOT VALIDATED besides. "Full validation"
+> requires every mandatory gate.
+
 ---
 
 This is the single verdict. It is not a partial verdict, not a
@@ -208,31 +222,20 @@ run, and Android evidence cannot create an iOS pass.
 
 ## Ending-SHA workflow record (task 8.4)
 
-The last ending-SHA record published here was for `684396a7` (`684396a`), with
-App CI `37758437026`, Repository Integrity `37758437146`, Android Build Smoke
-`37758437133`, iOS Build Smoke `37758437093` — all green. **That is now a
-historical record for a SHA that is not the ending SHA of this campaign.** The
-current ending-SHA record is maintained in [`GATES.md`](GATES.md) §8.4 and is
-re-recorded at the exit gate. Green runs at the *planning* commit `05bf793` or
-at `b7cf09b` are deliberately never cited as certification evidence for a later
-SHA.
+**Current ending-SHA record - all four GREEN at dde89ce726c3dc26172b6fe08937f3109458554.**
 
-**Checkpoint-SHA workflow record (task 8.4, partial).** The four required
-workflows were verified at `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d`, all
-**green**: App CI `37943831586`, Repository Integrity `37943831511`, Android
-Build Smoke `37943831547`, iOS Build Smoke `37943831621`. `f338e1c` is also
-4/4 green (App CI `37948059749`, Repository Integrity `37948059896`, Android
-Build Smoke `37948059722`, iOS Build Smoke `37948059834`). Neither SHA is the
-exit-gate record.
+| Workflow | Run ID | Steps | Conclusion |
+| --- | --- | --- | --- |
+| App CI | 8197292094 | 24 | **success** |
+| Repository Integrity | 8197294979 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 8197297723 | 18 | **success** |
+| iOS Build Smoke | 8197300413 | 15 | **success** |
 
-**Because the exit gate could not be reached, task 8.4 is unchecked and this
-file is not the exit verdict.** It is the standing verdict, kept current.
+Each was triggered with gh workflow run <file> --ref main from a clean worktree at that exact SHA and polled to a terminal conclusion. Four earlier runs from the same session (8197119888, 8197119892, 8197119897, 8197119908) are recorded as **cancelled**, not green - they were superseded while the ending SHA was still being pushed and were replaced by the four above.
 
-**Boundary of this record.** Evidence-only commits after any code-bearing SHA
-change only evidence prose and durable state, not application source, build
-input, lockfile, workflow, or test — so they do not require a rebuild. That is
-re-verifiable: if any later commit touches an application or build input, the
-terminal identity changes and every gate bound to it is re-measured.
+**No application or build-input change has landed since the terminal application source 293a02e1cd5df260a66dd886c1d279978b68994.** The exit-gate commits after it touch only .agent/, openspec/ and vidence/, so the terminal artifact identity 243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f is unchanged and every device gate measured on it stays bound to it. That is re-verifiable: if any later commit touches an application or build input, the terminal identity changes and every gate bound to it must be re-measured.
+
+**Historical ending-SHA records (do not read as current):** 84396a7 (App CI ÿ58437026, Repository Integrity ÿ58437146, Android ÿ58437133, iOS ÿ58437093); c8fe668 (App CI 943831586, Repository Integrity 943831511, Android 943831547, iOS 943831621); 338e1c (App CI 948059749, Repository Integrity 948059896, Android 948059722, iOS 948059834). None is the ending SHA of this campaign.
 
 ## Rollback / continuation
 

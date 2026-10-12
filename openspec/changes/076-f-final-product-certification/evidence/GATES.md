@@ -23,7 +23,53 @@ cd D:/Temp/bt-cert076f-clean
 node scripts/certification/certify-clean-checkout.mjs
 ```
 
-### Terminal run — SHA `690fb22cab83ef6a3e9bdfa8c8c23fa960367339` — **PASS, 20/20**
+### Terminal run 2 — SHA `bdde89ce726c3dc26172b6fe08937f3109458554` — **PASS, 20/20** (current ending-SHA record)
+
+Re-run at the campaign's ending SHA from a disposable clone (`git clone` of the
+worktree to `$TEMP/bt-clean`), **removed afterwards**, with no `--self-test`,
+`--skip-install`, or `--allow-jest-not-validated` flag.
+`tracked_mutation_after_clean_run=PASS`.
+
+| # | Gate | Result |
+| --- | --- | --- |
+| 1 | app npm ci | PASS |
+| 2 | repository state | PASS |
+| 3 | task ownership | PASS |
+| 4 | OpenSpec | PASS (61/61) |
+| 5 | registry | PASS |
+| 6 | provenance | emitted (see the note below) |
+| 7 | provenance self-test | PASS (13 checks) |
+| 8 | jest signal self-test | PASS |
+| 9 | offline boundary | PASS |
+| 10 | secret boundary | PASS (3,432 tracked files clean) |
+| 11 | workflow hygiene | PASS (4 files) |
+| 12 | dependency audit | PASS (10 accepted, 0 unallowlisted moderate+) |
+| 13 | affected-area map sync | PASS |
+| 14 | runtime QA contract | PASS |
+| 15 | typecheck | PASS |
+| 16 | lint | PASS |
+| 17 | web export | PASS |
+| 18 | expo alignment (hermetic declared gate) | PASS |
+| 19 | full Jest | PASS |
+| 20 | jest signal | PASS |
+
+**Overall: `certify-clean-checkout: PASS`, exit 0.**
+
+**Note on gate 6.** `build-provenance.mjs` prints its table and then exits
+**non-zero by design**, because the rendering-dependency closure changed
+(`session-header.tsx` render, `button.tsx` input) and it refuses to label any
+historical game frame source-equivalent. That is the fail-closed behaviour the
+spec requires, not a gate failure. The recapture those rows demanded has since
+happened: all 42 games have current-device rows on the terminal APK.
+
+**One false start, recorded.** The first attempt at this SHA failed with
+`checkout is not clean; remove inherited/generated paths:
+apps/mobile/node_modules`. That was the operator's error, not a repository
+defect: `npm ci` had been run in the clone before invoking the composite, and the
+composite deliberately refuses to inherit a dependency tree it is supposed to
+install itself. Removing `node_modules` and re-running gave 20/20.
+
+### Historical run — SHA `690fb22cab83ef6a3e9bdfa8c8c23fa960367339` — **PASS, 20/20**
 
 The composite was re-run after the Expo-gate alignment (campaign prompt §6.1
 and §6.2), from a disposable clone at the terminal application source
@@ -276,13 +322,26 @@ Strict OpenSpec total recorded alongside: **61 passed, 0 failed (61 items)**.
 
 ## 8.4 Workflow record at the checkpoint SHA
 
-Populated at the exit gate. The last record published here was for
-`684396a7` — App CI `37758437026`, Repository Integrity `37758437146`, Android
-Build Smoke `37758437133`, iOS Build Smoke `37758437093`, all green — and it is
-**historical**: it is not the ending SHA of this campaign. Green runs at
-`05bf793` or `b7cf09b` are likewise never cited as the ending-SHA result.
+### Ending SHA `bdde89ce726c3dc26172b6fe08937f3109458554` — **4/4 GREEN (current)
 
-### 2026-10-09 checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d` — 4/4 green
+| Workflow | Run ID | Steps | Conclusion |
+| --- | --- | --- | --- |
+| App CI | `38197292094` | 24 | **success** |
+| Repository Integrity | `38197294979` | 16 (2 jobs) | **success** |
+| Android Build Smoke | `38197297723` | 18 | **success** |
+| iOS Build Smoke | `38197300413` | 15 | **success** |
+
+All four were triggered with `gh workflow run <file> --ref main` from a clean
+worktree at this exact SHA and polled to a terminal conclusion. Four earlier runs
+from the same session (`38197119888`, `38197119892`, `38197119897`,
+`38197119908`) are recorded as **cancelled**, not green — superseded while the
+ending SHA was still being pushed, then replaced by the four above.
+
+No application or build-input commit has landed since the terminal application
+source `b293a02`, so the terminal artifact identity is unchanged and every device
+gate measured on `e243341f…` remains bound to it.
+
+### 2026-10-09 checkpoint SHA `1c8fe66818ed012c0e0ae0391995147a3e1ccc7d` — 4/4 green (historical)
 
 The reconciliation, the composite alignment and the device-blocker record are
 all evidence-only commits; the terminal application source is unchanged

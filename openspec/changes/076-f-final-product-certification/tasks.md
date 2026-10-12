@@ -115,5 +115,16 @@
   **Terminal run (2026-10-12):** `evidence/REVIEW_TERMINAL.md`. Eight findings recorded — six producer errors found and **all repaired** (F3–F6 plus the device-hash gap F8), two classified non-defects with the reason recorded (F1, F2), and one carried cost with its cost stated (F7, defect D3). **No repository-owned Critical or High finding remains open.** The review re-derived every claim from the artifact that supports it rather than the producer's summary, and found real over-claiming in three places — which is the stated purpose of the task.
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
-- [ ] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-- [ ] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.
+- [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
+  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `bdde89ce726c3dc26172b6fe08937f3109458554` (`main` == `origin/main`, worktree clean at record time). Each was triggered with `gh workflow run <file> --ref main` (workflow_dispatch) and polled to terminal status.
+
+  | Workflow | Run ID | Steps | Conclusion |
+  | --- | --- | --- | --- |
+  | App CI | `38197292094` | 24 | **success** |
+  | Repository Integrity | `38197294979` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38197297723` | 18 | **success** |
+  | iOS Build Smoke | `38197300413` | 15 | **success** |
+
+  Four earlier runs from this session (`38197119888/…892/…897/…908`) are recorded as **cancelled**, not green — they were superseded while the ending SHA was still being pushed and were replaced by the four above.
+- [x] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.
+  **Terminal run (2026-10-12): `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.** Game and clean-checkout proof both exist — 42/42 games PASS and the composite is 20/20 — so neither prohibition applies. The blocking gap is the remaining repository-owned obligation **task 4.1**: defect D3 is reproduced and measured but unrepaired, and task 4.1 requires a reproduced defect to be fixed, regression-guarded, re-built and re-verified. Releasing with a measured, unrepaired ~1.08:1 contrast defect on the shared primary control does not satisfy "every independently executable repository-owned requirement", so repository-complete with external blockers is not available either. iOS runtime remains NOT VALIDATED independently. Recorded in full, with the changed reason stated, in `evidence/VERDICT.md`.
