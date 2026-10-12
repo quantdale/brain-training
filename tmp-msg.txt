@@ -1,0 +1,40 @@
+076-f: exit-gate record complete - four workflows GREEN at the ending SHA 74ce010
+
+All four required workflows GREEN at the exact ending SHA
+74ce0108ba8996d326d423e368e3e292fe957bae, triggered from a clean worktree and
+polled to terminal conclusion:
+
+  App CI               38204896955   24 steps          success
+  Repository Integrity 38204900670   16 steps (2 jobs) success
+  Android Build Smoke  38204903056   18 steps          success
+  iOS Build Smoke      38204906568   15 steps          success
+
+Eight runs from this session are recorded as cancelled rather than green because
+they were superseded when the ending SHA moved. Two earlier rounds that were 4/4
+green (6f8ce8d and bdde89c) are retained for their own SHAs and are explicitly
+marked as not the ending SHA - a run at any other SHA is exactly what task 8.4
+forbids citing.
+
+Campaign 076-f final state:
+
+  Ledger                 076-f 40 checked / 2 unchecked; parent 076 63 / 19
+  Games                  42 / 42 PASS on the terminal APK e243341f
+  Controller journeys    9 / 9 PASS
+  Game-control a11y      126 surfaces / 756 controls / 0 violations
+  Jest                   622 suites / 7,241 tests / 5 snapshots
+  Typecheck / lint       PASS / PASS
+  Clean-checkout         20/20
+  OpenSpec strict        61/61
+  Repository state       PASS
+  Workflows at SHA       4/4 green
+  Worktree               clean
+
+Verdict: CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED. Not for want of game, journey,
+accessibility or clean-checkout proof - all PASS. Blocked on the single remaining
+repository-owned obligation, task 4.1 / defect D3.
+
+The two unchecked 076-f tasks carry their reasons in the ledger: 4.1 (the
+reproduced D3 contrast defect in shared Button chrome, deliberately unrepaired
+because the fix would rebuild the APK and invalidate every device row captured
+this campaign) and 6.2 (its condition - authentication remaining externally
+blocked - is false).
