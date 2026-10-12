@@ -322,20 +322,24 @@ Strict OpenSpec total recorded alongside: **61 passed, 0 failed (61 items)**.
 
 ## 8.4 Workflow record at the checkpoint SHA
 
-### Ending SHA `bdde89ce726c3dc26172b6fe08937f3109458554` — **4/4 GREEN (current)
+### Ending SHA `6f8ce8d0fcad69476ffc294bde4e386a40222bc1` — **4/4 GREEN (final)
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
-| App CI | `38197292094` | 24 | **success** |
-| Repository Integrity | `38197294979` | 16 (2 jobs) | **success** |
-| Android Build Smoke | `38197297723` | 18 | **success** |
-| iOS Build Smoke | `38197300413` | 15 | **success** |
+| App CI | `38200103535` | 24 | **success** |
+| Repository Integrity | `38200106308` | 16 (2 jobs) | **success** |
+| Android Build Smoke | `38200108857` | 18 | **success** |
+| iOS Build Smoke | `38200112643` | 15 | **success** |
 
 All four were triggered with `gh workflow run <file> --ref main` from a clean
-worktree at this exact SHA and polled to a terminal conclusion. Four earlier runs
-from the same session (`38197119888`, `38197119892`, `38197119897`,
-`38197119908`) are recorded as **cancelled**, not green — superseded while the
-ending SHA was still being pushed, then replaced by the four above.
+worktree at this exact ending SHA and polled to a terminal conclusion. Six earlier
+runs from this session are recorded as **cancelled**, not green — four were
+superseded while the ending SHA was still being pushed
+(`38197119888/…92/…97/…908`), and four more were the first round at the
+intermediate SHA `bdde89c` before the final evidence commit moved the ending SHA
+(`38199952829/…822/…876/…914`). The round at `bdde89c`
+(`38197292094`, `38197294979`, `38197297723`, `38197300413`) was 4/4 green and is
+retained as the record for that SHA, which is **not** the ending SHA.
 
 No application or build-input commit has landed since the terminal application
 source `b293a02`, so the terminal artifact identity is unchanged and every device
