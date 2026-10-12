@@ -116,14 +116,14 @@
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `6f8ce8d0fcad69476ffc294bde4e386a40222bc1` (`main` == `origin/main`, worktree clean at record time). Each was triggered with `gh workflow run <file> --ref main` (workflow_dispatch) and polled to terminal status.
+  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `a79bae1d2479022f90caab05dda15933412c5dc8` (`main` == `origin/main`, worktree clean at record time). Each was triggered with `gh workflow run <file> --ref main` (workflow_dispatch) and polled to terminal status.
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |
-  | App CI | `38200103535` | 24 | **success** |
-  | Repository Integrity | `38200106308` | 16 (2 jobs) | **success** |
-  | Android Build Smoke | `38200108857` | 18 | **success** |
-  | iOS Build Smoke | `38200112643` | 15 | **success** |
+  | App CI | `38202442582` | 24 | **success** |
+  | Repository Integrity | `38202446687` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38202449789` | 18 | **success** |
+  | iOS Build Smoke | `38202452125` | 15 | **success** |
 
   Four earlier runs from this session (`38197119888/…892/…897/…908`) are recorded as **cancelled**, not green — they were superseded while the ending SHA was still being pushed and were replaced by the four above.
 - [x] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.

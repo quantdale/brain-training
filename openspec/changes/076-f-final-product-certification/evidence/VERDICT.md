@@ -84,7 +84,7 @@ does not supply the missing game proof.
 | Terminal release APK identity | **BUILT, HASHED AND INSTALLED** — `e243341f…`, 48,888,452 B; installed `base.apk` pulled off the device and hashed to the identical value | `TERMINAL_IDENTITY.json` |
 | Controller Flash / Pro authenticated smokes | **PASS** | `CONTROLLER.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
-| Workflows at the ending SHA | **OWED under task 8.4** — see `## Ending-SHA workflow record` | — |
+| Workflows at the ending SHA `a79bae1` | **4/4 GREEN** — see `## Ending-SHA workflow record` |
 
 **What changed since the 2026-10-09 verdict.** The three blocking
 repository-owned gates — 42-game acceptance, the nine journeys, and the
@@ -222,22 +222,26 @@ run, and Android evidence cannot create an iOS pass.
 
 ## Ending-SHA workflow record (task 8.4)
 
-**Current ending-SHA record - all four GREEN at 6f8ce8d0fcad69476ffc294bde4e386a40222bc1.**
+**Final ending-SHA record - all four GREEN at a79bae1d2479022f90caab05dba15933412c5dc8.**
 
 | Workflow | Run ID | Steps | Conclusion |
 | --- | --- | --- | --- |
-| App CI | 38200103535 | 24 | **success** |
-| Repository Integrity | 38200106308 | 16 (2 jobs) | **success** |
-| Android Build Smoke | 38200108857 | 18 | **success** |
-| iOS Build Smoke | 38200112643 | 15 | **success** |
+| App CI | 38202442582 | 24 | **success** |
+| Repository Integrity | 38202446687 | 16 (2 jobs) | **success** |
+| Android Build Smoke | 38202449789 | 18 | **success** |
+| iOS Build Smoke | 38202452125 | 15 | **success** |
 
 Each was triggered with gh workflow run <file> --ref main from a clean worktree at this exact ending SHA and polled to a terminal conclusion.
 
-**Runs recorded as cancelled, not green:** six from this session. Four were superseded while the ending SHA was still being pushed (38197119888, 38197119892, 38197119897, 38197119908). Four more were the first round at the intermediate SHA bdde89c before the final evidence commit moved the ending SHA (38199952829, 38199952822, 38199952876, 38199952914). The round at bdde89c was also 4/4 green (38197292094, 38197294979, 38197297723, 38197300413) and is retained as the record for THAT SHA, which is not the ending SHA.
+**This is the exit-gate record.** The CI round was re-triggered at a79bae1 because the two preceding rounds were taken at intermediate SHAs: the first at 6f8ce8d before the final evidence commit moved the ending SHA, and four earlier rounds at bdde89c. Recording a run at anything other than the exact ending SHA is what task 8.4 forbids.
 
-**No application or build-input change has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994.** The exit-gate commits after it touch only .agent/, openspec/ and evidence/, so the terminal artifact identity e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f is unchanged and every device gate measured on it stays bound to it. That is re-verifiable: if any later commit touches an application or build input, the terminal identity changes and every gate bound to it must be re-measured.
+**Runs recorded as cancelled, not green - four from this session:** 38202372875, 38202372888, 38202372885, 38202372929. They were superseded when the ending SHA moved and are not cited as the ending-SHA result.
 
-**Historical ending-SHA records (do not read as current):** 684396a7 (App CI 37758437026, Repository Integrity 37758437146, Android 37758437133, iOS 37758437093); 1c8fe668 (App CI 37943831586, Repository Integrity 37943831511, Android 37943831547, iOS 37943831621); f338e1c (App CI 37948059749, Repository Integrity 37948059896, Android 37948059722, iOS 37948059834). None is the ending SHA of this campaign.
+**Runs green at earlier, non-ending SHAs, retained for their own SHA only:** 6f8ce8d (38200103535, 38200106308, 38200108857, 38200112643) and bdde89c (38197292094, 38197294979, 38197297723, 38197300413). Neither is the ending SHA.
+
+**No application or build-input change has landed since the terminal application source b293a02e1cd5df260a66dd886c1d279978b68994.** Every commit after it touches only .agent/, openspec/ and evidence/. The terminal artifact identity e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f is therefore unchanged, and every device gate measured on it stays bound to it.
+
+**Historical ending-SHA records (do not read as current):** 684396a7 (App CI 37758437026, Repository Integrity 37758437146, Android 37758437133, iOS 37758437093); 1c8fe668 (App CI 37943831586, Repository Integrity 37943831511, Android 37943831547, iOS 37943831621); f338e1c (App CI 37948059749, Repository Integrity 37948059896, Android 37948059722, iOS 37948059834).
 
 ## Rollback / continuation
 
