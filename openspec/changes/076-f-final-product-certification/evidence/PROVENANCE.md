@@ -109,6 +109,15 @@ generator writes `SOURCE_NOT_EQUIVALENT` for all of them and records the source
 as `mixed historical builds (no per-file binding)` where no binding exists,
 rather than inventing one.
 
+**Recapture status (2026-10-12): RECAPTURED.** The `recaptureRequired: true`
+marker on these 194 rows is satisfied. All 42 registered games were re-played on
+the terminal APK `e243341f…` on the recovered dedicated device, and each has a
+complete current-device row under `current-device/<game>/review.md` with its own
+quoted scored verdict, pause/resume, final result and input evidence. Those rows —
+not these 194 historical frames — are the game acceptance evidence for this
+campaign. The historical frames remain `SOURCE_NOT_EQUIVALENT` and are retained
+strictly as comparison material, which is the only role the spec permits them.
+
 ### Quarantined frames (16) — `NOT_APPLICABLE`
 
 Retained in `after-captures-games/rejected/` with explicit reasons. Never used
@@ -126,8 +135,10 @@ it.
 
 ## What this file does not claim
 
-- It does not certify any game. `assessment.json` reads **42 NOT VALIDATED**.
+- It does not certify any game. `assessment.json` reads **42 PASS, 0 NOT VALIDATED**
+  — every registered game has a complete current-device row on the terminal APK.
+  The certification itself is established by those rows, not by this file.
 - It does not make the historical frames terminal-APK captures.
-- It does not assert release acceptance. Provenance is a precondition for
-  acceptance, not acceptance.
+- It does not assert release acceptance on its own. Provenance is a precondition
+  for acceptance, not acceptance; the terminal verdict lives in `VERDICT.md`.
 - It does not claim the 90/90 route matrix is terminal-APK proof.
