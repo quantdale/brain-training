@@ -1,0 +1,22 @@
+{
+  "device": "emulator-5570",
+  "at": "2026-10-12T13:04:36.485Z",
+  "dark": {
+    "nodes": 145,
+    "disabled": [
+      {
+        "rid": "streak-buy-freeze",
+        "bounds": "[793,1492][1038,1618]"
+      },
+      {
+        "rid": "streak-buy-shield",
+        "bounds": "[793,1670][1038,1796]"
+      },
+      {
+        "rid": "streak-buy-recovery",
+        "bounds": "[793,1849][1038,1975]"
+      }
+    ],
+    "png": "g2-dark-profile.png"
+  }
+}\n

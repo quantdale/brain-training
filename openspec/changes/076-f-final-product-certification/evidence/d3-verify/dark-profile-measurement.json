@@ -1,0 +1,33 @@
+{
+  "image": "dark-profile.png",
+  "width": 1080,
+  "height": 2400,
+  "buttons": [
+    {
+      "rid": "streak-buy-freeze",
+      "bounds": [
+        793,
+        1492,
+        1038,
+        1618
+      ],
+      "fill": "#030404",
+      "label": "#545557",
+      "contrast": 2.75,
+      "aa": false
+    },
+    {
+      "rid": "streak-buy-shield",
+      "bounds": [
+        793,
+        1670,
+        1038,
+        1796
+      ],
+      "fill": "#030404",
+      "label": "#525356",
+      "contrast": 2.67,
+      "aa": false
+    }
+  ]
+}

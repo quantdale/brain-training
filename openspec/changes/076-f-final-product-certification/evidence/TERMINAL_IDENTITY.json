@@ -1,8 +1,8 @@
 {
   "_comment": "Single machine-readable identity of the terminal application artifact for 076-f. Both scripts/certification/build-provenance.mjs and scripts/certification/build-assessment.mjs read THIS file, so the identity is stated once and cannot drift between them. Update it only with a real build record: terminalSourceSha = the latest commit that changes an app or build input; terminalApkSha256 = the SHA-256 of the release APK built from that tree and hashed off the device. An evidence-only commit does not change it.",
-  "terminalSourceSha": "b293a02e1cd5df260a66dd886c1d279978b68994",
-  "terminalApkSha256": "e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f",
-  "terminalApkBytes": 48888452,
+  "terminalSourceSha": "d5787ec2857b0fd856d2e04ad346316d70951f6c",
+  "terminalApkSha256": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6",
+  "terminalApkBytes": 48888528,
   "packageId": "com.braintraining.app",
   "versionName": "0.1.0",
   "versionCode": 1000,

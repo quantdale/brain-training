@@ -1,0 +1,36 @@
+{
+  "device": "emulator-5570",
+  "at": "2026-10-12T12:39:58.237Z",
+  "captures": [
+    {
+      "route": "braintraining://games",
+      "nodes": 190,
+      "disabledControls": [],
+      "enabledControlCount": 15
+    },
+    {
+      "route": "braintraining://game-detail/attention-odd-one-out",
+      "nodes": 128,
+      "disabledControls": [],
+      "enabledControlCount": 4
+    },
+    {
+      "route": "braintraining://game-detail/memory",
+      "nodes": 125,
+      "disabledControls": [],
+      "enabledControlCount": 3
+    },
+    {
+      "route": "braintraining://game-detail/math-fast-math",
+      "nodes": 127,
+      "disabledControls": [],
+      "enabledControlCount": 3
+    },
+    {
+      "route": "braintraining://game-detail/flexibility-color-stroop",
+      "nodes": 132,
+      "disabledControls": [],
+      "enabledControlCount": 4
+    }
+  ]
+}
