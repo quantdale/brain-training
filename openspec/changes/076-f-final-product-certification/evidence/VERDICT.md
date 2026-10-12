@@ -324,7 +324,16 @@ These runs are at the tree that is HEAD, from a push, with a clean worktree and 
 - ce3a319 - 38209696503, 38209696449, 38209696555, 38209696443
 - d4aa81e - 38211974699, 38211974711, 38211974692, 38211974701
 - bf37e6b - 38214631249, 38214631306, 38214631242, 38214631402
-- e3cfb8f - 38217246446, 38217246390, 38217246457, 38217246383  (ENDING SHA)
+- e3cfb8f - 38217246446, 38217246390, 38217246457, 38217246383  (ending SHA until the D3 repair moved HEAD)
+- 8f12b1c - 38220311950, 38220311860, 38220311984, 38220311941
+- 5a50eb7 - 38291051610, 38291051629, 38291051702, 38291051671  (ENDING SHA)
+
+Only **push-triggered** rounds are listed. `8f12b1c` additionally has a
+**scheduled** Repository Integrity re-run (`38254204716`, 2026-10-12, success) which
+is deliberately not listed here because it is not a push round; the push-triggered
+`8f12b1c` run for that workflow is `38220311860`. Every ID above was re-verified
+against the workflow list with `scripts/qa/verify-ci-record.mjs`, which fails if a
+recorded ID is not a real, green run at the exact SHA the record claims.
 
 Manual-dispatch rounds that were also 4/4 green: 6f8ce8d (38200103535, 38200106308, 38200108857, 38200112643) and 74ce010 (38204896955, 38204900670, 38204903056, 38204906568).
 
