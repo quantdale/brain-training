@@ -116,14 +116,14 @@
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
   **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [x] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
-  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `ce3a31903dd4327de456dae6ba93d5b4bcc3fd8d` (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Four earlier rounds that were also 4/4 green (`bdde89c`, `6f8ce8d`, `74ce010`, `31d7163`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
+  **Terminal run (2026-10-12):** all four recorded **GREEN** at the exact ending SHA `d4aa81e8fed035357d9e8af8a5074073a6539277` (`main` == `origin/main`, worktree clean at record time). These are the **push-triggered** runs recorded with no commit following them, so every workflow ran against exactly the tree that is HEAD. Four earlier rounds that were also 4/4 green (`bdde89c`, `6f8ce8d`, `74ce010`, `31d7163`, `ce3a319`) are retained for their own SHAs, none of which is the ending SHA; the record-cycle this implies is stated openly in `VERDICT.md` rather than hidden.
 
   | Workflow | Run ID | Steps | Conclusion |
   | --- | --- | --- | --- |
-  | App CI | `38209696503` | 24 | **success** |
-  | Repository Integrity | `38209696449` | 16 (2 jobs) | **success** |
-  | Android Build Smoke | `38209696555` | 18 | **success** |
-  | iOS Build Smoke | `38209696443` | 15 | **success** |
+  | App CI | `38211974699` | 24 | **success** |
+  | Repository Integrity | `38211974711` | 16 (2 jobs) | **success** |
+  | Android Build Smoke | `38211974692` | 18 | **success** |
+  | iOS Build Smoke | `38211974701` | 15 | **success** |
 
   Four earlier runs from this session (`38197119888/…892/…897/…908`) are recorded as **cancelled**, not green — they were superseded while the ending SHA was still being pushed and were replaced by the four above.
 - [x] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.
