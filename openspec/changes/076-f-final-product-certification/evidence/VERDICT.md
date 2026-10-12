@@ -317,9 +317,9 @@ HEAD has since moved past it:
 
 These runs are at the tree that is HEAD, from a push, with a clean worktree and no commit after them. That is the exit-gate record.
 
-**Every push-triggered round in this campaign, each green. The last row is the ending SHA:**
+**Every push-triggered round in this campaign, each green. The last row is the ending SHA; `bdde89c` is listed for completeness but is a manual-dispatch round, not a push round:**
 
-- bdde89c - 38197292094, 38197294979, 38197297723, 38197300413
+- bdde89c - 38197292094, 38197294979, 38197297723, 38197300413  (manual dispatch, `workflow_dispatch`)
 - 31d7163 - 38207110816, 38207110755, 38207110705, 38207110733
 - ce3a319 - 38209696503, 38209696449, 38209696555, 38209696443
 - d4aa81e - 38211974699, 38211974711, 38211974692, 38211974701
