@@ -83,3 +83,10 @@ playwright-report/
 lint-*.json
 jest-summary.json
 .jest-cache/
+
+# Local scratch scripts / messages (never commit)
+tmp-*.mjs
+tmp-*.txt
+tmp-*.json
+tmp-*.xml
+tmp-*.out
