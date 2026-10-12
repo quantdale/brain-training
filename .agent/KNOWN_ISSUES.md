@@ -1,6 +1,56 @@
 # Known Issues / Blockers
 
-## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, current)
+## 076-f — device blocker RESOLVED; two open repository-owned debts (2026-10-12, current)
+
+**`BLOCKED_HOST_ANDROID_EMULATOR` is closed.** The historical record further below
+is kept as history and must not be read as current. The host was never rebooted and
+PID 50120 is **still** unreapable — `taskkill /F` reports "There is no running
+instance of the task" and WMI `Terminate` returns 0 while the process object, its
+handles and ports 5554/5555 survive. What the earlier session could not know is
+that the **WHPX partition was free**: the blocker was a port-5554 collision, not a
+hypervisor lock. Relaunching the same AVD on a fresh port produced `emulator-5570`
+with `sys.boot_completed=1`, and the entire device lane ran there. Recovery
+evidence: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_RECOVERY.md`.
+
+Measured on the terminal APK `e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`:
+42/42 games PASS, 9/9 controller journeys PASS, game-control accessibility 0
+violations over 126 surfaces / 756 controls, Jest 622 suites / 7,241 tests /
+5 snapshots, clean-checkout composite 20/20, and the terminal APK installed and
+device-hashed to an exact SHA-256 match.
+
+### Still open: D3 — disabled primary controls lose their label (task 4.1)
+
+The shared `Button` (`apps/mobile/src/components/ui/button.tsx`) applies
+`opacity: 0.5` to the **whole control** when disabled. A disabled primary control
+therefore composites both its fill and its label toward the background: for the
+game GO button the `accent.base` `#FF4A57` fill and `accent.on` `#2B0508` label land
+roughly **1.08:1** apart, so the label is invisible exactly when the next response
+is required.
+
+**Owner: repository-owned follow-up campaign.** Not repaired in 076-f because the
+fix is shared chrome behind all 42 games and every route Button; a production edit
+rebuilds the release APK and by the change spec invalidates every device row
+captured on `e243341f…` — the 42 game rows, the 9 journeys and the 126
+accessibility surfaces. Unblocking this needs a campaign that accepts that
+re-validation cost. Detail:
+`openspec/changes/076-f-final-product-certification/evidence/DEFECTS_CURRENT.md`.
+
+### Still open: matched before/after images (parent 14.3, 14.7)
+
+The reviewed 90/90 route matrix is preserved for `de6c5fcd…` with
+`currentApplicability: false` and is not terminal-APK proof. A matched
+terminal-APK before/after image set, and a 3-direction scorecard / reference lock
+as a 076 artifact, have not been produced.
+
+### Still open: ending-SHA CI (task 8.4)
+
+App CI, Repository Integrity, Android Build Smoke and iOS Build Smoke must be
+recorded as passing at the exact ending SHA. Until they are, the workflow claims
+in this repository describe earlier SHAs.
+
+---
+
+## 076-f — BLOCKED_HOST_ANDROID_EMULATOR (2026-10-09, HISTORICAL — RESOLVED)
 
 **The dedicated Android emulator died and cannot be restarted. The host is out
 of memory.** Free physical RAM fell to **676 MB of 32 GB**; the dead

@@ -64,6 +64,40 @@
 > session). Assessment: **PASS 3, NOT VALIDATED 39**. Verdict unchanged:
 > `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
 >
+> **076-f CORRECTION #6 — 2026-10-12, the campaign is at near-closure.
+> This block supersedes correction #5's counts and is the current state.**
+>
+> - **All 42 games PASS** on the terminal APK `e243341f…` — every registered game
+>   has a complete, identity-verified, six-section current-device row with a quoted
+>   scored verdict. First complete sweep filed 42 rows but only 5 were PASS; the
+>   other 37 were the controller's template with empty sections. Re-running the
+>   identical 37 games on the owner-directed DeepSeek V4.1 Flash model converted
+>   every one, which is the evidence the earlier failures were controller
+>   incompleteness and not product defects.
+> - **All 9 controller journeys PASS** with substantive logs (5 first-pass notes
+>   were skeletons and were re-run after the acceptance bar was strengthened).
+> - **Game-control accessibility measured** over 126 surfaces / 756 controls
+>   across default, dark+2×+compact, and light+2×+compact+reduced-motion profiles:
+>   **0 violations**, 80 occluded nodes excluded from the pass count.
+> - **Full Jest matrix** 622 suites / 7,241 tests / 5 snapshots — the reference
+>   baseline, unchanged. TypeScript and lint clean.
+> - **Clean-checkout composite 20/20 PASS** from a disposable clone, checkout
+>   removed. Strict OpenSpec 61/61.
+> - **Provenance recapture closed:** the 194 game frames the generator marked
+>   `SOURCE_NOT_EQUIVALENT` / `recaptureRequired` have been recaptured as the 42
+>   current-device rows.
+>
+> **Ledger: 076-f 35 checked / 7 unchecked; parent 076 62 checked / 20 unchecked.**
+> Assessment: **PASS 42 / NOT VALIDATED 0**. Still open: task **4.1** (the
+> reproduced D3 GO-button contrast defect — measured, filed, and deliberately **not
+> repaired** because the fix is shared chrome used by all 42 games and would rebuild
+> the APK and invalidate every device row captured this campaign) and tasks
+> **8.1–8.5** (parent-ledger reconciliation, independent review, durable-state sync,
+> ending-SHA CI, final verdict).
+>
+> **076-f correction #5 — 2026-10-10, first sweep (historical).** Device lane
+> restored (correction #4); sweep running.
+>
 > **070-f ledger state below is historical.** Post-reboot ledger state:
 > `openspec/changes/076-f-final-product-certification/tasks.md`.
 >

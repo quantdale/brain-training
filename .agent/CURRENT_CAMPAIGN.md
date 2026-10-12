@@ -13,13 +13,48 @@
 > are history until the prompt's exit gate lands. Do **not** execute the
 > historical 076 redesign waves listed in the wave plan below.
 >
-> **Reconciled 2026-10-09, then `BLOCKED_HOST_ANDROID_EMULATOR`.** Do not read
-> the checkpoint text below as current. Measured corrections: the
-> rendering-dependency closure changed (**2** files, not 0), the terminal artifact
-> is `b293a02` / `e243341fd4f9…` (not `c324960` / `de6c5fcd…`), Jest is **622
-> suites / 7,241 tests** (not 621 / 7,237), and the controller is **unblocked**
-> (the Google free-tier quota is history). The ledgers moved back: parent tasks
-> `6.1`, `6.3` and `6.5` are unchecked and 076-f is at 6/42. Per-finding record:
+> **2026-10-12 — status corrected and the blocking device gate is CLOSED.** The
+> `BLOCKED_HOST_ANDROID_EMULATOR` state that follows is **historical**. The host was
+> never rebooted and PID 50120 is still unreapable, but the WHPX partition was in
+> fact free: the blocker was a port-5554 collision, not a hypervisor lock. The
+> dedicated AVD `braintraining-ui35` was relaunched headless on a fresh port as
+> `emulator-5570` (`sys.boot_completed=1`), and the whole device lane ran there.
+> Recovery detail: `openspec/changes/076-f-final-product-certification/evidence/DEVICE_RECOVERY.md`.
+>
+> Measured on the terminal APK `e243341f4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`:
+>
+> - **42/42 games PASS** — every registered game has a complete identity-verified
+>   current-device row with a quoted scored verdict.
+> - **9/9 controller journeys PASS.**
+> - **Game-control accessibility 0 violations** over 126 surfaces / 756 controls
+>   across three profiles; 80 occluded nodes excluded from the pass count.
+> - **Full Jest 622 suites / 7,241 tests / 5 snapshots**; typecheck and lint clean.
+> - **Clean-checkout composite 20/20** from a disposable clone, clone removed.
+> - **Terminal APK installed and device-hashed** — the pulled `base.apk` hashes to
+>   the identical SHA-256 as the host build.
+>
+> Ledger: 076-f **38 checked / 4 unchecked**; parent 076 **65 checked / 17
+> unchecked**. The four open 076-f tasks are **4.1** (the reproduced D3 contrast
+> defect — deliberately unrepaired because the fix rebuilds shared chrome and would
+> invalidate every device row captured), **6.2** (its condition is false:
+> authentication succeeded), and **8.4/8.5** (ending-SHA CI and the final verdict).
+> Parent 14.3 and 14.7 remain open for the matched before/after image gap, named
+> individually rather than collapsed.
+>
+> The decisive cause of the conversion was owner-directed: the controller moved to
+> **DeepSeek V4.1 Flash at high thinking effort**, on which re-running the same 37
+> previously-failed games converted every one.
+>
+> ---
+>
+> **Historical 2026-10-09 `BLOCKED_HOST_ANDROID_EMULATOR` record (superseded — do
+> not read as current).** The checkpoint text below is historical. Measured
+> corrections: the rendering-dependency closure changed (**2** files, not 0), the
+> terminal artifact is `b293a02` / `e243341fd4f9…` (not `c324960` /
+> `de6c5fcd…`), Jest is **622 suites / 7,241 tests** (not 621 / 7,237), and the
+> controller is **unblocked** (the Google free-tier quota is history). The ledgers
+> moved back: parent tasks `6.1`, `6.3` and `6.5` are unchecked and 076-f is at
+> 6/42. Per-finding record:
 > `openspec/changes/076-f-final-product-certification/evidence/RECONCILIATION.md`.
 >
 > The clean-checkout composite then passed **20/20**. The device lane then blocked:

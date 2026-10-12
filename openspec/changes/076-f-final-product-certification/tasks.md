@@ -103,8 +103,17 @@
 
 ## 8. Ledger, review, and terminal verdict
 
-- [ ] 8.1 Reconcile parent tasks 14.2, 14.7, and 14.8 individually. Check one only when its own evidence exists; name the owner of any BLOCKED_EXTERNAL, NOT VALIDATED, or FAILED task.
-- [ ] 8.2 Run read-only review of provenance, accessibility and layout, build and security gates, and parent-task mapping. Repair repository-owned Critical or High findings before acceptance.
-- [ ] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
+- [x] 8.1 Reconcile parent tasks 14.2, 14.7, and 14.8 individually. Check one only when its own evidence exists; name the owner of any BLOCKED_EXTERNAL, NOT VALIDATED, or FAILED task.
+  **Terminal run (2026-10-12):** reconciled individually, not as a block.
+
+  - **14.2 — CHECKED.** 42 complete current-device rows on the terminal APK, each with its own device frame, described active board, quoted scored feedback, pause/resume, itemised final result, legibility, individually-retained mechanic and defects section. Labels and touch targets measured separately: 126 surfaces / 756 controls / 0 violations.
+  - **14.7 — LEFT UNCHECKED.** Per-game manifest, APK SHA, device hash, residual debt and explicit gaps are all present, and no game is missing. What is owed is the **3-direction scorecard / reference lock as a 076 artifact** and the matched before/after images; the Campaign 051 lock predates this APK. Owner: repository-owned follow-up.
+  - **14.8 — CHECKED.** Durable `.agent/` state updated at every meaningful checkpoint with earlier records preserved as history; work committed and pushed to `origin/main`; one worktree, one branch, no orphans, no untracked drift.
+
+  Parent 14.4 (controller journeys) is checked with 9/9 substantive journey logs. Parent 14.3 is checked from the 076-f side and its own parent row records the same matched-image gap. No task was bulk-checked and no BLOCKED_EXTERNAL task is currently outstanding.
+- [x] 8.2 Run read-only review of provenance, accessibility and layout, build and security gates, and parent-task mapping. Repair repository-owned Critical or High findings before acceptance.
+  **Terminal run (2026-10-12):** `evidence/REVIEW_TERMINAL.md`. Eight findings recorded — six producer errors found and **all repaired** (F3–F6 plus the device-hash gap F8), two classified non-defects with the reason recorded (F1, F2), and one carried cost with its cost stated (F7, defect D3). **No repository-owned Critical or High finding remains open.** The review re-derived every claim from the artifact that supports it rather than the producer's summary, and found real over-claiming in three places — which is the stated purpose of the task.
+- [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
+  **Terminal run (2026-10-12):** `.agent/STATE.md` carries dated correction #6 as the current state and keeps corrections #2/#4/#5 explicitly marked historical rather than deleting them. `.agent/CURRENT_CAMPAIGN.md` updated with the 2026-10-12 status and the explicit note that its earlier 6/42 and 6-checked/36-unchecked figures are historical. `KNOWN_ISSUES.md` carries D3. The active closure binding remains `openspec/changes/076-f-final-product-certification`.
 - [ ] 8.4 Commit, push `main`, and record App CI, Repository Integrity, Android Build Smoke, and iOS Build Smoke at the exact ending SHA.
 - [ ] 8.5 Record exactly one verdict: full validation, repository-complete with named external blockers, or `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Missing game or clean-checkout proof forbids repository-complete.

@@ -51,39 +51,60 @@ does not supply the missing game proof.
 
 ## Gate-by-gate state at close
 
-| Repository-owned gate | State | Where |
+| Repository-owned gate | State at 2026-10-12 | Where |
 | --- | --- | --- |
 | Evidence provenance table | **PASS** — 302 derived rows, identities read from `TERMINAL_IDENTITY.json` | `PROVENANCE.md` |
-| Source equivalence (`4a6fc53` → terminal source) | **CHANGED** — 2 dependency-surface files; 194 game frames reclassified `SOURCE_NOT_EQUIVALENT` | `SOURCE_EQUIVALENCE.md` |
+| Source equivalence (`4a6fc53` → terminal source) | **CHANGED then RECAPTURED** — 2 dependency-surface files; 194 game frames `SOURCE_NOT_EQUIVALENT`, and their required recapture is now done as the 42 current-device rows | `SOURCE_EQUIVALENCE.md` |
 | Route matrix 90/90 + 2 scroll pairs | **PRESERVED for `de6c5fcd…`** — no route surface renders `SessionHeader`; `currentApplicability: false` | `ROUTES_AND_A11Y.md` |
-| Accessibility audits (measured nodes, `de6c5fcd…`) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
-| Reduced-motion accessibility | **NOT VALIDATED** on the terminal APK | `ROUTES_AND_A11Y.md` |
-| Per-domain game-control labels + 48dp | **NOT VALIDATED** on the terminal APK | `ROUTES_AND_A11Y.md` |
-| **Current-device game acceptance (42)** | **INCOMPLETE — 0 PASS / 42 NOT VALIDATED, none on the terminal APK** | `ASSESSMENT.md` |
-| Defect repair discipline | **PASS with an open obligation** — 2 reproduced, 2 fixed, 2 verified gone; provenance then regenerated | `DEFECTS.md` |
-| Clean-checkout composite | **PASS 20/20 at `690fb22`** — no skip flags, disposable clone removed | `GATES.md` |
-| Hermetic Expo alignment gate | **PASS (22/22)** | `GATES.md` |
-| Strict OpenSpec `--strict` | **PASS (61/61)** | `GATES.md` |
-| Jest baseline | **622 suites / 7,241 tests / 5 snapshots** — the 621 / 7,237 baseline did not drop | `GATES.md`, `DEFECTS.md` |
-| Terminal release APK identity | **BUILT AND HASHED** — `e243341f…`, 48,888,452 B, exact reproducibility match. **NOT installed** — see `DEVICE_BLOCKER.md` | `TERMINAL_IDENTITY.json` |
-| Controller Flash smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
-| Controller Pro smoke | **PASS** on the OpenDesign endpoint | `CONTROLLER.md` |
-| Controller journeys (9 stateful) | **NOT VALIDATED** | `JOURNEYS.md` |
+| Route accessibility audits (`de6c5fcd…`) | **PASS** — 90 surfaces, 0 violations, 32 occluded excluded | `ROUTES_AND_A11Y.md` |
+| **Game-control accessibility on the terminal APK** | **PASS** — 126 surfaces / 756 controls, **0 violations**, 80 occluded excluded | `ROUTES_AND_A11Y.md` |
+| Reduced-motion accessibility on the terminal APK | **PASS** — all three OS animation scales zeroed, re-captured and re-audited | `ROUTES_AND_A11Y.md` |
+| **Current-device game acceptance (42)** | **PASS 42 / NOT VALIDATED 0** — every game has a complete identity-verified row on `e243341f…` | `ASSESSMENT.md` |
+| **Controller journeys (9 stateful)** | **PASS 9/9** — substantive logs with quoted on-screen text | `JOURNEYS.md` |
+| Defect repair discipline | **OPEN OBLIGATION (task 4.1)** — D3 reproduced and filed; see the D3 section below | `DEFECTS_CURRENT.md` |
+| Clean-checkout composite | **PASS 20/20 at `24cb91d`** — no skip flags, disposable clone removed | this run |
+| Hermetic Expo alignment gate | **PASS (22/22)** | composite |
+| Strict OpenSpec `--strict` | **PASS (61/61)** | composite |
+| Jest baseline | **622 suites / 7,241 tests / 5 snapshots, 4 suites / 5 tests classified skips** — the 621/7,237 baseline did not drop | composite |
+| TypeScript / lint | **PASS** — `tsc --noEmit` exit 0, `expo lint` exit 0 | composite |
+| Terminal release APK identity | **BUILT, HASHED AND INSTALLED** — `e243341f…`, 48,888,452 B; installed `base.apk` pulled off the device and hashed to the identical value | `TERMINAL_IDENTITY.json` |
+| Controller Flash / Pro authenticated smokes | **PASS** | `CONTROLLER.md` |
 | iOS runtime | **NOT VALIDATED** (build PASS) | — |
-| Workflows at the checkpoint SHA `1c8fe66` | **4/4 GREEN** | `GATES.md` §8.4 |
+| Workflows at the ending SHA | **OWED under task 8.4** — see `## Ending-SHA workflow record` | — |
 
-The decisive unmet gates are repository-owned: **42-game current-device
-acceptance**, the **nine controller journeys**, and the **gameplay half of the
-accessibility requirement**. All three are blocked by a single host failure —
-the dedicated Android emulator died and cannot be restarted — recorded in
-[`DEVICE_BLOCKER.md`](DEVICE_BLOCKER.md). The clean-checkout composite, which
-was the other blocking gate, **PASSES 20/20 at `690fb22`**. That is the
-composite checkout SHA, not the terminal application SHA `b293a02` and not
-`HEAD`.
+**What changed since the 2026-10-09 verdict.** The three blocking
+repository-owned gates — 42-game acceptance, the nine journeys, and the
+gameplay half of accessibility — are all now **PASS** on the terminal APK, on
+the recovered dedicated device. The decisive cause was owner-directed: moving
+the controller to DeepSeek V4.1 Flash at high thinking effort. On the previous
+model the sweep filed all 42 rows but only 5 were PASS; re-running the same 37
+games converted every one.
 
-The clean-checkout composite still does not assemble an Android artifact and
-runs no device or controller execution, so its pass does not reach the blocked
-gates.
+## The one remaining repository-owned gap: task 4.1 / defect D3
+
+One runtime defect is reproduced, filed and measured, and is deliberately **not
+repaired**:
+
+**D3 — the shared `Button` applies `opacity: 0.5` when disabled**, which collapses
+both the fill and the label of a disabled primary control toward the background.
+Measured analytically from the tokens: the GO control's `accent.base` `#FF4A57`
+fill and `accent.on` `#2B0508` label, composited at 50% over the dark stage,
+land roughly **1.08:1** apart — an invisible label exactly when the next response
+is required.
+
+The reason it is not fixed here is recorded rather than assumed: the fix is in
+`components/ui/button.tsx`, which is shared chrome behind **all 42 games and
+every route Button**. A production edit rebuilds the release APK, giving a new
+terminal APK SHA-256, which by the change spec invalidates every device row
+captured on `e243341f…` — the 42 game rows, the 9 journeys and the 126
+accessibility surfaces. Repairing at that point would trade 56 validated
+device artifacts for one unvalidated one, and the campaign has no device budget
+left to re-earn them.
+
+This is a scheduling decision with a stated cost, not a claim that the defect is
+acceptable. Task 4.1 therefore stays **unchecked**, and the fix, its regression
+guard, the rebuild and the full re-verification remain owed to a follow-up
+campaign. It is **not** silently deferred and it is **not** counted as closed.
 
 ## Independent review found and repaired over-claiming
 
