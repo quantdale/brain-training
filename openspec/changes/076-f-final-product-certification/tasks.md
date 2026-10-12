@@ -66,7 +66,15 @@
 ## 5. Accessibility, layout, and preserved routes
 
 - [x] 5.1 Preserve the reviewed 90/90 route matrix and two Results-scroll pairs unless a relevant source change invalidates a surface. Recapture only the affected combinations.
-- [ ] 5.2 Complete reduced-motion, normal/large viewport, and representative gameplay checks for all eight domains, including actual game-control labels and the Android 48dp floor. Keep occluded or unmeasured nodes out of the pass count.
+- [x] 5.2 Complete reduced-motion, normal/large viewport, and representative gameplay checks for all eight domains, including actual game-control labels and the Android 48dp floor. Keep occluded or unmeasured nodes out of the pass count.
+  **Terminal run (2026-10-12):** all required conditions measured on the terminal APK `e243341f…` on `emulator-5570`.
+
+  - **Game controls, all 42 games, three profiles** — `scripts/qa/capture-game-a11y.mjs` launches each game on the device and dumps the live board; every interactive node in the game's own resource-id namespace is then measured by the existing `scripts/qa/a11y-audit.mjs` (one implementation of the 48dp floor, the label rule and the occlusion exclusion). Results: default 42 surfaces / 336 controls / 0 violations; dark + 2× text + compact 42 / 210 / 0; light + 2× text + compact + reduced-motion 42 / 210 / 0. **126 surfaces, 756 controls, 0 violations.**
+  - **Occluded nodes kept out of the pass count** — the two compact/fs2 profiles each report 40 nodes classified `screen-edge` and excluded as unmeasurable, never counted as passing targets.
+  - **Representative gameplay, all eight domains** — established by the 42 current-device game rows themselves, which span every domain (Attention 5, Flexibility 5, Language 5, Logic 5, Math 5, Memory 7, Spatial 5, Speed 5) with a quoted scored verdict on the terminal APK. That is stronger than a static capture because the board is played.
+  - **Reduced motion on the terminal APK** — all three OS animation scales set to 0, then re-captured and re-audited: 42 surfaces, 0 violations.
+
+  Full detail: `evidence/ROUTES_AND_A11Y.md` §Game controls. Artifacts: `qa-artifacts/game-a11y*`.
 - [ ] 5.3 Check parent task 14.3 only after every required profile and gameplay condition is satisfied.
 
 ## 6. Controller journeys
