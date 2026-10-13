@@ -1,5 +1,15 @@
 # Terminal verdict — 076-f final product certification
 
+> **Evidence-integrity clarification — 2026-10-13 (current):** verdict unchanged:
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`. Parent **14.7 checked** for publication;
+> **14.3 OPEN**, original criteria unchanged. Older descriptions listing both open
+> are superseded. Luminance-derived theme/pair claims are withdrawn: current coverage
+> is 0 confirmed matches / 100 uncertain candidates / 112 after-only slots /
+> 4 differing surfaces. No new runtime certification or release acceptance.
+> See the parent's `evidence/VISUAL_DECISION.md`. Ending-SHA rounds below remain
+> historical; final cleanup SHA CI is checked after the last push, with actual
+> run links in the final response.
+
 **Change:** `076-f-final-product-certification`
 **Task:** 8.5 — record **exactly one** verdict.
 **Parent ledger:** `openspec/changes/076-product-wide-ui-ux-reboot/tasks.md`

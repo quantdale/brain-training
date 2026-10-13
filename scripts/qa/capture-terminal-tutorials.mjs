@@ -9,12 +9,12 @@
 //   * Emulator-local only: adb, no host mouse/keyboard (AGENTS.md host
 //     interaction prohibition).
 //   * Provenance preserved: every frame records the installed APK's SHA-256
-//     read from the device, the device serial, the theme actually applied, and
+//     read from the device, the device serial, the requested system theme, and
 //     the hierarchy that proves which surface was on screen.
 //
-// The before tutorials were all measured light-theme (scripts/qa/analyse-image-themes.mjs),
-// so light is captured to make the pair theme-matched. Dark is captured too, but
-// only light is pair-matched, because no dark-theme before tutorial exists.
+// Historical note: light/dark below are requested system modes. The old claim
+// that luminance proved historical light-theme tutorials is withdrawn. Neither
+// this request nor a filename proves observed app theme; uncertain pairs remain UNKNOWN.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';

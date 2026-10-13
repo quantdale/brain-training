@@ -142,10 +142,10 @@
   **Corrected 2026-10-13.** Parent **14.7** is checked from the 076-f side. Parent **14.3 remains open**,
   for the one reason this campaign cannot manufacture from existing evidence: it requires matched
   before/after matrices for compact/large layouts and reduced-motion, and no historical before profile
-  exists for either. Additionally every historical game board measured light while every accepted game row
-  measured dark, so no game board result frame is pairable at all. Both facts are measured from the pixels,
-  not assumed from filenames, and both are recorded as exact missing surfaces rather than filled with
-  after-only observations. No task was bulk-checked and no BLOCKED_EXTERNAL task is currently outstanding.
+  exists for either. **Evidence-integrity correction 2026-10-13:** the luminance-derived
+  all-light historical/all-dark current claim is withdrawn. Observed themes are UNKNOWN;
+  38 standalone result candidates are unverified, and 4 historical results depict a different
+  workout surface. No uncertain candidate counts as matched; verdict unchanged.
 - [x] 8.2 Run read-only review of provenance, accessibility and layout, build and security gates, and parent-task mapping. Repair repository-owned Critical or High findings before acceptance.
   **Terminal run (2026-10-12):** `evidence/REVIEW_TERMINAL.md`. Eight findings recorded — six producer errors found and **all repaired** (F3–F6 plus the device-hash gap F8), two classified non-defects with the reason recorded (F1, F2), and one carried cost with its cost stated (F7, defect D3). **No repository-owned Critical or High finding remains open.** The review re-derived every claim from the artifact that supports it rather than the producer's summary, and found real over-claiming in three places — which is the stated purpose of the task.
 - [x] 8.3 Update `.agent/CURRENT_CAMPAIGN.md`, `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `.agent/EXECUTION_PROMPT.md` so historical checkpoints remain historical and the active closure binding is this change.
@@ -182,7 +182,7 @@
   **Updated 2026-10-13.** Parent **14.7 is now closed**: the coverage manifest, visual decision report,
   three-direction scorecard and reference lock, matched-image index, artifact hashes and residual gaps are
   all published. The remaining blocker is the single repository-owned gate the parent ledger still names —
-  the **matched** terminal-APK before/after image set (**parent 14.3**). It stays open for the reason only
-  the owner-excluded baseline rebuild could close: matched compact/large and reduced-motion matrices have
-  no historical before profile, and no game board result frame is pairable because every historical board
-  measured light while every accepted row measured dark. Per the spec (*"Terminal verdict follows the weakest unmet gate"*), an open repository-owned gate keeps the verdict blocked, and "repository-complete with external blockers" requires **every** remaining gap to be external — these are not. iOS runtime is an additional external boundary (NOT VALIDATED without a macOS run). Recorded in full, with the changed reason stated, in `evidence/VERDICT.md`.
+  the **matched** before/after requirements (**parent 14.3**). Compact/large and reduced-motion
+  screenshot profiles lack historical baselines; observed-theme evidence is UNKNOWN.
+  **Evidence-integrity correction 2026-10-13:** earlier luminance labels and 62 confirmed
+  pairs are withdrawn; 0 matches are confirmed. Per the spec (*"Terminal verdict follows the weakest unmet gate"*), an open repository-owned gate keeps the verdict blocked, and "repository-complete with external blockers" requires **every** remaining gap to be external — these are not. iOS runtime is an additional external boundary (NOT VALIDATED without a macOS run). Recorded in full, with the changed reason stated, in `evidence/VERDICT.md`.

@@ -1,5 +1,26 @@
 # Durable Project State
-> **CORRECTION #8 — 2026-10-13 (current): the visual evidence gap is closed as far as
+> **CORRECTION #9 — 2026-10-13 (current): bounded evidence-integrity cleanup.**
+> Parent **14.3 OPEN**, **14.7 CHECKED**; original criteria and
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` unchanged.
+> Earlier luminance-derived light/dark labels and 62 theme-verified pairs are
+> withdrawn. No committed observed app-theme witness exists: all **508** frames
+> are **UNKNOWN**. Hash-linked capture requests remain separate metadata.
+> Coverage: **216 rows; 0 MATCHED, 100 THEME-UNKNOWN, 112 AFTER-ONLY,
+> 4 BEFORE-SURFACE-DIFFERS**. Unverified candidates never count as comparisons.
+> The 90-route verifier checks each original `pngSha256` and `pngBytes`.
+> Integrity passes: **382 indexed source PNGs + 84 existing tutorials = 466**;
+> the other 42 filed result hashes are computed, not checked against prior
+> per-PNG digests. Fixed the report placeholder and regenerated affected records.
+> No production edits, new captures, local/historical APK rebuilds, ARTEMIS calls,
+> new campaign, game sweep or journey certification; APK identities unchanged.
+> Focused tests **27/27 PASS**; theme/ledger validators PASS. Final cleanup CI is
+> checked after the last push; exact-SHA run links stay in the final response to
+> avoid a recursive pointer commit. Prior CI records remain historical.
+> Before a limited Android beta the owner must authorize resolving 14.3 evidence
+> debt or explicitly accept it for that beta; no acceptance is inferred.
+> Details: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/VISUAL_DECISION.md`.
+>
+> **CORRECTION #8 — 2026-10-13 (historical; theme claims withdrawn by correction #9): the visual evidence gap is closed as far as
 > existing evidence honestly allows. Parent 14.7 is CHECKED; parent 14.3 stays OPEN,
 > now on one named condition only. Verdict unchanged:
 > `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.**
@@ -32,7 +53,7 @@
 > light-theme terminal capture of game results, which requires completed
 > gameplay. That is stated rather than worked around.
 >
-> **CORRECTION #7 — 2026-10-13 (current): D3 REPAIRED; the sole 076-f blocker is
+> **CORRECTION #7 — 2026-10-13 (historical): D3 REPAIRED; the sole 076-f blocker is
 > closed; verdict still `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, now on the
 > repository-owned matched-image gap (parent 14.3/14.7), not on D3.**
 > Correction #6 below is historical as a "blocked on 4.1" claim.

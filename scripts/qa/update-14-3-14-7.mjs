@@ -1,128 +1,71 @@
-// Rewrite the disposition of parent tasks 14.3 and 14.7 against the actual
-// measured coverage matrix.
-//
-// 14.7 is checked: every element it names is now published.
-// 14.3 stays open: the conditions needing a matched comparison that has no
-// historical before profile are named exactly, and the criteria are not rewritten.
+// Refresh evidence commentary only. Preserve both original task requirements
+// and their existing dispositions: 14.3 OPEN, 14.7 CHECKED.
 import fs from 'node:fs';
-import path from 'node:path';
-
-const PARENT = 'openspec/changes/076-product-wide-ui-ux-reboot/tasks.md';
-const CM = JSON.parse(fs.readFileSync('openspec/changes/076-product-wide-ui-ux-reboot/evidence/coverage-matrix.json', 'utf8'));
-const NL = String.fromCharCode(10);
+import { EV } from './theme-evidence.mjs';
+const file = 'openspec/changes/076-product-wide-ui-ux-reboot/tasks.md';
+const cm = JSON.parse(fs.readFileSync(EV + '/coverage-matrix.json', 'utf8'));
+const gl = JSON.parse(fs.readFileSync(EV + '/matched-gallery.json', 'utf8'));
+const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
 const BT = String.fromCharCode(96);
-const code = (s) => BT + s + BT;
-
-const rows = CM.rows;
-const missingFor = (p, t) => rows.filter((r) => r.kind === 'route' && r.profile === p && r.theme === t && r.status !== 'MATCHED').map((r) => r.surface);
-const compactMissing = rows.filter((r) => r.kind === 'route' && r.profile === 'compact' && r.status !== 'MATCHED').map((r) => `${r.theme}/${r.surface}`);
-const themeMismatch = rows.filter((r) => r.status === 'THEME-MISMATCHED').map((r) => r.surface);
-const surfaceDiffers = rows.filter((r) => r.status === 'BEFORE-SURFACE-DIFFERS').map((r) => r.surface);
-const matched = rows.filter((r) => r.status === 'MATCHED');
-
-const lines = fs.readFileSync(PARENT, 'utf8').split(NL);
-
-function replaceTask(id, newBlock) {
-  const i = lines.findIndex((l) => l.startsWith(`- [ ] ${id} `) || l.startsWith(`- [x] ${id} `));
-  if (i < 0) throw new Error(`task ${id} not found`);
-  // Consume the indented continuation lines belonging to this task.
-  let j = i + 1;
-  while (j < lines.length && (lines[j] === '' || /^ {2}\S/.test(lines[j]))) j++;
-  lines.splice(i + 1, j - i - 1, newBlock);
-  return i;
+const c = (value) => BT + value + BT;
+function replaceComment(id, checked, block) {
+  const index = lines.findIndex((line) => line.startsWith('- [' + (checked ? 'x' : ' ') + '] ' + id + ' '));
+  if (index < 0) throw new Error('unexpected disposition for task ' + id);
+  let end = index + 1;
+  // Older generated commentary contains an accidentally unindented count line.
+  // A task owns its whole block through the next task/section, not indentation.
+  while (end < lines.length && !/^(?:- \[[ x]\] |## )/.test(lines[end])) end++;
+  lines.splice(index + 1, end - index - 1, ...block.map((line) => line ? '  ' + line : ''), '');
 }
-
-// --- 14.3: stays unchecked, gaps named exactly ------------------------------
-const r143 = [
-  '  **Still OPEN, with the exact missing pairs now named instead of approximated.**',
-  '  The measured coverage matrix is ' + code('evidence/coverage-matrix.json') + ' (216 rows);',
-  '  full reasoning in ' + code('evidence/VISUAL_DECISION.md') + '.',
+const count = (status) => cm.rows.filter((row) => row.status === status).length;
+replaceComment('14.3', false, [
+  '**Still OPEN — evidence-integrity correction 2026-10-13. Original criteria unchanged.**',
+  'The earlier 62 theme-verified pairs and 38 theme-mismatched results were based on',
+  'mean luminance; those classifications are withdrawn. No committed hash-linked',
+  'observed app-theme witness exists in these inventories. Requested capture modes',
+  'and directory names are not observed theme; uncertain frames are UNKNOWN.',
   '',
-  '  **What now exists as a genuine matched comparison (theme-verified from measured mean',
-  '  luminance, not from a path): ' + matched.length + ' pairs** — 20 route pairs',
-  '  (8 routes x default light/dark, plus 4 routes x 2x-text light) and 42 game',
-  '  tutorial pairs, the latter collected as static frames on the repaired terminal APK',
-  '  ' + code('c8c3d46c…') + ' with zero ARTEMIS calls. 466 source images were verified by',
-  '  SHA-256 and APK identity before any pair was formed; none was missing or rehashed.',
+  'The refreshed ' + c('evidence/coverage-matrix.json') + ' has ' + cm.totals.rows + ' rows:',
+  count('MATCHED') + ' MATCHED, ' + count('THEME-UNKNOWN') + ' THEME-UNKNOWN, ' +
+    count('AFTER-ONLY') + ' AFTER-ONLY, ' + count('BEFORE-SURFACE-DIFFERS') + ' BEFORE-SURFACE-DIFFERS.',
+  'The ' + gl.summary.routeThemeUnknown + ' route, ' + gl.summary.tutorialThemeUnknown + ' tutorial and ' + gl.summary.gameResultThemeUnknown +
+    ' standalone-result candidates retain their hashes/identities but cannot count as comparisons.',
+  'Four games have only a different workout-leg before surface; no equivalence is fabricated.',
   '',
-  '  **Why it still cannot be checked.** The task requires matched matrices for four',
-  '  conditions, and only two of them have a historical before profile at all:',
+  '| Condition | Confirmed matches | Remaining evidence |',
+  '| --- | --- | --- |',
+  '| default light/dark | 0 | 16 route candidates with UNKNOWN themes; 14 after-only slots |',
+  '| dark/light 2x text | 0 | 4 route candidates with UNKNOWN themes; 26 after-only slots |',
+  '| compact/large | 0 | 30 after-only route slots; no historical before profile |',
+  '| reduced-motion | 0 | no before/after screenshot profile; existing measurement only |',
   '',
-  '  | 14.3 condition | Matched before profile | Matched pairs | Exact missing surfaces |',
-  '  | --- | --- | --- | --- |',
-  '  | default light/dark | yes | 20 route pairs | ' + missingFor('default', 'light').length + ' light + ' + missingFor('default', 'dark').length + ' dark surfaces after-only |',
-  '  | 2x text | yes, light only | 4 route pairs (light) | ' + missingFor('fs2', 'light').length + ' light + ' + missingFor('fs2', 'dark').length + ' dark surfaces after-only |',
-  '  | compact/large | **no** | 0 | all ' + compactMissing.length + ' surfaces after-only |',
-  '  | reduced-motion | **no** | 0 | no before profile **and no images on either side** |',
+  '466 PNGs (272 historical states, 20 historical routes, 90 matrix routes and',
+  '84 existing tutorials) were checked against their original recorded hashes/bytes.',
+  'The theme inventory additionally includes 42 filed result rows with computed',
+  'hashes, not claimed prior-digest verification: 508 frames, observed themes UNKNOWN.',
+  'Hash integrity does not establish state, theme or acceptance. Existing after-only',
+  'accessibility measurements remain historical and were not recertified.',
   '',
-  '  The compact and reduced-motion before profiles do not exist and cannot be created',
-  '  without rebuilding the pre-redesign baseline ' + code('d631ab9a…') + ' from source ' + code('d3d0b99'),
-  '  (owner-excluded) or rerunning a historical capture campaign that no longer exists.',
-  '  Reduced-motion additionally has no screenshots at all on either side — it exists only',
-  '  as a measurement (30 surfaces, 0 violations).',
-  '',
-  '  **The measured second half of this task is satisfied and is an after-only PASS that is',
-  '  never presented as a matched comparison:** 90 surfaces / 380 interactive controls /',
-  '  380 labelled / 0 undersized / 0 unlabelled / 0 violations across default, compact and',
-  '  2x, light and dark, with 32 occluded nodes excluded from the pass count rather than',
-  '  passed.',
-  '',
-  '  **Representative gameplay.** No game board result frame can be paired, and the reason',
-  '  is measured rather than guessed: every historical board is light and every accepted',
-  '  game row is dark. ' + themeMismatch.length + ' games are theme-mismatched and',
-  '  ' + surfaceDiffers.length + ' more have no standalone before result — their only historical frame is a',
-  '  workout-leg result, a different surface. Closing this needs the excluded baseline',
-  '  rebuild or a light-theme terminal capture that requires completed gameplay.',
-  '',
-  '  Checking this task on the measurement evidence alone would over-claim, so it stays',
-  '  open. The criteria were not rewritten to fit the available evidence.',
-].join(NL);
-
-// --- 14.7: checked ----------------------------------------------------------
-const r147 = [
-  '  **Checked 2026-10-13 with linked evidence.** Every element this task names is now',
-  '  published:',
-  '',
-  '  - **Per-game/route status:** ' + code('evidence/coverage-matrix.json') + ' — 216 rows, one per',
-  '    surface, each classified MATCHED (' + matched.length + '), AFTER-ONLY (' + rows.filter((r) => r.status === 'AFTER-ONLY').length + '), THEME-MISMATCHED (',
-  themeMismatch.length + ') or BEFORE-SURFACE-DIFFERS (' + surfaceDiffers.length + '), with both APK',
-  '    identities per row. The per-game review ledger remains ' + code('assessment.json') + ' PASS 42.',
-  '  - **Visual decision report:** ' + code('evidence/VISUAL_DECISION.md') + ', which states the',
-  '    decision, the verification performed before pairing, the matched pairs, the',
-  '    after-only observations and the residual gaps.',
-  '  - **Matched images:** ' + code('evidence/matched-gallery.json') + ' and',
-  '    ' + code('evidence/matched-image-index.md') + ' — ' + matched.length + ' indexable pairs, each theme-verified.',
-  '  - **3-direction scorecard:** ' + code('evidence/proto-scorecard.md') + ' (A 8.45, B 8.63,',
-  '    C 7.63; Training Studio selected; 66 hashed device captures in ' + code('proto-captures/') + ').',
-  '  - **Reference lock:** ' + code('evidence/REFERENCE_LOCK.md') + '.',
-  '  - **APK SHA:** three identities preserved and never relabelled — before',
-  '    ' + code('d631ab9a…') + ', post-redesign matrix ' + code('de6c5fcd…') + ', terminal ' + code('c8c3d46c…'),
-  '    (the last read from the installed ' + code('base.apk') + ' on the device, not assumed).',
-  '  - **Residual debt / explicit gaps:** named in ' + code('VISUAL_DECISION.md') + ' §6 as the',
-  '    exact missing surfaces, plus 076-f ' + code('DEFECTS_CURRENT.md') + ' and ' + code('VERDICT.md') + '.',
-  '',
-  '  **No game is missing a status.** All 42 have a row, a review and a terminal-APK frame;',
-  '  ' + matched.length + ' additionally have a matched before frame. No completeness is claimed where',
-  '  it does not exist: the report states plainly that the game-result frames are not',
-  '  pairable and why. The scorecard and reference lock are linked as the decision',
-  '  records they are, dated before the terminal APK, rather than restated as',
-  '  current-APK evidence.',
-].join(NL);
-
-replaceTask('14.3', r143);
-replaceTask('14.7', r147);
-
-// 14.7's own acceptance criteria are every one of the elements above, and each is
-// now published, so the box is checked. 14.3 is deliberately NOT checked: its
-// criteria require matched matrices for compact and reduced-motion, which have no
-// historical before profile, and the criteria are not rewritten to fit.
-const i147 = lines.findIndex((l) => l.startsWith('- [ ] 14.7 '));
-if (i147 >= 0) lines[i147] = '- [x] ' + lines[i147].slice(6);
-else if (!lines.some((l) => l.startsWith('- [x] 14.7 '))) throw new Error('14.7 line not found');
-
-fs.writeFileSync(PARENT, lines.join(NL));
-const checked = lines.filter((l) => l.startsWith('- [x] ')).length;
-const unchecked = lines.filter((l) => l.startsWith('- [ ] ')).length;
-console.log(`parent ledger: ${checked} checked / ${unchecked} unchecked`);
-console.log('14.3 line:', lines.find((l) => l.startsWith('- [') && l.includes(' 14.3 ')).slice(0, 60));
-console.log('14.7 line:', lines.find((l) => l.startsWith('- [') && l.includes(' 14.7 ')).slice(0, 60));
+  'Full detail and exact slots: ' + c('evidence/VISUAL_DECISION.md') + '.',
+  'Before a limited Android beta the owner must authorize resolving this evidence',
+  'debt or explicitly accept it for that beta. No waiver or release-verdict change',
+  'is inferred. No production edits, local/historical APK rebuild, new captures,',
+  'ARTEMIS calls, 42-game sweep or nine-journey certification occurred in this cleanup.',
+]);
+replaceComment('14.7', true, [
+  '**Remains checked — publication corrected 2026-10-13 without claiming acceptance.**',
+  'Coverage status: ' + c('evidence/coverage-matrix.json') + ' (' + cm.totals.rows + ' rows); visual report:',
+  c('evidence/VISUAL_DECISION.md') + '; image references: ' + c('evidence/matched-gallery.json') +
+    ' and ' + c('evidence/matched-image-index.md') + '.',
+  'The old 62-pair claim is withdrawn; the matched index now has 0 confirmed pairs.',
+  'Unknown candidates, after-only slots and different before surfaces remain explicit.',
+  'All 42 games retain a result status and filed review; no missing comparison is fabricated.',
+  'The three-direction decision record remains ' + c('evidence/proto-scorecard.md') +
+    ' (A 8.45, B 8.63, C 7.63), with ' + c('evidence/REFERENCE_LOCK.md') + '.',
+  'Historical baseline, route matrix, repaired-terminal tutorial and per-game APK',
+  'identities remain separate and unchanged. Residual debt: report, 076-f',
+  c('evidence/DEFECTS_CURRENT.md') + ' and ' + c('evidence/VERDICT.md') + '.',
+  'Publication does not close 14.3; verdict remains ' + c('CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED') + '.',
+]);
+fs.writeFileSync(file, lines.join('\n'));
+console.log('Updated commentary; parent 14.3 OPEN / 14.7 CHECKED; criteria preserved');

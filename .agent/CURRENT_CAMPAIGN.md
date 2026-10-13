@@ -115,6 +115,10 @@
 **Change:** `openspec/changes/076-product-wide-ui-ux-reboot` (ACTIVE)
 **Authorization:** owner goal directive — perform openspec apply on `openspec/changes/076-product-wide-ui-ux-reboot/` until every task in its `tasks.md` is complete or an honestly BLOCKED condition is durably recorded. Execution prompt: `.agent/EXECUTION_PROMPT.md`.
 
+> **Current evidence correction (2026-10-13):** parent 14.7 checked; 14.3
+> OPEN. Luminance-derived theme/pair claims below are historical and withdrawn;
+> the current report has zero confirmed matches. Release verdict unchanged.
+
 ## Mission
 
 Replace the oversized, repeated-panel product experience with one coherent,
@@ -240,7 +244,19 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
-- 2026-10-13 (visual evidence closure): verified 466 source images by SHA-256 and
+- 2026-10-13 (bounded evidence-integrity cleanup): existing evidence only, no
+  new campaign. Luminance is diagnostic; all 508 frames have UNKNOWN observed
+  theme. Requested capture modes stay separate. Former 62 confirmed pairs and
+  38 mismatches withdrawn. Coverage: 216 rows, 0 MATCHED / 100 THEME-UNKNOWN /
+  112 AFTER-ONLY / 4 BEFORE-SURFACE-DIFFERS. The 90-route verifier checks original
+  pngSha256/pngBytes; 382 indexed source PNGs + 84 existing tutorials pass.
+  Report placeholder fixed; source PNGs/APK identities preserved. Parent 14.3
+  OPEN, 14.7 checked, criteria/verdict unchanged. No production edits,
+  local/historical APK rebuild, capture, ARTEMIS or recertification. Owner allows
+  existing push-triggered Android CI; final-SHA CI is checked after the last push
+  without another documentation pointer commit.
+
+- 2026-10-13 (visual evidence closure; theme/pair claims superseded by cleanup above): verified 466 source images by SHA-256 and
   APK identity, then measured every image's theme from mean relative luminance
   rather than trusting the filename. That measurement is what reframed the whole
   task: every historical game board and tutorial is light, every accepted game row

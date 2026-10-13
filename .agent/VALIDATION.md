@@ -1,6 +1,46 @@
 # Durable Validation Record
 
-## 076-f — D3 REPAIRED; terminal-closure reconciliation (2026-10-13, current)
+## 076 bounded evidence-integrity cleanup — 2026-10-13 (current)
+
+Existing evidence tooling/manifests/reports and durable commentary only.
+Parent **14.3 OPEN**, **14.7 CHECKED** (81/1 parent; 42/0 certification ledger).
+Original criteria and `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` unchanged.
+
+- Source hash verifier: **PASS 272 + 20 + 90 = 382 PNGs**; each matrix PNG
+  checked against original `pngSha256`/`pngBytes`. No replacement digest.
+- Existing tutorials: **PASS 84 original PNG hashes/bytes**, intro hierarchy
+  controls, dimensions/non-uniformity. Observed theme **NOT VALIDATED**.
+- Theme/coverage validator: **PASS record integrity**, 508 PNGs / 216 rows.
+  All observed themes **UNKNOWN**; capture requests separate, luminance diagnostic.
+  **0 confirmed matches**, 100 uncertain candidates, 112 after-only slots,
+  4 historical surface differences. Missing comparisons remain **NOT VALIDATED**.
+- Focused Node tests: **27/27 PASS**, including changed valid PNGs of identical
+  byte length, missing/malformed hashes, and UNKNOWN-never-matches behavior.
+- Ledger consistency **PASS**; parent criteria/dispositions preserved.
+- Repository gates **PASS**: repo-state, task ownership, registry generation,
+  provenance, offline boundary, offline runtime-QA contract, workflow hygiene,
+  affected-area map sync, Expo alignment and production dependency audit.
+- App typecheck **PASS**, lint **PASS** at `--max-warnings=0`, web export **PASS**
+  (22 static routes); pinned OpenSpec `@1.9.0` strict **61/61 PASS**.
+- Clean-checkout validator **self-test only PASS (14 checks)**; the full composite
+  was not repeated or claimed. Historical CI-record guard **PASS** for its
+  own recorded SHAs; it is not final-cleanup-SHA verification.
+- Scope/preservation check **PASS**: both ledgers' original requirement lines
+  and checkbox states unchanged; original source manifests, tutorial capture
+  facts and hashes unchanged; no production/PNG/XML/workflow edits.
+- Tracked-file secret boundary **PASS** (3,561 tracked text files scanned).
+
+No production edits, local/historical APK rebuild, device capture, ARTEMIS call,
+new campaign or repeated game/journey certification. Owner permits the existing
+push-triggered Android CI build. Final pushed-SHA workflows are checked in-session
+after the last push, with links in the final response under the recorded
+no-recursive-pointer policy. Prior run IDs remain historical.
+
+Earlier claims of 62 theme-verified pairs and all-light historical/all-dark current
+rows are withdrawn. Remaining beta decision: owner authorization to resolve 14.3
+evidence requirements or explicit acceptance of that debt for a limited Android beta.
+
+## 076-f — D3 REPAIRED; terminal-closure reconciliation (2026-10-13, historical)
 
 The referenced opencode session executed the D3 disabled-`Button` repair (commits
 `d5787ec` / `0483539` / `e1a60e6`) but stopped before the control-document
@@ -6580,7 +6620,7 @@ contrast between the control's fill and its label glyphs.
   secret-scan and workflow-hygiene validators PASS; runtime-QA contract PASS;
   `validate-repo-state.mjs` PASS.
 
-## 076 visual evidence closure — 2026-10-13
+## 076 visual evidence closure — 2026-10-13 (historical; theme/pair claims withdrawn by cleanup)
 
 Measured, not assumed. 466 source images were verified by SHA-256 and APK
 identity before any pair was formed; none was missing and none was rehashed.

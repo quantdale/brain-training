@@ -1,6 +1,6 @@
 # Known Issues / Blockers
 
-## 076-f — device blocker RESOLVED; D3 REPAIRED; two open repository-owned debts (2026-10-13, current)
+## 076-f — device blocker RESOLVED; D3 REPAIRED; one open visual-evidence gate (2026-10-13, current)
 
 **`BLOCKED_HOST_ANDROID_EMULATOR` is closed.** The historical record further below
 is kept as history and must not be read as current. The host was never rebooted and
@@ -43,18 +43,25 @@ release APK and by the change spec invalidates every device row captured on
 (`c8c3d46c…`) and the 2 affected rows re-observed. Detail:
 `openspec/changes/076-f-final-product-certification/evidence/DEFECTS_CURRENT.md`.
 
-### Still open: matched before/after images (parent 14.3, 14.7)
+### Still open: matched before/after evidence (parent 14.3)
 
-The reviewed 90/90 route matrix is preserved for `de6c5fcd…` with
-`currentApplicability: false` and is not terminal-APK proof. A matched
-terminal-APK before/after image set, and a 3-direction scorecard / reference lock
-as a 076 artifact, have not been produced.
+Parent 14.7 checked for report/coverage/reference publication; 14.3 remains OPEN
+with unchanged criteria. Luminance-derived themes and 62 confirmed pairs withdrawn:
+508 frames have UNKNOWN observed theme; capture requests are not app-theme proof.
+Coverage: 0 matches / 100 uncertain candidates / 112 after-only slots / 4 differing
+historical surfaces. The 90-route PNGs pass original-digest checks. Exact gaps:
+`openspec/changes/076-product-wide-ui-ux-reboot/evidence/VISUAL_DECISION.md`.
 
-### Still open: ending-SHA CI (task 8.4)
+Route matrix `de6c5fcd…` remains historical. Before a limited Android beta the
+owner must authorize resolving 14.3 or explicitly accept its documented evidence
+debt. Verdict remains `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`; no waiver inferred.
 
-App CI, Repository Integrity, Android Build Smoke and iOS Build Smoke must be
-recorded as passing at the exact ending SHA. Until they are, the workflow claims
-in this repository describe earlier SHAs.
+### Final cleanup SHA CI
+
+Prior IDs remain historical. Verify App CI, Repository Integrity, Android Build
+Smoke and iOS Build Smoke at the final pushed SHA in-session, with actual links
+in the final response; do not create a recursive pointer commit. Local/historical
+APK rebuilds remain excluded; existing push-triggered Android CI is owner-authorized.
 
 ---
 
