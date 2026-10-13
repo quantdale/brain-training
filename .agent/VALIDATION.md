@@ -31,10 +31,27 @@ Original criteria and `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` unchanged.
 - Tracked-file secret boundary **PASS** (3,561 tracked text files scanned).
 
 No production edits, local/historical APK rebuild, device capture, ARTEMIS call,
-new campaign or repeated game/journey certification. Owner permits the existing
-push-triggered Android CI build. Final pushed-SHA workflows are checked in-session
-after the last push, with links in the final response under the recorded
-no-recursive-pointer policy. Prior run IDs remain historical.
+new campaign or repeated game/journey certification.
+
+Final-SHA CI measured this session directly from the workflow list (2026-10-13):
+
+- `c61824d9` (parent-14.7 closure commit): **4/4 green** — Repository Integrity
+  `38321249417`, App CI `38321249426`, Android Build Smoke `38321249420`,
+  iOS Build Smoke `38321249446`.
+- `feadbb0f` (this cleanup, the published tree): **4/4 green** — Repository
+  Integrity `38344660130`, App CI `38344660150`, Android Build Smoke
+  `38344660153`, iOS Build Smoke `38344660188`.
+- **Disclosed defect at `feadbb0f`:** the *first* iOS Build Smoke attempt
+  (`38344660188`) failed on an **external** defect, not a repository one —
+  `curl: (56) Recv failure: Operation timed out` downloading
+  `reactnative-dependencies-0.86.3-debug.tar.gz` from `repo1.maven.org` during
+  CocoaPods install, with Typecheck and iOS native-project generation already
+  green. The commit touches no app source, Podfile or workflow. The re-run of
+  the same run ID passed. Recorded as EXTERNAL/transient, not PASS-by-
+  assumption.
+
+Prior campaign CI records remain historical; `verify-ci-record.mjs` verifies
+its own recorded SHAs and is not final-cleanup-SHA verification.
 
 Earlier claims of 62 theme-verified pairs and all-light historical/all-dark current
 rows are withdrawn. Remaining beta decision: owner authorization to resolve 14.3

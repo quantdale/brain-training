@@ -13,9 +13,14 @@
 > per-PNG digests. Fixed the report placeholder and regenerated affected records.
 > No production edits, new captures, local/historical APK rebuilds, ARTEMIS calls,
 > new campaign, game sweep or journey certification; APK identities unchanged.
-> Focused tests **27/27 PASS**; theme/ledger validators PASS. Final cleanup CI is
-> checked after the last push; exact-SHA run links stay in the final response to
-> avoid a recursive pointer commit. Prior CI records remain historical.
+> Focused tests **27/27 PASS**; theme/ledger validators PASS. Final cleanup CI
+> measured this session from the workflow list: `c61824d9` **4/4 green**
+> (38321249417, 38321249426, 38321249420, 38321249446) and `feadbb0f` **4/4
+> green** (38344660130, 38344660150, 38344660153, 38344660188), with the first
+> iOS attempt at `feadbb0f` failing on an external `repo1.maven.org` download
+> timeout and its re-run green — disclosed in `.agent/VALIDATION.md`. Run IDs
+> stay in that record to avoid a recursive pointer commit. Prior CI records
+> remain historical.
 > Before a limited Android beta the owner must authorize resolving 14.3 evidence
 > debt or explicitly accept it for that beta; no acceptance is inferred.
 > Details: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/VISUAL_DECISION.md`.

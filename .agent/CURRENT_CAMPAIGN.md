@@ -244,6 +244,19 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- 2026-10-13 (bounded evidence-integrity cleanup — final verification): existing evidence only, no
+  new campaign. Re-verified at the published tree this session: focused Node
+  tests 27/27; source-hash verifier 272+20+90 = 382 PNGs against original
+  pngSha256/pngBytes; 84 tutorial PNG hashes; theme/coverage validator 508
+  PNGs / 216 rows / 0 confirmed pairs; ledger consistency; repo-state,
+  registry, provenance, offline, runtime-QA contract, workflow, affected-sync,
+  Expo-alignment and dependency-audit gates; typecheck, lint (--max-warnings=0),
+  web export and strict OpenSpec 61/61. Final-SHA CI from the workflow list:
+  `c61824d9` 4/4 green and `feadbb0f` 4/4 green, with the first iOS attempt at
+  `feadbb0f` failing on an external Maven download timeout (re-run green),
+  disclosed in `.agent/VALIDATION.md`. Parent 14.3 OPEN, 14.7 checked, criteria
+  and verdict unchanged.
+
 - 2026-10-13 (bounded evidence-integrity cleanup): existing evidence only, no
   new campaign. Luminance is diagnostic; all 508 frames have UNKNOWN observed
   theme. Requested capture modes stay separate. Former 62 confirmed pairs and
