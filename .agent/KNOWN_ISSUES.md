@@ -1,6 +1,25 @@
 # Known Issues / Blockers
 
-## 076-f — device blocker RESOLVED; D3 REPAIRED; one open visual-evidence gate (2026-10-13, current)
+## Emulator finalization + live demo — 2026-10-13 (current)
+
+Final stabilization pass from the unchanged terminal identity `c8c3d46c…`
+(`3f5a8ec2`, no app source change, **no APK rebuild**). The dedicated AVD
+`braintraining-ui35` was launched **with a visible GUI window** on
+`emulator-5570` (Android 15, `-gpu host`); a full emulator-local runtime pass
+found **no new Critical/High/Medium defect**. The one accepted visual residual
+(Home CTA below the first fold at font-scale 2.0) was re-observed reachable via
+scroll — unchanged LOW debt.
+
+Device status: `ANDROID_EMULATOR: VALIDATED` (measured this pass);
+`PHYSICAL_ANDROID: NOT VALIDATED`; `IOS_RUNTIME: NOT VALIDATED`;
+`PLAY_STORE_SIGNING: NOT READY`. Verdict stays
+`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` with parent **14.3 OPEN**. This pass
+establishes **internal-demo readiness only** and does not waive the
+physical-device gate for external distribution. Full evidence:
+`openspec/changes/076-f-final-product-certification/evidence/EMULATOR_DEMO_FINALIZATION.md`.
+No ARTEMIS call, game sweep, journey re-run, or APK rebuild was performed.
+
+## 076-f — device blocker RESOLVED; D3 REPAIRED; one open visual-evidence gate (2026-10-13, previous)
 
 **`BLOCKED_HOST_ANDROID_EMULATOR` is closed.** The historical record further below
 is kept as history and must not be read as current. The host was never rebooted and

@@ -1,5 +1,45 @@
 # Durable Validation Record
 
+## Emulator finalization + live demo — 2026-10-13 (current)
+
+Final stabilization pass. **No application source changed, so no APK rebuild**;
+the terminal artifact and all historical certification identities are preserved.
+Starting **and** ending SHA `3f5a8ec2` (`main` == `origin/main`, clean, single
+worktree). Full record:
+`openspec/changes/076-f-final-product-certification/evidence/EMULATOR_DEMO_FINALIZATION.md`.
+
+- **Artifact (unchanged):** `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+  (48,888,528 B), `com.braintraining.app` 0.1.0/1000, x86_64, **debug-signed**
+  (`CN=Android Debug`, APK Signature Scheme v2). Installed device `base.apk`
+  byte-identical. The only post-`d5787ec` change under `apps/mobile` is a test
+  file, which does not affect the artifact.
+- **Visible GUI emulator:** AVD `braintraining-ui35` on `emulator-5570`,
+  Android 15 / API 35, `-gpu host`. `sys.boot_completed=1`; window visible and
+  not minimized; screencap + uiautomator both work. (Prior campaign was headless.)
+- **Runtime (emulator-local, no ARTEMIS):** representative gameplay in 4 domains
+  (Attention/Flexibility/Math/Language) with real rounds, feedback and scoring;
+  completed standalone session (333, +18 XP/+3 coins, persisted); full 4-leg
+  workout → "Workout complete — 4/4 games complete" → Home "4/4 games saved";
+  **workout persisted across a mid-workout force-stop** (1/4 retained → Progress
+  2 sessions → Profile Level 2); offline launch + use (network none); invalid
+  deep link → "Game not found" → "Back to library"; dark theme; font-scale-2
+  reflow (Home CTA reachable via scroll — accepted LOW debt); reduced motion;
+  background/foreground. Cold launches 2240/3361/2072/1420 ms; ~180 MB PSS.
+  **0** FATAL/app-ANR/SQLite/RedBox in **82,971** logcat lines.
+- **Repository gates:** typecheck PASS; `expo lint --max-warnings=0` PASS; full
+  Jest **623 suites / 7,248 tests / 5 snapshots** (exit 0); strict OpenSpec
+  `@1.9.0` **61/61**; dependency audit PASS (10 accepted, 0 unallowlisted);
+  repo-state / task-ownership / registry / provenance / offline / secrets /
+  workflows / affected-sync / runtime-QA / Expo-alignment all PASS; APK
+  permissions **8/8 exact match**.
+- **Clean-checkout composite:** **PASS — 20/20** from a disposable worktree
+  (`D:/bt-clean-cert`, no skip flags; npm ci through tracked-mutation-after-run),
+  worktree removed after.
+- **Boundaries unchanged:** `PHYSICAL_ANDROID: NOT VALIDATED`,
+  `IOS_RUNTIME: NOT VALIDATED`, `PLAY_STORE_SIGNING: NOT READY`. Verdict stays
+  `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` (parent **14.3 OPEN**). This emulator
+  pass establishes **internal-demo readiness only**.
+
 ## Android limited-beta readiness — owner-authorized 14.3 debt exception (2026-10-13, current)
 
 Owner authorized carrying parent **14.3**'s documented visual-comparison evidence

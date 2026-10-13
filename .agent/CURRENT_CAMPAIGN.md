@@ -244,6 +244,23 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- 2026-10-13 (emulator finalization + owner-visible live demo): final
+  stabilization pass from the unchanged terminal identity (`3f5a8ec2` start and
+  end; no application source change, **no APK rebuild**). Launched the dedicated
+  AVD `braintraining-ui35` **with a visible GUI window** on `emulator-5570`
+  (Android 15, `-gpu host`) after clearing a confirmed-stale AVD lock; verified
+  the window is visible and not minimized. Installed artifact re-confirmed
+  byte-identical to `c8c3d46c…`. Runtime: representative gameplay across 4
+  domains, completed standalone session, full 4-leg workout → "Workout complete"
+  / Home "4/4 games saved", workout persistence across a mid-workout force-stop,
+  offline launch, invalid-route recovery, dark theme, font-scale-2 reflow,
+  reduced motion, background/foreground; 0 fatal/ANR/SQLite/RedBox in 82,971
+  logcat lines. Repo gates: typecheck, lint, Jest **623/7,248/5**, strict
+  OpenSpec **61/61**, dependency audit PASS, APK permissions 8/8,
+  clean-checkout composite **20/20** from a disposable worktree (removed).
+  No ARTEMIS call, no game/journey re-run. Parent 14.3 OPEN; verdict unchanged.
+  Evidence: `openspec/changes/076-f-final-product-certification/evidence/EMULATOR_DEMO_FINALIZATION.md`.
+
 - 2026-10-13 (Android limited-beta readiness): owner authorized carrying parent
   14.3's visual-comparison evidence debt into a limited private Android beta
   (14.3 stays OPEN; verdict unchanged). Assessed signing/versioning

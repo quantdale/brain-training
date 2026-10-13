@@ -1,5 +1,38 @@
 # Durable Project State
-> **CORRECTION #10 — 2026-10-13 (current): Android limited-beta readiness — owner-authorized 14.3 debt exception.**
+> **CORRECTION #11 — 2026-10-13 (current): emulator finalization + owner-visible live demo.**
+> Final stabilization pass executed from the unchanged terminal identity:
+> starting **and** ending SHA `3f5a8ec2` (`main` == `origin/main`, clean, single
+> worktree). **No application source changed, so the terminal APK was NOT
+> rebuilt** — `c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6`
+> (48,888,528 B, `com.braintraining.app` 0.1.0/1000, x86_64, **debug-signed**)
+> remains the artifact, and its installed device `base.apk` hashes identically.
+>
+> The dedicated AVD `braintraining-ui35` was launched **with a visible GUI
+> window** on `emulator-5570` (Android 15/API 35, `-gpu host`) — the previous
+> campaign ran headless. Boot `sys.boot_completed=1`; screencap + uiautomator
+> work; the window is not minimized. Device runtime checks: representative
+> gameplay across 4 domains, a completed standalone session (333 score,
+> +18 XP/+3 coins, persisted), a full 4-leg workout ending "Workout complete —
+> 4/4 games complete" and Home "4/4 games saved", **workout persistence across a
+> mid-workout force-stop** (1/4 retained → Progress 2 sessions → Profile Level 2),
+> offline launch + use, invalid-route recovery, dark theme, font-scale-2 reflow,
+> reduced motion, background/foreground — **0** FATAL/app-ANR/SQLite/RedBox in
+> **82,971** logcat lines. Repository gates re-measured: typecheck, lint
+> (`--max-warnings=0`), full Jest **623 suites / 7,248 tests / 5 snapshots**,
+> strict OpenSpec **61/61**, dependency audit PASS (10 accepted, 0 unallowlisted),
+> APK permissions **8/8 exact**, and the **clean-checkout composite 20/20 PASS**
+> from a disposable worktree (removed after).
+>
+> **No ARTEMIS call, no 42-game sweep re-run, no nine-journey re-run, no APK
+> rebuild, no new campaign.** Parent **14.3 stays OPEN**; the verdict stays
+> `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` for formal release. Device status:
+> `ANDROID_EMULATOR: VALIDATED` (measured), `PHYSICAL_ANDROID: NOT VALIDATED`,
+> `IOS_RUNTIME: NOT VALIDATED`, `PLAY_STORE_SIGNING: NOT READY`. The emulator
+> demo establishes **internal-demo readiness only**; it does not waive the
+> physical-device gate for external beta distribution. Evidence:
+> `openspec/changes/076-f-final-product-certification/evidence/EMULATOR_DEMO_FINALIZATION.md`.
+>
+> **CORRECTION #10 — 2026-10-13 (historical): Android limited-beta readiness — owner-authorized 14.3 debt exception.**
 > The owner authorized carrying parent **14.3**'s documented visual-comparison
 > evidence debt into a **limited, private Android beta evaluation**. This is a
 > beta-specific exception, not proof the missing evidence exists: **14.3 stays
