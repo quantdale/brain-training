@@ -1,5 +1,27 @@
 # Durable Project State
-> **CORRECTION #9 — 2026-10-13 (current): bounded evidence-integrity cleanup.**
+> **CORRECTION #10 — 2026-10-13 (current): Android limited-beta readiness — owner-authorized 14.3 debt exception.**
+> The owner authorized carrying parent **14.3**'s documented visual-comparison
+> evidence debt into a **limited, private Android beta evaluation**. This is a
+> beta-specific exception, not proof the missing evidence exists: **14.3 stays
+> OPEN** with unchanged criteria and **`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`**
+> is retained for formal release certification.
+> Release candidate is the existing terminal APK `c8c3d46c…` (48,888,528 B; **not
+> rebuilt**; disk and device SHA-256 both match). Signing/versioning assessed:
+> `com.braintraining.app` 0.1.0/1000, release build **debug-signed** (committed
+> Expo debug keystore) — acceptable for a sideloaded private beta, **not** for a
+> store release (upload keystore + Play App Signing required).
+> Emulator smoke (`emulator-5570`, Android 15): **PASS** — fresh install, reinstall
+> over same versionCode, install durability across an emulator cold restart, 5 cold
+> launches (max 2735 ms, **0** fatal/ANR in 4,396 logcat lines), offline cold
+> launch + offline gameplay, two gameplay sessions with round scoring/pause/quit,
+> workout persistence across a mid-workout force-stop (0/4, "Next: Card Sort"
+> retained; "1 workout instances" persisted), invalid-deep-link recovery, honest
+> empty states. **No physical Android device is attached to this host**, so the
+> owner-gated **physical-device smoke is BLOCKED** — the beta must not be
+> distributed until it passes. **iOS runtime remains NOT VALIDATED (external).**
+> Detail: `openspec/changes/076-f-final-product-certification/evidence/ANDROID_BETA_READINESS.md`.
+>
+> **CORRECTION #9 — 2026-10-13 (historical; superseded by #10 above): bounded evidence-integrity cleanup.**
 > Parent **14.3 OPEN**, **14.7 CHECKED**; original criteria and
 > `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED` unchanged.
 > Earlier luminance-derived light/dark labels and 62 theme-verified pairs are

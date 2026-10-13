@@ -1,6 +1,41 @@
 # Durable Validation Record
 
-## 076 bounded evidence-integrity cleanup — 2026-10-13 (current)
+## Android limited-beta readiness — owner-authorized 14.3 debt exception (2026-10-13, current)
+
+Owner authorized carrying parent **14.3**'s documented visual-comparison evidence
+debt into a **limited, private Android beta evaluation**. Parent **14.3 remains
+OPEN**; verdict **`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`** retained for formal
+release certification. No historical APK rebuild, 42-game ARTEMIS sweep re-run,
+nine-journey re-run, or new campaign.
+
+- Release candidate: existing terminal APK `c8c3d46c…` (48,888,528 B), **not
+  rebuilt**; disk and installed-device SHA-256 both exact. Source `d5787ec`;
+  provenance unchanged (validator PASS this session).
+- Signing/versioning: `com.braintraining.app` versionName `0.1.0`, versionCode
+  `1000`; release build type uses the committed Expo **debug.keystore**
+  (`androiddebugkey`) — debug-signed release. **Sideloaded private beta: OK.**
+  **Store release: BLOCKED pending an upload keystore + Play App Signing.**
+- Emulator smoke on the dedicated AVD `emulator-5570` (Android 15, API 35):
+  **PASS** — fresh install; reinstall over same versionCode; install + data
+  durability across an emulator cold restart (hash still `c8c3d46c…`); 5 cold
+  launches 2735/2721/2037/1141/1425 ms; 4,396 logcat lines with **0**
+  FATAL/ANR/exception/SQLite markers; offline cold launch and offline gameplay
+  (network fully disabled, "Active default network: none"); two gameplay
+  sessions (Memory rounds + pause/quit; Target Count board) with round scoring;
+  workout persistence across a mid-workout force-stop (position retained at
+  0/4, "Next: Card Sort"; Data Management: "1 workout instances"); invalid deep
+  link → "Game not found" → "Back to library" → Games; honest empty states.
+  Artifacts: `qa-artifacts/beta-smoke/` (01–19).
+- **Physical-device smoke: BLOCKED (owner action required).** No physical Android
+  device is attached to this host (`adb devices` lists only the emulator; Windows
+  PnP shows no Android USB device). The owner's distribution gate requires the
+  physical-device smoke before any beta distribution.
+- **iOS runtime: NOT VALIDATED (external)** — no macOS host; unchanged and not
+  implied by any Android result.
+
+Full record: `openspec/changes/076-f-final-product-certification/evidence/ANDROID_BETA_READINESS.md`.
+
+## 076 bounded evidence-integrity cleanup — 2026-10-13 (previous)
 
 Existing evidence tooling/manifests/reports and durable commentary only.
 Parent **14.3 OPEN**, **14.7 CHECKED** (81/1 parent; 42/0 certification ledger).

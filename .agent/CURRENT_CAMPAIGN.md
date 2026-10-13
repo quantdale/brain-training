@@ -244,6 +244,20 @@ evidence: `openspec/changes/076-product-wide-ui-ux-reboot/evidence/`
 
 ## Progress log
 
+- 2026-10-13 (Android limited-beta readiness): owner authorized carrying parent
+  14.3's visual-comparison evidence debt into a limited private Android beta
+  (14.3 stays OPEN; verdict unchanged). Assessed signing/versioning
+  (`com.braintraining.app` 0.1.0/1000, debug-signed release — sideload beta OK,
+  store BLOCKED) and ran the device smoke on the dedicated AVD `emulator-5570`
+  against the un-rebuilt terminal APK `c8c3d46c…` (device-hash exact): install,
+  reinstall, restart durability, 5 cold launches (0 fatal/ANR in 4,396 lines),
+  offline launch + gameplay, two gameplay sessions, workout persistence across a
+  mid-workout force-stop, invalid-deep-link recovery — all PASS. **Physical-device
+  smoke BLOCKED: no physical device attached to the host** (owner action to
+  attach one); beta must not be distributed until it passes. iOS runtime remains
+  NOT VALIDATED. No APK rebuild, ARTEMIS sweep, journey re-run or new campaign.
+  Evidence: `openspec/changes/076-f-final-product-certification/evidence/ANDROID_BETA_READINESS.md`.
+
 - 2026-10-13 (bounded evidence-integrity cleanup — final verification): existing evidence only, no
   new campaign. Re-verified at the published tree this session: focused Node
   tests 27/27; source-hash verifier 272+20+90 = 382 PNGs against original

@@ -43,7 +43,7 @@ release APK and by the change spec invalidates every device row captured on
 (`c8c3d46c…`) and the 2 affected rows re-observed. Detail:
 `openspec/changes/076-f-final-product-certification/evidence/DEFECTS_CURRENT.md`.
 
-### Still open: matched before/after evidence (parent 14.3)
+### Still open: matched before/after evidence (parent 14.3) — accepted for the limited private Android beta by owner authorization (2026-10-13)
 
 Parent 14.7 checked for report/coverage/reference publication; 14.3 remains OPEN
 with unchanged criteria. Luminance-derived themes and 62 confirmed pairs withdrawn:
@@ -52,9 +52,25 @@ Coverage: 0 matches / 100 uncertain candidates / 112 after-only slots / 4 differ
 historical surfaces. The 90-route PNGs pass original-digest checks. Exact gaps:
 `openspec/changes/076-product-wide-ui-ux-reboot/evidence/VISUAL_DECISION.md`.
 
-Route matrix `de6c5fcd…` remains historical. Before a limited Android beta the
-owner must authorize resolving 14.3 or explicitly accept its documented evidence
-debt. Verdict remains `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`; no waiver inferred.
+**Owner authorization (2026-10-13):** this documented evidence debt is **accepted
+for a limited, private Android beta evaluation**, subject to the repository's
+release policy. The authorization is a beta-specific exception, not proof the
+missing evidence exists: 14.3 stays OPEN, the formal verdict stays
+`CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`, and no missing comparison is fabricated.
+Android beta readiness evidence (signing/versioning, emulator smoke over
+install/update, offline, gameplay, workout persistence, startup stability and
+recovery): `evidence/ANDROID_BETA_READINESS.md`.
+
+**Remaining beta blockers (genuine, separate from the accepted 14.3 debt):**
+
+1. **Physical-device smoke BLOCKED — owner action required.** No physical Android
+   device is attached to the host (`adb devices` lists only the emulator; Windows
+   PnP shows no Android USB device). The beta must not be distributed until the
+   smoke passes on a physical device.
+2. **Store signing BLOCKED for any store release** — the release APK is
+   debug-signed (fine for a sideloaded private beta only); an upload keystore +
+   Play App Signing is required before any store publication.
+3. **iOS runtime NOT VALIDATED (external)** — no macOS host; unchanged.
 
 ### Final cleanup SHA CI
 
