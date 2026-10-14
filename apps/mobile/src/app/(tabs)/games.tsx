@@ -217,6 +217,9 @@ export default function GamesScreen() {
                 />
               ) : null}
             </ScrollView>
+            <ThemedText type="caption" themeColor="textSecondary" testID="games-filter-scroll-hint">
+              Swipe to see all skills and favorites
+            </ThemedText>
           </View>
 
           {discovery.loaded && discovery.error != null ? (

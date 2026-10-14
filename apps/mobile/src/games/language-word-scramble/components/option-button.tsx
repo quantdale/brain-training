@@ -19,6 +19,7 @@
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -37,7 +38,7 @@ export interface OptionButtonProps {
   visual: OptionVisualState;
   disabled?: boolean;
   /** Stable tap handler supplied by the parent (avoids per-render closures). */
-  onPressOption?: (index: number) => void;
+  onPressOption?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const OptionButton = memo(function OptionButton({
@@ -80,7 +81,7 @@ export const OptionButton = memo(function OptionButton({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: visual === 'selected' || isVerdict }}
       disabled={disabled}
-      onPress={onPressOption ? () => onPressOption(index) : undefined}
+      onPress={onPressOption ? (event) => onPressOption(index, event) : undefined}
       style={({ pressed }) => [
         styles.option,
         {

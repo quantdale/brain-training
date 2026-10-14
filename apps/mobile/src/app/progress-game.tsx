@@ -18,7 +18,7 @@
 
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import {
   buildDifficultyProgression,
@@ -43,14 +43,12 @@ import {
   BackLink,
   Badge,
   Card,
-  EmptyState,
   Entrance,
   ListRow,
   SectionGrid,
   SegmentedControl,
   Skeleton,
   SkeletonText,
-  Spark,
   useSafeBack,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
@@ -91,6 +89,8 @@ function sparsePointLabels(points: readonly { t: number }[]): string[] {
 
 export default function ProgressGameScreen() {
   const theme = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const stackedRecords = width < 360 || fontScale >= 1.5;
   // 058: cold deep links land with an empty stack — fall back to /progress.
   const goBack = useSafeBack('/progress');
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
@@ -158,8 +158,8 @@ export default function ProgressGameScreen() {
     return (
       <ScreenShell>
         <BackLink testID="progress-game-back" onPress={goBack} />
-        <ThemedText type="title" testID="progress-game-title">
-          {def?.name ?? gameId ?? 'Game'}
+        <ThemedText type="title" style={styles.titleText} testID="progress-game-title">
+          {def?.name || gameId || 'Game'}
         </ThemedText>
         {!loaded ? (
           <>
@@ -175,17 +175,9 @@ export default function ProgressGameScreen() {
             action={{ label: 'Try again', onPress: retry }}
           />
         ) : (
-          <Card tone="accentSoft">
-            <EmptyState
-              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
-              title="No sessions yet"
-              message="Play it to start tracking scores here."
-              actionLabel={gameId ? 'View game details' : undefined}
-              onAction={gameId ? () => router.push(`/game-detail/${gameId}`) : undefined}
-              actionVariant="primary"
-              testID="progress-game-empty"
-            />
-          </Card>
+          <StateCard variant="empty" title="No sessions yet"
+            message="Complete a session to start tracking this game's results."
+            testID="progress-game-empty" action={gameId ? { label: 'View game details', onPress: () => router.push(`/game-detail/${gameId}`) } : undefined} />
         )}
       </ScreenShell>
     );
@@ -204,7 +196,7 @@ export default function ProgressGameScreen() {
           <View
             style={[styles.domainDot, { backgroundColor: family ? family.base : theme.accent }]}
           />
-          <ThemedText type="title" testID="progress-game-title">
+          <ThemedText type="title" style={styles.titleText} testID="progress-game-title">
             {def?.name ?? gameId}
           </ThemedText>
         </View>
@@ -214,7 +206,9 @@ export default function ProgressGameScreen() {
         </ThemedText>
       </View>
 
-      <SegmentedControl
+      <View style={styles.scope}>
+      <ThemedText type="label" themeColor="textSecondary">Recent comparison window</ThemedText>
+      <SegmentedControl compact
         testID="progress-game-window"
         value={windowKey}
         onChange={(next) => setWindowKey(next as TimeWindowKey)}
@@ -224,16 +218,15 @@ export default function ProgressGameScreen() {
           testID: `progress-game-window-${k}`,
         }))}
       />
+      <ThemedText type="caption" themeColor="textSecondary" testID="progress-game-window-scope">
+        Records and trend charts use all stored sessions. The selector scopes the recent-versus-lifetime comparison below{windowKey === 'all' ? '; All uses the last 90 days for its recent side' : ''}.
+      </ThemedText>
+      </View>
 
       <Entrance index={0}>
-      <Card
+      <Card style={styles.evidenceCard}
         testID="progress-game-records"
-        variant="hero"
-        style={
-          family
-            ? { backgroundColor: family.soft, borderColor: family.base, borderWidth: 2 }
-            : undefined
-        }>
+        variant="outlined" padding="md">
         <View style={styles.cardHeader}>
           <View style={styles.titleRow}>
             <View
@@ -247,7 +240,7 @@ export default function ProgressGameScreen() {
         </View>
         <View style={styles.heroMetric}>
           <ThemedText type="eyebrow" style={family ? { color: family.softText } : undefined}>
-            Best performance
+            Best recorded performance
           </ThemedText>
           <ThemedText
             type="numeralXl"
@@ -255,7 +248,7 @@ export default function ProgressGameScreen() {
             {formatPercent(insight.bestNormalized)}
           </ThemedText>
         </View>
-        <View style={styles.recordGrid}>
+        <View testID="progress-game-records-layout" style={[styles.recordGrid, stackedRecords && styles.recordsStacked]}>
           <Record
             label="Best score"
             value={available.score ? String(insight.bestScore) : '—'}
@@ -292,9 +285,9 @@ export default function ProgressGameScreen() {
       </Card>
       </Entrance>
 
-      <Card testID="progress-game-trend-summary">
-        <ThemedText type="subtitle">Trend summary</ThemedText>
-        <View style={styles.recordGrid}>
+      <Card style={styles.evidenceCard} testID="progress-game-trend-summary">
+        <ThemedText type="headline">All-time trend summary</ThemedText>
+        <View style={[styles.recordGrid, stackedRecords && styles.recordsStacked]}>
           <Record
             label="Sessions in series"
             value={String(normalizedSummary.count)}
@@ -310,11 +303,11 @@ export default function ProgressGameScreen() {
             value={normalizedSummary.stdDev === null ? '—' : formatPercent(normalizedSummary.stdDev)}
           />
           <Record
-            label={`Slope / day (${WINDOW_LABELS[windowKey]})`}
+            label="Slope / day (all-time series)"
             value={
               normalizedSummary.slopePerDay === null
                 ? '—'
-                : `${formatSigned(Math.round(normalizedSummary.slopePerDay * 1000) / 10)}%/d`
+                : `${formatSigned(Math.round(normalizedSummary.slopePerDay * 1000) / 10)} pp/day`
             }
           />
         </View>
@@ -326,7 +319,7 @@ export default function ProgressGameScreen() {
             {directionArrow(normalizedSummary.direction)}{' '}
             {normalizedSummary.delta === null
               ? ''
-              : `${formatSigned(Math.round(normalizedSummary.delta * 100))}% first → last`}
+              : `${formatSigned(Math.round(normalizedSummary.delta * 100))} percentage points first → last`}
           </ThemedText>
         ) : (
           <ThemedText type="caption" themeColor="textSecondary">
@@ -340,7 +333,7 @@ export default function ProgressGameScreen() {
 
       <SectionGrid>
       {rollingSeries.length > 0 ? (
-        <Card testID="progress-game-rolling">
+        <Card style={styles.evidenceCard} testID="progress-game-rolling">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Rolling average</ThemedText>
             <ThemedText type="smallBold">
@@ -362,7 +355,7 @@ export default function ProgressGameScreen() {
       ) : null}
 
       {bestHistory.current !== null ? (
-        <Card testID="progress-game-pb">
+        <Card style={styles.evidenceCard} testID="progress-game-pb">
           <ThemedText type="subtitle">Best-result history</ThemedText>
           <View style={styles.rows}>
             {bestHistory.events.slice(-5).map((event) => (
@@ -386,7 +379,7 @@ export default function ProgressGameScreen() {
       </SectionGrid>
 
       {scoreBestHistory !== null && scoreBestHistory.events.length >= 2 ? (
-        <Card testID="progress-game-pb-score">
+        <Card style={styles.evidenceCard} testID="progress-game-pb-score">
           <ThemedText type="subtitle">Score-record history</ThemedText>
           <View style={styles.rows}>
             {scoreBestHistory.events.slice(-5).map((event) => (
@@ -408,6 +401,7 @@ export default function ProgressGameScreen() {
       <TrendBlock
         testID="progress-game-trend-normalized"
         label="Performance (normalized)"
+        format={(value) => formatPercent(value)}
         points={insight.series.normalized}
       />
       {available.score ? (
@@ -448,9 +442,9 @@ export default function ProgressGameScreen() {
       ) : null}
       </SectionGrid>
       {difficultyProgression.available ? (
-        <Card testID="progress-game-difficulty-progression">
+        <Card style={styles.evidenceCard} testID="progress-game-difficulty-progression">
           <ThemedText type="subtitle">Difficulty progression</ThemedText>
-          <View style={styles.recordGrid}>
+          <View style={[styles.recordGrid, stackedRecords && styles.recordsStacked]}>
             <Record
               label="First challenge"
               value={formatPercent(difficultyProgression.first ?? 0)}
@@ -484,47 +478,47 @@ export default function ProgressGameScreen() {
         </Card>
       ) : null}
 
-      <Card testID="progress-game-rvl">
+      <Card style={styles.evidenceCard} testID="progress-game-rvl">
         <ThemedText type="subtitle">Recent vs lifetime</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Avg performance over {WINDOW_LABELS[windowKey]} versus all-time.
+          Average normalized performance over the last {WINDOW_LABELS[rvlWindow]} versus all-time{windowKey === 'all' ? ' (All uses a 90-day recent comparison)' : ''}.
         </ThemedText>
-        <View style={styles.summaryRow}>
+        <View style={[styles.summaryRow, stackedRecords && styles.recordsStacked]}>
           <Record
-            label={`Avg (${WINDOW_LABELS[windowKey]})`}
+            label={`Avg (${WINDOW_LABELS[rvlWindow]})`}
             value={rvl.recentAvgNormalized === null ? '—' : formatPercent(rvl.recentAvgNormalized)}
           />
           <Record label="Avg (all)" value={formatPercent(rvl.lifetimeAvgNormalized)} />
           <Record
-            label="Δ avg"
+            label="Change (percentage points)"
             value={
               rvl.deltaAvgNormalized === null
                 ? '—'
-                : formatSigned(Math.round((rvl.deltaAvgNormalized ?? 0) * 100)) + '%'
+                : formatSigned(Math.round((rvl.deltaAvgNormalized ?? 0) * 100)) + ' pp'
             }
           />
         </View>
         {rvl.lifetimeAvgAccuracy !== null ? (
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, stackedRecords && styles.recordsStacked]}>
             <Record
-              label={`Acc (${WINDOW_LABELS[windowKey]})`}
+              label={`Acc (${WINDOW_LABELS[rvlWindow]})`}
               value={rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)}
             />
             <Record label="Acc (all)" value={formatPercent(rvl.lifetimeAvgAccuracy)} />
             <Record
-              label="Δ acc"
+              label="Change (percentage points)"
               value={
                 rvl.deltaAvgAccuracy === null
                   ? '—'
-                  : formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100)) + '%'
+                  : formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100)) + ' pp'
               }
             />
           </View>
         ) : null}
         {rvl.lifetimeAvgReactionMs !== null ? (
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, stackedRecords && styles.recordsStacked]}>
             <Record
-              label={`React (${WINDOW_LABELS[windowKey]})`}
+              label={`React (${WINDOW_LABELS[rvlWindow]})`}
               value={rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)}
             />
             <Record label="React (all)" value={formatMs(rvl.lifetimeAvgReactionMs)} />
@@ -539,9 +533,9 @@ export default function ProgressGameScreen() {
           </View>
         ) : null}
         {rvl.lifetimeAvgDifficulty !== null ? (
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, stackedRecords && styles.recordsStacked]}>
             <Record
-              label={`Difficulty (${WINDOW_LABELS[windowKey]})`}
+              label={`Difficulty (${WINDOW_LABELS[rvlWindow]})`}
               value={rvl.recentAvgDifficulty === null ? '—' : formatPercent(rvl.recentAvgDifficulty)}
             />
             <Record label="Difficulty (all)" value={formatPercent(rvl.lifetimeAvgDifficulty)} />
@@ -557,7 +551,7 @@ export default function ProgressGameScreen() {
         ) : null}
       </Card>
 
-      <Card testID="progress-game-recent">
+      <Card style={styles.evidenceCard} testID="progress-game-recent">
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         <View style={styles.rows}>
           {data.slice(0, 10).map((session) => (
@@ -607,7 +601,7 @@ function TrendBlock({
   const improved = tone === 'lower-better' ? delta < 0 : delta > 0;
   const regressed = tone === 'lower-better' ? delta > 0 : delta < 0;
   return (
-    <Card testID={testID}>
+    <Card style={styles.evidenceCard} testID={testID}>
       <View style={styles.cardHeader}>
         <ThemedText type="subtitle">{label}</ThemedText>
         {values.length > 0 ? (
@@ -648,11 +642,13 @@ function TrendBlock({
 }
 
 function Record({ label, value, color }: { label: string; value: string; color?: string }) {
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width < 360 || fontScale >= 1.5;
   return (
-    <View style={styles.record}>
+    <View style={[styles.record, stacked && styles.recordStacked]}>
       <ThemedText
         type="numeral"
-        themeColor={color ? undefined : 'accent'}
+        themeColor={color ? undefined : 'text'}
         style={color ? { color } : undefined}>
         {value}
       </ThemedText>
@@ -667,9 +663,11 @@ function Record({ label, value, color }: { label: string; value: string; color?:
 }
 
 const styles = StyleSheet.create({
+  evidenceCard: { gap: Spacing.two },
   header: {
     gap: Spacing.one,
   },
+  titleText: { flexShrink: 1, minWidth: 0, maxWidth: '100%' },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -685,6 +683,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
@@ -695,11 +694,16 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   record: {
-    width: '30%',
+    width: '47%',
+    minWidth: 0,
     gap: Spacing.half,
   },
+  recordStacked: { width: '100%' },
+  recordsStacked: { flexDirection: 'column' },
+  scope: { gap: Spacing.one },
   summaryRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   rows: {

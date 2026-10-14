@@ -5,7 +5,7 @@
  * padding keeps the aspect-ratio tiles flush without overflowing the row.
  */
 import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
 
@@ -19,7 +19,7 @@ export interface TileGridProps {
   visualFor: (index: number) => TileVisualState;
   disabled?: boolean;
   /** Stable tap handler; passed through so memoized tiles skip re-renders. */
-  onPressTile: (index: number) => void;
+  onPressTile: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const TileGrid = memo(function TileGrid({

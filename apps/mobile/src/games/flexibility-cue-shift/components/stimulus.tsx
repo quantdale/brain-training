@@ -210,7 +210,11 @@ export const Stimulus = memo(function Stimulus({
   );
 
   if (onPress === undefined) {
-    return <View testID={testID}>{content}</View>;
+    return (
+      <View testID={testID} accessible accessibilityRole="image" accessibilityLabel={a11yLabel}>
+        {content}
+      </View>
+    );
   }
 
   return (

@@ -2,10 +2,12 @@
   "id": "language-word-scramble",
   "name": "Word Scramble",
   "primaryCategory": "Language",
-  "secondaryDomains": ["Attention"],
+  "secondaryDomains": [
+    "Attention"
+  ],
   "description": "Unscramble the letters to form the correct word using the category hint.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.1.0",
+  "gameVersion": "1.2.0",
   "generatorVersion": "1.2.0",
   "contentVersion": "1.0.0",
   "hasTutorial": true

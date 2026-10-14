@@ -5,7 +5,7 @@
  * padding keeps the aspect-ratio cells flush without overflowing the row.
  */
 import { memo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type GestureResponderEvent } from "react-native";
 
 import { Spacing } from "@/constants/theme";
 
@@ -18,7 +18,7 @@ export interface BoardProps {
   testID: string;
   visualFor: (index: number) => CellVisualState;
   disabled?: boolean;
-  onPressCell: (index: number) => void;
+  onPressCell: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const Board = memo(function Board({

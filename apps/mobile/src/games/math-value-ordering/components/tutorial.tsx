@@ -10,8 +10,9 @@
  * it deterministic and dependency-free). Replaying simply remounts the body
  * via a `key`.
  */
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { TutorialFrame } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
@@ -31,6 +32,45 @@ export interface TutorialProps {
 export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
 
+  // A tutorial owns its rendered step/attempt until it advances or closes.
+  // Publish that boundary before React commits so queued native controls
+  // cannot retry, complete or skip a later teaching cue.
+  const ownerRef = useRef({
+    step: 'intro' as TutorialStep | 'closed', attempt: 0, mounted: true,
+  });
+  const deliveredPresses = useRef(new WeakSet<object>());
+  useEffect(() => {
+    const owner = ownerRef.current;
+    owner.mounted = true;
+    return () => { owner.mounted = false; };
+  }, []);
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
+  const handleNext = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== 'intro' || !claimPress(event)) return;
+    owner.step = 'done';
+    setStep('done');
+  };
+  const handleComplete = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== 'done' || !claimPress(event)) return;
+    owner.step = 'closed';
+    onComplete();
+  };
+  const handleSkip = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== step || owner.attempt !== 0 ||
+        !claimPress(event)) return;
+    owner.step = 'closed';
+    onSkip?.();
+  };
+
   return (
     <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
@@ -46,14 +86,14 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
             label="Got it"
-            onPress={() => setStep('done')}
+            onPress={handleNext}
           />
           {onSkip !== undefined ? (
             <GameButton
               testID={testId(GAME_ID, 'tutorial-skip')}
               label="Skip tutorial (QA)"
               variant="secondary"
-              onPress={onSkip}
+              onPress={handleSkip}
             />
           ) : null}
         </View>
@@ -70,7 +110,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}
             label="Start playing"
-            onPress={onComplete}
+            onPress={handleComplete}
           />
         </View>
       ) : null}

@@ -17,6 +17,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import {
   isDevBuild,
@@ -34,7 +35,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -57,7 +57,7 @@ import {
   persistMathSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { continuationStamp, GAME_ID, createInitialMathState } from './types';
+import { ownsContinuation, GAME_ID, createInitialMathState } from './types';
 import type { MathAction } from './types';
 import { SCORING_VERSION } from './versions';
 
@@ -90,6 +90,14 @@ export default function MathScreen(props: MathScreenProps = {}) {
   const [state, dispatch] = useReducer(mathGameReducer, undefined, createInitialMathState);
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
   // Claim lifecycle boundaries synchronously: queued Next callbacks can run
   // before React commits the pause or continuation dispatch.
   const dispatchContinuation = useCallback((action: MathAction) => {
@@ -111,7 +119,14 @@ export default function MathScreen(props: MathScreenProps = {}) {
     onPause: () => dispatchContinuation({ type: 'pause' }),
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const { status: readStatus, isCurrentSession, elapsedMs: readElapsedMs } = session;
+  const renderedContinuation = useMemo(() => ({
+    sessionId: state.sessionId, roundIndex: state.problemIndex,
+    phase: state.phase, epoch: state.continuationEpoch,
+  }), [state.sessionId, state.problemIndex, state.phase, state.continuationEpoch]);
+  const ownsRenderedInput = useCallback(() =>
+    readStatus() === 'active' && isCurrentSession(renderedContinuation.sessionId) &&
+    ownsContinuation(stateRef.current, renderedContinuation), [renderedContinuation, readStatus, isCurrentSession]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -138,18 +153,37 @@ export default function MathScreen(props: MathScreenProps = {}) {
   // elapsed ms; the reducer transitions to `timeout` when the budget is
   // crossed. Pause deactivates the ticker (timers frozen); resume re-schedules
   // from the current active elapsed (paused segments excluded by lifecycle).
-  useGameInterval(
-    state.phase === 'problem' && !state.paused && state.problemBudgetMs > 0,
-    () => dispatch({ type: 'problem-tick', atActiveMs: session.elapsedMs() }),
-    TIMER_TICK_MS,
-  );
+  useEffect(() => {
+    if (state.phase !== 'problem' || state.paused || state.tutorialOpen || state.problemBudgetMs <= 0) return;
+    let cancelled = false;
+    let deadline: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (!cancelled && ownsRenderedInput())
+        dispatchContinuation({ type: 'problem-tick', atActiveMs: readElapsedMs() });
+    };
+    const expire = () => {
+      if (cancelled || !ownsRenderedInput()) return;
+      const current = stateRef.current;
+      const remaining = current.problemBudgetMs - (readElapsedMs() - current.problemStartActiveMs);
+      if (remaining > 0) {
+        deadline = setTimeout(expire, Math.max(1, Math.ceil(remaining)));
+        return;
+      }
+      tick();
+    };
+    const timer = setInterval(tick, TIMER_TICK_MS);
+    const remaining = state.problemBudgetMs - (readElapsedMs() - state.problemStartActiveMs);
+    deadline = setTimeout(expire, Math.max(0, Math.ceil(remaining)));
+    return () => { cancelled = true; clearInterval(timer); clearTimeout(deadline); };
+  }, [state.phase, state.paused, state.tutorialOpen, state.problemBudgetMs,
+    state.problemStartActiveMs, ownsRenderedInput, readElapsedMs, dispatchContinuation]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatchContinuation({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -269,21 +303,25 @@ export default function MathScreen(props: MathScreenProps = {}) {
   }, [session, goBack]);
 
   const handleDigit = useCallback(
-    (digit: number) => {
-      dispatch({ type: 'digit', digit });
+    (digit: number, event?: GestureResponderEvent) => {
+      if (!ownsRenderedInput() || !claimPress(event)) return;
+      dispatchContinuation({ type: 'digit', digit });
     },
-    [dispatch],
+    [dispatchContinuation, ownsRenderedInput, claimPress],
   );
 
-  const handleBackspace = useCallback(() => {
-    dispatch({ type: 'backspace' });
-  }, [dispatch]);
+  const handleBackspace = useCallback((event?: GestureResponderEvent) => {
+    if (!ownsRenderedInput() || !claimPress(event)) return;
+    dispatchContinuation({ type: 'backspace' });
+  }, [dispatchContinuation, ownsRenderedInput, claimPress]);
 
-  const handleClearInput = useCallback(() => {
-    dispatch({ type: 'clear-input' });
-  }, [dispatch]);
+  const handleClearInput = useCallback((event?: GestureResponderEvent) => {
+    if (!ownsRenderedInput() || !claimPress(event)) return;
+    dispatchContinuation({ type: 'clear-input' });
+  }, [dispatchContinuation, ownsRenderedInput, claimPress]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback((event?: GestureResponderEvent) => {
+    if (!ownsRenderedInput() || !claimPress(event)) return;
     const current = stateRef.current;
     if (current.phase !== 'problem' || current.paused || current.input.length === 0) {
       return;
@@ -297,6 +335,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
     // the same pure transition the dispatch below commits.
     const action: MathAction = { type: 'submit-answer', atActiveMs: session.elapsedMs() };
     const next = mathGameReducer(current, action);
+    stateRef.current = next;
     dispatch(action);
     if (next.phase !== 'feedback' || next.outcome === null) {
       return;
@@ -309,39 +348,44 @@ export default function MathScreen(props: MathScreenProps = {}) {
       liveAudioHaptics.haptic('warning');
     }
     // Timeout: the timeout verdict owns the feedback — never correct/wrong.
-  }, [session, dispatch]);
-
+  }, [session, dispatch, ownsRenderedInput, claimPress]);
 
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedContinuation.sessionId || current.phase !== renderedContinuation.phase ||
+        current.problemIndex !== renderedContinuation.roundIndex ||
+        current.continuationEpoch !== renderedContinuation.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.tutorialOpen ||
+        session.status() === 'active' || session.status() === 'paused' || session.status() === 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, dispatchContinuation, renderedContinuation]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-open' });
+  }, [tutorial, dispatchContinuation]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const view: GameHostView =
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';

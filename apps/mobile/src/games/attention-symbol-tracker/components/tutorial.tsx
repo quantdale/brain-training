@@ -10,8 +10,8 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R pattern);
  * mechanics stay local.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -110,6 +110,7 @@ function DemoBoard({ onDone, onSkip }: DemoBoardProps) {
   );
   const [studying, setStudying] = useState(true);
   const [selections, setSelections] = useState<number[]>([]);
+  const deliveredPresses = useRef(new WeakSet<object>());
 
   useEffect(() => {
     if (!studying) {
@@ -119,13 +120,19 @@ function DemoBoard({ onDone, onSkip }: DemoBoardProps) {
     return () => clearTimeout(timer);
   }, [studying]);
 
-  const handleTap = (index: number) => {
+  const handleTap = (index: number, event?: GestureResponderEvent) => {
     if (studying) {
       return;
     }
     const symbolId = demo.respondBoard[index];
     if (symbolId === undefined || symbolId < 0) {
       return;
+    }
+    // A repeated native delivery must not undo a pick; a new press may toggle it.
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
     }
     setSelections((prev) =>
       prev.includes(symbolId) ? prev.filter((id) => id !== symbolId) : [...prev, symbolId],

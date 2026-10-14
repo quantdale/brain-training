@@ -60,7 +60,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, RULE_LABELS, createInitialFlexibilityCueState } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, RULE_LABELS, createInitialFlexibilityCueState } from './types';
 import type { FlexibilityCueAction, Card } from './types';
 
 export interface CueShiftScreenProps {
@@ -297,37 +297,45 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     goBack();
   }, [session, goBack]);
 
-  const handlePick = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'trialActive' || current.paused || current.round === null) {
-        return;
-      }
-      const responseMs = Math.max(0, clock.now() - trialStartRef.current);
-      if (index === current.round.correctIndex) {
-        // Campaign-009 SFX alias fixes — keep these literal names exactly.
-        liveAudioHaptics.playSfx('flexibility-cue-correct');
-        liveAudioHaptics.haptic('light');
-      } else {
-        liveAudioHaptics.playSfx('flexibility-cue-wrong');
-        liveAudioHaptics.haptic('warning');
-      }
-      dispatch({ type: 'pick-card', index, responseMs });
-    },
-    [clock, dispatch],
-  );
-
-  const handleStart = useCallback(() => {
+  // Bind the action to the cue that supplied this native press callback.
+  // Claim the reducer transition before emitting feedback or dispatching:
+  // React may batch several callbacks before it commits the result.
+  const handlePick = (index: number) => {
     const current = stateRef.current;
+    if (session.status() !== 'active' ||
+        !session.isCurrentSession(renderedContinuation.sessionId) ||
+        !ownsContinuation(current, renderedContinuation) ||
+        current.phase !== 'trialActive' || current.round === null) return;
+    const responseMs = Math.max(0, clock.now() - trialStartRef.current);
+    const action: FlexibilityCueAction = { type: 'pick-card', index, responseMs };
+    const next = flexibilityCueReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+    if (index === current.round.correctIndex) {
+      liveAudioHaptics.playSfx('flexibility-cue-correct');
+      liveAudioHaptics.haptic('light');
+    } else {
+      liveAudioHaptics.playSfx('flexibility-cue-wrong');
+      liveAudioHaptics.haptic('warning');
+    }
+  };
+
+  const handleStart = () => {
+    const current = stateRef.current;
+    if ((state.phase !== 'intro' && state.phase !== 'results') ||
+        current.phase !== state.phase || current.sessionId !== state.sessionId ||
+        current.continuationEpoch !== state.continuationEpoch || current.tutorialOpen) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    pauseStartRef.current = null;
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  };
 
   const handleRestart = handleStart;
 

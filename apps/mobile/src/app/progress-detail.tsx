@@ -22,8 +22,6 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 import {
   buildAccuracyTrend,
@@ -32,7 +30,6 @@ import {
   buildRollingAverageSeries,
   explainMetric,
 } from '@/analytics';
-import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
@@ -41,18 +38,17 @@ import {
   BackLink,
   Badge,
   Card,
-  EmptyState,
   Entrance,
   HAIRLINE,
-  ArcadePanel,
+  Report,
+  ReportRow,
+  Button,
   SectionGrid,
   Skeleton,
   SkeletonText,
-  Spark,
-  Tappable,
   useSafeBack,
 } from '@/components/ui';
-import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
+import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
@@ -92,7 +88,6 @@ async function loadProgressDetail(db: AppDatabase): Promise<ProgressDetailData> 
 const EMPTY: ProgressDetailData = { history: [], aggregates: [], recent: [] };
 
 export default function ProgressDetailScreen() {
-  const theme = useTheme();
   // 058: cold deep links land with an empty stack — fall back to /progress.
   const goBack = useSafeBack('/progress');
   // Reload whenever the screen regains focus (a session may have just landed).
@@ -143,10 +138,10 @@ export default function ProgressDetailScreen() {
 
       <View style={styles.header}>
         <ThemedText type="title" testID="progress-detail-title">
-          Progress detail
+          Training history
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Domain trends, per-game records and recent sessions.
+        <ThemedText type="bodySmall" themeColor="textSecondary">
+          Recorded results, domain updates and game records.
         </ThemedText>
       </View>
 
@@ -166,11 +161,19 @@ export default function ProgressDetailScreen() {
       ) : (
         <>
 
+      {data.recent.length === 0 && data.history.length === 0 && data.aggregates.length === 0 ? (
+        <Button variant="secondary" label="Browse games" testID="progress-detail-browse-empty"
+          onPress={() => router.replace('/games')} />
+      ) : null}
+      <ThemedText type="caption" themeColor="textSecondary" testID="progress-detail-scope">
+        Latest {data.recent.length} sessions and {data.history.length} rating updates loaded, up to {ANALYTICS_WINDOW} of each. Game records are all-time.
+      </ThemedText>
+
       {bestHistory.current !== null ? (
         <Entrance index={0}>
           {/* The screen's one focal panel (lock §5): the personal-best numeral
               in reading ink, its raising events as numbered hairline rows. */}
-          <ArcadePanel emphasis="focal" testID="progress-detail-pb">
+          <Card style={styles.evidenceCard} variant="outlined" padding="md" testID="progress-detail-pb">
             <View style={styles.cardHeader} testID="progress-detail-pb-header">
               <ThemedText type="eyebrow" themeColor="textSecondary">
                 Recent personal best
@@ -182,7 +185,7 @@ export default function ProgressDetailScreen() {
               />
             </View>
             <View style={styles.heroRow}>
-              <ThemedText type="numeralXl">
+              <ThemedText type="headline">
                 {formatPercent(bestHistory.current.value)}
               </ThemedText>
               <ThemedText type="caption" themeColor="textSecondary">
@@ -196,9 +199,8 @@ export default function ProgressDetailScreen() {
             {bestHistory.events.length > 1 ? (
               <View style={styles.rows}>
                 {bestHistory.events.slice(-5).map((event, index) => (
-                  <FactRow
+                  <ReportRow
                     key={`${event.t}-${event.value}`}
-                    marker={String(index + 1).padStart(2, '0')}
                     label={formatDayLabel(event.t)}
                     value={formatPercent(event.value)}
                     divider={index < Math.min(bestHistory.events.length, 5) - 1}
@@ -208,19 +210,18 @@ export default function ProgressDetailScreen() {
               </View>
             ) : null}
             <ThemedText type="caption" themeColor="textSecondary">
-              Best across your last {data.recent.length} session{data.recent.length === 1 ? '' : 's'} ·
+              Best across the {data.recent.length} session{data.recent.length === 1 ? '' : 's'} loaded (up to {ANALYTICS_WINDOW}) ·
               held{' '}
               {bestHistory.standingDays === 0
                 ? 'for less than a day'
                 : `for ${bestHistory.standingDays ?? 0}d`}. {explainMetric('personal-best-history')}
             </ThemedText>
-          </ArcadePanel>
+          </Card>
         </Entrance>
       ) : null}
 
       <Entrance index={1}>
-        <Card testID="progress-detail-domains">
-          <ThemedText type="subtitle">Domain history</ThemedText>
+        <Report testID="progress-detail-domains" title="Domain history">
           {domainNames.length > 0 ? (
             <View style={styles.rows}>
               {domainNames.map((domain) => (
@@ -228,26 +229,24 @@ export default function ProgressDetailScreen() {
               ))}
             </View>
           ) : (
-            <EmptyState
-              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
-              title="No rating history yet"
-              message="Play a game to build a per-domain trend."
-              testID="progress-detail-domains-empty"
-            />
+            <ThemedText type="bodySmall" themeColor="textSecondary" testID="progress-detail-domains-empty">Play a game to build a per-domain trend.</ThemedText>
           )}
-        </Card>
+        </Report>
       </Entrance>
 
       <Entrance index={2}>
       <SectionGrid>
       {rollingSeries.length > 0 ? (
-        <Card testID="progress-detail-rolling">
+        <Card style={styles.evidenceCard} testID="progress-detail-rolling">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Rolling average</ThemedText>
             <ThemedText type="smallBold">
               {formatPercent(rollingSeries[rollingSeries.length - 1].value)}
             </ThemedText>
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {formatDayLabel(rollingSeries[0].t)} to {formatDayLabel(rollingSeries[rollingSeries.length - 1].t)} · {rollingSeries.length} recorded points.
+          </ThemedText>
           <MiniBarChart
             values={rollingSeries.map((p) => p.value)}
             testID="progress-detail-rolling-chart"
@@ -263,7 +262,7 @@ export default function ProgressDetailScreen() {
       ) : null}
 
       {accuracyTrend.available ? (
-        <Card testID="progress-detail-accuracy">
+        <Card style={styles.evidenceCard} testID="progress-detail-accuracy">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Accuracy over time</ThemedText>
             <ThemedText type="smallBold">
@@ -273,6 +272,9 @@ export default function ProgressDetailScreen() {
               recent
             </ThemedText>
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {formatDayLabel(accuracyTrend.series[0].t)} to {formatDayLabel(accuracyTrend.series[accuracyTrend.series.length - 1].t)} · {accuracyTrend.series.length} recorded points.
+          </ThemedText>
           <MiniBarChart
             values={accuracyTrend.series.map((p) => p.value)}
             testID="progress-detail-accuracy-chart"
@@ -295,13 +297,16 @@ export default function ProgressDetailScreen() {
       <Entrance index={3}>
       <SectionGrid>
       {reactionTrend.available ? (
-        <Card testID="progress-detail-reaction">
+        <Card style={styles.evidenceCard} testID="progress-detail-reaction">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
             <ThemedText type="smallBold">
               {reactionTrend.recentMean === null ? '—' : formatMs(reactionTrend.recentMean)} recent
             </ThemedText>
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {formatDayLabel(reactionTrend.series[0].t)} to {formatDayLabel(reactionTrend.series[reactionTrend.series.length - 1].t)} · {reactionTrend.series.length} recorded points.
+          </ThemedText>
           <MiniBarChart
             values={reactionTrend.series.map((p) => p.value)}
             testID="progress-detail-reaction-chart"
@@ -322,14 +327,13 @@ export default function ProgressDetailScreen() {
       </Entrance>
 
       <Entrance index={4}>
-        <Card testID="progress-detail-games">
+        <Card style={styles.evidenceCard} testID="progress-detail-games">
           <ThemedText type="subtitle">Game records</ThemedText>
           {data.aggregates.length > 0 ? (
             <View style={styles.rows}>
               {data.aggregates.map((a, index) => (
-                <LinkRow
+                <ReportRow
                   key={a.gameId}
-                  marker={String(index + 1).padStart(2, '0')}
                   label={getGameDefinition(a.gameId)?.name ?? a.gameId}
                   hint={`Last played ${formatDayLabel(a.lastCompletedAt)}`}
                   value={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
@@ -341,25 +345,19 @@ export default function ProgressDetailScreen() {
               ))}
             </View>
           ) : (
-            <EmptyState
-              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
-              title="No games played yet"
-              message="Your records will show up here after a session."
-              testID="progress-detail-games-empty"
-            />
+            <ThemedText type="bodySmall" themeColor="textSecondary" testID="progress-detail-games-empty">Your records will show up here after a session.</ThemedText>
           )}
         </Card>
       </Entrance>
 
       <Entrance index={5}>
-        <Card testID="progress-detail-sessions">
+        <Card style={styles.evidenceCard} testID="progress-detail-sessions">
           <ThemedText type="subtitle">Recent sessions</ThemedText>
           {data.recent.length > 0 ? (
             <View style={styles.rows}>
               {data.recent.slice(0, RECENT_LIMIT).map((session, index) => (
-                <LinkRow
+                <ReportRow
                   key={session.id}
-                  marker={String(index + 1).padStart(2, '0')}
                   label={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
                   value={`${Math.round(session.normalizedResult * 100)}%`}
                   onPress={() => router.push(`/results?id=${session.id}`)}
@@ -370,12 +368,7 @@ export default function ProgressDetailScreen() {
               ))}
             </View>
           ) : (
-            <EmptyState
-              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
-              title="No sessions yet"
-              message="Your latest sessions will show up here."
-              testID="progress-detail-sessions-empty"
-            />
+            <ThemedText type="bodySmall" themeColor="textSecondary" testID="progress-detail-sessions-empty">Your latest sessions will show up here.</ThemedText>
           )}
         </Card>
       </Entrance>
@@ -410,128 +403,6 @@ function sparsePointLabels(points: readonly { t: number }[]): string[] {
 }
 
 /**
- * Numbered hairline fact row — the lock's secondary-report grammar
- * (REFERENCE_LOCK §8): quiet `01`-style marker, tracked uppercase label left,
- * medium value right, hairline separators. Local to this route so shared
- * kit surfaces stay untouched (a shared primitive is an integrator call).
- */
-function FactRow({
-  marker,
-  label,
-  value,
-  hint,
-  valueTone = 'text',
-  divider = true,
-  testID,
-  style,
-}: {
-  marker?: string;
-  label: string;
-  value: string;
-  hint?: string;
-  valueTone?: ThemeColor;
-  divider?: boolean;
-  testID?: string;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const theme = useTheme();
-  return (
-    <View
-      testID={testID}
-      style={[
-        styles.factRow,
-        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
-        style,
-      ]}>
-      {marker ? (
-        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
-          {marker}
-        </ThemedText>
-      ) : null}
-      <View style={styles.factLabels}>
-        <ThemedText type="eyebrow" themeColor="textMuted" style={styles.factLabel}>
-          {label.toUpperCase()}
-        </ThemedText>
-        {hint ? (
-          <ThemedText type="caption" themeColor="textMuted">
-            {hint}
-          </ThemedText>
-        ) : null}
-      </View>
-      {value !== '' ? (
-        <ThemedText type="bodySmall" themeColor={valueTone} style={styles.factValue}>
-          {value}
-        </ThemedText>
-      ) : null}
-    </View>
-  );
-}
-
-/**
- * Numbered hairline drill-down link (lock §8 on a §5-quiet row): marker,
- * body-ink label, optional right-aligned value and a quiet chevron. Keeps the
- * 44 dp touch floor by style (058 contract for text-only navigation rows).
- */
-function LinkRow({
-  marker,
-  label,
-  hint,
-  value,
-  onPress,
-  testID,
-  accessibilityHint,
-  divider = false,
-}: {
-  marker?: string;
-  label: string;
-  hint?: string;
-  value?: string;
-  onPress: () => void;
-  testID?: string;
-  accessibilityHint?: string;
-  divider?: boolean;
-}) {
-  const theme = useTheme();
-  return (
-    <Tappable
-      testID={testID}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={accessibilityHint}
-      style={[
-        styles.factRow,
-        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
-      ]}
-      pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
-      {marker ? (
-        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
-          {marker}
-        </ThemedText>
-      ) : null}
-      <View style={styles.factLabels}>
-        <ThemedText type="bodySmall" themeColor="text">
-          {label}
-        </ThemedText>
-        {hint ? (
-          <ThemedText type="caption" themeColor="textMuted">
-            {hint}
-          </ThemedText>
-        ) : null}
-      </View>
-      {value ? (
-        <ThemedText type="label" themeColor="textSecondary" style={styles.factValue}>
-          {value}
-        </ThemedText>
-      ) : null}
-      <ThemedText type="body" themeColor="textMuted" aria-hidden>
-        ›
-      </ThemedText>
-    </Tappable>
-  );
-}
-
-/**
  * One domain's rating trend as an identity block: dot + domain-hued name,
  * latest movement and chronological entries. `entries` arrive newest first
  * from the repo; only the newest `PER_DOMAIN_SHOWN` are rendered, with an
@@ -549,96 +420,39 @@ function DomainHistory({
   const key = domainKeyFor(domain);
   const family = key ? DomainColors[scheme][key] : null;
   const slug = domainSlug(domain);
+  const [expanded, setExpanded] = useState(false);
   const chronological = [...entries].reverse();
-  const hiddenCount = Math.max(0, chronological.length - PER_DOMAIN_SHOWN);
-  const shown = chronological.slice(-PER_DOMAIN_SHOWN);
+  const shownLimit = expanded ? PER_DOMAIN_SHOWN : 3;
+  const hiddenCount = Math.max(0, chronological.length - shownLimit);
+  const shown = chronological.slice(-shownLimit);
   const latest = entries[0];
   return (
-    <View
-      style={[
-        styles.domainBlock,
-        {
-          // Neutral bordered surface (lock §3): the domain hue stays in the
-          // identity dot only — never a full card fill (change 076 role
-          // discipline).
-          backgroundColor: theme.surface,
-          borderColor: theme.border,
-        },
-      ]}
-      testID={`progress-detail-domain-${slug}`}>
-      <View style={styles.row}>
-        <View style={styles.domainHeader}>
-          <View
-            style={[styles.domainDot, { backgroundColor: family ? family.base : theme.borderStrong }]}
-          />
-          <ThemedText type="smallBold">{domain}</ThemedText>
-        </View>
-        {latest ? (
-          <ThemedText
-            type="caption"
-            themeColor={latest.delta > 0 ? 'success' : latest.delta < 0 ? 'danger' : 'textSecondary'}
-            testID={`progress-detail-domain-latest-${slug}`}>
-            latest {latest.delta >= 0 ? '+' : ''}
-            {latest.delta}
-          </ThemedText>
-        ) : null}
-      </View>
-      {hiddenCount > 0 ? (
-        <ThemedText type="caption" themeColor="textSecondary">
-          +{hiddenCount} earlier update{hiddenCount === 1 ? '' : 's'} not shown.
-        </ThemedText>
-      ) : null}
-      {shown.map((entry, index) => (
-        <View
-          key={entry.id}
-          style={[
-            styles.row,
-            styles.entryRow,
-            index < shown.length - 1
-              ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border }
-              : null,
-          ]}
-          testID={`progress-detail-domain-entry-${entry.id}`}>
-          <ThemedText type="caption" themeColor="textMuted">
-            {formatDayLabel(entry.createdAt)}
-          </ThemedText>
-          <ThemedText type="label">
-            {entry.ratingAfter} ({entry.delta >= 0 ? '+' : ''}
-            {entry.delta})
-          </ThemedText>
-        </View>
-      ))}
+    <View style={[styles.domainBlock, { borderBottomColor: theme.border }]} testID={`progress-detail-domain-${slug}`}>
+      <ReportRow label={domain} value={latest ? String(latest.ratingAfter) : '—'}
+        icon={<View style={[styles.domainDot, { backgroundColor: family ? family.base : theme.borderStrong }]} />}
+        hint="Open the domain's rating history and contributing games"
+        onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(domain)}`)}
+        accessibilityHint="Open domain details" />
+      {latest ? <ThemedText type="caption" themeColor="textSecondary" testID={`progress-detail-domain-latest-${slug}`}>
+        Latest update {latest.delta >= 0 ? '+' : ''}{latest.delta} · {formatDayLabel(latest.createdAt)}
+      </ThemedText> : null}
+      {shown.map((entry, index) => <ReportRow key={entry.id}
+        label={formatDayLabel(entry.createdAt)} value={`${entry.ratingAfter} (${entry.delta >= 0 ? '+' : ''}${entry.delta})`}
+        divider={index < shown.length - 1} testID={`progress-detail-domain-entry-${entry.id}`} />)}
+      {entries.length > 3 ? <Button variant="ghost" size="sm"
+        testID={`progress-detail-domain-toggle-${slug}`} label={expanded ? 'Show fewer updates' : `Show up to ${PER_DOMAIN_SHOWN} updates`}
+        accessibilityState={{ expanded }} onPress={() => setExpanded((value) => !value)} /> : null}
+      {hiddenCount > 0 ? <ThemedText type="caption" themeColor="textSecondary">
+        {hiddenCount} earlier loaded update{hiddenCount === 1 ? '' : 's'} not shown. The loaded history is bounded to the latest {HISTORY_LIMIT} updates across domains.
+      </ThemedText> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  evidenceCard: { gap: Spacing.two },
   header: {
     gap: Spacing.one,
-  },
-  // Numbered hairline fact-row grammar (lock §8); static rows keep the 44 dp
-  // rhythm (campaign-033 minimum target) so lists read at a constant cadence.
-  factRow: {
-    minHeight: MIN_TOUCH_TARGET,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    paddingVertical: Spacing.one,
-  },
-  factMarker: {
-    minWidth: Spacing.three,
-    fontVariant: ['tabular-nums'],
-  },
-  factLabels: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  // Tracked uppercase label at emphasis weight — a label, not a shout.
-  factLabel: {
-    fontWeight: '600',
-  },
-  factValue: {
-    flexShrink: 0,
   },
   heroRow: {
     flexDirection: 'row',
@@ -657,31 +471,10 @@ const styles = StyleSheet.create({
   rows: {
     gap: Spacing.two,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.two,
-    // Rating-history entries are static evidence rows, but they remain
-    // reachable in the same vertical rhythm as interactive ListRow controls.
-    // Keep the campaign-033 minimum target explicit instead of relying on
-    // whichever text style happens to render tallest in a given font scale.
-    minHeight: MIN_TOUCH_TARGET,
-  },
-  // Fact-row padding between hairline-separated history entries (lock §8).
-  entryRow: {
-    paddingVertical: Spacing.one,
-  },
   domainBlock: {
     gap: Spacing.two,
-    borderWidth: HAIRLINE,
-    borderRadius: Radii.medium,
-    padding: Spacing.twoHalf,
-  },
-  domainHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
+    borderBottomWidth: HAIRLINE,
+    paddingVertical: Spacing.two,
   },
   domainDot: {
     width: Spacing.three,

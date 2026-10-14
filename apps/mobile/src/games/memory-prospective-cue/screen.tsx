@@ -12,17 +12,17 @@
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer AND the current item's
- * response window (the pacing interval is cleared; elapsed window time stays
- * accumulated in render state); resuming continues the remaining window. The
+ * response window (measured exposure stops synchronously); resuming continues
+ * the exact remaining window. Render state only drives the urgency bar. The
  * tutorial overlay freezes the item window the same way while it covers the
  * stream. The stream is covered by the opaque shared `PauseOverlay` and hidden
  * from the accessibility tree while paused — the watchlist lives only in the
  * player's head, and pausing must not buy study time either.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
+import { StyleSheet, View, type GestureResponderEvent } from "react-native";
 
-import { isDevBuild, liveAudioHaptics, systemClock, testId } from "@/sdk";
+import { assertDevOnly, isDevBuild, liveAudioHaptics, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
@@ -51,7 +51,6 @@ import {
 } from "./difficulty";
 import { gameDefinition } from "./game-definition";
 import {
-  createProspectiveCueQaForceStateHooks,
   createProspectiveCueTutorialLifecycle,
 } from "./hooks";
 import { prospectiveCueGameReducer } from "./reducer";
@@ -64,8 +63,10 @@ import {
 } from "./session";
 import type { SessionPersistence } from "./session";
 import { SCORING_VERSION } from "./versions";
-import { continuationStamp, GAME_ID, createInitialProspectiveCueState } from './types';
-import type { ProspectiveCueAction } from './types';
+import { continuationStamp, ownsItemCue, ownsContinuation, GAME_ID, createInitialProspectiveCueState } from './types';
+import { freezeWindow, readWindowElapsed } from './observed-window';
+import type { ObservedWindow } from './observed-window';
+import type { ItemCueStamp, ProspectiveCueAction } from './types';
 
 export interface ProspectiveCueScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -80,7 +81,7 @@ export interface ProspectiveCueScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Pacing tick granularity for the per-item response window (ms). */
+/** Bar refresh/expiry-notice cadence; measured exposure owns all decisions. */
 const WINDOW_TICK_MS = 50;
 
 export default function SignalWatchScreen(
@@ -95,67 +96,45 @@ export default function SignalWatchScreen(
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     prospectiveCueGameReducer,
     undefined,
     createInitialProspectiveCueState,
   );
 
   const stateRef = useRef(state);
-  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
-  // before React commits the pause or continuation dispatch.
-  const dispatchContinuation = useCallback((action: ProspectiveCueAction) => {
-    stateRef.current = prospectiveCueGameReducer(stateRef.current, action);
-    dispatch(action);
-  }, [dispatch]);
-  /**
-   * Per-item response-window elapsed ms as pure RENDER STATE, driving both
-   * the urgency bar and the press-path elapsedFraction. Written ONLY by the
-   * pacing interval (50 ms) and reset via the sanctioned render-phase
-   * adjustment when the current item changes — never synchronously in an
-   * effect and never via refs, so renders stay pure. (Campaign 011 fix: the
-   * item-index stamping keeps a press or timeout belonging to one item from
-   * bleeding into the next.)
-   */
-  const [windowElapsedState, setWindowElapsedState] = useState({
-    sessionId: state.sessionId,
-    itemIndex: state.itemIndex,
-    elapsedMs: 0,
-  });
-  if (
-    windowElapsedState.sessionId !== state.sessionId ||
-    windowElapsedState.itemIndex !== state.itemIndex
-  ) {
-    setWindowElapsedState({
-      sessionId: state.sessionId,
-      itemIndex: state.itemIndex,
-      elapsedMs: 0,
-    });
-  }
-  // Pure-derived read for render paths (0 until the adjustment above
-  // commits for a freshly-switched item or a freshly-started session).
-  const windowElapsedMs =
-    windowElapsedState.sessionId === state.sessionId &&
-    windowElapsedState.itemIndex === state.itemIndex
-      ? windowElapsedState.elapsedMs
-      : 0;
-  /**
-   * Cross-lifecycle seed for the response-window accumulator: pausing or
-   * covering the stream must resume the REMAINING window, not grant a fresh
-   * one. Written and read ONLY inside the pacing effect below — never during
-   * render and never from event handlers — so renders stay pure per the
-   * campaign-011 rule. The press path reads the committed render state via
-   * fully-specified useCallback deps instead (see handleRespond).
-   */
-  const windowElapsedSeedRef = useRef({
-    sessionId: state.sessionId,
-    itemIndex: state.itemIndex,
-    elapsedMs: 0,
-  });
+  const windowRef = useRef<ObservedWindow | null>(null);
+  const presentedCueRef = useRef<ItemCueStamp | null>(null);
+  const deliveredPresses = useRef(new WeakSet<object>());
 
-  useEffect(() => {
-    stateRef.current = state;
+  // Claim every accepted action before React commits: old rendered controls
+  // cannot resolve a newly queued item, even when native deliveries share a batch.
+  const dispatch = useCallback((action: ProspectiveCueAction) => {
+    const current = stateRef.current;
+    const next = prospectiveCueGameReducer(current, action);
+    if (next === current) return null;
+    if (next.paused || next.tutorialOpen || next.sessionId !== current.sessionId ||
+        next.roundIndex !== current.roundIndex || next.itemIndex !== current.itemIndex || next.phase !== current.phase) {
+      freezeWindow(windowRef.current, clock.now());
+    }
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, [clock]);
+  const dispatchContinuation = dispatch;
+
+  const [windowElapsedState, setWindowElapsedState] = useState({
+    sessionId: state.sessionId, roundIndex: state.roundIndex, itemIndex: state.itemIndex, elapsedMs: 0,
   });
+  if (windowElapsedState.sessionId !== state.sessionId ||
+      windowElapsedState.roundIndex !== state.roundIndex || windowElapsedState.itemIndex !== state.itemIndex) {
+    setWindowElapsedState({ sessionId: state.sessionId, roundIndex: state.roundIndex, itemIndex: state.itemIndex, elapsedMs: 0 });
+  }
+  const windowElapsedMs = windowElapsedState.sessionId === state.sessionId &&
+    windowElapsedState.roundIndex === state.roundIndex && windowElapsedState.itemIndex === state.itemIndex
+      ? windowElapsedState.elapsedMs : 0;
+
+  useLayoutEffect(() => { stateRef.current = state; });
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -183,7 +162,6 @@ export default function SignalWatchScreen(
     };
     const next = prospectiveCueGameReducer(current, action);
     if (next === current) return;
-    stateRef.current = next;
     dispatch(action);
   };
 
@@ -191,10 +169,8 @@ export default function SignalWatchScreen(
     () => createProspectiveCueTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createProspectiveCueQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null
@@ -209,74 +185,51 @@ export default function SignalWatchScreen(
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Response-window pacing with freeze-and-continue: a window of `itemMs` of
-  // ACTIVE (non-paused, tutorial-closed) time, accumulated in 50ms steps.
-  // While paused OR the tutorial overlay is open the interval is cleared so
-  // no window time accrues; on resume/close the accumulator is re-seeded
-  // from the mirror so the REMAINING window continues (never a restart).
-  // Expiry dispatches an index-stamped `item-timeout` — only the
-  // interval that owns the current item can expire it.
-  //
-  // Kept as a game-local effect (not `useGameInterval`) DELIBERATELY: the
-  // campaign 011 bleed-through fix couples the accumulator lifecycle to this
-  // effect's dependency-scoped closures (index-stamped render-state writes +
-  // index-stamped expiry). Hoisting it behind the shared helper would either
-  // change resume semantics or reintroduce the render-phase ref access that
-  // 011 removed. Correctness beats mechanical uniformity.
+  const renderedCue = useMemo<ItemCueStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, itemIndex: state.itemIndex, phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.itemIndex, state.phase, state.continuationEpoch]);
+  const readStatus = session.status;
+
+  // Exposure starts at the commit that actually mounts the cue. Resumes keep
+  // measured exposure; a queued transition never charges an unseen next item.
+  useLayoutEffect(() => {
+    if (state.phase !== "stream" || state.paused || state.tutorialOpen || readStatus() !== 'active') return;
+    const previous = windowRef.current;
+    const sameItem = previous !== null && previous.sessionId === state.sessionId && previous.roundIndex === state.roundIndex &&
+      previous.itemIndex === state.itemIndex && previous.phase === state.phase;
+    const window: ObservedWindow = { sessionId: state.sessionId, roundIndex: state.roundIndex, itemIndex: state.itemIndex,
+      phase: state.phase, elapsedMs: sameItem ? previous.elapsedMs : 0, startedAtMs: clock.now() };
+    windowRef.current = window;
+    presentedCueRef.current = renderedCue;
+    const observed = window;
+    return () => freezeWindow(observed, clock.now());
+  }, [state.phase, state.paused, state.tutorialOpen, state.sessionId, state.roundIndex, state.itemIndex, renderedCue, readStatus, clock]);
+
+  // The 50 ms cadence only refreshes the bar/notices expiry. All decisions
+  // read measured exposure, and captured/cancelled work owns only this cue.
   useEffect(() => {
-    if (state.phase !== "stream" || state.paused || state.tutorialOpen) {
-      return undefined;
-    }
-    const itemIndex = state.itemIndex;
-    const sessionId = state.sessionId;
-    // Freeze-and-continue seed: same session + same item → keep accumulated
-    // ACTIVE time across pause/tutorial coverage; fresh item OR fresh session →
-    // start at 0. Without this, a resume silently granted a full fresh window
-    // on every pause/resume, and a restart inherited the previous session's
-    // partial window when both happened to be on item 0 (stamped by sessionId
-    // so a restart can never alias the old accumulator).
-    // The accumulator lives in the seed ref itself (no outer mutable
-    // binding captured by the tick closure — keeps the value's mutable
-    // range legible to the React Compiler).
-    const seed = windowElapsedSeedRef.current;
-    const startMs =
-      seed.sessionId === sessionId && seed.itemIndex === itemIndex
-        ? seed.elapsedMs
-        : 0;
-    windowElapsedSeedRef.current = { sessionId, itemIndex, elapsedMs: startMs };
+    if (state.phase !== "stream" || state.paused || state.tutorialOpen) return;
+    const observed = windowRef.current;
+    if (observed === null) return;
+    let cancelled = false;
     const interval = setInterval(() => {
-      // Accumulate UNCLAMPED ticks in the seed ref (nothing derived from
-      // itemMs is ever stored there); clamp only at the consumers.
-      const rawElapsedMs =
-        windowElapsedSeedRef.current.elapsedMs + WINDOW_TICK_MS;
-      windowElapsedSeedRef.current = { sessionId, itemIndex, elapsedMs: rawElapsedMs };
-      setWindowElapsedState((prev) =>
-        prev.sessionId === sessionId && prev.itemIndex === itemIndex
-          ? { ...prev, elapsedMs: Math.min(rawElapsedMs, itemMs) }
-          : prev,
-      );
-      if (rawElapsedMs >= itemMs) {
-        clearInterval(interval);
-        dispatch({ type: "item-timeout", itemIndex });
+      const current = stateRef.current;
+      if (cancelled || readStatus() !== 'active' || windowRef.current !== observed || !ownsItemCue(current, renderedCue)) return;
+      const elapsedMs = readWindowElapsed(observed, clock.now());
+      setWindowElapsedState((prev) => prev.sessionId === renderedCue.sessionId &&
+        prev.roundIndex === renderedCue.roundIndex && prev.itemIndex === renderedCue.itemIndex
+          ? { ...prev, elapsedMs: Math.min(elapsedMs, itemMs) } : prev);
+      if (elapsedMs >= itemMs) {
+        dispatch({ type: 'item-timeout', itemIndex: renderedCue.itemIndex, stamp: renderedCue });
       }
     }, WINDOW_TICK_MS);
-    return () => clearInterval(interval);
-  }, [
-    state.phase,
-    state.paused,
-    state.tutorialOpen,
-    state.itemIndex,
-    state.sessionId,
-    itemMs,
-    dispatch,
-  ]);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [state.phase, state.paused, state.tutorialOpen, renderedCue, readStatus, itemMs, clock, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: "tutorial-open" });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Per-item feedback (covers both responses and timeouts uniformly).
   useEffect(() => {
@@ -402,6 +355,7 @@ export default function SignalWatchScreen(
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -420,40 +374,42 @@ export default function SignalWatchScreen(
     goBack();
   }, [session, goBack]);
 
-  // NOTE: deliberately NOT wrapped in useCallback. The React Compiler
-  // cannot preserve a manual memo whose dependency chain includes the
-  // render-derived `itemMs` (preserve-manual-memoization), and freshness
-  // matters more than identity here: a per-render closure always sees the
-  // latest committed window drain, and ResponseControls is not memoized,
-  // so nothing downstream benefited from a stable identity.
-  const handleRespond = (kind: "go" | "signal") => {
+  const handleRespond = (kind: "go" | "signal", event?: GestureResponderEvent) => {
     const current = stateRef.current;
-    if (
-      current.phase !== "stream" ||
-      current.paused ||
-      current.tutorialOpen ||
-      current.roundScored
-    ) {
+    const observed = windowRef.current;
+    const presented = presentedCueRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'stream' || current.roundScored ||
+        !ownsItemCue(current, renderedCue) || observed === null || observed.startedAtMs === null ||
+        presented === null || !ownsItemCue(current, presented)) return;
+    // The native payload survives different JS wrappers. Distinct physical
+    // presses remain valid; no arbitrary debounce interval discards them.
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    const elapsedMs = readWindowElapsed(observed, clock.now());
+    if (elapsedMs >= itemMs) {
+      dispatch({ type: 'item-timeout', itemIndex: renderedCue.itemIndex, stamp: renderedCue });
       return;
     }
-    // Committed drain (≤ one WINDOW_TICK_MS stale) is the press-path
-    // truth; a press on a freshly-switched item or restarted session reads 0.
-    const pressedElapsedMs =
-      windowElapsedState.sessionId === current.sessionId &&
-      windowElapsedState.itemIndex === current.itemIndex
-        ? windowElapsedState.elapsedMs
-        : 0;
-    const elapsedFraction = Math.min(
-      1,
-      Math.max(0, pressedElapsedMs / itemMs),
-    );
-    // Stamped with the item the player actually saw; the reducer ignores
-    // presses for any other index (double-tap / late-press protection).
-    dispatch({ type: "respond", kind, elapsedFraction, itemIndex: current.itemIndex });
+    dispatch({ type: 'respond', kind, elapsedFraction: Math.max(0, elapsedMs / itemMs), itemIndex: renderedCue.itemIndex, stamp: renderedCue });
+  };
+
+  const handleBriefingDone = () => {
+    const current = stateRef.current;
+    if (readStatus() === 'active' && current.phase === 'briefing' && ownsContinuation(current, renderedContinuation)) {
+      dispatch({ type: 'briefing-done' });
+    }
   };
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if ((current.phase !== "intro" && current.phase !== "results") || current.paused || current.tutorialOpen) return;
+    // A result may be claimed before its finalization effect commits.
+    // Restart only after the old SDK lifecycle is terminal, never replace it.
+    const status = session.status();
+    if (status !== null && status !== 'completed' && status !== 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -540,7 +496,7 @@ export default function SignalWatchScreen(
       }
       score={String(state.stats.score)}
       qaPanel={
-        <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+        <QaPanel onForceWin={forceWin} onForceLose={forceLose} />
       }
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -572,7 +528,7 @@ export default function SignalWatchScreen(
               <GameButton
                 testID={testId(GAME_ID, "briefing-start")}
                 label="Start stream"
-                onPress={() => dispatch({ type: "briefing-done" })}
+                onPress={handleBriefingDone}
               />
             </>
           ) : null}
@@ -617,7 +573,7 @@ export default function SignalWatchScreen(
               the controls below belong to the next item and stay neutral. */}
               {verdictBanner}
               <ResponseControls
-                disabled={state.paused}
+                disabled={state.paused || state.tutorialOpen}
                 onRespond={handleRespond}
               />
             </>

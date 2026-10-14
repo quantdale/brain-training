@@ -18,6 +18,7 @@
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
@@ -32,7 +33,7 @@ export interface OperatorButtonProps {
   operator: Operator;
   testID: string;
   /** Stable tap handler supplied by the row (avoids per-render closures). */
-  onPressOperator?: (operator: Operator) => void;
+  onPressOperator?: (operator: Operator, event?: GestureResponderEvent) => void;
   disabled?: boolean;
   /** Round-resolution highlight; null while the round is open. */
   highlight?: 'correct' | 'wrong' | null;
@@ -75,7 +76,7 @@ export const OperatorButton = memo(function OperatorButton({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: highlight === 'correct' }}
       disabled={disabled}
-      onPress={onPressOperator ? () => onPressOperator(operator) : undefined}
+      onPress={onPressOperator ? (event) => onPressOperator(operator, event) : undefined}
       style={({ pressed }) => [
         styles.button,
         {
@@ -110,7 +111,7 @@ export interface OperatorRowProps {
   /** Stable visual resolver (depends only on round-resolution state). */
   highlightFor: (operator: Operator) => 'correct' | 'wrong' | null;
   /** Stable tap handler; passed through so memoized buttons skip re-renders. */
-  onPressOperator: (operator: Operator) => void;
+  onPressOperator: (operator: Operator, event?: GestureResponderEvent) => void;
 }
 
 export const OperatorRow = memo(function OperatorRow({

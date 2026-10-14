@@ -97,6 +97,7 @@ describe('progress detail screen', () => {
     await result;
 
     expect(screen.getByTestId('progress-detail-title')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-detail-browse-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-detail-back')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-detail-domains')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-detail-games')).toBeOnTheScreen();
@@ -178,6 +179,22 @@ describe('progress detail screen', () => {
     await act(async () => {});
     expect(result.getPathname()).toBe('/game-detail/memory');
     expect(screen.getByTestId('game-detail-title')).toBeOnTheScreen();
+  }, 30_000);
+
+  it('bounds the initial domain tail and reveals earlier loaded evidence on request', async () => {
+    mockDbState.db = makeFakeDb({ history: Array.from({ length: 5 }, (_, index) => ({
+      id: 5 - index, sessionId: `s${5 - index}`, domain: 'Memory', delta: 10,
+      ratingAfter: 1050 - index * 10, createdAt: 5000 - index * 1000,
+    })) });
+    await renderRouter('./src/app', { initialUrl: '/progress-detail' });
+    expect(screen.getByTestId('progress-detail-scope')).toHaveTextContent(/up to 120/);
+    expect(screen.queryByTestId('progress-detail-domain-entry-1')).toBeNull();
+    expect(screen.getByTestId('progress-detail-domain-entry-3')).toHaveTextContent(/1030/);
+    await fireEvent.press(screen.getByTestId('progress-detail-domain-toggle-memory'));
+    expect(screen.getByTestId('progress-detail-domain-entry-1')).toHaveTextContent(/1010/);
+    expect(screen.getByTestId('progress-detail-domain-entry-5')).toHaveTextContent(/1050/);
+    await fireEvent.press(screen.getByTestId('progress-detail-domain-toggle-memory'));
+    expect(screen.queryByTestId('progress-detail-domain-entry-1')).toBeNull();
   }, 30_000);
 
   it('opens the detail screen from the Progress tab link', async () => {

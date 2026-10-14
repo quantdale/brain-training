@@ -206,6 +206,8 @@ export type LogicDeductionAction =
 export interface LogicDeductionState {
   phase: LogicDeductionPhase;
   paused: boolean;
+  /** Retires queued controls across session, cue, pause and tutorial boundaries. */
+  continuationEpoch: number;
   difficulty: DifficultyLevel | null;
   profile: DifficultyProfile | null;
   params: LogicDeductionDifficultyParams | null;
@@ -246,6 +248,7 @@ export function createInitialLogicDeductionState(): LogicDeductionState {
   return {
     phase: "intro",
     paused: false,
+    continuationEpoch: 0,
     difficulty: "normal",
     profile: null,
     params: null,

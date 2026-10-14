@@ -639,7 +639,8 @@ export default function ProfileScreen() {
         </View>
       </Entrance>
 
-      <Entrance index={1}>
+      {/* Identity must paint immediately when data arrives, including tab re-entry. */}
+      <Entrance index={1} enabled={false}>
         <Card padding="md" testID="profile-identity" style={styles.identityCard}>
           <View style={styles.identityRow}>
             <View

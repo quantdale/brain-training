@@ -124,12 +124,13 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 export type SymbolTrackerAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'observe-tick' }
-  | { type: 'tap-cell'; index: number }
-  | { type: 'submit' }
+  | { type: 'observe-tick'; stamp?: ResultContinuationStamp }
+  | { type: 'tap-cell'; index: number; stamp?: ResultContinuationStamp }
+  | { type: 'submit'; stamp?: ResultContinuationStamp }
   | {
       /** Respond budget expired: resolve with the current selections. */
       type: 'respond-deadline';
+      stamp?: ResultContinuationStamp;
     }
   | { type: 'next-round' ; stamp: ResultContinuationStamp }
   | { type: 'pause' }

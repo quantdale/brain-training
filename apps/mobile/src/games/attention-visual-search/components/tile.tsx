@@ -7,7 +7,7 @@
  * distractor surface.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -25,7 +25,7 @@ export interface TileProps {
   visual: TileVisualState;
   disabled?: boolean;
   /** Stable tap handler supplied by the grid (avoids per-render closures). */
-  onPressTile?: (index: number) => void;
+  onPressTile?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const Tile = memo(function Tile({ index, visual, disabled = false, onPressTile }: TileProps) {
@@ -48,19 +48,21 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
       : visual === 'error'
         ? { glyph: '✕', backgroundColor: theme.dangerOn, color: theme.danger }
         : null;
+  // Describe the same visible feature a sighted player compares. Naming its
+  // appearance is task content; announcing "target" would classify the answer.
+  const appearance = visual === 'target' ? 'orange square'
+    : visual === 'selected' ? (theme.surface === '#FFFFFF' ? 'pale orange square' : 'dark orange square')
+      : visual === 'error' ? 'red square'
+        : theme.surface === '#FFFFFF' ? 'white square' : 'dark blue square';
 
   return (
     <Pressable
       testID={testId(GAME_ID, 'tile', String(index))}
       accessibilityRole="button"
-      // Neutral label only — never disclose whether this tile is the target,
-      // which would leak the answer to screen-reader users. Correctness is
-      // conveyed via `accessibilityState` after a tap (selected) and via the
-      // label once a tap is known wrong.
-      accessibilityLabel={visual === 'error' ? `Tile ${index + 1}, incorrect` : `Tile ${index + 1}`}
+      accessibilityLabel={`Tile ${index + 1}, ${appearance}${visual === 'error' ? ', incorrect' : ''}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPressTile ? () => onPressTile(index) : undefined}
+      onPress={onPressTile ? (event) => onPressTile(index, event) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor: theme.border },

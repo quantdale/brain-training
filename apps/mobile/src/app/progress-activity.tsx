@@ -14,7 +14,7 @@
 
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import {
   activeRuns,
@@ -35,20 +35,18 @@ import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
 import {
   BackLink,
   Card,
-  EmptyState,
   Entrance,
   ListRow,
   SectionGrid,
   Skeleton,
   SkeletonText,
-  Spark,
-  StatBlock,
+  Report,
+  ReportRow,
   useSafeBack,
 } from '@/components/ui';
-import { Spacing, type ThemeColor } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
-import { useTheme } from '@/hooks/use-theme';
 import { formatDayLabel } from '@/analytics/format';
 
 const CALENDAR_DAYS = 182; // ~26 weeks
@@ -67,7 +65,8 @@ function load(db: AppDatabase): Promise<ProgressSnapshot> {
 }
 
 export default function ProgressActivityScreen() {
-  const theme = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const stackedSummary = width < 360 || fontScale >= 1.5;
   // 058: cold deep links land with an empty stack — fall back to /progress.
   const goBack = useSafeBack('/progress');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -107,8 +106,8 @@ export default function ProgressActivityScreen() {
       <ThemedText type="title" testID="progress-activity-title">
         Activity
       </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        How often you trained over the last ~6 months.
+      <ThemedText type="bodySmall" themeColor="textSecondary">
+        Your completed sessions over the last 182 days.
       </ThemedText>
 
       {!loaded ? (
@@ -125,63 +124,26 @@ export default function ProgressActivityScreen() {
           action={{ label: 'Try again', onPress: retry }}
         />
       ) : calendar.totalSessions === 0 ? (
-        <Entrance index={0}>
-          <Card tone="accentSoft">
-            <EmptyState
-              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
-              title="No sessions yet"
-              message="Play a game to fill this calendar."
-              actionLabel="Browse games"
-              onAction={() => router.replace('/games')}
-              actionVariant="primary"
-              testID="progress-activity-empty"
-            />
-          </Card>
-        </Entrance>
+        <StateCard variant="empty" title="No activity in this view"
+          message="No completed sessions in the last 182 days. Play a game to add a training day."
+          testID="progress-activity-empty" action={{ label: 'Browse games', onPress: () => router.replace('/games') }} />
       ) : (
         <>
 
-      <Entrance index={0}>
-      <Card testID="progress-activity-summary">
-        <ThemedText type="subtitle">Summary</ThemedText>
-        <View style={styles.summaryRow}>
+      <Card style={styles.evidenceCard} variant="outlined" padding="md" testID="progress-activity-summary">
+        <View style={[styles.summaryRow, stackedSummary && styles.summaryStacked]} testID="progress-activity-summary-layout">
           <SummaryStat label="Sessions" value={String(calendar.totalSessions)} />
           <SummaryStat label="Active days" value={String(calendar.activeDays)} />
-          <SummaryStat
-            label="Avg / active day"
-            value={calendar.avgPerActiveDay > 0 ? calendar.avgPerActiveDay.toFixed(1) : '—'}
-          />
-          <SummaryStat
-            label="Days since last"
-            tone="info"
-            value={
-              daysSinceLast === null ? '—' : daysSinceLast === 0 ? 'Today' : `${daysSinceLast}d`
-            }
-          />
         </View>
-        {calendar.busiest ? (
-          <ThemedText type="caption" themeColor="textSecondary">
-            Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} (
-            {calendar.busiest.count} session{calendar.busiest.count === 1 ? '' : 's'}).
-          </ThemedText>
-        ) : null}
         <ThemedText type="caption" themeColor="textSecondary" testID="progress-activity-share">
-          {calendar.activeDays} of {CALENDAR_DAYS} days active (
-          {Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
-        </ThemedText>
-        <View style={styles.summaryRow} testID="progress-activity-runs">
-          <SummaryStat label="Current run" value={`${runs.current}d`} tone="streak" />
-          <SummaryStat label="Longest run" value={`${runs.longest}d`} tone="streak" />
-        </View>
-        <ThemedText type="caption" themeColor="textSecondary">
-          {explainMetric('activity-runs')}
+          {calendar.activeDays} of {CALENDAR_DAYS} days active ({Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
+          {' '}Last session {daysSinceLast === 0 ? 'today' : `${daysSinceLast ?? '—'} ${daysSinceLast === 1 ? 'day' : 'days'} ago`}.
         </ThemedText>
       </Card>
-      </Entrance>
 
       <Entrance index={1}>
-      <Card testID="progress-activity-heatmap">
-        <ThemedText type="subtitle">Calendar</ThemedText>
+      <Card style={styles.evidenceCard} testID="progress-activity-heatmap">
+        <ThemedText type="headline">Training days</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           {calendar.days.length > 0
             ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
@@ -225,9 +187,19 @@ export default function ProgressActivityScreen() {
       </Card>
       </Entrance>
 
+      <Report title="Training rhythm" testID="progress-activity-runs">
+        <ReportRow label="Sessions per active day" value={calendar.avgPerActiveDay > 0 ? calendar.avgPerActiveDay.toFixed(1) : '—'} divider />
+        <ReportRow label="Current run of active days" value={`${runs.current}d`} divider />
+        <ReportRow label="Longest run in this view" value={`${runs.longest}d`} />
+        {calendar.busiest ? <ThemedText type="caption" themeColor="textSecondary">
+          Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} · {calendar.busiest.count} sessions.
+        </ThemedText> : null}
+        <ThemedText type="caption" themeColor="textSecondary">{explainMetric('activity-runs')}</ThemedText>
+      </Report>
+
       <Entrance index={2}>
       <SectionGrid>
-      <Card testID="progress-activity-distribution">
+      <Card style={styles.evidenceCard} testID="progress-activity-distribution">
         <ThemedText type="subtitle">Frequency</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Days with a given number of sessions.
@@ -244,7 +216,7 @@ export default function ProgressActivityScreen() {
         </View>
       </Card>
 
-      <Card testID="progress-activity-weekdays">
+      <Card style={styles.evidenceCard} testID="progress-activity-weekdays">
         <ThemedText type="subtitle">Weekday pattern</ThemedText>
         <LabeledBars
           testID="progress-activity-weekday-bars"
@@ -272,13 +244,13 @@ export default function ProgressActivityScreen() {
 
       {months.length > 0 ? (
         <Entrance index={3}>
-        <Card testID="progress-activity-monthly">
+        <Card style={styles.evidenceCard} testID="progress-activity-monthly">
           <ThemedText type="subtitle">By month</ThemedText>
           <View style={styles.rows}>
             {months.map((m) => (
               <ListRow
                 key={m.monthKey}
-                title={m.monthKey}
+                title={new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${m.monthKey}-01T00:00:00Z`))}
                 subtitle={`${m.activeDays} active day${m.activeDays === 1 ? '' : 's'}`}
                 meta={`${m.sessions} session${m.sessions === 1 ? '' : 's'}`}
                 testID={`progress-activity-month-${m.monthKey}`}
@@ -297,25 +269,21 @@ export default function ProgressActivityScreen() {
   );
 }
 
-function SummaryStat({
-  label,
-  value,
-  tone = 'accent',
-}: {
-  label: string;
-  value: string;
-  tone?: ThemeColor;
-}) {
+function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.stat}>
-      <StatBlock label={label} value={value} tone={tone} valueType="numeral" />
+      <ThemedText type="numeral">{value}</ThemedText>
+      <ThemedText type="bodySmall" themeColor="textSecondary">{label}</ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  evidenceCard: { gap: Spacing.two },
+  summaryStacked: { flexDirection: 'column' },
   summaryRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   stat: {
@@ -330,6 +298,7 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
   legendCells: {

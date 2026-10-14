@@ -12,7 +12,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { renderRouter, screen } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
 
 import type {
@@ -169,6 +169,10 @@ describe('Progress overview — W09 additions', () => {
     const result = renderBare(ProgressScreen, '/progress');
     await result;
 
+    expect(screen.queryByTestId('progress-balance')).toBeNull();
+    expect(screen.getByTestId('progress-insights-toggle').props.accessibilityState.expanded).toBe(false);
+    await fireEvent.press(screen.getByTestId('progress-insights-toggle'));
+    expect(screen.getByTestId('progress-insights-toggle').props.accessibilityState.expanded).toBe(true);
     expect(screen.getByTestId('progress-balance')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-balance-bar')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-balance-memory')).toBeOnTheScreen();
@@ -256,7 +260,7 @@ describe('Activity calendar — W09 additions', () => {
     });
     const result = renderBare(ProgressActivityScreen, '/progress-activity');
     await result;
-    expect(screen.getByTestId('progress-activity-summary')).toHaveTextContent(/Days since last/);
+    expect(screen.getByTestId('progress-activity-summary')).toHaveTextContent(/Last session 1 day ago/);
     expect(screen.getByTestId('progress-activity-share')).toBeOnTheScreen();
   });
 });

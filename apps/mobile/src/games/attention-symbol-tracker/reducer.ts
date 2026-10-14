@@ -150,14 +150,16 @@ export function symbolTrackerGameReducer(
     case 'observe-tick': {
       // The observe window expired: scramble happened already (the respond
       // board was generated up front); reveal it.
-      if (state.phase !== 'observe' || state.paused) {
+      if (state.phase !== 'observe' || state.paused || state.tutorialOpen ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       return { ...state, phase: 'respond', selections: [], respondTimedOut: false };
     }
 
     case 'tap-cell': {
-      if (state.phase !== 'respond' || state.paused || state.roundScored) {
+      if (state.phase !== 'respond' || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       // Selections are symbol ids; empty cells are not selectable.
@@ -177,7 +179,8 @@ export function symbolTrackerGameReducer(
 
     case 'submit':
     case 'respond-deadline': {
-      if (state.phase !== 'respond' || state.paused || state.roundScored || state.profile === null) {
+      if (state.phase !== 'respond' || state.paused || state.tutorialOpen || state.roundScored || state.profile === null ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       const params = symbolTrackerParamsFromProfile(state.profile);
@@ -262,11 +265,11 @@ export function symbolTrackerGameReducer(
     }
 
     case 'tutorial-open': {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: true };
     }
 
     case 'tutorial-close': {
-      return { ...state, tutorialOpen: false };
+      return !state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: false };
     }
 
     case 'session-finalized': {

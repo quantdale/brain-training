@@ -15,6 +15,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { Radii, Spacing, type ThemeColor } from '@/theme/tokens';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
+import { AppIcon } from './app-icon';
+import { useStackedRow, type RowLayout } from './row-layout';
 
 /** Props accepted by {@link ListRow}. */
 export interface ListRowProps {
@@ -38,6 +40,8 @@ export interface ListRowProps {
   /** Defaults to true on pressable rows; never shown on static rows. */
   showChevron?: boolean;
   disabled?: boolean;
+  /** Auto stacks metadata at compact widths or enlarged system text. */
+  layout?: RowLayout;
 }
 
 export function ListRow({
@@ -53,11 +57,19 @@ export function ListRow({
   accessibilityLabel,
   showChevron,
   disabled = false,
+  layout = 'auto',
 }: ListRowProps) {
   const theme = useTheme();
+  const stacked = useStackedRow(layout);
   const pressable = onPress !== undefined;
   const chevron = pressable && (showChevron ?? true);
-  const name = accessibilityLabel ?? (subtitle ? `${title}. ${subtitle}` : title);
+  const name = accessibilityLabel ?? [title, meta, subtitle].filter(Boolean).join('. ');
+  const metadata = meta ? (
+    <ThemedText type="caption" themeColor="textSecondary"
+      style={[styles.meta, stacked && styles.metaStacked]} testID={metaTestID}>
+      {meta}
+    </ThemedText>
+  ) : null;
 
   const content = (
     <>
@@ -71,32 +83,20 @@ export function ListRow({
         </View>
       ) : null}
       <View style={styles.texts}>
-        <ThemedText type="body" numberOfLines={1}>
+        <ThemedText type="body" themeColor={disabled ? 'textSecondary' : 'text'}>
           {title}
         </ThemedText>
         {subtitle ? (
-          <ThemedText type="bodySmall" themeColor="textSecondary" numberOfLines={2}>
+          <ThemedText type="bodySmall" themeColor="textSecondary">
             {subtitle}
           </ThemedText>
         ) : null}
+        {stacked ? metadata : null}
       </View>
-      {meta ? (
-        <ThemedText type="caption" themeColor="textSecondary" numberOfLines={1} testID={metaTestID}>
-          {meta}
-        </ThemedText>
-      ) : null}
+      {stacked ? null : metadata}
       {chevron ? (
-        <ThemedText
-          type="body"
-          themeColor="textMuted"
-          allowFontScaling={false}
-          // Deliberately no testID: the chevron is decoration, and a
-          // `<rowTestID>-chevron` node makes prefix-based row discovery count
-          // every row twice (automation, and the a11y audit, both walk the
-          // hierarchy by id prefix). The row itself carries the testID.
-          testID={undefined}>
-          ›
-        </ThemedText>
+        // No decorative testID: prefix-based discovery must count the row once.
+        <AppIcon name="chevron" color={theme.textMuted} size={20} />
       ) : null}
     </>
   );
@@ -109,7 +109,7 @@ export function ListRow({
         disabled={disabled}
         accessibilityLabel={name}
         accessibilityHint={accessibilityHint}
-        style={[styles.row, disabled && styles.disabled]}
+        style={[styles.row, disabled && { backgroundColor: theme.surfaceSunken }]}
         pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
         {content}
       </Tappable>
@@ -141,8 +141,16 @@ const styles = StyleSheet.create({
   texts: {
     flex: 1,
     flexShrink: 1,
+    minWidth: 0,
   },
-  disabled: {
-    opacity: 0.5,
+  meta: {
+    flexShrink: 1,
+    maxWidth: '35%',
+    textAlign: 'right',
+  },
+  metaStacked: {
+    maxWidth: '100%',
+    textAlign: 'left',
+    alignSelf: 'flex-start',
   },
 });

@@ -251,7 +251,7 @@ describe("GridRecallScreen", () => {
     expect(raw.score).toBe(
       perfectSessionScore(GRID_RECALL_DIFFICULTY_PARAMS.normal),
     );
-    expect(raw.diagnosticMetadata.gameVersion).toBe("1.1.0");
+    expect(raw.diagnosticMetadata.gameVersion).toBe("1.2.0");
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe("normal");
     expect(raw.forced).toBe(false);

@@ -36,7 +36,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -61,7 +60,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialFlexibilityState } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, createInitialFlexibilityState } from './types';
 import type { FlexibilityAction } from './types';
 
 export interface CardSortScreenProps {
@@ -126,7 +125,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     },
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const renderedContinuation = useMemo(() => continuationStamp(state), [state]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -140,6 +139,18 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     stateRef.current = next;
     dispatch(action);
   };
+
+  const handleNoticeContinue = useCallback(() => {
+    const current = stateRef.current;
+    if (session.status() !== 'active' ||
+        !session.isCurrentSession(renderedContinuation.sessionId) ||
+        !ownsContinuation(current, renderedContinuation) || current.phase !== 'ruleSwitchNotice') return;
+    const action: FlexibilityAction = { type: 'notice-continue' };
+    const next = flexibilityGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  }, [renderedContinuation, session]);
 
   const tutorial = useMemo(
     () => createFlexibilityTutorialLifecycle(tutorialStore),
@@ -170,11 +181,16 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
 
   // ---- Rule-switch notice: one timer per notice; pause cancels it (timers
   // frozen), resume re-schedules from scratch.
-  useGameTimeout(
-    state.phase === 'ruleSwitchNotice' && !state.paused,
-    () => dispatch({ type: 'notice-expired' }),
-    noticeMs,
-  );
+  useEffect(() => {
+    if (state.phase !== 'ruleSwitchNotice' || state.paused) return;
+    // Retain this notice's callback, rather than routing a cancelled native
+    // timeout through the latest notice after pause/resume or a restart.
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) handleNoticeContinue();
+    }, noticeMs);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, noticeMs, handleNoticeContinue]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -307,36 +323,45 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     goBack();
   }, [session, goBack]);
 
-  const handlePick = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'roundActive' || current.paused || current.round === null) {
-        return;
-      }
-      const responseMs = Math.max(0, clock.now() - roundStartRef.current);
-      if (index === current.round.correctIndex) {
-        liveAudioHaptics.playSfx('flexibility-card-correct');
-        liveAudioHaptics.haptic('light');
-      } else {
-        liveAudioHaptics.playSfx('flexibility-card-wrong');
-        liveAudioHaptics.haptic('warning');
-      }
-      dispatch({ type: 'pick-card', index, responseMs });
-    },
-    [clock, dispatch],
-  );
-
-  const handleStart = useCallback(() => {
+  // Bind the action to the cue that supplied this native press callback.
+  // Claim the reducer transition before emitting feedback or dispatching:
+  // React may batch several callbacks before it commits the result.
+  const handlePick = (index: number) => {
     const current = stateRef.current;
+    if (session.status() !== 'active' ||
+        !session.isCurrentSession(renderedContinuation.sessionId) ||
+        !ownsContinuation(current, renderedContinuation) ||
+        current.phase !== 'roundActive' || current.round === null) return;
+    const responseMs = Math.max(0, clock.now() - roundStartRef.current);
+    const action: FlexibilityAction = { type: 'pick-card', index, responseMs };
+    const next = flexibilityGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+    if (index === current.round.correctIndex) {
+      liveAudioHaptics.playSfx('flexibility-card-correct');
+      liveAudioHaptics.haptic('light');
+    } else {
+      liveAudioHaptics.playSfx('flexibility-card-wrong');
+      liveAudioHaptics.haptic('warning');
+    }
+  };
+
+  const handleStart = () => {
+    const current = stateRef.current;
+    if ((state.phase !== 'intro' && state.phase !== 'results') ||
+        current.phase !== state.phase || current.sessionId !== state.sessionId ||
+        current.continuationEpoch !== state.continuationEpoch || current.tutorialOpen) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    pauseStartRef.current = null;
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  };
 
   const handleRestart = handleStart;
 
@@ -511,7 +536,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
             <SwitchNotice
               newRule={state.rule}
               masked={state.discoveryBlock}
-              onContinue={() => dispatch({ type: 'notice-continue' })}
+              onContinue={handleNoticeContinue}
             />
           ) : null}
         </>

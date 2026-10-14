@@ -10,7 +10,7 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R pattern);
  * mechanics stay local.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -115,6 +115,13 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
     [],
   );
   const [pickedIndex, setPickedIndex] = useState<number | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const inputRef = useRef({ attempt: 0, pickedIndex: null as number | null, mounted: true });
+  useEffect(() => {
+    const cue = inputRef.current;
+    cue.mounted = true;
+    return () => { cue.mounted = false; };
+  }, []);
 
   const correct = pickedIndex === round.correctIndex;
   const wrong = pickedIndex !== null && pickedIndex !== round.correctIndex;
@@ -155,7 +162,11 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
             card={card}
             testID={`${testId(GAME_ID, 'tutorial-grid')}.card.${index}`}
             onPress={() => {
-              if (pickedIndex === null) {
+              // Retry retires every callback from the previous identical
+              // demo. Claim the first choice before another native event.
+              if (inputRef.current.mounted && inputRef.current.attempt === attempt &&
+                  inputRef.current.pickedIndex === null) {
+                inputRef.current.pickedIndex = index;
                 setPickedIndex(index);
               }
             }}
@@ -176,7 +187,14 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
           testID={testId(GAME_ID, 'tutorial-demo-retry')}
           label="Clear and retry"
           variant="secondary"
-          onPress={() => setPickedIndex(null)}
+          onPress={() => {
+            if (!inputRef.current.mounted || inputRef.current.attempt !== attempt ||
+                inputRef.current.pickedIndex === null) return;
+            inputRef.current.attempt += 1;
+            inputRef.current.pickedIndex = null;
+            setAttempt(inputRef.current.attempt);
+            setPickedIndex(null);
+          }}
         />
       ) : null}
       {onSkip !== undefined ? (

@@ -30,6 +30,7 @@ import { generateRound } from "./generator";
 import { itemPoints, perfectSessionScore } from "./scoring";
 import {
   ownsContinuation,
+  ownsItemCue,
   INITIAL_STATS,
   createInitialProspectiveCueState,
 } from './types';
@@ -225,7 +226,8 @@ export function prospectiveCueGameReducer(
         state.paused ||
         state.tutorialOpen ||
         state.roundScored ||
-        action.itemIndex !== state.itemIndex
+        action.itemIndex !== state.itemIndex ||
+        (action.stamp !== undefined && !ownsItemCue(state, action.stamp))
       ) {
         return state;
       }
@@ -240,7 +242,8 @@ export function prospectiveCueGameReducer(
         state.paused ||
         state.tutorialOpen ||
         state.roundScored ||
-        action.itemIndex !== state.itemIndex
+        action.itemIndex !== state.itemIndex ||
+        (action.stamp !== undefined && !ownsItemCue(state, action.stamp))
       ) {
         return state;
       }
@@ -293,11 +296,11 @@ export function prospectiveCueGameReducer(
     }
 
     case "tutorial-open": {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: true };
     }
 
     case "tutorial-close": {
-      return { ...state, tutorialOpen: false };
+      return !state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: false };
     }
 
     case "session-finalized": {

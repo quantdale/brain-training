@@ -87,8 +87,9 @@ async function renderScreen(options: { seed?: string } = {}) {
   return { clock, persister, result };
 }
 
-async function advanceTime(ms: number) {
+async function advanceTime(clock: ReturnType<typeof createFakeClock>, ms: number) {
   await act(async () => {
+    clock.advance(ms);
     jest.advanceTimersByTime(ms);
   });
 }
@@ -157,7 +158,7 @@ describe("SignalWatchScreen", () => {
     expect(targetIdx).toBeGreaterThanOrEqual(0);
 
     async function playToTargetWithPressDelay(pressDelayMs: number) {
-      await renderScreen({ seed });
+      const { clock } = await renderScreen({ seed });
       await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
       await fireEvent.press(
         screen.getByTestId(testId(GAME_ID, "briefing-start")),
@@ -166,7 +167,7 @@ describe("SignalWatchScreen", () => {
       // contributes identically in both runs: +120 per signal catch,
       // +GO base + full speed bonus per quick filler GO.
       for (let i = 0; i < targetIdx; i += 1) {
-        await advanceTime(TICK_MS);
+        await advanceTime(clock, TICK_MS);
         await fireEvent.press(
           screen.getByTestId(
             testId(GAME_ID, round.items[i].isSignal ? "signal" : "go"),
@@ -174,7 +175,7 @@ describe("SignalWatchScreen", () => {
         );
       }
       // Let the target filler's window drain partially, then GO.
-      await advanceTime(pressDelayMs);
+      await advanceTime(clock, pressDelayMs);
       await fireEvent.press(screen.getByTestId(testId(GAME_ID, "go")));
       return scoreValue();
     }
@@ -201,7 +202,7 @@ describe("SignalWatchScreen", () => {
   });
 
   it("freezes the response window while paused and resumes the remainder", async () => {
-    await renderScreen({ seed: "freeze-resume-seed" });
+    const { clock } = await renderScreen({ seed: "freeze-resume-seed" });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, "briefing-start")),
@@ -209,7 +210,7 @@ describe("SignalWatchScreen", () => {
     expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
 
     // Drain part of item 1's window, then pause.
-    await advanceTime(1000);
+    await advanceTime(clock, 1000);
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "pause")));
     expect(screen.getByTestId(testId(GAME_ID, "pause-overlay"))).toBeTruthy();
 
@@ -217,22 +218,22 @@ describe("SignalWatchScreen", () => {
     // the stream forward. (The stream UI is accessibility-hidden while the
     // opaque overlay is up, so it is not queried here; the remaining-window
     // math below proves the freeze.)
-    await advanceTime(5000);
+    await advanceTime(clock, 5000);
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "resume")));
 
     // Resume CONTINUES the remaining window: 1000ms was already consumed, so
     // all but one remaining tick keeps the item open…
-    await advanceTime(ITEM_MS - 1000 - TICK_MS);
+    await advanceTime(clock, ITEM_MS - 1000 - TICK_MS);
     expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
     // …and the tick that exhausts the remaining budget expires item 1.
-    await advanceTime(TICK_MS);
+    await advanceTime(clock, TICK_MS);
     expect(progressLabel()).toBe(`Item 2 of ${PARAMS.streamLen}`);
   });
 
   it("resolves every timed-out item and lands on a failed round", async () => {
     const seed = "timeout-stream-seed";
-    await renderScreen({ seed });
+    const { clock } = await renderScreen({ seed });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, "briefing-start")),
@@ -240,10 +241,10 @@ describe("SignalWatchScreen", () => {
 
     // Let every item time out; each expiry must advance exactly one slot.
     for (let i = 0; i < PARAMS.streamLen - 1; i += 1) {
-      await advanceTime(ITEM_MS + TICK_MS);
+      await advanceTime(clock, ITEM_MS + TICK_MS);
       expect(progressLabel()).toBe(`Item ${i + 2} of ${PARAMS.streamLen}`);
     }
-    await advanceTime(ITEM_MS + TICK_MS);
+    await advanceTime(clock, ITEM_MS + TICK_MS);
     expect(screen.getByTestId(testId(GAME_ID, "round-failed"))).toBeTruthy();
   });
   it('persists the final adaptive challenge rating in the session record', async () => {
@@ -281,12 +282,12 @@ describe("restart window reset (campaign 023 audit)", () => {
   });
 
   it("restart after a QA force-lose mid-stream restores the full item window", async () => {
-    await renderScreen({ seed: "restart-window-seed" });
+    const { clock } = await renderScreen({ seed: "restart-window-seed" });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "briefing-start")));
     expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
 
-    await advanceTime(1000); // drain part of item 1's window
+    await advanceTime(clock, 1000); // drain part of item 1's window
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-lose")));
     expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeTruthy();
@@ -297,11 +298,11 @@ describe("restart window reset (campaign 023 audit)", () => {
 
     // A restart must grant a FULL fresh window: the old drained 1000ms must
     // not count toward the new session's first item.
-    await advanceTime(ITEM_MS - 300);
+    await advanceTime(clock, ITEM_MS - 300);
     expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
 
     // …and the window still expires on schedule afterwards.
-    await advanceTime(400);
+    await advanceTime(clock, 400);
     expect(progressLabel()).toBe(`Item 2 of ${PARAMS.streamLen}`);
   });
 });

@@ -12,6 +12,7 @@
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -22,9 +23,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { GAME_ID } from '../types';
 
 export interface NumberPadProps {
-  onDigit: (digit: number) => void;
-  onBackspace: () => void;
-  onSubmit: () => void;
+  onDigit: (digit: number, event?: GestureResponderEvent) => void;
+  onBackspace: (event?: GestureResponderEvent) => void;
+  onSubmit: (event?: GestureResponderEvent) => void;
 }
 
 const ROWS: readonly (readonly (number | 'backspace' | 'submit')[])[] = [
@@ -89,9 +90,9 @@ export interface KeyProps {
   accessibilityLabel: string;
   testID: string;
   /** Provided for backspace/submit (no extra payload). */
-  onPress?: () => void;
+  onPress?: (event?: GestureResponderEvent) => void;
   /** Provided for digit keys (carries the digit value). */
-  onPressDigit?: (digit: number) => void;
+  onPressDigit?: (digit: number, event?: GestureResponderEvent) => void;
   digit?: number;
   theme: ReturnType<typeof useTheme>;
   accent?: boolean;
@@ -108,7 +109,7 @@ export const Key = memo(function Key({
   accent = false,
 }: KeyProps) {
   const handlePress = onPressDigit !== undefined && digit !== undefined
-    ? () => onPressDigit(digit)
+    ? (event: GestureResponderEvent) => onPressDigit(digit, event)
     : onPress;
   return (
     <Pressable
@@ -122,7 +123,7 @@ export const Key = memo(function Key({
         { backgroundColor: accent ? theme.math : theme.surface, borderColor: theme.border },
         pressed && styles.pressed,
       ]}>
-      <ThemedText type="headline" style={{ color: accent ? '#FFFFFF' : theme.text }}>
+      <ThemedText type="headline" style={{ color: accent ? theme.mathOn : theme.text }}>
         {label}
       </ThemedText>
     </Pressable>

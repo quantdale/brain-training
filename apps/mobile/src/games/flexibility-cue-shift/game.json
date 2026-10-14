@@ -7,7 +7,7 @@
   ],
   "description": "A rule cue changes every trial — read it, then match the target by color, shape, or number.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.1.0",
+  "gameVersion": "1.2.0",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

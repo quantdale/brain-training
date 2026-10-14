@@ -94,6 +94,7 @@ export function visualSearchGameReducer(
         windowMs,
         targetIndex,
         roundDeadlineMs: action.nowMs + windowMs,
+        roundPresentedAtMs: null,
         roundOutcome: null,
         failReason: null,
         lastTapIndex: null,
@@ -111,8 +112,17 @@ export function visualSearchGameReducer(
       };
     }
 
+    case 'round-presented': {
+      if (state.phase !== 'playing' || state.roundPresentedAtMs !== null || !ownsContinuation(state, action.stamp)) return state;
+      const nowMs = advanceNow(state, action.nowMs);
+      if (nowMs >= state.sessionDeadlineMs) return { ...state, nowMs, phase: 'results', roundOutcome: null };
+      // The total score-attack budget remains authoritative. Only the new
+      // board's response window begins when its content actually commits.
+      return { ...state, nowMs, roundPresentedAtMs: nowMs, roundDeadlineMs: nowMs + state.windowMs };
+    }
+
     case 'tick': {
-      if (state.paused) {
+      if (state.paused || state.tutorialOpen || (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       const nowMs = advanceNow(state, action.nowMs);
@@ -146,7 +156,9 @@ export function visualSearchGameReducer(
     }
 
     case 'tap-tile': {
-      if (state.phase !== 'playing' || state.paused) {
+      if (state.phase !== 'playing' || state.paused || state.tutorialOpen ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp)) ||
+          !Number.isInteger(action.index) || action.index < 0 || action.index >= state.gridSize) {
         return state;
       }
       const nowMs = advanceNow(state, action.nowMs);
@@ -261,6 +273,7 @@ export function visualSearchGameReducer(
         windowMs,
         targetIndex,
         roundDeadlineMs: state.nowMs + windowMs,
+        roundPresentedAtMs: null,
         roundOutcome: null,
         failReason: null,
         lastTapIndex: null,
@@ -291,15 +304,16 @@ export function visualSearchGameReducer(
         nowMs: action.nowMs,
         sessionDeadlineMs: state.sessionDeadlineMs + shift,
         roundDeadlineMs: state.roundDeadlineMs + shift,
+        roundPresentedAtMs: state.roundPresentedAtMs === null ? null : state.roundPresentedAtMs + shift,
       };
     }
 
     case 'tutorial-open': {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: true };
     }
 
     case 'tutorial-close': {
-      return { ...state, tutorialOpen: false };
+      return !state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: false };
     }
 
     case 'session-finalized': {

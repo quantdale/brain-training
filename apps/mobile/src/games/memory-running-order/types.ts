@@ -118,10 +118,10 @@ export type RunningOrderAction =
       sessionId: string;
       startedAtMs: number;
     }
-  | { type: "reveal-tick" }
-  | { type: "tap-symbol"; id: number }
-  | { type: "backspace" }
-  | { type: "submit" }
+  | { type: "reveal-tick"; stamp?: RevealCueStamp }
+  | { type: "tap-symbol"; id: number; stamp?: ResultContinuationStamp }
+  | { type: "backspace"; stamp?: ResultContinuationStamp }
+  | { type: "submit"; stamp?: ResultContinuationStamp }
   | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
   | { type: "resume" }
@@ -266,4 +266,9 @@ export function ownsContinuation(
     state.sessionId !== null && stamp.sessionId === state.sessionId &&
     stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
     stamp.epoch === state.continuationEpoch;
+}
+
+/** A reveal timeout owns exactly the symbol that was actually displayed. */
+export interface RevealCueStamp extends ResultContinuationStamp {
+  readonly revealedIndex: number;
 }

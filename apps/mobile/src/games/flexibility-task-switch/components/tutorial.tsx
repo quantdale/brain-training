@@ -12,7 +12,7 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R); mechanics
  * stay local.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { createRng, testId } from "@/sdk";
@@ -130,20 +130,29 @@ function Demo({ onWrong, onDone, onSkip }: DemoProps) {
   }, []);
   const [phase, setPhase] = useState<"parity" | "magnitude">("parity");
   const [wrongPick, setWrongPick] = useState<number | null>(null);
+  const cueRef = useRef<{ phase: 'parity' | 'magnitude' | 'done'; mounted: boolean }>({ phase: 'parity', mounted: true });
+  useEffect(() => {
+    const cue = cueRef.current;
+    cue.mounted = true;
+    return () => { cue.mounted = false; };
+  }, []);
 
   const round = phase === "parity" ? rounds.parity : rounds.magnitude;
   const handlePick = (index: number) => {
-    if (wrongPick !== null) {
+    if (!cueRef.current.mounted || cueRef.current.phase !== phase || wrongPick !== null) {
       return;
     }
     const correct = index === round.correctIndex;
     if (correct) {
       if (phase === "parity") {
+        cueRef.current.phase = 'magnitude';
         setPhase("magnitude");
       } else {
+        cueRef.current.phase = 'done';
         onDone();
       }
     } else {
+      cueRef.current.phase = 'done';
       setWrongPick(index);
       onWrong();
     }

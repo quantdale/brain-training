@@ -282,11 +282,11 @@ export function valueOrderingGameReducer(
     }
 
     case 'tutorial-open': {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen === true ? state : { ...state, tutorialOpen: true, continuationEpoch: state.continuationEpoch + 1 };
     }
 
     case 'tutorial-close': {
-      return { ...state, tutorialOpen: false };
+      return state.tutorialOpen === false ? state : { ...state, tutorialOpen: false, continuationEpoch: state.continuationEpoch + 1 };
     }
 
     case 'session-finalized': {

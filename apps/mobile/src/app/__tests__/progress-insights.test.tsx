@@ -10,8 +10,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
+import type { GameDefinition } from '@/sdk';
 import { StyleSheet } from 'react-native';
 
 import type {
@@ -29,6 +30,16 @@ import { registerGameDefinitions } from '@/registry/registry';
 import { allowDbDataLoadLogs } from '@/test-utils';
 
 const mockDbState: { db: AppDatabase | null } = { db: null };
+const mockViewport = { width: 390, height: 844, scale: 1, fontScale: 1 };
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: () => mockViewport,
+}));
+const MEMORY_DEF: GameDefinition = {
+  id: 'memory', name: 'Memory', primaryCategory: 'Memory', description: 'A memory game',
+  sdkVersion: '0.1.0', gameVersion: '1.0.0', generatorVersion: '1', contentVersion: null, hasTutorial: true,
+};
+
 
 jest.mock('@/db', () => {
   const actual = jest.requireActual('@/db') as Record<string, unknown>;
@@ -47,6 +58,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 beforeEach(() => {
   jest.spyOn(Date, 'now').mockReturnValue(NOW);
+  Object.assign(mockViewport, { width: 390, height: 844, scale: 1, fontScale: 1 });
 });
 
 afterEach(() => {
@@ -175,6 +187,19 @@ describe('Progress overview', () => {
     expect(screen.getByTestId('progress-game-memory')).toBeOnTheScreen();
   });
 
+  it('leads with current rating and preserves detailed insights behind an explicit disclosure', async () => {
+    mockDbState.db = makeFakeDb({ recent: [makeSession({ normalizedResult: 0.2 })], totalXp: 50 });
+    await renderBare(ProgressScreen, '/progress');
+    const tree = JSON.stringify(screen.toJSON());
+    expect(tree.indexOf('"testID":"progress-composite"')).toBeLessThan(tree.indexOf('"testID":"progress-window-selector-row"'));
+    expect(within(screen.getByTestId('progress-composite')).queryByText(/vs your lifetime/)).toBeNull();
+    expect(screen.queryByTestId('progress-summary')).toBeNull();
+    await fireEvent.press(screen.getByTestId('progress-insights-toggle'));
+    expect(screen.getByTestId('progress-summary')).toHaveTextContent(/50/);
+    await fireEvent.press(screen.getByTestId('progress-insights-toggle'));
+    expect(screen.queryByTestId('progress-summary')).toBeNull();
+  });
+
   it('058: text links meet the touch floor by style, not by accident', async () => {
     const ratings: DomainRating[] = [
       { domain: 'Memory', rating: 1040, sessions: 5, updatedAt: NOW - 2 * DAY },
@@ -254,6 +279,36 @@ describe('Per-game drill-down', () => {
     expect(screen.queryByTestId('progress-game-trend-reaction')).toBeNull();
   });
 
+  it.each([{ width: 320, fontScale: 1 }, { width: 390, fontScale: 2 }])('reflows game records at $width dp / $fontScale text', async (viewport) => {
+    Object.assign(mockViewport, viewport);
+    mockDbState.db = makeFakeDb({ byGame: [makeSession({})] });
+    await renderBare(ProgressGameScreen, '/progress-game?gameId=memory');
+    expect(StyleSheet.flatten(screen.getByTestId('progress-game-records-layout').props.style).flexDirection).toBe('column');
+    expect(screen.getByText('Best accuracy')).toBeOnTheScreen();
+    expect(screen.getByText('Best reaction')).toBeOnTheScreen();
+    expect(StyleSheet.flatten(screen.getByTestId('progress-game-title').props.style).flexShrink).toBe(1);
+  });
+
+  it('scopes the real recent comparison to the selected window and names the All fallback', async () => {
+    const byGame = [
+      makeSession({ id: 'latest', completedAt: NOW - DAY, normalizedResult: 0.9, rawResult: {} }),
+      makeSession({ id: 'middle', completedAt: NOW - 10 * DAY, normalizedResult: 0.7, rawResult: {} }),
+      makeSession({ id: 'old', completedAt: NOW - 100 * DAY, normalizedResult: 0.2, rawResult: {} }),
+    ];
+    mockDbState.db = makeFakeDb({ byGame });
+    await renderBare(ProgressGameScreen, '/progress-game?gameId=memory');
+    const comparison = () => within(screen.getByTestId('progress-game-rvl'));
+    expect(comparison().getByText('80%')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('progress-game-window-7d'));
+    expect(comparison().getByText('90%')).toBeOnTheScreen();
+    expect(comparison().getByText('60%')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-game-trend-summary')).toHaveTextContent(/all-time series/);
+    await fireEvent.press(screen.getByTestId('progress-game-window-all'));
+    expect(comparison().getByText('80%')).toBeOnTheScreen();
+    expect(comparison().getByText(/All uses a 90-day recent comparison/)).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-game-window-scope')).toHaveTextContent(/last 90 days/);
+  });
+
   it('renders an empty state when the game has no sessions', async () => {
     mockDbState.db = makeFakeDb({ byGame: [] });
     const result = renderBare(ProgressGameScreen, '/progress-game?gameId=memory');
@@ -276,6 +331,49 @@ describe('Per-domain drill-down', () => {
     expect(screen.getByTestId('progress-domain-unseen')).toBeOnTheScreen();
   });
 
+  it('does not stack empty charts and activity after an untrained domain state', async () => {
+    mockDbState.db = makeFakeDb();
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+    expect(screen.getByTestId('progress-domain-unseen')).toHaveTextContent(/starting rating \(1000\)/);
+    expect(screen.queryByTestId('progress-domain-history')).toBeNull();
+    expect(screen.queryByTestId('progress-domain-activity')).toBeNull();
+    expect(screen.queryByTestId('progress-domain-recent')).toBeNull();
+  });
+
+  it('changes domain movement and session facts with the selected window while preserving current rating', async () => {
+    registerGameDefinitions([MEMORY_DEF]);
+    mockDbState.db = makeFakeDb({
+      ratings: [{ domain: 'Memory', rating: 1040, sessions: 2, updatedAt: NOW - DAY }],
+      history: [
+        { id: 2, sessionId: 'new', domain: 'Memory', delta: 20, ratingAfter: 1040, createdAt: NOW - DAY },
+        { id: 1, sessionId: 'old', domain: 'Memory', delta: 20, ratingAfter: 1020, createdAt: NOW - 10 * DAY },
+      ],
+      recent: [makeSession({ id: 'new', completedAt: NOW - DAY }), makeSession({ id: 'old', completedAt: NOW - 10 * DAY })],
+    });
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+    expect(screen.getByTestId('progress-domain-movement')).toHaveTextContent(/\+20/);
+    expect(within(screen.getByTestId('progress-domain-stats')).getByText('2')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('progress-domain-window-7d'));
+    expect(screen.queryByTestId('progress-domain-movement')).toBeNull();
+    expect(within(screen.getByTestId('progress-domain-stats')).getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-domain-summary')).toHaveTextContent(/1040/);
+  });
+
+  it('labels rating slope in rating points per day without percentage scaling', async () => {
+    mockDbState.db = makeFakeDb({
+      ratings: [{ domain: 'Memory', rating: 1040, sessions: 2, updatedAt: NOW - DAY }],
+      history: [
+        { id: 2, sessionId: 'new', domain: 'Memory', delta: 20, ratingAfter: 1040, createdAt: NOW - DAY },
+        { id: 1, sessionId: 'old', domain: 'Memory', delta: 20, ratingAfter: 1020, createdAt: NOW - 11 * DAY },
+      ],
+    });
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+    const trend = within(screen.getByTestId('progress-domain-trend'));
+    expect(trend.getByText('Rating points / day')).toBeOnTheScreen();
+    expect(trend.getByText('+2')).toBeOnTheScreen();
+    expect(trend.queryByText('+200')).toBeNull();
+  });
+
   it('shows rating and history for a trained domain', async () => {
     const ratings: DomainRating[] = [
       { domain: 'Memory', rating: 1040, sessions: 3, updatedAt: NOW - 2 * DAY },
@@ -296,6 +394,17 @@ describe('Activity calendar', () => {
   beforeEach(() => {
     registerGameDefinitions([]);
     mockDbState.db = null;
+  });
+
+  it.each([{ width: 320, fontScale: 1 }, { width: 390, fontScale: 2 }])('stacks essential activity facts at $width dp / $fontScale text', async (viewport) => {
+    Object.assign(mockViewport, viewport);
+    mockDbState.db = makeFakeDb({ recent: [makeSession({ id: 'a', completedAt: NOW - DAY })] });
+    await renderBare(ProgressActivityScreen, '/progress-activity');
+    expect(StyleSheet.flatten(screen.getByTestId('progress-activity-summary-layout').props.style).flexDirection).toBe('column');
+    expect(screen.getByTestId('progress-activity-summary')).toHaveTextContent(/Sessions/);
+    expect(screen.getByTestId('progress-activity-summary')).toHaveTextContent(/Active days/);
+    expect(screen.getByTestId('progress-activity-share')).toHaveTextContent(/Last session 1 day ago/);
+    expect(screen.getByTestId('progress-activity-heatmap')).toBeOnTheScreen();
   });
 
   it('renders heatmap and frequency for trained history', async () => {

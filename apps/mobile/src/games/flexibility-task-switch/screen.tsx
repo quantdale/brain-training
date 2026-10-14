@@ -70,7 +70,7 @@ import {
 } from "./session";
 import type { SessionPersistence } from "./session";
 import { SCORING_VERSION } from "./versions";
-import { continuationStamp, GAME_ID, TASK_CUE_WORDS, createInitialFlexibilityTaskSwitchState, switchCostMsOf } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, TASK_CUE_WORDS, createInitialFlexibilityTaskSwitchState, switchCostMsOf } from './types';
 import type { FlexibilityTaskSwitchAction } from './types';
 
 export interface FlexibilityTaskSwitchScreenProps {
@@ -338,38 +338,39 @@ export default function TaskSwitchScreen(
     goBack();
   }, [session, goBack]);
 
-  const handleAnswer = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (
-        current.phase !== "trialActive" ||
-        current.paused ||
-        current.round === null
-      ) {
-        return;
-      }
-      const responseMs = Math.max(0, clock.now() - trialStartRef.current);
-      if (index === current.round.correctIndex) {
-        liveAudioHaptics.feedback("correct");
-      } else {
-        liveAudioHaptics.feedback("wrong");
-      }
-      dispatch({ type: "answer", index, responseMs });
-    },
-    [clock, dispatch],
-  );
-
-  const handleStart = useCallback(() => {
+  // The displayed task owns its callback even if a newer token reuses the
+  // same answer index. Claim before feedback so batched native callbacks
+  // cannot score or celebrate an unobserved trial.
+  const handleAnswer = (index: number) => {
     const current = stateRef.current;
+    if (session.status() !== 'active' ||
+        !session.isCurrentSession(renderedContinuation.sessionId) ||
+        !ownsContinuation(current, renderedContinuation) ||
+        current.phase !== 'trialActive' || current.round === null) return;
+    const responseMs = Math.max(0, clock.now() - trialStartRef.current);
+    const action: FlexibilityTaskSwitchAction = { type: 'answer', index, responseMs };
+    const next = flexibilityTaskSwitchReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+    liveAudioHaptics.feedback(index === current.round.correctIndex ? 'correct' : 'wrong');
+  };
+
+  const handleStart = () => {
+    const current = stateRef.current;
+    if ((state.phase !== 'intro' && state.phase !== 'results') ||
+        current.phase !== state.phase || current.sessionId !== state.sessionId ||
+        current.continuationEpoch !== state.continuationEpoch || current.tutorialOpen) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    pauseStartRef.current = null;
+    dispatchContinuation({
       type: "start-session",
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  };
 
   const handleRestart = handleStart;
 

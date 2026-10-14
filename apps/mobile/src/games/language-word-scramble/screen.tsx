@@ -12,6 +12,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import {
   isDevBuild,
@@ -51,7 +52,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialWordScrambleState } from './types';
+import { ownsContinuation, GAME_ID, createInitialWordScrambleState } from './types';
 import type { WordScrambleAction } from './types';
 
 export interface WordScrambleScreenProps {
@@ -84,6 +85,14 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
   );
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
   // Claim lifecycle boundaries synchronously: queued Next callbacks can run
   // before React commits the pause or continuation dispatch.
   const dispatchContinuation = useCallback((action: WordScrambleAction) => {
@@ -105,7 +114,14 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
     onPause: () => dispatchContinuation({ type: 'pause' }),
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const { status: readStatus, isCurrentSession } = session;
+  const renderedContinuation = useMemo(() => ({
+    sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch,
+  }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const ownsRenderedInput = useCallback(() =>
+    readStatus() === 'active' && isCurrentSession(renderedContinuation.sessionId) &&
+    ownsContinuation(stateRef.current, renderedContinuation), [renderedContinuation, readStatus, isCurrentSession]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -132,9 +148,9 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatchContinuation({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline, and persist atomically. `claimFinalize()` guards against double
@@ -247,21 +263,28 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
   }, [session, goBack]);
 
   const handleSelectOption = useCallback(
-    (index: number) => {
+    (index: number, event?: GestureResponderEvent) => {
+      if (!ownsRenderedInput() || !claimPress(event)) return;
       const current = stateRef.current;
       if (current.phase !== 'play' || current.paused || current.submitted) {
         return;
       }
-      dispatch({ type: 'select-option', index });
+      dispatchContinuation({ type: 'select-option', index });
     },
-    [dispatch],
+    [dispatchContinuation, ownsRenderedInput, claimPress],
   );
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback((event?: GestureResponderEvent) => {
+    if (!ownsRenderedInput() || !claimPress(event)) return;
     const current = stateRef.current;
     if (current.phase !== 'play' || current.paused || current.submitted) {
       return;
     }
+    const action: WordScrambleAction = { type: 'submit-answer' };
+    const next = wordScrambleGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
     if (current.currentRound !== null) {
       const correct = current.selectedIndex === current.currentRound.correctIndex;
       if (correct) {
@@ -272,38 +295,44 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
         liveAudioHaptics.haptic('warning');
       }
     }
-    dispatch({ type: 'submit-answer' });
-  }, [dispatch]);
+
+  }, [dispatch, ownsRenderedInput, claimPress]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedContinuation.sessionId || current.phase !== renderedContinuation.phase ||
+        current.roundIndex !== renderedContinuation.roundIndex ||
+        current.continuationEpoch !== renderedContinuation.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.tutorialOpen ||
+        session.status() === 'active' || session.status() === 'paused' || session.status() === 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, dispatchContinuation, renderedContinuation]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-open' });
+  }, [tutorial, dispatchContinuation]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Option visual state for the current round. Stable across re-renders:
   // depends only on round-transition state (no per-tick timer drives this screen).

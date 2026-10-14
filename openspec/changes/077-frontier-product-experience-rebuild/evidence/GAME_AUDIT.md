@@ -80,3 +80,33 @@ in those rows remain open. Remaining observation-clock packet owns CueKeeper and
 SymbolTracker. Native preview01 predates these latest packets and cannot certify
 their runtime behavior. Full Jest01's only failing suite was stale design-guide
 prose, now corrected with9/9 unchanged assertions; full rerun02 pending.
+
+
+## Observation and remaining input convergence — 2026-10-15 local
+
+This table supersedes the open source followups in the original audit rows above.
+It does not assert new native acceptance. Counts overlap existing suites.
+
+| Game | Corrected source/caller behavior | Evidence boundary |
+|---|---|---|
+| memory-grid-recall | Measured study exposure, physical-event dedup and rendered input/session/pause guards; visible-only highlighted labels | Source/caller repaired;33 suites392 tests memory/search packet; native acceptance open |
+| memory-prospective-cue | Commit-measured active exposure and deadline; stale/duplicate response guards; preserved briefing | Source/caller repaired;20 suites212 tests observation packet; native acceptance open |
+| memory-running-order | Commit-measured symbol exposure; pause remainder and stale wake guards; distinct rapid suffix/tutorial picks; corrected glyph contrast | Source/caller repaired;33 suites392 tests memory/search packet; native acceptance open |
+| attention-visual-search | Commit-measured onset/response window, original total session budget; stale/duplicate input; visible-feature labels | Source/caller repaired;33 suites392 tests memory/search packet; historical denominator not reproduced; native open |
+| attention-symbol-tracker | Commit-measured active observation/response windows; exact pause remainder and input deadline; target labels and duplicate toggle guards | Source/caller repaired;20 suites212 tests observation packet; native acceptance open |
+| math-fast-math | Rendered cue/session/pause ownership; physical delivery dedup; rapid staged digits; exact active deadline and on-fill glyph; tutorial duplicate-submit crash repaired | Source/caller repaired;40 focused caller and33 tutorial tests across five modules; integrated final check pending; native open |
+| math-missing-operator | Claim answer before sound; overdue timeout silent, captured cancelled timeout; cue/session/pause/start/help guards | Source/caller repaired;40 focused caller and33 tutorial tests across five modules; integrated final check pending; native open |
+| math-value-ordering | Rendered cue and physical delivery claim; distinct rapid known picks; deadline wake ownership; readable on-fill ranks | Source/caller repaired;40 focused caller and33 tutorial tests across five modules; deliberate timeout verdict retained; native open |
+| language-word-scramble | Synchronous staged select/submit and one verdict; rendered cue/session/pause/physical delivery guards; first tutorial choice owns answer | Source/caller repaired;40 focused caller and33 tutorial tests across five modules; native open |
+| logic-deduction-table | Canonical input epoch, synchronous answer claim; overdue/exact-deadline expiry without optimistic cue; captured timer; tutorial first choice | Source/caller repaired;game1.2/scoring1.2, generation unchanged;40 focused caller and33 tutorial tests across five modules; native open |
+| flexibility-card-sort | Rendered/session/pause guards and atomic sensory claim; cancelled switch-notice wake; tutorial ownership | Source/caller repaired;four flexibility modules49 suites486 tests; native open |
+| flexibility-cue-shift | Rendered/session/pause guards and atomic sensory claim; spoken visible target; tutorial ownership | Source/caller repaired;four flexibility modules49 suites486 tests; native open |
+| flexibility-rule-flip | Visible disabled800ms readiness and measured enabled onset; rendered/session/pause guards; spoken visible target | Source/caller repaired;game1.3/scoring2.1;four flexibility modules49 suites486 tests; native open |
+| flexibility-task-switch | Rendered/session/pause guards and atomic sensory claim; readable dark ink on yellow stimulus; spoken visible target | Source/caller repaired;four flexibility modules49 suites486 tests; native open |
+
+All14 modules now have source/caller repairs. Root combined wave validation and
+new-APK gameplay/profile review remain separate required boundaries.
+
+Combined wave validation PASS169 suites/1735 tests/5 snapshots, global TypeScript
+and zero-warning full-source ESLint. This supersedes the pending integrated-check
+labels above; new-APK gameplay/profile acceptance remains open.

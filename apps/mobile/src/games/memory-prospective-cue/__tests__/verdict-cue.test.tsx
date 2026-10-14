@@ -73,17 +73,19 @@ function expectedRound(seed: string) {
   });
 }
 
-async function advanceTime(ms: number) {
+async function advanceTime(clock: ReturnType<typeof createFakeClock>, ms: number) {
   await act(async () => {
+    clock.advance(ms);
     jest.advanceTimersByTime(ms);
   });
 }
 
 /** Render, start a session and enter round 0's stream. */
 async function enterStream(seed: string) {
+  const clock = createFakeClock(0);
   await render(
     <SignalWatchScreen
-      clock={createFakeClock(0)}
+      clock={clock}
       tutorialStore={completedStore()}
       sessionSeed={seed}
       persistSession={makePersister()}
@@ -91,6 +93,7 @@ async function enterStream(seed: string) {
   );
   await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
   await fireEvent.press(screen.getByTestId(testId(GAME_ID, "briefing-start")));
+  return clock;
 }
 
 /** Flatten a (possibly press-state function) style to its resolved object. */
@@ -124,8 +127,8 @@ describe("SignalWatchScreen verdict cues", () => {
     const correctChoice = item.isSignal ? "signal" : "go";
     const otherChoice = item.isSignal ? "go" : "signal";
 
-    await enterStream(seed);
-    await advanceTime(TICK_MS);
+    const clock = await enterStream(seed);
+    await advanceTime(clock, TICK_MS);
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, correctChoice)));
 
     // The verdict is in words on the banner (never colour alone).
@@ -181,8 +184,8 @@ describe("SignalWatchScreen verdict cues", () => {
     const wrongChoice = item.isSignal ? "go" : "signal";
     const correctChoice = item.isSignal ? "signal" : "go";
 
-    await enterStream(seed);
-    await advanceTime(TICK_MS);
+    const clock = await enterStream(seed);
+    await advanceTime(clock, TICK_MS);
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, wrongChoice)));
 
     const banner = screen.getByTestId(testId(GAME_ID, "verdict"));
@@ -238,8 +241,8 @@ describe("SignalWatchScreen verdict cues", () => {
     const item = expectedRound(seed).items[0];
     const correctChoice = item.isSignal ? "signal" : "go";
 
-    await enterStream(seed);
-    await advanceTime(ITEM_MS + TICK_MS);
+    const clock = await enterStream(seed);
+    await advanceTime(clock, ITEM_MS + TICK_MS);
 
     const banner = screen.getByTestId(testId(GAME_ID, "verdict"));
     expect(String(banner.props.accessibilityLabel)).toMatch(/^Timed out\./);

@@ -102,14 +102,18 @@ export function gridRecallGameReducer(
 
     case "study-tick": {
       // The study timer expired: hide the pattern and move to input.
-      if (state.phase !== "study" || state.paused) {
+      if (state.phase !== "study" || state.paused || state.tutorialOpen ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       return { ...state, phase: "input", selections: [] };
     }
 
     case "tap-cell": {
-      if (state.phase !== "input" || state.paused || state.roundScored) {
+      if (state.phase !== "input" || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp)) ||
+          state.profile === null || !Number.isInteger(action.index) || action.index < 0 ||
+          action.index >= gridRecallParamsFromProfile(state.profile).gridSize) {
         return state;
       }
       const selected = state.selections.includes(action.index);
@@ -123,7 +127,8 @@ export function gridRecallGameReducer(
     }
 
     case "submit": {
-      if (state.phase !== "input" || state.paused || state.roundScored) {
+      if (state.phase !== "input" || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       const targetSet = new Set(state.targets);
@@ -232,11 +237,11 @@ export function gridRecallGameReducer(
     }
 
     case "tutorial-open": {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: true };
     }
 
     case "tutorial-close": {
-      return { ...state, tutorialOpen: false };
+      return !state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: false };
     }
 
     case "session-finalized": {

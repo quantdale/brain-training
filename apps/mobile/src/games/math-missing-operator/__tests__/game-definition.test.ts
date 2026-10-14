@@ -19,7 +19,8 @@ describe('game.json', () => {
     expect(gameDefinition.sdkVersion).toBe(SDK_VERSION);
     // 1.1.0: campaign-010 W23 content wave (large-operand template block);
     // generatorVersion bumped too — same-seed draws changed via template priority.
-    expect(gameDefinition.gameVersion).toBe('1.2.0');
+    // 077 retires old/duplicate controls; generated equations stay at 1.1.0.
+    expect(gameDefinition.gameVersion).toBe('1.3.0');
     expect(gameDefinition.generatorVersion).toBe('1.1.0');
     expect(gameDefinition.hasTutorial).toBe(true);
     expect(gameDefinition.description).toBeTruthy();

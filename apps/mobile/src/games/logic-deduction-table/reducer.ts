@@ -54,7 +54,7 @@ function failedRoundStats(
   };
 }
 
-export function logicDeductionReducer(
+function reduceLogicDeduction(
   state: LogicDeductionState,
   action: LogicDeductionAction,
 ): LogicDeductionState {
@@ -119,7 +119,7 @@ export function logicDeductionReducer(
       ) {
         return state;
       }
-      if (action.nowMs > state.roundDeadlineMs) {
+      if (action.nowMs >= state.roundDeadlineMs) {
         return state; // late tap: the screen's timer fires the timeout transition
       }
       const correct = action.index === state.round.correctIndex;
@@ -383,3 +383,15 @@ export function logicDeductionReducer(
 
 /** Re-export the round type for convenience in tests/screens. */
 export type { LogicDeductionRound };
+
+/** Every caller sees the same retirement epoch, including synchronous UI claims. */
+export function logicDeductionReducer(
+  state: LogicDeductionState,
+  action: LogicDeductionAction,
+): LogicDeductionState {
+  const next = reduceLogicDeduction(state, action);
+  if (next === state) return state;
+  const boundary = state.sessionId !== next.sessionId || state.roundIndex !== next.roundIndex ||
+    state.phase !== next.phase || state.paused !== next.paused || state.tutorialOpen !== next.tutorialOpen;
+  return boundary ? { ...next, continuationEpoch: state.continuationEpoch + 1 } : next;
+}

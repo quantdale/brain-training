@@ -16,10 +16,11 @@
  * accessibility tree while paused, so the answer cannot be read off the UI
  * during a pause.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -36,7 +37,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 
@@ -50,7 +50,6 @@ import {
 } from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
-  createGridRecallQaForceStateHooks,
   createGridRecallTutorialLifecycle,
 } from './hooks';
 import { gridRecallGameReducer } from './reducer';
@@ -63,8 +62,8 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialGridRecallState } from './types';
-import type { GridRecallAction } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, createInitialGridRecallState } from './types';
+import type { GridRecallAction, ResultContinuationStamp } from './types';
 
 export interface GridRecallScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -79,8 +78,24 @@ export interface GridRecallScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Study pacing step (ms); also bounds the pause-freeze drift. */
+/** Study notice cadence only; measured display exposure owns the deadline. */
 const STUDY_TICK_MS = 100;
+
+interface ExposureWindow {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly index: number;
+  elapsedMs: number;
+  startedAtMs: number | null;
+}
+function exposureMs(window: ExposureWindow, nowMs: number): number {
+  return window.elapsedMs + (window.startedAtMs === null ? 0 : Math.max(0, nowMs - window.startedAtMs));
+}
+function freezeExposure(window: ExposureWindow | null, nowMs: number): void {
+  if (window === null || window.startedAtMs === null) return;
+  window.elapsedMs = exposureMs(window, nowMs);
+  window.startedAtMs = null;
+}
 
 export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
   const {
@@ -92,31 +107,31 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     gridRecallGameReducer,
     undefined,
     createInitialGridRecallState,
   );
 
   const stateRef = useRef(state);
-  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
-  // before React commits the pause or continuation dispatch.
-  const dispatchContinuation = useCallback((action: GridRecallAction) => {
-    stateRef.current = gridRecallGameReducer(stateRef.current, action);
-    dispatch(action);
-  }, [dispatch]);
-  // Per-round study timer baseline: tracks elapsed ACTIVE (non-paused) study time
-  // so pausing freezes and resuming resumes the remaining window (not a restart).
-  // Keyed by BOTH session id and round index: restarting with the same seed must
-  // not inherit the previous session's partial study window (a restart from a
-  // QA force-lose at round 0 used to collide on roundIndex 0 alone).
-  const studyElapsedRef = useRef(0);
-  const studyRoundRef = useRef(-1);
-  const studySessionRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    stateRef.current = state;
-  });
+  const exposureRef = useRef<ExposureWindow | null>(null);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  // Claim accepted gameplay and lifecycle boundaries before React commits.
+  // Stale events cannot act on a newly queued round or emit optimistic cues.
+  const dispatch = useCallback((action: GridRecallAction) => {
+    const current = stateRef.current;
+    const next = gridRecallGameReducer(current, action);
+    if (next === current) return null;
+    if (next.paused || next.tutorialOpen || next.sessionId !== current.sessionId ||
+        next.roundIndex !== current.roundIndex || next.phase !== current.phase) {
+      freezeExposure(exposureRef.current, clock.now());
+    }
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, [clock]);
+  const dispatchContinuation = dispatch;
+  useLayoutEffect(() => { stateRef.current = state; });
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -144,7 +159,6 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     };
     const next = gridRecallGameReducer(current, action);
     if (next === current) return;
-    stateRef.current = next;
     dispatch(action);
   };
 
@@ -152,10 +166,8 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     () => createGridRecallTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createGridRecallQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null ? gridRecallParamsFromProfile(state.profile) : null;
@@ -168,42 +180,39 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-round study timer baseline when a new study round begins
-  // (or a new session starts, even at round 0).
-  useEffect(() => {
-    if (
-      state.phase === 'study' &&
-      (studySessionRef.current !== state.sessionId ||
-        studyRoundRef.current !== state.roundIndex)
-    ) {
-      studySessionRef.current = state.sessionId;
-      studyRoundRef.current = state.roundIndex;
-      studyElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex, state.sessionId]);
+  const renderedCue = useMemo<ResultContinuationStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const readStatus = session.status;
 
-  // Study pacing with freeze-and-continue: a window of `studyMs` of ACTIVE
-  // (non-paused) time, accumulated in STUDY_TICK_MS steps. While paused, the
-  // interval is cleared so no time accrues; on resume it continues from where it
-  // left off, so the board stays obscured for exactly the time the player has
-  // not yet studied.
-  useGameInterval(
-    state.phase === 'study' && !state.paused,
-    () => {
-      studyElapsedRef.current = Math.min(studyMs, studyElapsedRef.current + STUDY_TICK_MS);
-      if (studyElapsedRef.current >= studyMs) {
-        dispatch({ type: 'study-tick' });
-      }
-    },
-    STUDY_TICK_MS,
-  );
+  useLayoutEffect(() => {
+    if (state.phase !== 'study' || state.paused || state.tutorialOpen || readStatus() !== 'active') return;
+    const previous = exposureRef.current;
+    const same = previous !== null && previous.sessionId === state.sessionId && previous.roundIndex === state.roundIndex;
+    const window: ExposureWindow = { sessionId: state.sessionId, roundIndex: state.roundIndex, index: 0,
+      elapsedMs: same ? previous.elapsedMs : 0, startedAtMs: clock.now() };
+    exposureRef.current = window;
+    return () => freezeExposure(window, clock.now());
+  }, [state.phase, state.paused, state.tutorialOpen, state.sessionId, state.roundIndex, renderedCue, readStatus, clock]);
+
+  // Refresh cadence only; measured display exposure owns the study window.
+  useEffect(() => {
+    if (state.phase !== 'study' || state.paused || state.tutorialOpen) return;
+    const observed = exposureRef.current;
+    if (observed === null) return;
+    let cancelled = false;
+    const timer = setInterval(() => {
+      if (cancelled || readStatus() !== 'active' || exposureRef.current !== observed || !ownsContinuation(stateRef.current, renderedCue)) return;
+      if (exposureMs(observed, clock.now()) >= studyMs) dispatch({ type: 'study-tick', stamp: renderedCue });
+    }, STUDY_TICK_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [state.phase, state.paused, state.tutorialOpen, renderedCue, readStatus, clock, studyMs, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -309,6 +318,7 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -327,28 +337,29 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     goBack();
   }, [session, goBack]);
 
-  const handleTapCell = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'input' || current.paused || current.roundScored) {
-        return;
-      }
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'tap-cell', index });
-    },
-    [dispatch],
-  );
+  const handleTapCell = useCallback((index: number, event?: GestureResponderEvent) => {
+    const current = stateRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'input' || current.roundScored || !ownsContinuation(current, renderedCue)) return;
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    if (dispatch({ type: 'tap-cell', index, stamp: renderedCue }) !== null) liveAudioHaptics.feedback('tap');
+  }, [renderedCue, readStatus, dispatch]);
 
   const handleSubmit = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'input' || current.paused || current.roundScored) {
-      return;
-    }
-    dispatch({ type: 'submit' });
-  }, [dispatch]);
+    if (readStatus() !== 'active' || !ownsContinuation(stateRef.current, renderedCue)) return;
+    dispatch({ type: 'submit', stamp: renderedCue });
+  }, [renderedCue, readStatus, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedCue.sessionId || current.phase !== renderedCue.phase ||
+        current.roundIndex !== renderedCue.roundIndex || current.continuationEpoch !== renderedCue.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.paused || current.tutorialOpen) return;
+    const status = session.status();
+    if (status !== null && status !== 'completed' && status !== 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -357,12 +368,13 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, dispatch, renderedCue]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
     dispatch({ type: 'tutorial-open' });
   }, [tutorial, dispatch]);
@@ -443,7 +455,7 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
           ) : null}
         </>
       }
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />

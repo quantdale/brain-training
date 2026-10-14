@@ -21,10 +21,11 @@
  * hidden. The board is covered by the opaque `PauseOverlay` and hidden from
  * the accessibility tree while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -39,7 +40,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -55,7 +55,7 @@ import {
   visualSearchParamsFromProfile,
 } from './difficulty';
 import { gameDefinition } from './game-definition';
-import { createVisualSearchQaForceStateHooks, createVisualSearchTutorialLifecycle } from './hooks';
+import { createVisualSearchTutorialLifecycle } from './hooks';
 import { visualSearchGameReducer } from './reducer';
 import { normalizeVisualSearchResult } from './scoring';
 import {
@@ -65,8 +65,8 @@ import {
   persistVisualSearchSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { continuationStamp, GAME_ID, createInitialVisualSearchState } from './types';
-import type { VisualSearchAction } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, createInitialVisualSearchState } from './types';
+import type { VisualSearchAction, ResultContinuationStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface VisualSearchScreenProps {
@@ -94,23 +94,26 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     visualSearchGameReducer,
     undefined,
     createInitialVisualSearchState,
   );
 
   const stateRef = useRef(state);
-  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
-  // before React commits the pause or continuation dispatch.
-  const dispatchContinuation = useCallback((action: VisualSearchAction) => {
-    stateRef.current = visualSearchGameReducer(stateRef.current, action);
-    dispatch(action);
-  }, [dispatch]);
-  // Keep a ref of the latest state for event handlers (timers, guards).
-  useEffect(() => {
-    stateRef.current = state;
-  });
+  const deliveredPresses = useRef(new WeakSet<object>());
+  // Claim accepted gameplay and lifecycle boundaries before React commits.
+  // Stale events cannot act on a newly queued round or emit optimistic cues.
+  const dispatch = useCallback((action: VisualSearchAction) => {
+    const current = stateRef.current;
+    const next = visualSearchGameReducer(current, action);
+    if (next === current) return null;
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, []);
+  const dispatchContinuation = dispatch;
+  useLayoutEffect(() => { stateRef.current = state; });
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -130,20 +133,17 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
       return;
     }
     const current = stateRef.current;
-    const action: VisualSearchAction = {
-      type: 'next-round', stamp: renderedContinuation,
-    };
-    const next = visualSearchGameReducer(current, action);
-    if (next === current) return;
-    stateRef.current = next;
-    dispatch(action);
+    if (!ownsContinuation(current, renderedContinuation) || current.phase !== 'roundResult') return;
+    dispatch({ type: 'tick', nowMs: clock.now(), stamp: renderedContinuation });
+    dispatch({ type: 'next-round', stamp: renderedContinuation });
   };
 
   const tutorial = useMemo(
     () => createVisualSearchTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(() => createVisualSearchQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params = state.profile !== null ? visualSearchParamsFromProfile(state.profile) : null;
   const gridSize = state.gridSize;
@@ -152,20 +152,32 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
   const isLastRound = state.roundIndex + 1 >= rounds;
   const remainingMs = Math.max(0, state.roundDeadlineMs - state.nowMs);
 
-  // ---- Countdown pacing: one tick per TICK_MS while the round/session is
-  // live; pause deactivates the interval (timers frozen), resume restarts it.
-  useGameInterval(
-    inSession && !state.paused,
-    () => dispatch({ type: 'tick', nowMs: clock.now() }),
-    TICK_MS,
-  );
+  const renderedCue = useMemo<ResultContinuationStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const readStatus = session.status;
+
+  useLayoutEffect(() => {
+    if (state.phase !== 'playing' || state.paused || state.tutorialOpen || state.roundPresentedAtMs !== null || readStatus() !== 'active') return;
+    dispatch({ type: 'round-presented', nowMs: clock.now(), stamp: renderedCue });
+  }, [state.phase, state.paused, state.tutorialOpen, state.roundPresentedAtMs, renderedCue, readStatus, clock, dispatch]);
+
+  // Capture this exact board/result and pause epoch. Queued cancelled work
+  // cannot be redirected to whichever board happens to be current later.
+  useEffect(() => {
+    if (!inSession || state.paused || state.tutorialOpen || (state.phase === 'playing' && state.roundPresentedAtMs === null)) return;
+    let cancelled = false;
+    const timer = setInterval(() => {
+      if (!cancelled && readStatus() === 'active') dispatch({ type: 'tick', nowMs: clock.now(), stamp: renderedCue });
+    }, TICK_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [inSession, state.phase, state.paused, state.tutorialOpen, state.roundPresentedAtMs, renderedCue, clock, readStatus, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -260,6 +272,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -278,42 +291,31 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     goBack();
   }, [session, goBack]);
 
-  const handleTapTile = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'playing' || current.paused) {
-        return;
-      }
-      const nowMs = clock.now();
-      // Feedback follows the authoritative round outcome, not the tap's
-      // optimism: the reducer owns the post-deadline guard, so resolve the
-      // tap through it first. A tap past the window resolves to a timeout
-      // (never a penalized distractor tap) and must stay silent — sounding a
-      // hit for a round that scores a timeout is the Campaign 023 late-tap
-      // mismatch. No timing logic is duplicated: this is the same pure
-      // transition the dispatch below commits.
-      const action: VisualSearchAction = { type: 'tap-tile', index, nowMs };
-      const next = visualSearchGameReducer(current, action);
-      dispatch(action);
-      if (next.phase !== 'roundResult') {
-        // The tap ended the session (budget exhausted): the session-end
-        // choreography owns the feedback, not the tile.
-        return;
-      }
-      if (next.roundOutcome === 'passed') {
-        liveAudioHaptics.playSfx('visual-search-hit');
-        liveAudioHaptics.haptic('light');
-      } else if (next.failReason === 'distractor') {
-        liveAudioHaptics.playSfx('visual-search-miss');
-        liveAudioHaptics.haptic('warning');
-      }
-      // Timeout: the timeout verdict owns the feedback — never a hit/miss.
-    },
-    [clock, dispatch],
-  );
+  const handleTapTile = useCallback((index: number, event?: GestureResponderEvent) => {
+    const current = stateRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'playing' || current.roundPresentedAtMs === null || !ownsContinuation(current, renderedCue)) return;
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    const next = dispatch({ type: 'tap-tile', index, nowMs: clock.now(), stamp: renderedCue });
+    if (next === null || next.phase !== 'roundResult') return;
+    if (next.roundOutcome === 'passed') {
+      liveAudioHaptics.playSfx('visual-search-hit'); liveAudioHaptics.haptic('light');
+    } else if (next.failReason === 'distractor') {
+      liveAudioHaptics.playSfx('visual-search-miss'); liveAudioHaptics.haptic('warning');
+    }
+    // Expiry remains silent: no optimistic target/distractor cue on a timeout.
+  }, [renderedCue, readStatus, clock, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedCue.sessionId || current.phase !== renderedCue.phase ||
+        current.roundIndex !== renderedCue.roundIndex || current.continuationEpoch !== renderedCue.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.paused || current.tutorialOpen) return;
+    const status = session.status();
+    if (status !== null && status !== 'completed' && status !== 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -323,12 +325,13 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
       startedAtMs: identity.startedAtMs,
       nowMs: clock.now(),
     });
-  }, [clock, session, sessionSeed, dispatch]);
+  }, [clock, session, sessionSeed, dispatch, renderedCue]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
     dispatch({ type: 'tutorial-open' });
   }, [tutorial, dispatch]);
@@ -394,7 +397,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
       // R4-N1: rounded to match the results StatRow (same residual class).
       score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />

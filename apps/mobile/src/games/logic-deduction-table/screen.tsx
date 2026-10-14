@@ -15,6 +15,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { StyleSheet, View } from "react-native";
+import type { GestureResponderEvent } from "react-native";
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
@@ -29,7 +30,6 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameTimeout,
 } from "@/components/game-host";
 
 import { ClueTable } from "./components/clue-table";
@@ -55,7 +55,7 @@ import {
   persistLogicDeductionSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { GAME_ID, createInitialLogicDeductionState } from "./types";
+import { GAME_ID, createInitialLogicDeductionState, type LogicDeductionAction } from "./types";
 import { SCORING_VERSION } from "./versions";
 
 export interface LogicDeductionScreenProps {
@@ -83,13 +83,29 @@ export default function LogicDeductionScreen(
   } = props;
   const goBack = useSafeBack('/games');
   const theme = useTheme();
-  const [state, dispatch] = useReducer(
+  const [state, dispatchReducer] = useReducer(
     logicDeductionReducer,
     undefined,
     createInitialLogicDeductionState,
   );
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
+  // Retire rendered callbacks synchronously, before React commits a boundary.
+  const dispatch = useCallback((action: LogicDeductionAction) => {
+    const current = stateRef.current;
+    const next = logicDeductionReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatchReducer(action);
+  }, []);
 
   useEffect(() => {
     stateRef.current = state;
@@ -105,14 +121,29 @@ export default function LogicDeductionScreen(
     onPause: () => dispatch({ type: "pause", nowMs: clock.now() }),
   });
 
+  const { status: readStatus, isCurrentSession } = session;
+  const renderedEpoch = state.continuationEpoch;
+  const renderedSessionId = state.sessionId;
+  const renderedRoundIndex = state.roundIndex;
+  const renderedPhase = state.phase;
+  const ownsRenderedInput = useCallback(() => {
+    const current = stateRef.current;
+    return readStatus() === 'active' && isCurrentSession(renderedSessionId) &&
+      current.continuationEpoch === renderedEpoch && current.sessionId === renderedSessionId &&
+      current.roundIndex === renderedRoundIndex && current.phase === renderedPhase &&
+      !current.paused && !current.tutorialOpen;
+  }, [readStatus, isCurrentSession, renderedEpoch, renderedSessionId, renderedRoundIndex, renderedPhase]);
+
   const tutorial = useMemo(
     () => createLogicDeductionTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createLogicDeductionQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  // Construct the dev-only adapter inside the event; no state ref is read during render.
+  const qaHooks = {
+    forceWin: () => createLogicDeductionQaForceStateHooks(dispatch).forceWin(),
+    forceLose: () => createLogicDeductionQaForceStateHooks(dispatch).forceLose(),
+    forceTimeout: () => createLogicDeductionQaForceStateHooks(dispatch).forceTimeout(),
+  };
 
   const rounds = state.params?.rounds ?? 6;
   const budgetSeconds = Math.max(
@@ -125,18 +156,31 @@ export default function LogicDeductionScreen(
   // ---- Per-round expiry timer: fires once at the round deadline. Pausing
   // deactivates the timeout (effect cleanup) and the reducer freezes the
   // remaining budget; resuming re-arms a fresh timeout for whatever is left.
-  useGameTimeout(
-    state.phase === "question" && !state.paused && state.roundDeadlineMs !== null,
-    () => dispatch({ type: "expire-round", nowMs: clock.now() }),
-    Math.max(0, state.roundDeadlineMs !== null ? state.roundDeadlineMs - clock.now() : 0),
-  );
+  useEffect(() => {
+    if (state.phase !== 'question' || state.paused || state.tutorialOpen || state.roundDeadlineMs === null) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      if (cancelled || !ownsRenderedInput()) return;
+      const deadline = stateRef.current.roundDeadlineMs;
+      if (deadline === null) return;
+      const remaining = deadline - clock.now();
+      if (remaining > 0) {
+        timer = setTimeout(wake, Math.max(1, Math.ceil(remaining)));
+        return;
+      }
+      dispatch({ type: 'expire-round', nowMs: clock.now() });
+    };
+    timer = setTimeout(wake, Math.max(0, state.roundDeadlineMs - clock.now()));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.tutorialOpen, state.roundDeadlineMs, ownsRenderedInput, clock, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: "tutorial-open" });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -262,6 +306,7 @@ export default function LogicDeductionScreen(
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -281,7 +326,8 @@ export default function LogicDeductionScreen(
   }, [session, goBack]);
 
   const handleAnswer = useCallback(
-    (index: number) => {
+    (index: number, event?: GestureResponderEvent) => {
+      if (!ownsRenderedInput() || !claimPress(event)) return;
       const current = stateRef.current;
       if (
         current.phase !== "question" ||
@@ -291,16 +337,26 @@ export default function LogicDeductionScreen(
         return;
       }
       const nowMs = clock.now();
-      if (nowMs > current.roundDeadlineMs) return; // late tap: timer wins
-      const correct = index === current.round?.correctIndex;
-      liveAudioHaptics.feedback(correct ? "correct" : "wrong");
-      dispatch({ type: "answer-option", index, nowMs });
+      if (nowMs >= current.roundDeadlineMs) {
+        dispatch({ type: 'expire-round', nowMs });
+        return;
+      }
+      const action: LogicDeductionAction = { type: 'answer-option', index, nowMs };
+      const next = logicDeductionReducer(current, action);
+      if (next === current) return;
+      dispatch(action);
+      if (next.roundOutcome === 'correct') liveAudioHaptics.feedback('correct');
+      else if (next.roundOutcome === 'wrong') liveAudioHaptics.feedback('wrong');
     },
-    [clock, dispatch],
+    [clock, dispatch, ownsRenderedInput, claimPress],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.continuationEpoch !== renderedEpoch || current.sessionId !== renderedSessionId ||
+        current.phase !== renderedPhase || current.roundIndex !== renderedRoundIndex) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.tutorialOpen ||
+        session.status() === 'active' || session.status() === 'paused' || session.status() === 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -310,12 +366,13 @@ export default function LogicDeductionScreen(
       startedAtMs: identity.startedAtMs,
       nowMs: clock.now(),
     });
-  }, [session, sessionSeed, clock, dispatch]);
+  }, [session, sessionSeed, clock, dispatch, renderedEpoch, renderedSessionId, renderedPhase, renderedRoundIndex]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
     dispatch({ type: "tutorial-open" });
   }, [tutorial, dispatch]);
@@ -555,9 +612,9 @@ export default function LogicDeductionScreen(
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next round"}
-                onPress={() =>
-                  dispatch({ type: "next-round", nowMs: clock.now() })
-                }
+                onPress={() => {
+                  if (ownsRenderedInput()) dispatch({ type: 'next-round', nowMs: clock.now() });
+                }}
               />
             </View>
           ) : null}

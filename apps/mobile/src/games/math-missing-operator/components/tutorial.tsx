@@ -12,8 +12,9 @@
  * resets its internal state without any setState-in-effect cascades (same
  * pattern as the Memory tutorial). The demo has no timer.
  */
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -44,6 +45,59 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
   const [attempt, setAttempt] = useState(0);
 
+  // A tutorial owns its rendered step/attempt until it advances or closes.
+  // Publish that boundary before React commits so queued native controls
+  // cannot retry, complete or skip a later teaching cue.
+  const ownerRef = useRef({
+    step: 'intro' as TutorialStep | 'closed', attempt: 0, mounted: true,
+  });
+  const deliveredPresses = useRef(new WeakSet<object>());
+  useEffect(() => {
+    const owner = ownerRef.current;
+    owner.mounted = true;
+    return () => { owner.mounted = false; };
+  }, []);
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
+  const isCurrentDemo = useCallback(() => {
+    const owner = ownerRef.current;
+    return owner.mounted && owner.step === 'demo' && owner.attempt === attempt;
+  }, [attempt]);
+  const handleDemoDone = () => {
+    if (!isCurrentDemo()) return;
+    ownerRef.current.step = 'done';
+    setStep('done');
+  };
+  const handleRetry = (event?: GestureResponderEvent) => {
+    if (!isCurrentDemo() || !claimPress(event)) return;
+    ownerRef.current.attempt += 1;
+    setAttempt(ownerRef.current.attempt);
+  };
+  const handleNext = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== 'intro' || !claimPress(event)) return;
+    owner.step = 'demo';
+    setStep('demo');
+  };
+  const handleComplete = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== 'done' || !claimPress(event)) return;
+    owner.step = 'closed';
+    onComplete();
+  };
+  const handleSkip = (event?: GestureResponderEvent) => {
+    const owner = ownerRef.current;
+    if (!owner.mounted || owner.step !== step || owner.attempt !== attempt ||
+        !claimPress(event)) return;
+    owner.step = 'closed';
+    onSkip?.();
+  };
+
   return (
     <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
@@ -56,14 +110,14 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
             label="Try a demo"
-            onPress={() => setStep('demo')}
+            onPress={handleNext}
           />
           {onSkip !== undefined ? (
             <GameButton
               testID={testId(GAME_ID, 'tutorial-skip')}
               label="Skip tutorial (QA)"
               variant="secondary"
-              onPress={onSkip}
+              onPress={handleSkip}
             />
           ) : null}
         </View>
@@ -73,9 +127,11 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <DemoEquation
           key={attempt}
           attempt={attempt}
-          onWrong={() => setAttempt((value) => value + 1)}
-          onDone={() => setStep('done')}
-          onSkip={onSkip}
+          onWrong={handleRetry}
+          onDone={handleDemoDone}
+          isCurrentDemo={isCurrentDemo}
+          claimPress={claimPress}
+          onSkip={onSkip === undefined ? undefined : handleSkip}
         />
       ) : null}
 
@@ -89,7 +145,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}
             label="Got it"
-            onPress={onComplete}
+            onPress={handleComplete}
           />
         </View>
       ) : null}
@@ -101,11 +157,13 @@ interface DemoEquationProps {
   attempt: number;
   onWrong: () => void;
   onDone: () => void;
+  isCurrentDemo: () => boolean;
+  claimPress: (event?: GestureResponderEvent) => boolean;
   onSkip?: () => void;
 }
 
 /** One demo equation: the player picks an operator; wrong picks replay it. */
-function DemoEquation({ attempt, onWrong, onDone, onSkip }: DemoEquationProps) {
+function DemoEquation({ attempt, onWrong, onDone, onSkip, isCurrentDemo, claimPress }: DemoEquationProps) {
   const [equation] = useState<Equation>(() =>
     generateEquation({
       rng: createRng(TUTORIAL_DEMO_SEED),
@@ -115,12 +173,10 @@ function DemoEquation({ attempt, onWrong, onDone, onSkip }: DemoEquationProps) {
     }),
   );
 
-  const handlePick = (operator: Operator) => {
-    if (operator === equation.answerOperator) {
-      onDone();
-    } else {
-      onWrong();
-    }
+  const handlePick = (operator: Operator, event?: GestureResponderEvent) => {
+    if (!isCurrentDemo() || !claimPress(event)) return;
+    if (operator === equation.answerOperator) onDone();
+    else onWrong();
   };
 
   return (

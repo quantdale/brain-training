@@ -20,6 +20,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import {
   isDevBuild,
@@ -64,7 +65,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, OPERATORS, OPERATOR_GLYPHS, createInitialMathMissingOperatorState } from './types';
+import { ownsContinuation, GAME_ID, OPERATORS, OPERATOR_GLYPHS, createInitialMathMissingOperatorState } from './types';
 import type { MathMissingOperatorAction, Operator } from './types';
 
 export interface MathMissingOperatorScreenProps {
@@ -96,6 +97,14 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
   );
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
   // Claim lifecycle boundaries synchronously: queued Next callbacks can run
   // before React commits the pause or continuation dispatch.
   const dispatchContinuation = useCallback((action: MathMissingOperatorAction) => {
@@ -121,7 +130,14 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     onPause: () => dispatchContinuation({ type: 'pause', pausedAtMs: clock.now() }),
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const { status: readStatus, isCurrentSession } = session;
+  const renderedContinuation = useMemo(() => ({
+    sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch,
+  }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const ownsRenderedInput = useCallback(() =>
+    readStatus() === 'active' && isCurrentSession(renderedContinuation.sessionId) &&
+    ownsContinuation(stateRef.current, renderedContinuation), [renderedContinuation, readStatus, isCurrentSession]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -158,32 +174,30 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     if (state.phase !== 'answer' || state.paused || roundBudget === null) {
       return;
     }
-    const elapsed = state.roundElapsedMs + (clock.now() - state.roundStartedAtMs);
-    const remaining = Math.max(0, roundBudget - elapsed);
-    if (remaining <= 0) {
-      // Resume after a pause longer than the remaining budget: time out now.
-      dispatch({ type: 'round-timeout' });
-      return;
-    }
-    const timer = setTimeout(() => dispatch({ type: 'round-timeout' }), remaining);
-    return () => clearTimeout(timer);
-  }, [
-    state.phase,
-    state.paused,
-    state.roundIndex,
-    state.roundElapsedMs,
-    state.roundStartedAtMs,
-    roundBudget,
-    clock,
-    dispatch,
-  ]);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      if (cancelled || !ownsRenderedInput()) return;
+      const current = stateRef.current;
+      const remaining = roundBudget - current.roundElapsedMs - (clock.now() - current.roundStartedAtMs);
+      if (remaining > 0) {
+        timer = setTimeout(wake, Math.max(1, Math.ceil(remaining)));
+        return;
+      }
+      dispatchContinuation({ type: 'round-timeout' });
+    };
+    const remaining = roundBudget - state.roundElapsedMs - (clock.now() - state.roundStartedAtMs);
+    timer = setTimeout(wake, Math.max(0, Math.ceil(remaining)));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.roundIndex, state.roundElapsedMs,
+    state.roundStartedAtMs, roundBudget, clock, dispatchContinuation, ownsRenderedInput]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatchContinuation({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -303,31 +317,41 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
   }, [session, goBack]);
 
   const handleAnswer = useCallback(
-    (operator: Operator) => {
+    (operator: Operator, event?: GestureResponderEvent) => {
+      if (!ownsRenderedInput() || !claimPress(event)) return;
       const current = stateRef.current;
       if (current.phase !== 'answer' || current.paused || current.equation === null) {
         return;
       }
       const responseMs = current.roundElapsedMs + (clock.now() - current.roundStartedAtMs);
-      if (operator === current.equation.answerOperator) {
+      const action: MathMissingOperatorAction = { type: 'answer-round', operator, responseMs };
+      const next = mathMissingOperatorGameReducer(current, action);
+      if (next === current) return;
+      stateRef.current = next;
+      dispatch(action);
+      if (next.roundOutcome === 'correct') {
         liveAudioHaptics.playSfx('math-missing-operator-correct');
         liveAudioHaptics.haptic('light');
-      } else {
+      } else if (next.roundOutcome === 'wrong') {
         liveAudioHaptics.playSfx('math-missing-operator-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'answer-round', operator, responseMs });
-    },
-    [clock, dispatch],
-  );
 
+    },
+    [clock, dispatch, ownsRenderedInput, claimPress],
+  );
 
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedContinuation.sessionId || current.phase !== renderedContinuation.phase ||
+        current.roundIndex !== renderedContinuation.roundIndex ||
+        current.continuationEpoch !== renderedContinuation.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.tutorialOpen ||
+        session.status() === 'active' || session.status() === 'paused' || session.status() === 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
@@ -335,25 +359,26 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
       // Monotonic anchor for round pacing (identity.startedAtMs is wall-clock).
       roundStartedAtMs: clock.now(),
     });
-  }, [session, sessionSeed, clock, dispatch]);
+  }, [session, sessionSeed, clock, dispatchContinuation, renderedContinuation]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-open' });
+  }, [tutorial, dispatchContinuation]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Round presentation.
   const revealedOperator: Operator | null =

@@ -19,7 +19,8 @@ import type { ColorId, ShapeId, Token } from "../types";
  * Campaign 026 colour-sweep note: stimulus hues must stay identical in both
  * themes (fairness — a token cannot change colour with the theme), so they
  * live here as game stimulus data per the R6 "game's stimulus palette"
- * exception. The white shape glyph is stimulus contrast, not chrome. */
+ * exception. Its fixed dark shape ink stays readable on every stimulus hue
+ * and does not change the generated color or shape semantics. */
 export const TOKEN_COLORS: Readonly<Record<ColorId, string>> = {
   red: "#e5484d",
   blue: "#3b82f6",
@@ -70,7 +71,7 @@ function ShapeGlyph({
     >
       <ThemedText
         style={[
-          { color: "#ffffff", fontSize: size * 0.5, lineHeight: size * 0.5 },
+          { color: "#17243B", fontSize: size * 0.5, lineHeight: size * 0.5 },
         ]}
       >
         {SHAPE_GLYPH[shape]}
@@ -115,11 +116,15 @@ export const TokenView = memo(function TokenView({
     </View>
   );
 
+  const a11yLabel = `${token.color} ${token.shape} ${token.number}`;
   if (onPress === undefined) {
-    return <View testID={testID}>{content}</View>;
+    return (
+      <View testID={testID} accessible accessibilityRole="image" accessibilityLabel={a11yLabel}>
+        {content}
+      </View>
+    );
   }
 
-  const a11yLabel = `${token.color} ${token.shape} ${token.number}`;
   return (
     <Pressable
       testID={testID}

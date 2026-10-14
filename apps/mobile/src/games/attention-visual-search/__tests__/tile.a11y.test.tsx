@@ -1,11 +1,9 @@
 /**
  * Visual Search Tile accessibility (task 07).
  *
- * The board is a find-the-odd-one-out discrimination task. A screen-reader
- * user must be able to explore tiles, but the tile's accessibility label must
- * never disclose which tile is the target — that would leak the answer.
- * Correctness is conveyed only after a tap via `accessibilityState`. RNTL v14
- * `render` is async, so every render is awaited.
+ * Describe the visible color feature so assistive-tech users can compare the
+ * same tiles. Labels never classify a live tile as target/odd/correct; verdict
+ * wording and selection state belong only to the resolved result.
  */
 import { describe, expect, it } from '@jest/globals';
 import { render } from '@testing-library/react-native';
@@ -15,20 +13,20 @@ import { Tile } from '../components/tile';
 import { GAME_ID } from '../types';
 
 describe('VisualSearch Tile accessibility (no answer leak)', () => {
-  it('keeps a neutral label for the target tile during play', async () => {
+  it('describes the visible orange feature without classifying the target', async () => {
     const { getByTestId } = await render(
       <Tile index={2} visual="target" onPressTile={() => {}} />,
     );
     const el = getByTestId(testId(GAME_ID, 'tile', '2'));
-    expect(el.props.accessibilityLabel).toBe('Tile 3');
+    expect(el.props.accessibilityLabel).toBe('Tile 3, orange square');
     expect(el.props.accessibilityLabel).not.toMatch(/odd one|target|answer/i);
   });
 
-  it('keeps a neutral label for a distractor tile', async () => {
+  it('describes a distractor surface without classifying it', async () => {
     const { getByTestId } = await render(
       <Tile index={5} visual="idle" onPressTile={() => {}} />,
     );
-    expect(getByTestId(testId(GAME_ID, 'tile', '5')).props.accessibilityLabel).toBe('Tile 6');
+    expect(getByTestId(testId(GAME_ID, 'tile', '5')).props.accessibilityLabel).toMatch(/^Tile 6, (white|dark blue) square$/);
   });
 
   it('reflects selected state only after a correct tap, never during play', async () => {

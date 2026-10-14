@@ -16,6 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import {
   isDevBuild,
@@ -34,7 +35,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -62,7 +62,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialValueOrderingState } from './types';
+import { ownsContinuation, GAME_ID, createInitialValueOrderingState } from './types';
 import type { ValueOrderingAction, ValueTile } from './types';
 
 /** Budget ticker cadence (ms of wall time between active-ms samples). */
@@ -129,6 +129,14 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   );
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const claimPress = useCallback((event?: GestureResponderEvent) => {
+    const payload = event?.nativeEvent;
+    if (payload == null) return true;
+    if (deliveredPresses.current.has(payload)) return false;
+    deliveredPresses.current.add(payload);
+    return true;
+  }, []);
   // Claim lifecycle boundaries synchronously: queued Next callbacks can run
   // before React commits the pause or continuation dispatch.
   const dispatchContinuation = useCallback((action: ValueOrderingAction) => {
@@ -156,7 +164,14 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     onPause: () => dispatchContinuation({ type: 'pause' }),
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const { status: readStatus, isCurrentSession, elapsedMs: readElapsedMs } = session;
+  const renderedContinuation = useMemo(() => ({
+    sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch,
+  }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const ownsRenderedInput = useCallback(() =>
+    readStatus() === 'active' && isCurrentSession(renderedContinuation.sessionId) &&
+    ownsContinuation(stateRef.current, renderedContinuation), [renderedContinuation, readStatus, isCurrentSession]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -186,18 +201,37 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   // ms; the reducer transitions to `timeout` when the budget is crossed.
   // Pause deactivates the ticker (timers frozen); resume re-schedules from
   // the current active elapsed (paused segments excluded by the lifecycle).
-  useGameInterval(
-    state.phase === 'ordering' && !state.paused && state.roundBudgetMs > 0,
-    () => dispatch({ type: 'round-tick', atActiveMs: session.elapsedMs() }),
-    TIMER_TICK_MS,
-  );
+  useEffect(() => {
+    if (state.phase !== 'ordering' || state.paused || state.tutorialOpen || state.roundBudgetMs <= 0) return;
+    let cancelled = false;
+    let deadline: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (!cancelled && ownsRenderedInput())
+        dispatchContinuation({ type: 'round-tick', atActiveMs: readElapsedMs() });
+    };
+    const expire = () => {
+      if (cancelled || !ownsRenderedInput()) return;
+      const current = stateRef.current;
+      const remaining = current.roundBudgetMs - (readElapsedMs() - current.roundStartActiveMs);
+      if (remaining > 0) {
+        deadline = setTimeout(expire, Math.max(1, Math.ceil(remaining)));
+        return;
+      }
+      tick();
+    };
+    const timer = setInterval(tick, TIMER_TICK_MS);
+    const remaining = state.roundBudgetMs - (readElapsedMs() - state.roundStartActiveMs);
+    deadline = setTimeout(expire, Math.max(0, Math.ceil(remaining)));
+    return () => { cancelled = true; clearInterval(timer); clearTimeout(deadline); };
+  }, [state.phase, state.paused, state.tutorialOpen, state.roundBudgetMs,
+    state.roundStartActiveMs, ownsRenderedInput, readElapsedMs, dispatchContinuation]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatchContinuation({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatchContinuation]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -322,17 +356,22 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   }, [session, goBack]);
 
   const handleTapTile = useCallback(
-    (tileId: string) => {
+    (tileId: string, event?: GestureResponderEvent) => {
+      if (!ownsRenderedInput() || !claimPress(event)) return;
       const current = stateRef.current;
       // Double-tap protection + phase guard: only valid first taps reach the
       // reducer (it re-checks and ignores repeats).
       if (current.phase !== 'ordering' || current.paused || current.round === null) {
         return;
       }
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'tap-tile', tileId, atActiveMs: session.elapsedMs() });
+      const action: ValueOrderingAction = { type: 'tap-tile', tileId, atActiveMs: session.elapsedMs() };
+      const next = valueOrderingGameReducer(current, action);
+      if (next === current) return;
+      stateRef.current = next;
+      dispatch(action);
+      if (next.outcome !== 'timeout') liveAudioHaptics.feedback('tap');
     },
-    [session, dispatch],
+    [session, dispatch, ownsRenderedInput, claimPress],
   );
 
   // ---- Sensory outcome feedback via canonical events (correct/wrong). The
@@ -351,36 +390,41 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   }, [state.phase, state.outcome]);
 
 
-
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedContinuation.sessionId || current.phase !== renderedContinuation.phase ||
+        current.roundIndex !== renderedContinuation.roundIndex ||
+        current.continuationEpoch !== renderedContinuation.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.tutorialOpen ||
+        session.status() === 'active' || session.status() === 'paused' || session.status() === 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, dispatchContinuation, renderedContinuation]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-open' });
+  }, [tutorial, dispatchContinuation]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
-    dispatch({ type: 'tutorial-close' });
-  }, [tutorial, dispatch]);
+    dispatchContinuation({ type: 'tutorial-close' });
+  }, [tutorial, dispatchContinuation]);
 
   const theme = useTheme();
   const round = state.round;

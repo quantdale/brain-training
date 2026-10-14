@@ -19,6 +19,7 @@ import {
   resolveRunningOrderDifficulty,
 } from "./difficulty";
 import { generateStream, streamTarget } from "./generator";
+import { SYMBOL_COUNT } from './symbols';
 import {
   perfectSessionScore,
   referenceMaxTargets,
@@ -101,7 +102,8 @@ export function runningOrderGameReducer(
     }
 
     case "reveal-tick": {
-      if (state.phase !== "reveal" || state.paused) {
+      if (state.phase !== "reveal" || state.paused || state.tutorialOpen ||
+          (action.stamp !== undefined && (!ownsContinuation(state, action.stamp) || action.stamp.revealedIndex !== state.revealedIndex))) {
         return state;
       }
       const next = state.revealedIndex + 1;
@@ -112,7 +114,9 @@ export function runningOrderGameReducer(
     }
 
     case "tap-symbol": {
-      if (state.phase !== "input" || state.paused || state.roundScored) {
+      if (state.phase !== "input" || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp)) ||
+          !Number.isInteger(action.id) || action.id < 0 || action.id >= SYMBOL_COUNT) {
         return state;
       }
       if (state.answer.length >= state.recallLength) {
@@ -122,7 +126,8 @@ export function runningOrderGameReducer(
     }
 
     case "backspace": {
-      if (state.phase !== "input" || state.paused || state.roundScored) {
+      if (state.phase !== "input" || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       if (state.answer.length === 0) {
@@ -132,7 +137,8 @@ export function runningOrderGameReducer(
     }
 
     case "submit": {
-      if (state.phase !== "input" || state.paused || state.roundScored) {
+      if (state.phase !== "input" || state.paused || state.tutorialOpen || state.roundScored ||
+          (action.stamp !== undefined && !ownsContinuation(state, action.stamp))) {
         return state;
       }
       if (state.answer.length !== state.recallLength) {
@@ -235,11 +241,11 @@ export function runningOrderGameReducer(
     }
 
     case "tutorial-open": {
-      return { ...state, tutorialOpen: true };
+      return state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: true };
     }
 
     case "tutorial-close": {
-      return { ...state, tutorialOpen: false };
+      return !state.tutorialOpen ? state : { ...state, continuationEpoch: state.continuationEpoch + 1, tutorialOpen: false };
     }
 
     case "session-finalized": {

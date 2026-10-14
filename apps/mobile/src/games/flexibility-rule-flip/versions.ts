@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '2.0.0';
+// Response timing begins when enabled choices commit, so a late JS arm
+// callback never counts the visibly disabled interval as player response.
+export const SCORING_VERSION = '2.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

@@ -11,14 +11,14 @@
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer and cancels reveal
- * pacing; resuming re-flashes the current symbol; the content is covered by
+ * pacing; resuming continues the current symbol’s remaining flash; the content is covered by
  * the opaque shared `PauseOverlay` and hidden from the accessibility tree
  * while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
-import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
+import { assertDevOnly, isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
@@ -30,7 +30,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -39,7 +38,7 @@ import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { runningOrderParamsFromProfile, sessionChallengeRating } from './difficulty';
 import { gameDefinition } from './game-definition';
-import { createRunningOrderQaForceStateHooks, createRunningOrderTutorialLifecycle } from './hooks';
+import { createRunningOrderTutorialLifecycle } from './hooks';
 import { runningOrderGameReducer } from './reducer';
 import { normalizeRunningOrderResult } from './scoring';
 import {
@@ -52,8 +51,8 @@ import type { SessionPersistence } from './session';
 import { streamTarget } from './generator';
 import { RUNNING_ORDER_SYMBOLS } from './symbols';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialRunningOrderState } from './types';
-import type { RunningOrderAction } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, createInitialRunningOrderState } from './types';
+import type { RunningOrderAction, ResultContinuationStamp } from './types';
 
 export interface RunningOrderScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -68,6 +67,22 @@ export interface RunningOrderScreenProps {
   xpHook?: XpRatingHook;
 }
 
+interface ExposureWindow {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly index: number;
+  elapsedMs: number;
+  startedAtMs: number | null;
+}
+function exposureMs(window: ExposureWindow, nowMs: number): number {
+  return window.elapsedMs + (window.startedAtMs === null ? 0 : Math.max(0, nowMs - window.startedAtMs));
+}
+function freezeExposure(window: ExposureWindow | null, nowMs: number): void {
+  if (window === null || window.startedAtMs === null) return;
+  window.elapsedMs = exposureMs(window, nowMs);
+  window.startedAtMs = null;
+}
+
 export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) {
   const {
     clock = systemClock,
@@ -78,19 +93,27 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(runningOrderGameReducer, undefined, createInitialRunningOrderState);
+  const [state, reactDispatch] = useReducer(runningOrderGameReducer, undefined, createInitialRunningOrderState);
 
   const stateRef = useRef(state);
-  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
-  // before React commits the pause or continuation dispatch.
-  const dispatchContinuation = useCallback((action: RunningOrderAction) => {
-    stateRef.current = runningOrderGameReducer(stateRef.current, action);
-    dispatch(action);
-  }, [dispatch]);
-
-  useEffect(() => {
-    stateRef.current = state;
-  });
+  const exposureRef = useRef<ExposureWindow | null>(null);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  // Claim accepted gameplay and lifecycle boundaries before React commits.
+  // Stale events cannot act on a newly queued round or emit optimistic cues.
+  const dispatch = useCallback((action: RunningOrderAction) => {
+    const current = stateRef.current;
+    const next = runningOrderGameReducer(current, action);
+    if (next === current) return null;
+    if (next.paused || next.tutorialOpen || next.sessionId !== current.sessionId ||
+        next.roundIndex !== current.roundIndex || next.phase !== current.phase || next.revealedIndex !== current.revealedIndex) {
+      freezeExposure(exposureRef.current, clock.now());
+    }
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, [clock]);
+  const dispatchContinuation = dispatch;
+  useLayoutEffect(() => { stateRef.current = state; });
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -116,12 +139,12 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     };
     const next = runningOrderGameReducer(current, action);
     if (next === current) return;
-    stateRef.current = next;
     dispatch(action);
   };
 
   const tutorial = useMemo(() => createRunningOrderTutorialLifecycle(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createRunningOrderQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params = state.profile !== null ? runningOrderParamsFromProfile(state.profile) : null;
   const flashMs = params?.flashMs ?? 800;
@@ -130,22 +153,46 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Reveal pacing: one tick per symbol. The deadline preserves the
-  // current symbol's remaining flash time across pause/resume.
-  useGameDeadlineTimeout(
-    state.phase === 'reveal' && !state.paused,
-    () => dispatch({ type: 'reveal-tick' }),
-    flashMs,
-    clock,
-    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
-  );
+  const renderedCue = useMemo<ResultContinuationStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex,
+    phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const readStatus = session.status;
+
+  // A new symbol receives its complete display exposure from layout commit.
+  // Pause/tutorial boundaries preserve the exact remaining flash time.
+  useLayoutEffect(() => {
+    if (state.phase !== 'reveal' || state.paused || state.tutorialOpen || readStatus() !== 'active') return;
+    const previous = exposureRef.current;
+    const same = previous !== null && previous.sessionId === state.sessionId && previous.roundIndex === state.roundIndex && previous.index === state.revealedIndex;
+    const window: ExposureWindow = { sessionId: state.sessionId, roundIndex: state.roundIndex, index: state.revealedIndex,
+      elapsedMs: same ? previous.elapsedMs : 0, startedAtMs: clock.now() };
+    exposureRef.current = window;
+    return () => freezeExposure(window, clock.now());
+  }, [state.phase, state.paused, state.tutorialOpen, state.sessionId, state.roundIndex, state.revealedIndex, renderedCue, readStatus, clock]);
+
+  useEffect(() => {
+    if (state.phase !== 'reveal' || state.paused || state.tutorialOpen) return;
+    const observed = exposureRef.current;
+    if (observed === null) return;
+    const stamp = { ...renderedCue, revealedIndex: state.revealedIndex };
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      const current = stateRef.current;
+      if (cancelled || readStatus() !== 'active' || exposureRef.current !== observed || !ownsContinuation(current, stamp) || current.revealedIndex !== stamp.revealedIndex) return;
+      const remainingMs = flashMs - exposureMs(observed, clock.now());
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else { cancelled = true; dispatch({ type: 'reveal-tick', stamp }); }
+    };
+    timer = setTimeout(expire, Math.max(0, flashMs - exposureMs(observed, clock.now())));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.tutorialOpen, state.revealedIndex, renderedCue, readStatus, clock, flashMs, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -240,6 +287,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -258,40 +306,40 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     goBack();
   }, [session, goBack]);
 
-  const handleTapSymbol = useCallback(
-    (id: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'input' || current.paused || current.roundScored) {
-        return;
-      }
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'tap-symbol', id });
-    },
-    [dispatch],
-  );
-
-  const handleBackspace = useCallback(() => {
+  const handleTapSymbol = useCallback((id: number, event?: GestureResponderEvent) => {
     const current = stateRef.current;
-    if (current.phase !== 'input' || current.paused || current.roundScored) {
-      return;
+    if (readStatus() !== 'active' || current.phase !== 'input' || current.roundScored || !ownsContinuation(current, renderedCue)) return;
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
     }
-    liveAudioHaptics.feedback('tap');
-    dispatch({ type: 'backspace' });
-  }, [dispatch]);
+    if (dispatch({ type: 'tap-symbol', id, stamp: renderedCue }) !== null) liveAudioHaptics.feedback('tap');
+  }, [renderedCue, readStatus, dispatch]);
+
+  const handleBackspace = useCallback((event?: GestureResponderEvent) => {
+    const current = stateRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'input' || !ownsContinuation(current, renderedCue)) return;
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    if (dispatch({ type: 'backspace', stamp: renderedCue }) !== null) liveAudioHaptics.feedback('tap');
+  }, [renderedCue, readStatus, dispatch]);
 
   const handleSubmit = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'input' || current.paused || current.roundScored) {
-      return;
-    }
-    if (current.answer.length !== current.recallLength) {
-      return;
-    }
-    dispatch({ type: 'submit' });
-  }, [dispatch]);
+    if (readStatus() !== 'active' || !ownsContinuation(stateRef.current, renderedCue)) return;
+    dispatch({ type: 'submit', stamp: renderedCue });
+  }, [renderedCue, readStatus, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.sessionId !== renderedCue.sessionId || current.phase !== renderedCue.phase ||
+        current.roundIndex !== renderedCue.roundIndex || current.continuationEpoch !== renderedCue.epoch) return;
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.paused || current.tutorialOpen) return;
+    const status = session.status();
+    if (status !== null && status !== 'completed' && status !== 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -300,12 +348,13 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, dispatch, renderedCue]);
 
   const handleRestart = handleStart;
 
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
+    if (stateRef.current.phase !== 'intro') return;
     tutorial.requestReplay(GAME_ID);
     dispatch({ type: 'tutorial-open' });
   }, [tutorial, dispatch]);
@@ -345,10 +394,10 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
-        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+        <Tutorial clock={clock} onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
       {inSession ? (
         <>
@@ -421,7 +470,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
                     symbolId={sym.id}
                     size={40}
                     testID={testId(GAME_ID, 'palette', String(sym.id))}
-                    onPress={() => handleTapSymbol(sym.id)}
+                    onPress={(event) => handleTapSymbol(sym.id, event)}
                     disabled={state.answer.length >= state.recallLength}
                   />
                 ))}

@@ -96,7 +96,7 @@ describe('suggested next storefront', () => {
     expect(within(stage).getByTestId('games-suggested-open')).toBeOnTheScreen();
 
     expect(screen.getByTestId('games-suggested-reason')).toHaveTextContent(
-      'Suggested because: You have not tried this game yet.',
+      'You have not tried this game yet.',
     );
   });
 

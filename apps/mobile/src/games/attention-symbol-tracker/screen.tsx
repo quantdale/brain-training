@@ -18,10 +18,11 @@
  * shared PauseOverlay and hidden from the accessibility tree while paused, so
  * the answer cannot be read off the UI during a pause.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -38,7 +39,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 
@@ -52,7 +52,6 @@ import {
 } from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
-  createSymbolTrackerQaForceStateHooks,
   createSymbolTrackerTutorialLifecycle,
 } from './hooks';
 import { symbolTrackerGameReducer } from './reducer';
@@ -65,8 +64,10 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, createInitialSymbolTrackerState } from './types';
-import type { SymbolTrackerAction } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, createInitialSymbolTrackerState } from './types';
+import type { ResultContinuationStamp, SymbolTrackerAction } from './types';
+import { freezeWindow, readWindowElapsed } from './observed-window';
+import type { ObservedWindow } from './observed-window';
 
 export interface SymbolTrackerScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -81,11 +82,8 @@ export interface SymbolTrackerScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Observe pacing step (ms); also bounds the pause-freeze drift. */
+/** Rendering/expiry-notice cadence only; measured exposure owns the budget. */
 const OBSERVE_TICK_MS = 100;
-
-/** Respond-budget pacing step (ms); identical convention to OBSERVE_TICK_MS. */
-const RESPOND_TICK_MS = 100;
 
 export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}) {
   const {
@@ -97,31 +95,32 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     symbolTrackerGameReducer,
     undefined,
     createInitialSymbolTrackerState,
   );
 
   const stateRef = useRef(state);
-  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
-  // before React commits the pause or continuation dispatch.
-  const dispatchContinuation = useCallback((action: SymbolTrackerAction) => {
-    stateRef.current = symbolTrackerGameReducer(stateRef.current, action);
-    dispatch(action);
-  }, [dispatch]);
-  // Per-round observe timer baseline: tracks elapsed ACTIVE (non-paused) observe
-  // time so pausing freezes and resuming resumes the remaining window (not a restart).
-  const observeElapsedRef = useRef(0);
-  const observeRoundRef = useRef(-1);
-  // Per-round respond-budget baseline: same active-time accumulation as the
-  // observe window, so pausing freezes the deadline identically.
-  const respondElapsedRef = useRef(0);
-  const respondRoundRef = useRef(-1);
-
-  useEffect(() => {
-    stateRef.current = state;
-  });
+  const windowRef = useRef<ObservedWindow | null>(null);
+  const presentedCueRef = useRef<ResultContinuationStamp | null>(null);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  // Claim selection, submit and lifecycle boundaries synchronously while
+  // keeping distinct known-symbol taps valid within one React batch.
+  const dispatch = useCallback((action: SymbolTrackerAction) => {
+    const current = stateRef.current;
+    const next = symbolTrackerGameReducer(current, action);
+    if (next === current) return null;
+    if (next.paused || next.tutorialOpen || next.sessionId !== current.sessionId ||
+        next.roundIndex !== current.roundIndex || next.phase !== current.phase) {
+      freezeWindow(windowRef.current, clock.now());
+    }
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, [clock]);
+  const dispatchContinuation = dispatch;
+  useLayoutEffect(() => { stateRef.current = state; });
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -149,7 +148,6 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     };
     const next = symbolTrackerGameReducer(current, action);
     if (next === current) return;
-    stateRef.current = next;
     dispatch(action);
   };
 
@@ -157,10 +155,12 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     () => createSymbolTrackerTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createSymbolTrackerQaForceStateHooks(dispatch, () => state.phase),
-    [dispatch, state.phase],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
+  const forceTimeout = useCallback(() => {
+    assertDevOnly();
+    dispatch({ type: stateRef.current.phase === 'respond' ? 'respond-deadline' : 'observe-tick' });
+  }, [dispatch]);
 
   const params =
     state.profile !== null ? symbolTrackerParamsFromProfile(state.profile) : null;
@@ -173,61 +173,46 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-round observe timer baseline when a new observe window begins.
-  useEffect(() => {
-    if (state.phase === 'observe' && observeRoundRef.current !== state.roundIndex) {
-      observeRoundRef.current = state.roundIndex;
-      observeElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex]);
-
-  // Observe pacing with freeze-and-continue: a window of `observeMs` of ACTIVE
-  // (non-paused) time, accumulated in OBSERVE_TICK_MS steps. While paused, the
-  // interval is cleared so no time accrues; on resume it continues from where it
-  // left off, so the tracked symbols stay highlighted for exactly the time the
-  // player has not yet studied.
-  useGameInterval(
-    state.phase === 'observe' && !state.paused,
-    () => {
-      observeElapsedRef.current = Math.min(observeMs, observeElapsedRef.current + OBSERVE_TICK_MS);
-      if (observeElapsedRef.current >= observeMs) {
-        dispatch({ type: 'observe-tick' });
-      }
-    },
-    OBSERVE_TICK_MS,
-  );
-
-  // ---- Respond-budget pacing: mirrors the observe convention exactly — a
-  // window of `respondDeadlineMs` of ACTIVE time in RESPOND_TICK_MS steps,
-  // frozen while paused. Expiry submits whatever is selected (reducer-side);
-  // it resolves the round instead of crashing.
   const respondDeadlineMs = params?.respondDeadlineMs ?? 7000;
+  const renderedCue = useMemo<ResultContinuationStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
+  const readStatus = session.status;
+
+  // The highlighted board and then the scrambled board each receive their
+  // own exposure from display commit, even when the preceding JS task stalls.
+  useLayoutEffect(() => {
+    if ((state.phase !== 'observe' && state.phase !== 'respond') || state.paused || state.tutorialOpen || readStatus() !== 'active') return;
+    const previous = windowRef.current;
+    const samePhase = previous !== null && previous.sessionId === state.sessionId && previous.roundIndex === state.roundIndex && previous.phase === state.phase;
+    const window: ObservedWindow = { sessionId: state.sessionId, roundIndex: state.roundIndex, phase: state.phase,
+      elapsedMs: samePhase ? previous.elapsedMs : 0, startedAtMs: clock.now() };
+    windowRef.current = window;
+    presentedCueRef.current = renderedCue;
+    const observed = window;
+    return () => freezeWindow(observed, clock.now());
+  }, [state.phase, state.paused, state.tutorialOpen, state.sessionId, state.roundIndex, renderedCue, readStatus, clock]);
+
   useEffect(() => {
-    if (state.phase === 'respond' && respondRoundRef.current !== state.roundIndex) {
-      respondRoundRef.current = state.roundIndex;
-      respondElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex]);
-  useGameInterval(
-    state.phase === 'respond' && !state.paused,
-    () => {
-      respondElapsedRef.current = Math.min(
-        respondDeadlineMs,
-        respondElapsedRef.current + RESPOND_TICK_MS,
-      );
-      if (respondElapsedRef.current >= respondDeadlineMs) {
-        dispatch({ type: 'respond-deadline' });
+    if ((state.phase !== 'observe' && state.phase !== 'respond') || state.paused || state.tutorialOpen) return;
+    const observed = windowRef.current;
+    if (observed === null) return;
+    const durationMs = state.phase === 'observe' ? observeMs : respondDeadlineMs;
+    let cancelled = false;
+    const interval = setInterval(() => {
+      const current = stateRef.current;
+      if (cancelled || readStatus() !== 'active' || windowRef.current !== observed || !ownsContinuation(current, renderedCue)) return;
+      if (readWindowElapsed(observed, clock.now()) >= durationMs) {
+        dispatch({ type: renderedCue.phase === 'observe' ? 'observe-tick' : 'respond-deadline', stamp: renderedCue });
       }
-    },
-    RESPOND_TICK_MS,
-  );
+    }, OBSERVE_TICK_MS);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [state.phase, state.paused, state.tutorialOpen, renderedCue, observeMs, respondDeadlineMs, clock, readStatus, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Round outcome audio/haptics (canonical feedback events only).
   useEffect(() => {
@@ -342,6 +327,7 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -360,36 +346,44 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     goBack();
   }, [session, goBack]);
 
-  const handleTapCell = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'respond' || current.paused || current.roundScored) {
-        return;
-      }
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'tap-cell', index });
-    },
-    [dispatch],
-  );
+  const handleTapCell = useCallback((index: number, event?: GestureResponderEvent) => {
+    const current = stateRef.current;
+    const observed = windowRef.current;
+    const presented = presentedCueRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'respond' || current.roundScored ||
+        !ownsContinuation(current, renderedCue) || observed === null || observed.startedAtMs === null ||
+        presented === null || !ownsContinuation(current, presented)) return;
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    if (readWindowElapsed(observed, clock.now()) >= respondDeadlineMs) {
+      dispatch({ type: 'respond-deadline', stamp: renderedCue });
+      return;
+    }
+    // Empty, stale and duplicate deliveries produce no optimistic tap cue.
+    if (dispatch({ type: 'tap-cell', index, stamp: renderedCue }) !== null) liveAudioHaptics.feedback('tap');
+  }, [renderedCue, readStatus, clock, respondDeadlineMs, dispatch]);
 
   const handleSubmit = useCallback(() => {
     const current = stateRef.current;
-    if (current.phase !== 'respond' || current.paused || current.roundScored) {
-      return;
-    }
-    dispatch({ type: 'submit' });
-  }, [dispatch]);
+    const observed = windowRef.current;
+    const presented = presentedCueRef.current;
+    if (readStatus() !== 'active' || current.phase !== 'respond' || current.roundScored ||
+        !ownsContinuation(current, renderedCue) || observed === null || observed.startedAtMs === null ||
+        presented === null || !ownsContinuation(current, presented)) return;
+    dispatch({ type: readWindowElapsed(observed, clock.now()) >= respondDeadlineMs ? 'respond-deadline' : 'submit', stamp: renderedCue });
+  }, [renderedCue, readStatus, clock, respondDeadlineMs, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if ((current.phase !== "intro" && current.phase !== "results") || current.paused || current.tutorialOpen) return;
+    // A result may be claimed before its finalization effect commits.
+    // Restart only after the old SDK lifecycle is terminal, never replace it.
+    const status = session.status();
+    if (status !== null && status !== 'completed' && status !== 'abandoned') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
-    // A restart begins brand-new windows: clear the previous session's
-    // active-time accumulators so a QA-forced end at round 0 cannot shorten
-    // the next session's observe/respond windows.
-    observeElapsedRef.current = 0;
-    observeRoundRef.current = -1;
-    respondElapsedRef.current = 0;
-    respondRoundRef.current = -1;
     const identity = session.begin();
     dispatch({
       type: 'start-session',
@@ -494,9 +488,9 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
       }
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
-          onForceTimeout={qaHooks.forceTimeout}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
+          onForceTimeout={forceTimeout}
         />
       }
       tutorialOpen={state.tutorialOpen}

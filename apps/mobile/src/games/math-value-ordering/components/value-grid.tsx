@@ -20,6 +20,7 @@
  * tiles are disabled and announce their rank.
  */
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 
@@ -44,7 +45,7 @@ export interface ValueGridProps {
   /** Disabled while paused / outside the ordering phase. */
   readonly disabled?: boolean;
   /** Tap handler receiving the tile id (reducer validates correctness). */
-  readonly onTapTile: (tileId: string) => void;
+  readonly onTapTile: (tileId: string, event?: GestureResponderEvent) => void;
   /** Grid columns (tiles per row); defaults to 3. */
   readonly columns?: number;
   /**
@@ -117,7 +118,7 @@ export function ValueGrid({
             accessibilityHint={outcome !== null ? undefined : 'Tap tiles from smallest to largest value.'}
             accessibilityState={{ disabled: disabled || locked || outcome !== null }}
             disabled={disabled || locked || outcome !== null}
-            onPress={() => onTapTile(tile.id)}
+            onPress={(event) => onTapTile(tile.id, event)}
             style={({ pressed }) => [
               styles.tile,
               {
@@ -145,7 +146,7 @@ export function ValueGrid({
                   { backgroundColor: isCorrectPick ? theme.success : theme.math },
                 ]}
                 testID={testId(GAME_ID, 'tile-rank', String(rank))}>
-                <Text style={styles.rankText}>{rank}</Text>
+                <Text style={[styles.rankText, { color: isCorrectPick ? theme.successOn : theme.mathOn }]}>{rank}</Text>
               </View>
             ) : null}
             {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (

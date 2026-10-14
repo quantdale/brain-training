@@ -190,11 +190,14 @@ export type ProspectiveCueAction =
        * item (mirrors attention-sustained-vigilance's late-tap guard).
        */
       itemIndex: number;
+      /** Rendered cue lease; omitted only by pure fixtures/dev force paths. */
+      stamp?: ItemCueStamp;
     }
   | {
       type: "item-timeout";
       /** Stream index whose response window expired (stamped by its interval). */
       itemIndex: number;
+      stamp?: ItemCueStamp;
     }
   | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
@@ -349,4 +352,17 @@ export function ownsContinuation(
     state.sessionId !== null && stamp.sessionId === state.sessionId &&
     stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
     stamp.epoch === state.continuationEpoch;
+}
+
+/** An item control cannot resolve another item, round, session or pause epoch. */
+export interface ItemCueStamp extends ResultContinuationStamp {
+  readonly itemIndex: number;
+}
+
+export function itemCueStamp(state: ProspectiveCueGameState): ItemCueStamp {
+  return { ...continuationStamp(state), itemIndex: state.itemIndex };
+}
+
+export function ownsItemCue(state: ProspectiveCueGameState, stamp: ItemCueStamp | undefined): boolean {
+  return ownsContinuation(state, stamp) && stamp?.itemIndex === state.itemIndex;
 }

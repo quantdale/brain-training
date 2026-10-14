@@ -283,6 +283,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
+    // Wrapped/scaled copy can exceed minHeight; retain breathing room when it
+    // does so instead of letting the text meet the curved button edge.
+    paddingVertical: Spacing.two,
     minWidth: MIN_TOUCH_TARGET,
   },
   fullWidth: {
@@ -311,8 +314,10 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: Fonts.sans,
     fontWeight: Typography.bodyLarge.weight,
+    textAlign: 'center',
   },
   sublabel: {
     opacity: 0.85,
+    textAlign: 'center',
   },
 });

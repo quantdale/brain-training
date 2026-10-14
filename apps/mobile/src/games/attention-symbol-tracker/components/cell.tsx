@@ -19,7 +19,7 @@
  * accessibility tree.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -46,8 +46,8 @@ export interface CellProps {
   symbolId: number;
   visual: CellVisualState;
   disabled?: boolean;
-  /** Stable tap handler supplied by the board (avoids per-render closures). */
-  onPressCell?: (index: number) => void;
+  /** Rendered-board handler plus the physical native delivery identity. */
+  onPressCell?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const Cell = memo(function Cell({
@@ -92,7 +92,7 @@ export const Cell = memo(function Cell({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: disabled || empty, selected: visual === 'selected' }}
       disabled={disabled || empty}
-      onPress={onPressCell ? () => onPressCell(index) : undefined}
+      onPress={onPressCell ? (event) => onPressCell(index, event) : undefined}
       style={({ pressed }) => [
         styles.cell,
         { backgroundColor, borderColor, borderWidth },

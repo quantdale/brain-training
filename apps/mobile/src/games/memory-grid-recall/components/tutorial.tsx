@@ -2,18 +2,18 @@
  * Tutorial — first-play interactive tutorial for the Grid Recall game.
  *
  * Three steps: a short explanation, a live demo on a small real board (a
- * deterministic 2-cell pattern the player must rebuild; a wrong tap replays the
- * demo), and a completion screen. Completion marks the tutorial done via the
+ * deterministic 2-cell pattern the player must rebuild; wrong picks can be
+ * cleared for another attempt), and a completion screen. Completion marks the tutorial done via the
  * tutorial lifecycle; a dev-only skip button (rendered by the parent only in
  * dev builds) uses the QA skip path.
  *
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R pattern);
  * mechanics stay local.
  */
-import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, View, type GestureResponderEvent } from "react-native";
 
-import { createRng, testId } from "@/sdk";
+import { createRng, systemClock, testId, type Clock } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
 import { GameButton, TutorialFrame } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
@@ -32,12 +32,13 @@ const DEMO_STUDY_MS = 1500;
 type TutorialStep = "intro" | "demo" | "done";
 
 export interface TutorialProps {
+  clock?: Clock;
   onComplete: () => void;
   /** Dev-only QA skip; the parent passes it only when `isDevBuild()`. */
   onSkip?: () => void;
 }
 
-export function Tutorial({ onComplete, onSkip }: TutorialProps) {
+export function Tutorial({ onComplete, onSkip, clock = systemClock }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>("intro");
 
   return (
@@ -67,7 +68,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
       ) : null}
 
       {step === "demo" ? (
-        <DemoBoard onDone={() => setStep("done")} onSkip={onSkip} />
+        <DemoBoard clock={clock} onDone={() => setStep("done")} onSkip={onSkip} />
       ) : null}
 
       {step === "done" ? (
@@ -89,12 +90,13 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 }
 
 interface DemoBoardProps {
+  clock: Clock;
   onDone: () => void;
   onSkip?: () => void;
 }
 
 /** One demo run: shows the pattern, then validates the player's rebuild. */
-function DemoBoard({ onDone, onSkip }: DemoBoardProps) {
+function DemoBoard({ onDone, onSkip, clock }: DemoBoardProps) {
   const targets = useMemo<readonly number[]>(
     () =>
       generateTargetCells({
@@ -108,18 +110,35 @@ function DemoBoard({ onDone, onSkip }: DemoBoardProps) {
   );
   const [studying, setStudying] = useState(true);
   const [selections, setSelections] = useState<number[]>([]);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const alive = useRef(false);
+  useLayoutEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!studying) {
       return;
     }
-    const timer = setTimeout(() => setStudying(false), DEMO_STUDY_MS);
-    return () => clearTimeout(timer);
-  }, [studying]);
+    const deadline = clock.now() + DEMO_STUDY_MS;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      if (cancelled) return;
+      const remainingMs = deadline - clock.now();
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else { cancelled = true; setStudying(false); }
+    };
+    timer = setTimeout(expire, DEMO_STUDY_MS);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [studying, clock]);
 
-  const handleTap = (index: number) => {
-    if (studying) {
+  const handleTap = (index: number, event?: GestureResponderEvent) => {
+    if (studying || !alive.current) {
       return;
+    }
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
     }
     setSelections((prev) =>
       prev.includes(index) ? prev.filter((c) => c !== index) : [...prev, index],

@@ -32,7 +32,7 @@
  * shifted forward by the same amount. The board is covered by the opaque
  * shared `PauseOverlay` and hidden from the accessibility tree while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -71,7 +71,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { SCORING_VERSION } from './versions';
-import { continuationStamp, GAME_ID, RULE_LABELS, createInitialFlexibilityRuleFlipState } from './types';
+import { continuationStamp, ownsContinuation, GAME_ID, RULE_LABELS, createInitialFlexibilityRuleFlipState } from './types';
 import type { FlexibilityRuleFlipAction, Card } from './types';
 
 export interface RuleFlipScreenProps {
@@ -115,6 +115,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
   const pauseStartRef = useRef<number | null>(null);
   /** Clock time until which input is disabled after a rule flip (the arm window). */
   const armUntilRef = useRef<number | null>(null);
+  const [armedTrial, setArmedTrial] = useState<{ sessionId: string | null; roundIndex: number } | null>(null);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -139,7 +140,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     },
   });
 
-  const renderedContinuation = continuationStamp(state);
+  const renderedContinuation = useMemo(() => continuationStamp(state), [state]);
   const handleContinue = () => {
     if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
       return;
@@ -164,6 +165,8 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
   const rounds = params?.rounds ?? 10;
   const speedTargetMs = params?.speedTargetMs ?? 5000;
   const armMs = params?.switchArmMs ?? 800;
+  const inputReady = !state.round?.isSwitch || armMs === 0 ||
+    (armedTrial?.sessionId === state.sessionId && armedTrial?.roundIndex === state.roundIndex);
   const speedPercent =
     state.stats.scoredPicks > 0
       ? Math.min(1, Math.max(0, 1 - state.stats.totalResponseMs / state.stats.scoredPicks / speedTargetMs))
@@ -177,8 +180,8 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     if (state.phase === 'trialActive') {
       const isSwitch = state.round?.isSwitch ?? false;
       if (isSwitch && armMs > 0) {
-        // The trial's response origin is deferred until the arm window ends, so
-        // the arm time is never charged to the player's response time.
+        // Reserve the earliest arm deadline. The response origin is finalized
+        // only when enabled choices commit, excluding an unready JS stall.
         trialStartRef.current = clock.now() + armMs;
         armUntilRef.current = trialStartRef.current;
       } else {
@@ -187,6 +190,38 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       }
     }
   }, [state.phase, state.roundIndex, state.round, clock, armMs]);
+
+  // Readiness is observable, not a silent press-time rejection. A captured
+  // timer belongs to this trial/pause epoch; a late or cancelled timer may
+  // neither enable a later cue nor charge time before enabled choices commit.
+  useEffect(() => {
+    if (state.phase !== 'trialActive' || state.paused ||
+        !state.round?.isSwitch || armMs === 0 || armUntilRef.current === null) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const release = () => {
+      if (cancelled || session.status() !== 'active' ||
+          !session.isCurrentSession(renderedContinuation.sessionId) ||
+          !ownsContinuation(stateRef.current, renderedContinuation)) return;
+      const remaining = Math.max(0, (armUntilRef.current ?? clock.now()) - clock.now());
+      if (remaining > 0) {
+        timer = setTimeout(release, remaining);
+        return;
+      }
+      setArmedTrial({ sessionId: renderedContinuation.sessionId, roundIndex: renderedContinuation.roundIndex });
+    };
+    timer = setTimeout(release, Math.max(0, armUntilRef.current - clock.now()));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.round, armMs, renderedContinuation, session, clock]);
+
+  useEffect(() => {
+    if (state.phase === 'trialActive' && !state.paused && inputReady && armUntilRef.current !== null) {
+      // Start response timing when enabled choices have actually committed.
+      // A stalled JS callback must not turn the disabled wait into slow play.
+      trialStartRef.current = clock.now();
+      armUntilRef.current = null;
+    }
+  }, [state.phase, state.paused, inputReady, clock]);
 
   // First play: open the tutorial automatically.
   useEffect(() => {
@@ -324,38 +359,40 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     goBack();
   }, [session, goBack]);
 
-  const handlePick = useCallback(
-    (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'trialActive' || current.paused || current.round === null) {
-        return;
-      }
-      // Input is disabled while the arm window after a rule flip is active.
-      if (armUntilRef.current !== null && clock.now() < armUntilRef.current) {
-        return;
-      }
-      const responseMs = Math.max(0, clock.now() - trialStartRef.current);
-      if (index === current.round.correctIndex) {
-        liveAudioHaptics.feedback('correct');
-      } else {
-        liveAudioHaptics.feedback('wrong');
-      }
-      dispatch({ type: 'pick-card', index, responseMs });
-    },
-    [clock, dispatch],
-  );
-
-  const handleStart = useCallback(() => {
+  // Bind the action to the cue that supplied this native press callback.
+  // Claim the reducer transition before emitting feedback or dispatching:
+  // React may batch several callbacks before it commits the result.
+  const handlePick = (index: number) => {
     const current = stateRef.current;
+    if (session.status() !== 'active' ||
+        !session.isCurrentSession(renderedContinuation.sessionId) ||
+        !ownsContinuation(current, renderedContinuation) ||
+        current.phase !== 'trialActive' || current.round === null) return;
+    if (!inputReady || (armUntilRef.current !== null && clock.now() < armUntilRef.current)) return;
+    const responseMs = Math.max(0, clock.now() - trialStartRef.current);
+    const action: FlexibilityRuleFlipAction = { type: 'pick-card', index, responseMs };
+    const next = flexibilityRuleFlipReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+    liveAudioHaptics.feedback(index === current.round.correctIndex ? 'correct' : 'wrong');
+  };
+
+  const handleStart = () => {
+    const current = stateRef.current;
+    if ((state.phase !== 'intro' && state.phase !== 'results') ||
+        current.phase !== state.phase || current.sessionId !== state.sessionId ||
+        current.continuationEpoch !== state.continuationEpoch || current.tutorialOpen) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    pauseStartRef.current = null;
+    dispatchContinuation({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  };
 
   const handleRestart = handleStart;
 
@@ -469,7 +506,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                   {/* The flip cue only exists in cued windows by design. */}
                   {state.round.isSwitch && !uncuedHidden ? (
                     <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
-                      Rule flipped! Get ready…
+                      {inputReady ? 'Rule flipped!' : 'Rule flipped! Get ready…'}
                     </ThemedText>
                   ) : null}
                 </View>
@@ -480,7 +517,9 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                   type="bodyLarge"
                   themeColor="text"
                   testID={testId(GAME_ID, 'pick-status')}>
-                  {uncuedHidden
+                  {!inputReady
+                    ? 'Get ready — choices will open shortly'
+                    : uncuedHidden
                     ? 'Infer the rule — pick the matching card'
                     : state.round.isSwitch
                       ? 'New rule — pick the matching card'
@@ -494,6 +533,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                       testID={`${cardGridTestID}.card.${index}`}
                       // eslint-disable-next-line react-hooks/refs -- handlePick reads refs only at press-time; this arrow is never invoked during render (same shape as flexibility-cue-shift's card grid).
                       onPress={() => handlePick(index)}
+                      disabled={!inputReady || state.paused}
                       state={visualFor(index)}
                     />
                   ))}
@@ -517,7 +557,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                 </ThemedText>
                 {state.round.isSwitch && !state.round.uncued ? (
                   <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
-                    Rule flipped! Get ready…
+                    Rule flipped!
                   </ThemedText>
                 ) : null}
               </View>

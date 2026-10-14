@@ -21,6 +21,8 @@ import { Radii, Spacing, Typography, type ThemeColor, type TypographyName } from
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
 import { HAIRLINE } from './radius';
+import { AppIcon } from './app-icon';
+import { useStackedRow, type RowLayout } from './row-layout';
 
 export interface ReportProps extends Omit<ViewProps, 'style' | 'children'> {
   children: ReactNode;
@@ -70,6 +72,9 @@ export interface ReportRowProps {
   onPress?: () => void;
   testID?: string;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
+  /** Auto stacks evidence at compact widths or enlarged system text. */
+  layout?: RowLayout;
   /** Draws the hairline separator below the row (omit on the last row). */
   divider?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -92,33 +97,38 @@ export function ReportRow({
   onPress,
   testID,
   accessibilityLabel,
+  accessibilityHint = 'Open',
+  layout = 'auto',
   divider = false,
   style,
 }: ReportRowProps) {
   const theme = useTheme();
+  const stacked = useStackedRow(layout);
+  const evidence = value !== undefined ? (
+    <ThemedText type={valueType} themeColor={valueTone}
+      style={[styles.value, stacked && styles.valueStacked]}>
+      {value}
+    </ThemedText>
+  ) : null;
   const content = (
     <>
       {icon ? <View style={styles.icon}>{icon}</View> : null}
       <View style={styles.labels}>
-        <ThemedText type="bodySmall" themeColor="textSecondary" numberOfLines={2}>
+        <ThemedText type="bodySmall" themeColor="textSecondary">
           {label}
         </ThemedText>
         {hint ? (
-          <ThemedText type="caption" themeColor="textMuted" numberOfLines={2}>
+          <ThemedText type="caption" themeColor="textMuted">
             {hint}
           </ThemedText>
         ) : null}
+        {stacked ? evidence : null}
+        {stacked ? trailing : null}
       </View>
-      {value !== undefined ? (
-        <ThemedText type={valueType} themeColor={valueTone} style={styles.value} numberOfLines={1}>
-          {value}
-        </ThemedText>
-      ) : null}
-      {trailing}
+      {stacked ? null : evidence}
+      {stacked ? null : trailing}
       {onPress ? (
-        <ThemedText type="body" themeColor="textMuted" aria-hidden>
-          {'›'}
-        </ThemedText>
+        <AppIcon name="chevron" color={theme.textMuted} size={20} />
       ) : null}
     </>
   );
@@ -134,8 +144,8 @@ export function ReportRow({
       <Tappable
         testID={testID}
         onPress={onPress}
-        accessibilityLabel={accessibilityLabel ?? (hint ? `${label}. ${hint}` : label)}
-        accessibilityHint="Open"
+        accessibilityLabel={accessibilityLabel ?? [label, value, hint].filter(Boolean).join('. ')}
+        accessibilityHint={accessibilityHint}
         style={rowStyle}
         pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
         {content}
@@ -156,11 +166,14 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.two,
   },
   title: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '60%',
   },
   titleSpacer: {
     flex: 1,
@@ -182,11 +195,19 @@ const styles = StyleSheet.create({
   labels: {
     flex: 1,
     flexShrink: 1,
+    minWidth: 0,
     gap: Spacing.half,
   },
   value: {
-    flexShrink: 0,
+    flexShrink: 1,
+    maxWidth: '45%',
+    textAlign: 'right',
     fontWeight: Typography.label.weight,
+  },
+  valueStacked: {
+    maxWidth: '100%',
+    alignSelf: 'flex-start',
+    textAlign: 'left',
   },
 });
 

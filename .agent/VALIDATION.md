@@ -163,3 +163,43 @@ actual clean-checkout/native final source/ending-SHA CI/handoff gates stay open.
   adb install-r SUCCESS; post-install data/theme/visual/runtime proof remains open.
 - Independent no-finding contract review covers only specified result/data/
   Rewards callers; all other open game/presentation/certification work remains.
+
+## Observation/input/Progress convergence — 2026-10-15 local
+
+- Combined current-source wave PASS:169 suites/1735 tests/5 snapshots,90.358s;
+  convergence-wave03.json success=true,failed suites/tests0. Covers14 changed
+  game modules and affected Progress/Profile/discovery/detail/shared UI callers.
+  Packet counts overlap this run and must not be summed into whole-app totals.
+- Global TypeScript exit0 (convergence-typecheck06.log empty); full-source
+  ESLint exit0/zero warnings (convergence-wave03-lint.log empty). Current registry,
+  provenance, ownership, Expo23 pins, offline1005 files, runtime-QA, workflow4,
+  affected-map55 patterns and repo-state PASS. Strict OpenSpec62/62 PASS.
+- Staged secret boundary CLEAN3680 text files. Initial staged whitespace check
+  found incidental new-test whitespace;16 test files trimmed, staged check PASS.
+  No historical/owner-brief bytes were modified.
+- Observation20/212; flexibility49/486; memory/search33/392; tutorial5/33 and
+  focused math/word/deduction callers5/40 pass. Valid red-before probes and
+  exact failure/fixture corrections are in DEFECTS.md. The five-module run03
+  had one stale version assertion (56 suites585 tests pass/one fail); corrected
+  metadata test passes, then the combined169-suite run above passes unchanged
+  behavioral expectations. Initial FastMath pause deadline regression was
+  repaired before this combined gate. No failing run is relabeled.
+- Progress5 routes implemented, focused5 suites40 tests PASS; final empty-history
+  action rechecked4/4. Display-only rating slope2 points/day no longer displays200;
+  analytics/rating/storage rules unchanged. Actual supplementary Refero IDs and
+  adopted/rejected lessons are recorded in evidence/PROGRESS_WAVE.md.
+- Shared row/CTA/discovery/Profile/detail critique fixes5 suites19 tests PASS;
+  two intentional canary snapshots updated, combined run5 snapshots PASS.
+  Actual native review is required; snapshot success is not visual acceptance.
+- Preview02 post-install theme/data witness matches949915d1… APK, integrityok/
+  sessions6. Default12/12 capture gate passes, but independent review identifies
+  one blank light Profile identity. Reduced-motion and cold default controls
+  each render it; source mitigation and same-sequence/new-build proof remain
+  separate. Full details and immutable failure: evidence/NATIVE_PREVIEW02.md.
+- Four CI workflows at pushed ebcb45e8 all SUCCESS: App38590943062,
+  Integrity38590943337, Android38590943431, iOS38590943042. Not ending-SHA proof.
+
+Native preview03, current-source profiles/gameplay/data/offline/performance,
+remaining Results/data/supporting presentation, actual clean checkout, final
+source build/ending-SHA CI and visible Home handoff remain OPEN. ARTEMIS access
+works; no credential change is requested. Full Campaign077 remains ACTIVE.

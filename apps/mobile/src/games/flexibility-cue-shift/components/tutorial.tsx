@@ -13,7 +13,7 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R); mechanics
  * stay local.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -139,13 +139,25 @@ function Demo({ step, onWrong, onSwitch, onNoticeContinue, onDone, onSkip }: Dem
     return { round1, round2 };
   }, []);
   const [wrongPick, setWrongPick] = useState<number | null>(null);
+  const cueRef = useRef({ step, claimed: false, mounted: true });
+  useEffect(() => {
+    cueRef.current.step = step;
+    cueRef.current.claimed = false;
+  }, [step]);
+  useEffect(() => {
+    const cue = cueRef.current;
+    cue.mounted = true;
+    return () => { cue.mounted = false; };
+  }, []);
 
   const round = step === 'round1' ? rounds.round1 : rounds.round2;
 
   const handlePick = (index: number) => {
-    if (wrongPick !== null) {
+    if (!cueRef.current.mounted || cueRef.current.step !== step ||
+        cueRef.current.claimed || wrongPick !== null) {
       return;
     }
+    cueRef.current.claimed = true;
     if (index === round.correctIndex) {
       if (step === 'round1') {
         onSwitch();
@@ -171,7 +183,11 @@ function Demo({ step, onWrong, onSwitch, onNoticeContinue, onDone, onSkip }: Dem
         <GameButton
           testID={testId(GAME_ID, 'tutorial-notice-continue')}
           label="Got it"
-          onPress={onNoticeContinue}
+          onPress={() => {
+            if (!cueRef.current.mounted || cueRef.current.step !== step || cueRef.current.claimed) return;
+            cueRef.current.claimed = true;
+            onNoticeContinue();
+          }}
         />
         {onSkip !== undefined ? (
           <GameButton

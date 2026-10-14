@@ -86,3 +86,48 @@ product/copy findings for the pending Profile/Rewards redesign.
 - Preview01 navigation-only Flash aab0e61b-d88a-42a3-bae9-f8af1a9c0f41 completed
   261.3s/12steps. Final image inspected: Home/Startworkout visible; hero heading
   above viewport. Profile Appearance/System is near top. No gameplay certification.
+
+## Observation, remaining input and tutorial wave — 2026-10-15 local
+
+- CueKeeper/SymbolTracker: measured presentation windows, exact pause/tutorial
+  remainders, real deadline checks, stale/duplicate delivery guards and valid
+  distinct toggles. Full owned20 suites/212 tests PASS; owned types/lint PASS.
+- CardSort/CueShift/RuleFlip/TaskSwitch:28 valid red-before caller regressions;
+  full49 suites/486 tests PASS. RuleFlip visibly disables its800ms readiness
+  window and measures response from enabled presentation. Visible-only spoken
+  targets and TaskSwitch on-yellow ink repaired. RuleFlip scoring2.1 records
+  corrected response origins; generators retain their prior versions.
+- GridRecall/RunningOrder/VisualSearch:30 valid caller failures/two controls
+  before, plus five of12 actual glyph pairs below large-text contrast floor.
+  Full33 suites/386 tests initially PASS; root added rendered Start identity
+  and Help/Start boundary coverage, final33 suites/392 tests PASS. Study/reveal
+  time is measured from presentation, cancelled wakes retain their cue, distinct
+  known inputs survive batching, duplicate native payloads are inert, and tile
+  descriptions expose only visible distinctions. GridRecall scoring1.1 and
+  VisualSearch1.2 record corrected exposure/onset; RunningOrder scoring unchanged.
+- Five arithmetic/word/deduction screens: controlled exact-HEAD source probe
+  produced34 valid failures/one control. Fifteen source files were byte-restored
+  in finally, with local backup retained. Initial attempts had invalid FastMath
+  testID and unsupported WordScramble matcher; those failures are not counted.
+  Corrected current caller coverage40/40 PASS, including queued timer retirement,
+  physical delivery, distinct batched input, same-batch verdict, session/pause/
+  Start/Help ownership and late-answer behavior. DeductionTable exact-deadline
+  expiry now agrees with its timer; game/scoring1.2, generator unchanged.
+- Five tutorials:28 actual caller failures/five normal controls before;33/33
+  PASS after. FastMath duplicate first Submit previously advanced past its two
+  demo problems and crashed reading problem.left. Synchronous staged input,
+  cue/attempt retirement, physical delivery claim, first-choice ownership and
+  one-shot completion/skip fix it and its siblings. ValueOrder remains static;
+  teaching content and seeded generators are unchanged.
+
+Initial integrated five-module run01 exposed an introduced FastMath exact
+pause/resume deadline delay; a stable lifecycle-method dependency plus separate
+deadline wake repairs it. Run02 had one incorrect new test assumption that
+ValueOrder timeout has no verdict cue; its deliberate wrong cue is retained,
+while tap/correct cues remain forbidden. Run03:56 suites/585 tests pass, one
+stale MissingOperator game-version assertion fails. Corrected metadata suite
+passes; final combined wave validation is still required. No failure is relabeled.
+
+Native preview02 does not contain this wave. Provider access works; native
+gameplay/visual/state acceptance remains open. Profile blank-frame evidence and
+current source mitigation are recorded in NATIVE_PREVIEW02.md.

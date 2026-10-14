@@ -62,7 +62,7 @@ export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
 
   return (
     <View testID="games-suggested-next" style={styles.root}>
-      <SectionHeader eyebrow="START HERE" title="Suggested next" />
+      <SectionHeader title="Suggested next" />
       {top && identity ? (
         <View style={styles.primary} testID="games-suggested-primary">
           {/* Quiet featured row (change 076): one bordered card — board still,
@@ -106,14 +106,9 @@ export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
               </View>
             </View>
             {reasonText ? (
-              // Borrowed detail 2 (lock §8): numbered hairline fact row for
-              // secondary evidence — quiet, never competing with the action.
               <View style={[styles.factRow, { borderTopColor: theme.border }]}>
-                <ThemedText type="eyebrow" themeColor="textMuted" allowFontScaling={false}>
-                  01
-                </ThemedText>
                 <ThemedText type="caption" themeColor="textSecondary" testID="games-suggested-reason" style={styles.kicker}>
-                  Suggested because: {reasonText}
+                  {reasonText}
                 </ThemedText>
               </View>
             ) : null}

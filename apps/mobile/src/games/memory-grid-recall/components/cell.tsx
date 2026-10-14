@@ -11,7 +11,8 @@
  * The badge is decorative for screen readers — the cell's accessibility label
  * carries the verdict ("Correct: …" / "Wrong pick: …").
  *
- * Accessibility: labels are neutral ("Cell N") while the round is live. The
+ * Accessibility: visible study highlights are named; input labels return to
+ * neutral positions ("Cell N") after the pattern is hidden. The
  * `correct`/`error` states are only ever produced for the post-submit
  * round-result board, so the verdict wording (and the solution itself) can
  * never be read off the accessibility tree during the obscured input/pause
@@ -19,7 +20,7 @@
  * player's own input-phase selection.
  */
 import { memo } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, type GestureResponderEvent } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
@@ -43,7 +44,7 @@ export interface CellProps {
   visual: CellVisualState;
   disabled?: boolean;
   /** Stable tap handler supplied by the board (avoids per-render closures). */
-  onPressCell?: (index: number) => void;
+  onPressCell?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const Cell = memo(function Cell({
@@ -79,7 +80,7 @@ export const Cell = memo(function Cell({
       ? `Correct: Cell ${index + 1}`
       : visual === "error"
         ? `Wrong pick: Cell ${index + 1}`
-        : `Cell ${index + 1}`;
+        : visual === "target" ? `Cell ${index + 1}, highlighted` : `Cell ${index + 1}`;
 
   return (
     <Pressable
@@ -88,7 +89,7 @@ export const Cell = memo(function Cell({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: visual === "selected" }}
       disabled={disabled}
-      onPress={onPressCell ? () => onPressCell(index) : undefined}
+      onPress={onPressCell ? (event) => onPressCell(index, event) : undefined}
       style={({ pressed }) => [
         styles.cell,
         { backgroundColor, borderColor, borderWidth },

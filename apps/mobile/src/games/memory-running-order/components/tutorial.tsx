@@ -10,10 +10,10 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R pattern);
  * mechanics stay local.
  */
-import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useLayoutEffect, useRef, useState } from "react";
+import { StyleSheet, View, type GestureResponderEvent } from "react-native";
 
-import { testId } from "@/sdk";
+import { systemClock, testId, type Clock } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
 import { GameButton, TutorialFrame } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
@@ -30,12 +30,13 @@ const DEMO_FLASH_MS = 800;
 type TutorialStep = "intro" | "demo" | "done";
 
 export interface TutorialProps {
+  clock?: Clock;
   onComplete: () => void;
   /** Dev-only QA skip; the parent passes it only when `isDevBuild()`. */
   onSkip?: () => void;
 }
 
-export function Tutorial({ onComplete, onSkip }: TutorialProps) {
+export function Tutorial({ onComplete, onSkip, clock = systemClock }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>("intro");
 
   return (
@@ -65,7 +66,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
       ) : null}
 
       {step === "demo" ? (
-        <DemoStream onDone={() => setStep("done")} onSkip={onSkip} />
+        <DemoStream clock={clock} onDone={() => setStep("done")} onSkip={onSkip} />
       ) : null}
 
       {step === "done" ? (
@@ -87,15 +88,19 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 }
 
 interface DemoStreamProps {
+  clock: Clock;
   onDone: () => void;
   onSkip?: () => void;
 }
 
 /** One demo run: flashes the fixed stream, then validates the last-two recall. */
-function DemoStream({ onDone, onSkip }: DemoStreamProps) {
+function DemoStream({ onDone, onSkip, clock }: DemoStreamProps) {
   const [revealedIndex, setRevealedIndex] = useState(0);
   const [answer, setAnswer] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<string>("");
+  const [attempt, setAttempt] = useState(0);
+  const inputRef = useRef({ answer: [] as number[], epoch: 0, completed: false });
+  const deliveredPresses = useRef(new WeakSet<object>());
 
   // Derived rather than stored: "input" begins exactly when the reveal
   // stream has finished flashing (avoids a cascading setState in an effect).
@@ -105,26 +110,40 @@ function DemoStream({ onDone, onSkip }: DemoStreamProps) {
   const revealing =
     revealedIndex >= 0 && revealedIndex < TUTORIAL_DEMO_STREAM.length;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!revealing) {
       return;
     }
-    const timer = setTimeout(
-      () => setRevealedIndex((i) => i + 1),
-      DEMO_FLASH_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [revealing, revealedIndex]);
+    const deadline = clock.now() + DEMO_FLASH_MS;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      if (cancelled) return;
+      const remainingMs = deadline - clock.now();
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else { cancelled = true; setRevealedIndex((index) => index + 1); }
+    };
+    timer = setTimeout(expire, DEMO_FLASH_MS);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [revealing, revealedIndex, clock]);
 
   const target = TUTORIAL_DEMO_STREAM.slice(
     TUTORIAL_DEMO_STREAM.length - TUTORIAL_DEMO_RECALL,
   );
 
-  const handleTap = (id: number) => {
-    if (phase !== "input" || answer.length >= TUTORIAL_DEMO_RECALL) {
+  const handleTap = (id: number, event?: GestureResponderEvent) => {
+    const input = inputRef.current;
+    if (phase !== "input" || input.completed || attempt !== input.epoch || input.answer.length >= TUTORIAL_DEMO_RECALL) {
       return;
     }
-    const next = [...answer, id];
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    // Every symbol is already known: distinct rapid picks may share a render.
+    const next = [...input.answer, id];
+    input.answer = next;
     if (next.length < TUTORIAL_DEMO_RECALL) {
       setAnswer(next);
       setFeedback("");
@@ -133,10 +152,15 @@ function DemoStream({ onDone, onSkip }: DemoStreamProps) {
     // Final pick: validate the ordered recall.
     const correct = next.every((v, i) => v === target[i]);
     if (correct) {
+      input.completed = true;
       setFeedback("Perfect!");
       onDone();
     } else {
-      setFeedback("Not quite — watch again and try the last two in order.");
+      // This demo clears the picks; it does not replay the stream.
+      setFeedback("Not quite — try the last two in order again.");
+      input.answer = [];
+      input.epoch += 1;
+      setAttempt(input.epoch);
       setAnswer([]);
     }
   };
@@ -175,7 +199,7 @@ function DemoStream({ onDone, onSkip }: DemoStreamProps) {
                 size={36}
                 testID={testId(GAME_ID, "tutorial-palette", String(sym.id))}
                 highlighted={answer.includes(sym.id)}
-                onPress={() => handleTap(sym.id)}
+                onPress={(event) => handleTap(sym.id, event)}
                 disabled={answer.length >= TUTORIAL_DEMO_RECALL}
               />
             ))}

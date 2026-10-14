@@ -19,12 +19,13 @@
  * verdict) renders exactly as before.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
+import { contrastRatio } from '@/theme/contrast';
 
 import { symbolById, type RunningOrderSymbol } from '../symbols';
 
@@ -39,7 +40,7 @@ export interface SymbolViewProps {
   /** Optional highlight ring (used in the tutorial demo / answer display). */
   highlighted?: boolean;
   /** When provided, the view becomes a pressable control. */
-  onPress?: () => void;
+  onPress?: (event?: GestureResponderEvent) => void;
   /** Disables presses (e.g. when the answer is full). */
   disabled?: boolean;
   /** Stable accessibility label override (defaults to the symbol identity). */
@@ -70,6 +71,7 @@ export const SymbolView = memo(function SymbolView({
     accessibilityLabel ?? (verdictWord !== null ? `${verdictWord}: ${sym.label}` : sym.label);
   const verdictFill =
     verdict === 'correct' ? theme.successSoft : verdict === 'wrong' ? theme.dangerSoft : null;
+  const symbolInk = readableSymbolInk(sym.color, verdictFill ?? theme.surface);
   const verdictBorder =
     verdict === 'correct' ? theme.success : verdict === 'wrong' ? theme.danger : null;
   const badgeFill = verdict === 'correct' ? theme.success : verdict === 'wrong' ? theme.danger : null;
@@ -90,7 +92,7 @@ export const SymbolView = memo(function SymbolView({
             borderWidth: 3,
           },
       ]}>
-      <Text style={[styles.glyph, { color: sym.color, fontSize: size }]}>{sym.glyph}</Text>
+      <Text style={[styles.glyph, { color: symbolInk, fontSize: size }]} allowFontScaling={false}>{sym.glyph}</Text>
       {badgeGlyph !== null && badgeFill !== null && badgeOn !== null ? (
         <View
           testID={testID !== undefined ? `${testID}.verdict` : undefined}
@@ -119,6 +121,20 @@ export const SymbolView = memo(function SymbolView({
   }
   return inner;
 });
+
+/** Keep the symbol's hue/shape identity while meeting the large-glyph floor. */
+function readableSymbolInk(color: string, surface: string): string {
+  if (contrastRatio(color, surface) >= 3) return color;
+  const rgb = [1, 3, 5].map((start) => Number.parseInt(color.slice(start, start + 2), 16));
+  for (let step = 1; step <= 10; step += 1) {
+    for (const destination of [0, 255]) {
+      const amount = step / 10;
+      const candidate = `#${rgb.map((channel) => Math.round(channel + (destination - channel) * amount).toString(16).padStart(2, '0')).join('')}`;
+      if (contrastRatio(candidate, surface) >= 3) return candidate;
+    }
+  }
+  return color;
+}
 
 const styles = StyleSheet.create({
   wrap: {

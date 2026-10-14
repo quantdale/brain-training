@@ -118,9 +118,9 @@ export type GridRecallAction =
       sessionId: string;
       startedAtMs: number;
     }
-  | { type: "study-tick" }
-  | { type: "tap-cell"; index: number }
-  | { type: "submit" }
+  | { type: "study-tick"; stamp?: ResultContinuationStamp }
+  | { type: "tap-cell"; index: number; stamp?: ResultContinuationStamp }
+  | { type: "submit"; stamp?: ResultContinuationStamp }
   | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
   | { type: "resume" }

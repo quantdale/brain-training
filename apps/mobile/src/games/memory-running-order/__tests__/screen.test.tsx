@@ -198,7 +198,7 @@ describe("RunningOrderScreen", () => {
     );
     expect(
       screen.getByTestId(testId(GAME_ID, "tutorial-demo-feedback")),
-    ).toHaveTextContent("Not quite — watch again and try the last two in order.");
+    ).toHaveTextContent("Not quite — try the last two in order again.");
 
     // Correct ordered recall of the last two completes the demo.
     for (const id of demoTarget) {
@@ -305,7 +305,7 @@ describe("RunningOrderScreen", () => {
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as RunningOrderRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));
-    expect(raw.diagnosticMetadata.gameVersion).toBe("1.1.0");
+    expect(raw.diagnosticMetadata.gameVersion).toBe("1.2.0");
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe("normal");
     expect(raw.forced).toBe(false);

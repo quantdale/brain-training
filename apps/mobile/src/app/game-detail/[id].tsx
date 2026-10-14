@@ -125,6 +125,7 @@ export default function GameDetailScreen() {
     null,
   );
   const [toggleError, setToggleError] = useState(false);
+  const [showInformation, setShowInformation] = useState(false);
 
   const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
   // Recovery action for the error state: bumping the key reruns the load.
@@ -418,7 +419,16 @@ export default function GameDetailScreen() {
         </>
       )}
 
-      <ThemedText
+      <Button
+        testID="game-detail-information-toggle"
+        label={showInformation ? "Hide game information" : "Game information"}
+        variant="ghost"
+        size="sm"
+        fullWidth={false}
+        accessibilityState={{ expanded: showInformation }}
+        onPress={() => setShowInformation((value) => !value)}
+      />
+      {showInformation ? <ThemedText
         type="caption"
         themeColor="textSecondary"
         testID="game-detail-versions"
@@ -427,7 +437,7 @@ export default function GameDetailScreen() {
         {game.generatorVersion
           ? ` · generator v${game.generatorVersion}`
           : " · curated content"}
-      </ThemedText>
+      </ThemedText> : null}
     </ScreenShell>
   );
 }

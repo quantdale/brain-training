@@ -8,11 +8,48 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — 2026-10-14
+## Current work — 2026-10-15 (local)
+
+The first implementation/evidence checkpoints are pushed through
+ebcb45e821c598bc2d408de62efeb8a57a0be8f6. All four workflows at that SHA passed:
+App38590943062, Integrity38590943337, Android38590943431, iOS38590943042.
+These are checkpoint results, not ending-SHA certification.
+
+The next converged wave is ready to commit. CueKeeper/SymbolTracker observation repairs pass
+20 suites/212 tests; four flexibility input/readiness/semantic repairs pass
+49 suites/486 tests. Five arithmetic/word/deduction caller repairs pass40 focused
+tests after34 valid red-before failures/one control; five tutorials pass33 tests
+after28 valid failures/five controls. An integrated57-suite run found one stale
+MissingOperator game-version assertion (585 pass/one fail); its corrected
+metadata suite passes. Memory/attention final33 suites/392 tests and Progress
+focused5 suites/40 tests pass. Combined wave PASS169 suites/1735 tests/5 snapshots;
+global TypeScript and full-source zero-warning ESLint exit0. Registry/provenance/
+ownership/strict62-item OpenSpec/offline/runtime-QA/workflow/affected-map gates pass.
+Staged secrets CLEAN3680 text files and current staged whitespace PASS.
+
+Shared rows now wrap and stack essential evidence at compact/large text; CTA
+padding protects wrapped captions. Native critique corrections add a filter
+overflow hint, simpler recommendation framing and a Game information disclosure.
+Five UI suites/19 tests pass with two intentional canary snapshots updated.
+These source changes are not installed yet.
+
+Preview02 default12/12 capture gate passes, but independent visual review found
+a blank light Profile identity card. Same-APK reduced-motion and default cold
+controls each render it; cause remains unproven. Source now paints the identity
+without an entrance animation. Acceptance needs the new build and the original
+Home→Games→Profile sequence under default motion. Preserve the failed frame;
+do not label it repaired through retries. Details: evidence/NATIVE_PREVIEW02.md.
+
+Next: finish convergence/checkpoint, build/install preview03 preserving data,
+inspect required profiles and game journeys, then finish remaining Results/data/
+supporting presentation, motion and the full original certification/handoff.
+Full Campaign077 remains ACTIVE. ARTEMIS access works; no credential action needed.
+
+## Last pushed implementation checkpoint — 2026-10-14
 
 Implementation checkpoint918c20ed1760e1691bf7a601aa6c8db1161bd495 records the
 first converged wave. Integrated gates below now pass; this evidence checkpoint
-is ready to push with it. The full Campaign 077 scope is ACTIVE; final certification is open.
+was pushed with it. The full Campaign 077 scope is ACTIVE; final certification is open.
 Mandatory startup and repo-state reconciliation pass. No temporary Git branches
 or worktrees were created.
 

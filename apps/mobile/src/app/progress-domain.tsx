@@ -51,15 +51,14 @@ import {
   BackLink,
   Badge,
   Card,
-  EmptyState,
- 
+
   ListRow,
   SectionGrid,
   SegmentedControl,
   Skeleton,
   SkeletonText,
-  Spark,
-  Tappable,
+  Button,
+  ReportRow,
   useSafeBack,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type ColorFamily, type DomainName } from '@/constants/theme';
@@ -222,18 +221,15 @@ export default function ProgressDomainScreen() {
     return (
       <ScreenShell>
         <ThemedText type="title">Domain</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary" testID="progress-domain-missing">
+        <ThemedText type="bodySmall" themeColor="textSecondary" testID="progress-domain-missing">
           No domain selected.
         </ThemedText>
-        <Tappable
+        <Button
+          variant="ghost" label="Back to Progress"
           testID="progress-domain-back-link"
           onPress={() => router.replace('/progress')}
           style={styles.textLinkRow}
-          accessibilityLabel="Back to Progress">
-          <ThemedText type="smallBold" themeColor="accent">
-            ‹ Back to Progress
-          </ThemedText>
-        </Tappable>
+          accessibilityLabel="Back to Progress" />
       </ScreenShell>
     );
   }
@@ -251,12 +247,12 @@ export default function ProgressDomainScreen() {
           <View
             style={[styles.domainDot, { backgroundColor: family ? family.base : theme.accent }]}
           />
-          <ThemedText type="title" testID="progress-domain-title">
+          <ThemedText type="title" style={styles.titleText} testID="progress-domain-title">
             {domain}
           </ThemedText>
         </View>
-        <ThemedText type="small" themeColor="textSecondary">
-          Rating history and contributing games.
+        <ThemedText type="bodySmall" themeColor="textSecondary">
+          Your current rating, recorded results and contributing games.
         </ThemedText>
       </View>
 
@@ -265,9 +261,7 @@ export default function ProgressDomainScreen() {
       <View
         style={[styles.windowRow, { borderTopColor: theme.border, borderBottomColor: theme.border }]}
         testID="progress-domain-window-row">
-        <ThemedText type="eyebrow" themeColor="textMuted">
-          WINDOW
-        </ThemedText>
+        <ThemedText type="label" themeColor="textSecondary">Activity & rating-movement window</ThemedText>
         {/* Review fix: constrain the control to the remaining row width so
             the options cannot lay out past the screen edge at compact. */}
         <View style={styles.windowControlSlot}>
@@ -283,6 +277,9 @@ export default function ProgressDomainScreen() {
             }))}
           />
         </View>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Current rating and game records are all-time. Metric trends below use all recorded domain sessions.
+        </ThemedText>
       </View>
 
       {!loaded ? (
@@ -301,29 +298,11 @@ export default function ProgressDomainScreen() {
       ) : (
         <>
       {unseen ? (
-        <Card variant="outlined">
-          <EmptyState
-            icon={
-              <Spark
-                size={36}
-                color={family ? family.base : theme.accent}
-                coreColor={theme.surface}
-              />
-            }
-            title="Not trained yet"
-            message={`No ${domain} sessions yet.`}
-            actionLabel={`Find a ${domain} game`}
-            onAction={() => router.replace('/games')}
-            actionVariant="primary"
-            testID="progress-domain-unseen"
-          />
-          <ThemedText type="caption" themeColor="textSecondary">
-            This domain contributes the starting rating ({insight?.rating ?? 1000}) to
-            your overall composite until you train it.
-          </ThemedText>
-        </Card>
+        <StateCard variant="empty" title="Not trained yet"
+          message={`Complete a ${domain} session to build this rating. Until then, its starting rating (${insight?.rating ?? 1000}) contributes to your overall rating.`}
+          testID="progress-domain-unseen" action={{ label: 'Browse games', onPress: () => router.replace('/games') }} />
       ) : (
-        <Card testID="progress-domain-summary" variant="outlined">
+        <Card style={styles.evidenceCard} testID="progress-domain-summary" variant="outlined">
           <View style={styles.cardHeader}>
             <ThemedText type="eyebrow" themeColor="textSecondary">
               Current rating
@@ -340,7 +319,7 @@ export default function ProgressDomainScreen() {
             </ThemedText>
             {insight && insight.windowMovement !== 0 ? (
               <ThemedText
-                type="headline"
+                type="headline" testID="progress-domain-movement"
                 themeColor={insight.direction === 'up' ? 'success' : 'danger'}>
                 {directionArrow(insight.direction)} {formatSigned(insight.windowMovement)}
               </ThemedText>
@@ -362,18 +341,15 @@ export default function ProgressDomainScreen() {
             </ThemedText>
           ) : null}
           <View testID="progress-domain-stats">
-            <FactRow
-              marker="01"
+            <ReportRow
               label={`Sessions (${WINDOW_LABELS[windowKey]})`}
               value={String(windowedDomainSessions.length)}
             />
-            <FactRow
-              marker="02"
+            <ReportRow
               label={`Avg (${WINDOW_LABELS[windowKey]})`}
               value={windowAvg === null ? '—' : formatPercent(windowAvg)}
             />
-            <FactRow
-              marker="03"
+            <ReportRow
               label="Best ever"
               value={lifetimeBest === null ? '—' : formatPercent(lifetimeBest)}
               divider={false}
@@ -382,8 +358,9 @@ export default function ProgressDomainScreen() {
         </Card>
       )}
 
+      {!unseen ? (<>
       <SectionGrid>
-      <Card testID="progress-domain-history">
+      <Card style={styles.evidenceCard} testID="progress-domain-history">
         <DomainHeading label="Rating over time" family={family} />
         <MiniBarChart
           values={chartValues}
@@ -397,12 +374,12 @@ export default function ProgressDomainScreen() {
           }
         />
         <ThemedText type="caption" themeColor="textSecondary">
-          {chartCaption}
+          {chartCaption}{chartPoints.length > 0 ? ` ${formatDayLabel(chartPoints[0].t)} to ${formatDayLabel(chartPoints[chartPoints.length - 1].t)}, oldest to newest.` : ''}
         </ThemedText>
       </Card>
 
       {trendSummary.count >= 2 ? (
-        <Card testID="progress-domain-trend">
+        <Card style={styles.evidenceCard} testID="progress-domain-trend">
           <View style={styles.cardHeader}>
             <DomainHeading label="Trend summary" family={family} />
             {domainTrendImproved !== null ? (
@@ -416,13 +393,11 @@ export default function ProgressDomainScreen() {
             ) : null}
           </View>
           <View>
-            <FactRow
-              marker="01"
+            <ReportRow
               label="Updates in series"
               value={String(trendSummary.count)}
             />
-            <FactRow
-              marker="02"
+            <ReportRow
               label="Consistency"
               value={
                 trendSummary.consistency === null
@@ -430,13 +405,12 @@ export default function ProgressDomainScreen() {
                   : formatPercent(trendSummary.consistency)
               }
             />
-            <FactRow
-              marker="03"
-              label="Slope / day"
+            <ReportRow
+              label="Rating points / day"
               value={
                 trendSummary.slopePerDay === null
                   ? '—'
-                  : `${formatSigned(Math.round(trendSummary.slopePerDay * 1000) / 10)}`
+                  : `${formatSigned(Math.round(trendSummary.slopePerDay * 10) / 10)}`
               }
               divider={false}
             />
@@ -450,7 +424,7 @@ export default function ProgressDomainScreen() {
 
       <SectionGrid>
       {accuracyTrend.available ? (
-        <Card testID="progress-domain-accuracy">
+        <Card style={styles.evidenceCard} testID="progress-domain-accuracy">
           <View style={styles.cardHeader}>
             <DomainHeading label="Accuracy over time" family={family} />
             <ThemedText type="smallBold">
@@ -460,6 +434,9 @@ export default function ProgressDomainScreen() {
               recent
             </ThemedText>
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {formatDayLabel(accuracyTrend.series[0].t)} to {formatDayLabel(accuracyTrend.series[accuracyTrend.series.length - 1].t)} · {accuracyTrend.count} recorded values.
+          </ThemedText>
           <MiniBarChart
             values={accuracyTrend.series.map((p) => p.value)}
             testID="progress-domain-accuracy-chart"
@@ -472,19 +449,22 @@ export default function ProgressDomainScreen() {
             }
           />
           <ThemedText type="caption" themeColor="textSecondary">
-            {explainMetric('accuracy-trend')}
+            All-time domain sessions; recent is the latest five available values. {explainMetric('accuracy-trend')}
           </ThemedText>
         </Card>
       ) : null}
 
       {reactionTrend.available ? (
-        <Card testID="progress-domain-reaction">
+        <Card style={styles.evidenceCard} testID="progress-domain-reaction">
           <View style={styles.cardHeader}>
             <DomainHeading label="Reaction time (lower is better)" family={family} />
             <ThemedText type="smallBold">
               {reactionTrend.recentMean === null ? '—' : formatMs(reactionTrend.recentMean)} recent
             </ThemedText>
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {formatDayLabel(reactionTrend.series[0].t)} to {formatDayLabel(reactionTrend.series[reactionTrend.series.length - 1].t)} · {reactionTrend.count} recorded values.
+          </ThemedText>
           <MiniBarChart
             values={reactionTrend.series.map((p) => p.value)}
             testID="progress-domain-reaction-chart"
@@ -497,14 +477,14 @@ export default function ProgressDomainScreen() {
             }
           />
           <ThemedText type="caption" themeColor="textSecondary">
-            {explainMetric('reaction-trend')}
+            All-time domain sessions; recent is the latest five available values. {explainMetric('reaction-trend')}
           </ThemedText>
         </Card>
       ) : null}
       </SectionGrid>
 
       {difficultyTrend.available ? (
-        <Card testID="progress-domain-difficulty">
+        <Card style={styles.evidenceCard} testID="progress-domain-difficulty">
           <DomainHeading label="Difficulty attempted" family={family} />
           <MiniBarChart
             values={difficultyTrend.series.map((p) => p.value)}
@@ -516,12 +496,12 @@ export default function ProgressDomainScreen() {
             First {formatPercent(difficultyTrend.first ?? 0)} → latest{' '}
             {formatPercent(difficultyTrend.latest ?? 0)} · peak{' '}
             {formatPercent(difficultyTrend.peak ?? 0)}.{' '}
-            {explainMetric('difficulty-progression')}
+            All-time domain sessions. {explainMetric('difficulty-progression')}
           </ThemedText>
         </Card>
       ) : null}
 
-      <Card testID="progress-domain-activity">
+      <Card style={styles.evidenceCard} testID="progress-domain-activity">
         <DomainHeading label="Activity" family={family} />
         <ThemedText type="caption" themeColor="textSecondary">
           {calendar.days.length > 0
@@ -550,11 +530,11 @@ export default function ProgressDomainScreen() {
           })()}
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
-          {calendar.activeDays} active days · {calendar.totalSessions} sessions in this view.
+          {calendar.activeDays} active days · {calendar.totalSessions} sessions in this view{windowKey === 'all' ? ' · latest 84 days shown' : ''}.
         </ThemedText>
       </Card>
 
-      <Card testID="progress-domain-games">
+      <Card style={styles.evidenceCard} testID="progress-domain-games">
         <DomainHeading label="Games in this domain" family={family} />
         {byGame.length > 0 ? (
           <View style={styles.rows}>
@@ -573,13 +553,13 @@ export default function ProgressDomainScreen() {
             })}
           </View>
         ) : (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="bodySmall" themeColor="textSecondary">
             No sessions recorded for this domain.
           </ThemedText>
         )}
       </Card>
 
-      <Card testID="progress-domain-recent">
+      <Card style={styles.evidenceCard} testID="progress-domain-recent">
         <DomainHeading label="Recent sessions" family={family} />
         {domainSessions.length > 0 ? (
           <View style={styles.rows}>
@@ -595,11 +575,12 @@ export default function ProgressDomainScreen() {
             ))}
           </View>
         ) : (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="bodySmall" themeColor="textSecondary">
             No sessions yet.
           </ThemedText>
         )}
       </Card>
+      </>) : null}
         </>
       )}
     </ScreenShell>
@@ -638,73 +619,31 @@ function DomainHeading({ label, family }: { label: string; family: ColorFamily |
       <View
         style={[styles.headingBar, { backgroundColor: family ? family.base : theme.accent }]}
       />
-      <ThemedText type="subtitle" style={family ? { color: family.text } : undefined}>
+      <ThemedText type="headline" style={styles.headingText}>
         {label}
-      </ThemedText>
-    </View>
-  );
-}
-
-/** Change 076 (lock section 8): numbered hairline fact row for domain stats. */
-function FactRow({
-  marker,
-  label,
-  value,
-  divider = true,
-}: {
-  marker: string;
-  label: string;
-  value: string;
-  divider?: boolean;
-}) {
-  const theme = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.three,
-        paddingVertical: Spacing.twoHalf,
-        borderBottomWidth: divider ? 1 : 0,
-        borderBottomColor: theme.border,
-      }}>
-      <ThemedText type="caption" themeColor="textMuted" style={{ minWidth: 24 }}>
-        {marker}
-      </ThemedText>
-      <ThemedText type="bodySmall" themeColor="text" style={{ flex: 1 }}>
-        {label}
-      </ThemedText>
-      <ThemedText type="label" themeColor="text">
-        {value}
       </ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  evidenceCard: { gap: Spacing.two },
   header: {
     gap: Spacing.one,
   },
-  // 058: text-only links meet the 44dp floor by style, not by accident.
   textLinkRow: {
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     alignSelf: 'flex-start',
   },
   windowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-    paddingVertical: Spacing.two,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+    gap: Spacing.one,
   },
   windowControlSlot: {
-    flex: 1,
+    alignSelf: 'stretch',
     minWidth: 0,
   },
+  titleText: { flexShrink: 1, minWidth: 0, maxWidth: '100%' },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -717,10 +656,12 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
   },
+  headingText: { flex: 1, minWidth: 0 },
   headingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -733,24 +674,11 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'baseline',
     gap: Spacing.three,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  stat: {
-    flex: 1,
-    gap: Spacing.half,
-  },
   rows: {
-    gap: Spacing.two,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     gap: Spacing.two,
   },
   heatmap: {

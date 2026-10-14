@@ -20,6 +20,7 @@
  */
 import { memo } from "react";
 import { Pressable, StyleSheet } from "react-native";
+import type { GestureResponderEvent } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
@@ -37,7 +38,7 @@ export interface OptionProps {
   /** True only for the player's own picked card (never the bare answer). */
   selected?: boolean;
   disabled?: boolean;
-  onPressOption?: (index: number) => void;
+  onPressOption?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const Option = memo(function Option({
@@ -75,7 +76,7 @@ export const Option = memo(function Option({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
-      onPress={onPressOption ? () => onPressOption(index) : undefined}
+      onPress={onPressOption ? (event) => onPressOption(index, event) : undefined}
       style={({ pressed }) => [
         styles.option,
         {

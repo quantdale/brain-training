@@ -124,8 +124,9 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 export type VisualSearchAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number; nowMs: number }
-  | { type: 'tick'; nowMs: number }
-  | { type: 'tap-tile'; index: number; nowMs: number }
+  | { type: 'round-presented'; nowMs: number; stamp: ResultContinuationStamp }
+  | { type: 'tick'; nowMs: number; stamp?: ResultContinuationStamp }
+  | { type: 'tap-tile'; index: number; nowMs: number; stamp?: ResultContinuationStamp }
   | { type: 'next-round' ; stamp: ResultContinuationStamp }
   | { type: 'pause'; nowMs: number }
   | { type: 'resume'; nowMs: number }
@@ -188,6 +189,8 @@ export interface VisualSearchGameState {
   targetIndex: number;
   /** Monotonic-clock instant the current round's window expires. */
   roundDeadlineMs: number;
+  /** Actual display-commit onset; null until the screen presents this board. */
+  roundPresentedAtMs: number | null;
   roundOutcome: 'passed' | 'failed' | null;
   /** Why the round failed; null when not failed. */
   failReason: 'timeout' | 'distractor' | null;
@@ -235,6 +238,7 @@ export function createInitialVisualSearchState(): VisualSearchGameState {
     windowMs: 0,
     targetIndex: -1,
     roundDeadlineMs: 0,
+    roundPresentedAtMs: null,
     roundOutcome: null,
     failReason: null,
     lastTapIndex: null,

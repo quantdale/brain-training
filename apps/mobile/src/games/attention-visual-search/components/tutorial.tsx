@@ -13,8 +13,8 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R);
  * mechanics stay local.
  */
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -41,6 +41,7 @@ export interface TutorialProps {
 export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
   const [attempt, setAttempt] = useState(0);
+  const deliveredPresses = useRef(new WeakSet<object>());
 
   return (
     <TutorialFrame gameId={GAME_ID}>
@@ -74,6 +75,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           onWrong={() => setAttempt((value) => value + 1)}
           onDone={() => setStep('done')}
           onSkip={onSkip}
+          deliveredPresses={deliveredPresses}
         />
       ) : null}
 
@@ -95,6 +97,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 }
 
 interface DemoGridProps {
+  deliveredPresses: { current: WeakSet<object> };
   attempt: number;
   onWrong: () => void;
   onDone: () => void;
@@ -102,7 +105,7 @@ interface DemoGridProps {
 }
 
 /** One demo run: shows the odd tile; the player must tap it. */
-function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
+function DemoGrid({ attempt, onWrong, onDone, onSkip, deliveredPresses }: DemoGridProps) {
   const [targetIndex] = useState<number>(() =>
     generateRoundTarget({
       rng: createRng(TUTORIAL_DEMO_SEED),
@@ -113,11 +116,20 @@ function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
   );
   const [found, setFound] = useState(false);
   const [wrongTile, setWrongTile] = useState<number | null>(null);
+  const alive = useRef(false);
+  const claimed = useRef(false);
+  useLayoutEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
-  const handleTap = (index: number) => {
-    if (found) {
+  const handleTap = (index: number, event?: GestureResponderEvent) => {
+    if (found || !alive.current || claimed.current) {
       return;
     }
+    const nativePress = event?.nativeEvent;
+    if (nativePress != null) {
+      if (deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+    }
+    claimed.current = true;
     if (index === targetIndex) {
       setFound(true);
       onDone();
