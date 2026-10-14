@@ -138,7 +138,9 @@ describe('ListRow', () => {
     // The chevron is decoration: it must NOT carry an id, or prefix-based row
     // discovery counts every row twice.
     expect(screen.queryByTestId('row-chevron')).toBeNull();
-    expect(screen.getByText('›')).toBeTruthy();
+    // The shared vector family replaces a font-dependent text chevron.
+    expect(JSON.stringify(screen.toJSON())).toContain('RNSVGSvgView');
+    expect(screen.queryByText('›')).toBeNull();
     await fireEvent.press(screen.getByTestId('row'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });

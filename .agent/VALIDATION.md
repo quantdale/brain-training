@@ -203,3 +203,40 @@ Native preview03, current-source profiles/gameplay/data/offline/performance,
 remaining Results/data/supporting presentation, actual clean checkout, final
 source build/ending-SHA CI and visible Home handoff remain OPEN. ARTEMIS access
 works; no credential change is requested. Full Campaign077 remains ACTIVE.
+
+## Whole Jest/native preview03 follow-up — 2026-10-15 local
+
+- Whole Jest03 FAILED2 suites/2 tests:690 suites/7873 tests pass, five reviewed
+  opt-in skips/five snapshots pass,319.696s. Both failures are old UI contracts:
+  ListRow expects a text chevron; app-shell expects the now-disclosed summary
+  immediately. AppCI38639600811 artifact has the exact same two failures.
+- Corrective tests verify the actual decorative SVG, retained accessible action,
+  current rating and explicit More insights before the preserved summary.
+  Focused2 suites/30 tests PASS. Whole Jest04 PASS692 suites/7875 tests,
+  five reviewed opt-in skips/five snapshots,290.748s;success=true,failed0.
+  Global TypeScript07 exit0 and affected test lint exit0/zero warnings.
+- Native preview03 source8d772c7b,1106-file inventory zero differences,
+  SHA256f731f65d637781a7b8c9afdf6f1b3b20dab98b16c8b521d995fe65f2e0667a22.
+  Build532 tasks/3m11s PASS; APK30fb56fc9b291d470270698a2f441626266eac898292b577e4ca5acd1a644723,
+  52,304,659B. Install-r SUCCESS and device hash match. An early invocation
+  preceded APK copy and failed to stat without changes; repeated only after
+  the copy/hash precondition passed. Eight packaged permissions match allowlist.
+  Exact SQLite before/after preserved; separate verification copies integrityok,
+  sessions6 and unchanged persistedSystem settings witness. Cold launch6288ms
+  under check load is an observation, not accepted performance proof.
+- Default native22/22 structural captures PASS,11 surfaces×two directly
+  witnessed themes. Independent reviewer inspected all22; Profile identity is
+  visible in both current frames, and earlier discovery/detail corrections
+  appear. No missing/overlapping essential content P1 found in default frames.
+  Preserve original02blank. Required P2 corrections and open populated/profile
+  coverage are in NATIVE_PREVIEW03.md; do not infer all-state visual acceptance.
+- ARTEMIS Proa3f662cd-4ee7-49a0-9f7e-771019f3bd82 running for actual workout/
+  pause/relaunch/persistence. Initial Android settings showONLINE, not offline.
+  No terminal result yet; task owns emulator-5570 until terminal. No credential
+  changes or forced session results. External logs/notes stay external.
+- Jest04 also emitted one worker forced-exit warning after successful assertions;
+  no such warning in02/03. Initial focused --detectOpenHandles did not start
+  tests (ENOENT global temp haste cache); isolated cache diagnostic02 PASS2
+  suites/30 tests,50.433s, exit0 and no reported open handles. This narrows the
+  evidence but does not identify or claim to repair the broad worker warning.
+  Retain as final convergence followup in KNOWN_ISSUES.md.

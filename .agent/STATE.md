@@ -8,42 +8,47 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current work — 2026-10-15 (local)
+## Current checkpoint — 2026-10-15 local
 
-The first implementation/evidence checkpoints are pushed through
-ebcb45e821c598bc2d408de62efeb8a57a0be8f6. All four workflows at that SHA passed:
-App38590943062, Integrity38590943337, Android38590943431, iOS38590943042.
-These are checkpoint results, not ending-SHA certification.
+Pushed8d772c7b1d64e6d88621aba3913f87adf4cb2612 contains the14-module
+observation/input/tutorial repair wave, five Progress routes and shared/discovery/
+Profile critique corrections. Combined wave169 suites/1735 tests/5 snapshots,
+global TypeScript and full-source zero-warning lint passed. Whole Jest03 then
+found two old UI expectations (690 suites/7873 tests pass,two failures); corrected
+SVG/disclosure tests pass30/30. Whole Jest04 PASS692 suites/7875 tests/5 snapshots,
+five reviewed opt-in skips. Global types and affected test lint pass again.
+Details and all earlier failures remain in VALIDATION.md and077/evidence.
 
-The next converged wave is ready to commit. CueKeeper/SymbolTracker observation repairs pass
-20 suites/212 tests; four flexibility input/readiness/semantic repairs pass
-49 suites/486 tests. Five arithmetic/word/deduction caller repairs pass40 focused
-tests after34 valid red-before failures/one control; five tutorials pass33 tests
-after28 valid failures/five controls. An integrated57-suite run found one stale
-MissingOperator game-version assertion (585 pass/one fail); its corrected
-metadata suite passes. Memory/attention final33 suites/392 tests and Progress
-focused5 suites/40 tests pass. Combined wave PASS169 suites/1735 tests/5 snapshots;
-global TypeScript and full-source zero-warning ESLint exit0. Registry/provenance/
-ownership/strict62-item OpenSpec/offline/runtime-QA/workflow/affected-map gates pass.
-Staged secrets CLEAN3680 text files and current staged whitespace PASS.
+Native preview03 built from1106 inventoried8d772c7b app files with zero differences.
+Build PASS532 tasks/3m11s; APK30fb56fc9b291d470270698a2f441626266eac898292b577e4ca5acd1a644723,
+52,304,659B,com.braintraining.app0.1.0/1000,x86_64/debug-signed. Installed-r;
+device hash matches; exact before/after SQLite preserved, integrityok/sessions6
+and persistedSystem preference retained. Cold launch6288ms observed under check
+load, not a performance acceptance result. Permission boundary8 entries PASS.
 
-Shared rows now wrap and stack essential evidence at compact/large text; CTA
-padding protects wrapped captions. Native critique corrections add a filter
-overflow hint, simpler recommendation framing and a Game information disclosure.
-Five UI suites/19 tests pass with two intentional canary snapshots updated.
-These source changes are not installed yet.
+Default native capture22/22 PASS across11 surfaces/two directly witnessed themes.
+Independent reviewer inspected all22: no P1 missing/overlapping essential content;
+Profile identity visible after Home→Games→Profile in both current frames. Preserve
+the failed02frame and unknown original cause. Further corrections required:
+dark selected-window visibility, performance/game context in history, interpretable
+calendar anchors/numeric legend and untrained-domain hierarchy. Populated domain/
+game and compact/2×/larger/reduced-motion/below-fold states remain open.
 
-Preview02 default12/12 capture gate passes, but independent visual review found
-a blank light Profile identity card. Same-APK reduced-motion and default cold
-controls each render it; cause remains unproven. Source now paints the identity
-without an entrance animation. Acceptance needs the new build and the original
-Home→Games→Profile sequence under default motion. Preserve the failed frame;
-do not label it repaired through retries. Details: evidence/NATIVE_PREVIEW02.md.
+ARTEMIS provider access works. Pro workout/persistence trace
+a3f662cd-4ee7-49a0-9f7e-771019f3bd82 is running on emulator-5570. It observed actual
+network settings ONLINE (airplane0/wifi2/mobile1); no offline PASS is inferred.
+No terminal gameplay PASS yet. The device is reserved to that task until terminal;
+do not install, force-stop, capture/navigate or otherwise interfere concurrently.
+External traces stay outside Git. See evidence/NATIVE_PREVIEW03.md.
 
-Next: finish convergence/checkpoint, build/install preview03 preserving data,
-inspect required profiles and game journeys, then finish remaining Results/data/
-supporting presentation, motion and the full original certification/handoff.
-Full Campaign077 remains ACTIVE. ARTEMIS access works; no credential action needed.
+At8d772c7b Integrity38639600658 and Android38639600627 passed; App38639600811
+failed the same two old UI assertions, verified from its artifact; iOS38639600766
+pending at last check. Test-only corrective checkpoint is next; installed app
+source stays8d772c7b. Full original Campaign077 remains ACTIVE. Next: finish the
+Progress critique corrections, Results/data/recovery presentation and motion,
+required current-source profile/game/data/offline/performance journeys, actual
+clean checkout, ending-SHA four workflows and verified visible Home handoff.
+No temporary Git branches/worktrees were created; one dedicated visible AVD.
 
 ## Last pushed implementation checkpoint — 2026-10-14
 

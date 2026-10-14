@@ -13,6 +13,8 @@ Historical controller observations are audit seeds, not fresh reproduced defects
 
 ## Preserved limits/debt
 
+- Jest04 assertions pass but it emitted one worker forced-exit warning. The new UI seam's30 tests pass with --detectOpenHandles and no reported handles; the first diagnostic never reached tests because the global temp cache directory was missing, then an isolated cache control passed. Broad warning cause is unidentified and must be checked in final convergence; do not claim teardown cleanliness from the PASS count.
+
 - Campaign076 parent14.3 OPEN/14.7 checked;CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED unchanged. Old screenshots are not077 baseline.
 - PHYSICAL_ANDROID and IOS_RUNTIME NOT VALIDATED; no phone. x86_64 does not proveARM64. APK debug-signed;store signingNOT READY.
 - Existing accepted dependency debt including decode-uri-component moderate advisory remains governed by `.agent/DEPENDENCY_AUDIT.md` and scripts/certification/dependency-audit-allowlist.json; newHigh/Critical findings cannot be waived.

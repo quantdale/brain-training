@@ -16,7 +16,7 @@
 // Jest globals imported explicitly (repo has no @types/jest; see orchestrator report).
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { router } from 'expo-router';
-import { act, renderRouter, screen } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 
 import GameScreen from '@/app/game/[id]';
 import AppTabsWeb from '@/components/app-tabs.web';
@@ -138,11 +138,14 @@ describe('app shell', () => {
     expect(screen.getByTestId('game-not-ready-back-to-library')).toBeOnTheScreen();
   });
 
-  it('renders the progress summary placeholder', async () => {
+  it('leads with the current rating and opens the preserved detailed summary', async () => {
     await renderShell('/progress');
 
+    expect(screen.getByTestId('progress-composite')).toBeOnTheScreen();
+    expect(screen.queryByTestId('progress-summary')).toBeNull();
+    await fireEvent.press(screen.getByTestId('progress-insights-toggle'));
     expect(screen.getByTestId('progress-summary')).toBeOnTheScreen();
-  });
+  }, 30_000);
 
   it('renders profile identity and settings toggles', async () => {
     await renderShell('/profile');
