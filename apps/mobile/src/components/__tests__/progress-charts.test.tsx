@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from '@jest/globals';
 
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import type { CalendarDay } from '@/analytics';
 import { DomainColors } from '@/theme/tokens';
@@ -200,5 +200,37 @@ describe('CalendarHeatmap', () => {
     expect(screen.getByText('No sessions in this view yet')).toBeOnTheScreen();
     expect(screen.getByTestId('cal-empty-empty')).toBeOnTheScreen();
     expect(screen.queryByTestId('cal-empty-w0')).toBeNull();
+  });
+
+  it('anchors dates and reveals older weeks without changing the whole-view counts', async () => {
+    const history = Array.from({ length: 80 }, (_, index) => day({
+      dateKey: new Date(Date.UTC(2026, 0, 1 + index)).toISOString().slice(0, 10),
+      offsetDays: 79 - index,
+      count: index === 0 ? 3 : index === 79 ? 6 : 0,
+      hasSession: index === 0 || index === 79,
+    }));
+    await render(<CalendarHeatmap testID="cal-long" days={history} maxCount={6} />);
+    expect(screen.getByText('Latest 8 of 12 weeks shown')).toBeOnTheScreen();
+    expect(screen.getByTestId('cal-long').props.accessibilityLabel).toContain('9 sessions');
+    expect(screen.queryByTestId('cal-long-day-2026-01-01')).toBeNull();
+    expect(screen.getByRole('image', { name: 'Mar 21: 6 sessions' })).toBeOnTheScreen();
+    const legend = within(screen.getByTestId('cal-long-legend'));
+    for (const count of ['0', '3', '6']) expect(legend.getByText(count)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Show all 12 weeks' }));
+    expect(screen.getByRole('image', { name: 'Jan 1: 3 sessions' })).toBeOnTheScreen();
+    expect(screen.getByTestId('cal-long').props.accessibilityLabel).toContain('9 sessions');
+    await fireEvent.press(screen.getByRole('button', { name: 'Show recent weeks' }));
+    expect(screen.queryByTestId('cal-long-day-2026-01-01')).toBeNull();
+  });
+
+  it('uses integer session quantities when the daily maximum is only one', async () => {
+    await render(<CalendarHeatmap testID="cal-one" days={[day({
+      dateKey: '2026-09-01', count: 1, hasSession: true,
+    })]} maxCount={1} />);
+    const legend = within(screen.getByTestId('cal-one-legend'));
+    expect(legend.getByText('Sessions per day')).toBeOnTheScreen();
+    expect(legend.getByText('0')).toBeOnTheScreen();
+    expect(legend.getByText('1')).toBeOnTheScreen();
+    expect(legend.queryByText('0.5')).toBeNull();
   });
 });

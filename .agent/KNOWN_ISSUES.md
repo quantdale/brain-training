@@ -2,16 +2,30 @@
 
 ## Fresh audit findings
 
+- NEW native High reachability failure: preview03 GridNavigator first-play demo
+  clips full-width answer miniatures below the overlay (ARTEMISa3f662cd step42,
+  root inspected screenshot). Source repair bounds boards/options and adds an
+  explicit long-demo scroll viewport;2 red-before layout failures/normal control,
+  all3 now pass. Installed app still lacks fix; new-build runtime acceptance
+  required before closure. TransformMatch sibling source repair passes11 suites143 tests; both need new-APK native proof.
+
+
 - Repaired in source/caller tests, native acceptance pending: AdaptiveCodeCracker length crash, RuleGrid geometry/depth, TapRush deadlines/hit area, three memory games' ordinal reveal, EquationBuilder precedence, NumberLine answer disclosure, stale restore consent, in-game workout retry, content/partial/average/pause timing defects. Details and packet counts:077/evidence/DEFECTS.md and GAME_AUDIT.md.
 - Repaired in source with real caller regressions: Vigilance unseen-trial stall/RT, thirteen paused Next siblings, QuickCompare/OrderSweep early/stale expiry and WordChain unseen-step replay. Native acceptance remains open; do not carry these as unfixed source findings.
 - Observation and flexibility source fixes now pass focused checks: ProspectiveCue/SymbolTracker20 suites212 tests and four flexibility modules49/486. Native acceptance remains open. Remaining memory/attention33 suites392 tests and five arithmetic/word/deduction caller/tutorial repairs have converged. Combined wave169 suites1735 tests PASS. Do not claim all42 runtime journeys from source evidence.
-- Preview02 light Profile identity is blank in one default sequence although hierarchy contains the content. Reduced-motion and cold default controls render it. Source disables that identity entrance; new-APK same-sequence proof is required. See077/evidence/NATIVE_PREVIEW02.md. Other native critique corrections and new row/CTA reflow also need new-APK review.
+- Preview02 light Profile identity was blank although hierarchy contained it. Preview03 disables its entrance and same Home→Games→Profile sequence shows the identity in both default themes (all22 frames independently reviewed). This mitigates the default failure; original cause remains unknown and the failed02 frame is preserved. Other profiles/current-source acceptance remain open.
 - Native compact capture FAILED on status-bar discontinuity after live viewport resize; diagnosis/recapture required. Default12/12 and separatefont2 10/10 passed, but neither closes the missing compact/larger/reduced-motion/current-source matrix.
 - Product wave implemented, first native critique completed and later corrections awaiting current-build review: embedded type/vector controls/tabs, responsive Home/Games/Profile/Rewards, nine original domain/Home artworks and launcher/splash variants. Progress/Results/data/supporting presentation and cross-product convergence remain open. Historical template sources may remain unreferenced; shipped app config now selects original branding.
 
 Historical controller observations are audit seeds, not fresh reproduced defects: SequenceMemory pause/quit,SymbolTrackerNext visibility,VisualSearch denominator,EquationBuilder/CardSort tap misses and below-fold continuation. Classify via source/tests/selective runtime.
 
 ## Preserved limits/debt
+
+- Automatic approval review rejected nonrecursive removal of a verified-empty
+  mistakenly created apps/mobile/qa-artifacts/campaign077 directory as "blocked
+  by policy". It remains empty/untracked; actual evidence is repository-level.
+  No alternate deletion attempted.
+
 
 - Jest04 assertions pass but it emitted one worker forced-exit warning. The new UI seam's30 tests pass with --detectOpenHandles and no reported handles; the first diagnostic never reached tests because the global temp cache directory was missing, then an isolated cache control passed. Broad warning cause is unidentified and must be checked in final convergence; do not claim teardown cleanliness from the PASS count.
 

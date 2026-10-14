@@ -104,7 +104,9 @@ export function SegmentedControl({ options, value, onChange, testID, compact = f
           {
             left: Animated.add(indicatorLeft, Spacing.half),
             width: Math.max(0, slotWidth - Spacing.one),
-            backgroundColor: theme.surface,
+            backgroundColor: theme.accentSoft,
+            borderColor: theme.accent,
+            borderWidth: 1.5,
           },
         ]}
       />
@@ -121,7 +123,8 @@ export function SegmentedControl({ options, value, onChange, testID, compact = f
             style={[styles.option, compact && styles.optionCompact]}>
             <ThemedText
               type={compact ? 'caption' : 'bodySmall'}
-              themeColor={selected ? 'text' : 'textSecondary'}
+              themeColor={selected ? 'accentText' : 'textSecondary'}
+              style={selected ? { fontWeight: '600' } : undefined}
               numberOfLines={1}>
               {option.label}
             </ThemedText>

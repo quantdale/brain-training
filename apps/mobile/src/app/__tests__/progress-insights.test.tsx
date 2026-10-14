@@ -335,6 +335,7 @@ describe('Per-domain drill-down', () => {
     mockDbState.db = makeFakeDb();
     await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
     expect(screen.getByTestId('progress-domain-unseen')).toHaveTextContent(/starting rating \(1000\)/);
+    expect(screen.queryByTestId('progress-domain-window-row')).toBeNull();
     expect(screen.queryByTestId('progress-domain-history')).toBeNull();
     expect(screen.queryByTestId('progress-domain-activity')).toBeNull();
     expect(screen.queryByTestId('progress-domain-recent')).toBeNull();

@@ -568,7 +568,7 @@ export function IdentityMark({ family, size = 36, color = '#1D4ED8', testID }: I
 }
 
 /** Size presets for the code-native world illustration. */
-export type GameWorldArtSize = 'card' | 'hero' | 'stage';
+export type GameWorldArtSize = 'card' | 'hero' | 'stage' | 'thumbnail';
 
 export interface GameWorldArtProps {
   /** Game metadata only; no game logic or registry mutation is involved. */
@@ -775,7 +775,7 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
   const identity = getGameIdentity(game);
   // Change 076 (lock section 4): instruction-first intros — the intro art is
   // a compact board still, not a decorative stage. Detail keeps a larger art.
-  const height = size === 'stage' ? 180 : size === 'hero' ? 120 : 112;
+  const height = size === 'thumbnail' ? 64 : size === 'stage' ? 180 : size === 'hero' ? 120 : 112;
   const scale = height / 112;
   const variant = variantFor(game.id);
   const boardStill = GameBoardStill({ gameId: game.id, colors, variant, scale });

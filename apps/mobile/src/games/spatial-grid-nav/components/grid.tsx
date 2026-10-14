@@ -74,6 +74,8 @@ export interface GridBoardProps {
    * from uiautomator/TalkBack while such options were mounted).
    */
   readonly accessibilityLabel?: string;
+  /** Miniature answer boards keep seven-column geometry legible at 96dp. */
+  readonly compact?: boolean;
 }
 
 /** The N×N board with the start marker and any highlight markers. */
@@ -84,6 +86,7 @@ export function GridBoard({
   markers = [],
   testID,
   accessibilityLabel,
+  compact = false,
 }: GridBoardProps) {
   const theme = useTheme();
   const markerAt = (row: number, col: number): GridMarker | undefined =>
@@ -108,7 +111,7 @@ export function GridBoard({
         const cellColor = isMarked ? marker!.color : theme.surface;
         const hasVerdictBorder = isMarked && marker!.border !== undefined;
         return (
-          <View key={index} style={[styles.cell, { width: `${100 / side}%` }]}>
+          <View key={index} style={[styles.cell, compact && styles.miniCell, { width: `${100 / side}%` }]}>
             <View
               testID={testId(GAME_ID, "cell", String(index))}
               style={[
@@ -248,6 +251,7 @@ export function OptionCell({
        * Fabric — see the paused-gating note in screen.tsx. */}
       <GridBoard
         side={side}
+        compact
         markers={markers}
         testID={testId(GAME_ID, "option-grid", String(index))}
       />
@@ -282,6 +286,7 @@ const styles = StyleSheet.create({
   cell: {
     padding: Spacing.one,
   },
+  miniCell: { padding: 1 },
   tile: {
     aspectRatio: 1,
     borderRadius: 6,
@@ -293,6 +298,9 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   optionContainer: {
+    // Percent-width cells need a finite parent width. Without it Yoga grows
+    // each miniature into another full board and buries the later options.
+    width: 96,
     borderWidth: 2,
     borderRadius: 8,
     padding: Spacing.one,

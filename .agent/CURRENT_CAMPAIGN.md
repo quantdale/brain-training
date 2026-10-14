@@ -19,4 +19,12 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 - G–J: open. No final implementation or runtime certification claimed.
 - Next wave: observation20/212 and flexibility49/486 source tests pass; five remaining arithmetic/word/deduction input callers40 and tutorials33 pass focused regressions, with final integrated checks open. Three memory/attention modules and five Progress routes are implemented; combined wave169 suites1735 tests5 snapshots PASS, global types/full-source zero-warning lint and strict62-item OpenSpec PASS. Shared row/CTA reflow and preview02 critique corrections are implemented in source. Preview02 light Profile blank frame remains an acceptance blocker pending new-build proof; failed capture is preserved. Four workflows at pushed ebcb45e8 passed. Full original scope remains open.
 
+- Latest: Results/data/recovery and Progress critique corrections converge with
+  GridNavigator/TransformMatch finite-option/tutorial repairs,45 suites576 tests
+  PASS, global types/current lint PASS. Actual Pro run found clipped Grid tutorial,
+  saved2/4 with186XP/49coins and returned Home; paused on provider400 after report,
+  stopped CANCELLED. Native04 build/new-source profiles and actual continuation
+  remain required. Full original scope stays ACTIVE; source tests are not native
+  acceptance. See evidence/PRESENTATION_RECOVERY.md.
+
 One campaign active. Prior076 records stay in `.agent/history/pre-077-c7bbf0dd/`; parent14.3 remains open. Preserve data, versions, game identities, offline/economy/backup contracts. Lead owns shared/device/build surfaces; coders own disjoint packets. Target only visible braintraining-ui35/emulator-5570 with no host-input/focus automation.

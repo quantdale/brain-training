@@ -9,7 +9,7 @@
  * surface as the game's own voice.
  */
 import type { PropsWithChildren } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedView } from '@/components/themed-view';
@@ -18,19 +18,26 @@ import { Radii, Spacing } from '@/constants/theme';
 
 export interface TutorialFrameProps extends PropsWithChildren {
   gameId: string;
+  /** Long interactive steps need a bounded viewport rather than clipped choices. */
+  scrollable?: boolean;
 }
 
-export function TutorialFrame({ gameId, children }: TutorialFrameProps) {
+export function TutorialFrame({ gameId, children, scrollable = false }: TutorialFrameProps) {
   const theme = useTheme();
+  const { height } = useWindowDimensions();
   return (
     <ThemedView type="surface" style={styles.card} testID={testId(gameId, 'tutorial')}>
       <View style={[styles.rail, { backgroundColor: theme.accent }]} />
-      {/* Plain body: GameHost anchors this card as a bottom-anchored overlay
-          with generous viewport headroom, so intrinsic sizing is safe. An
-          internal ScrollView here created an auto-height measuring cycle that
-          collapsed the last button's layout (device-verified: skip rendered
-          with negative height and taps never landed). */}
-      <View style={styles.body}>{children}</View>
+      {/* An explicit height avoids the old auto-height ScrollView measuring
+          cycle. Short tutorials keep intrinsic sizing; long steps can scroll
+          independently inside the existing overlay, including at 2× text. */}
+      {scrollable ? (
+        <ScrollView testID={testId(gameId, 'tutorial-scroll')}
+          style={{ height: Math.min(600, Math.max(120, height - 112)) }}
+          contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          {children}
+        </ScrollView>
+      ) : <View style={styles.body}>{children}</View>}
     </ThemedView>
   );
 }

@@ -240,3 +240,42 @@ works; no credential change is requested. Full Campaign077 remains ACTIVE.
   suites/30 tests,50.433s, exit0 and no reported open handles. This narrows the
   evidence but does not identify or claim to repair the broad worker warning.
   Retain as final convergence followup in KNOWN_ISSUES.md.
+
+## Results/data/Progress and runtime blocker recovery — 2026-10-15 local
+
+Root current convergence03 PASS34 suites433 tests,40.102s; global TypeScript04
+exit0 and full-source zero-warning ESLint03 exit0, affected final Grid tests/
+spacing lint04 exit0. Initial forgotten icon imports49 failures and a stale
+version assertion are preserved in evidence/PRESENTATION_RECOVERY.md, not
+relabeled. Current hermetic registry/provenance/ownership/repo-state/offline/
+runtime-QA/Expo/workflow/affected-map checks PASS.
+
+Pro trace a3f662cd step42 screenshot independently exposes a real clipped
+GridNavigator first-play tutorial. Root stopped repeated tap attempts; a new
+source fix has2 valid red-before layout regressions/one normal completion
+control, all3 now PASS. Game1.2, scoring/generation retained. Current installed
+preview03 lacks the fix. New-APK native proof remains required. Related isolated
+TransformMatch repair is in progress, no PASS claimed. Existing Pro run remains
+running with two actual saved legs; root requested honest blocked leg3/final
+persistence/Home report. It is ONLINE, no offline evidence. Full077 scope open.
+
+## Final source-wave integration before preview04
+
+- Transform11 suites143 tests PASS13.277s, owned lint0;4 valid red-before layout/
+  visible-pattern failures +1 normal-completion control, targeted5/5 after. Initial
+  post-fix3 hidden-grid query fixture failures retained, corrected queries only.
+- Integrated convergence04 PASS45 suites576 tests35.323s, failed0; TS05 exit0,
+  affected current-source lint05 exit0. No worker forced-exit warning in this
+  focused run; broad Jest04 warning is not claimed resolved. Capture/theme
+  harness15 tests PASS; two optional populated analytics surfaces added.
+- Proa3f662cd terminal CANCELLED after root stopped a provider400 malformed
+  tool-message-history pause during finalization. Environment diagnose5/5 ready.
+  Existing report and step52 independently inspected: Home2/4,186XP/49coins,
+  ContinueGridNavigator; actual online2-leg/opaque-pause/restart evidence only.
+  Step42 confirms clippedGrid tutorial; leg3 BLOCKED,leg4 NOT VALIDATED. No full
+  workout or offlinePASS. New-APK continuation required.
+- Before install, exact SQLite db/wal/shm retained in native-preview04/
+  sqlite-preserved-before-install03. Separate verification copy integrityok/
+  sessions8. Initial run-as access failed(non-debuggable release); first root
+  attempt used nonexistent Android databases path. Both failed header checks,
+  not backups. Correct inspected Expo files/SQLite path then passed.

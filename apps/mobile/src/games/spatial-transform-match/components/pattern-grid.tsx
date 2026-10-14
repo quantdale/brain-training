@@ -37,6 +37,8 @@ export interface PatternGridProps {
   testID: string;
   /** Optional accessibility label. */
   accessibilityLabel?: string;
+  /** Candidate miniatures keep cell padding proportional to their finite width. */
+  compact?: boolean;
 }
 
 export const PatternGrid = memo(function PatternGrid({
@@ -44,6 +46,7 @@ export const PatternGrid = memo(function PatternGrid({
   pattern,
   testID,
   accessibilityLabel = 'Pattern grid',
+  compact = false,
 }: PatternGridProps) {
   const theme = useTheme();
   const side = Math.round(Math.sqrt(gridSize));
@@ -60,7 +63,7 @@ export const PatternGrid = memo(function PatternGrid({
         const row = Math.floor(index / side);
         const col = index % side;
         return (
-          <View key={index} style={[styles.cell, { width: `${100 / side}%` }]}>
+          <View key={index} style={[styles.cell, compact && styles.miniCell, { width: `${100 / side}%` }]}>
             <View
               testID={testId(GAME_ID, 'cell', String(index))}
               accessibilityLabel={
@@ -91,6 +94,7 @@ const styles = StyleSheet.create({
   cell: {
     padding: Spacing.one,
   },
+  miniCell: { padding: 1 },
   tile: {
     aspectRatio: 1,
     borderRadius: 6,

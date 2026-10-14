@@ -3,8 +3,8 @@
  *
  * Everything here is built from React Native core components (no charting /
  * SVG library) so the analytics screens stay lightweight and fully testable.
- * Components are presentational only — they never fetch data or hold state
- * beyond the controlled values passed in.
+ * Components never fetch data. Calendar disclosure holds only local display
+ * state; all counts and comparison values come from their callers.
  *
  * Readability contract (campaign 024): every chart pairs its visual encoding
  * with day/label context, a zero state and a visible scale or value caption,
@@ -13,13 +13,15 @@
  * families — never fixed hex — so charts follow the theme in dark mode.
  */
 
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
-import { formatDayLabel, plural, type CalendarDay } from '@/analytics';
+import { plural, type CalendarDay } from '@/analytics';
 import { DomainColors, Families, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
+import { Button } from '@/components/ui/button';
 
 /** Resolved appearance used to pick the theme-correct identity fill. */
 type SchemeName = 'light' | 'dark';
@@ -40,7 +42,7 @@ function segmentColor(scheme: SchemeName, key: string): string {
 /** Human label for a UTC `YYYY-MM-DD` calendar key (`Jan 20`). */
 function calendarKeyLabel(dateKey: string): string {
   const ms = Date.parse(`${dateKey}T00:00:00Z`);
-  return Number.isNaN(ms) ? dateKey : formatDayLabel(ms);
+  return Number.isNaN(ms) ? dateKey : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 /**
@@ -415,6 +417,8 @@ export function CalendarHeatmap({
   /** Whole-view textual summary; synthesised from the cells when absent. */
   summary?: string;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const { fontScale } = useWindowDimensions();
   if (days.length === 0) {
     return (
       <View
@@ -458,29 +462,74 @@ export function CalendarHeatmap({
       </View>
     );
   }
+  // Keep long calendars readable instead of wrapping independent week strips
+  // into a grid with no date coordinates. Disclosure preserves the whole view.
+  const firstWeek = expanded ? 0 : Math.max(0, weeks.length - 8);
+  const visibleWeeks = weeks.slice(firstWeek);
+  const weekday = new Date(`${days[0].dateKey}T00:00:00Z`).getUTCDay();
+  const weekdayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const legendCounts = [...new Set([0, Math.ceil(maxCount / 2), maxCount])];
+  const dateWidth = Math.max(56, 44 * Math.min(fontScale, 2));
   return (
     <View
       testID={testID}
-      accessible
-      accessibilityRole="image"
+      accessible={false}
       accessibilityLabel={summary ?? defaultSummary}>
-      <ThemedText type="caption" themeColor="textSecondary">
+      <ThemedText type="caption" themeColor="textSecondary"
+        accessibilityLabel={summary ?? defaultSummary}>
         {rangeLabel}
       </ThemedText>
-      <View style={styles.heatmap}>
-        {weeks.map((week, wi) => {
+      {firstWeek > 0 ? <ThemedText type="caption" themeColor="textSecondary">
+        Latest {visibleWeeks.length} of {weeks.length} weeks shown
+      </ThemedText> : null}
+      <View style={styles.calendarRows}>
+        <View style={styles.calendarRow} importantForAccessibility="no-hide-descendants">
+          <ThemedText type="caption" themeColor="textSecondary" style={{ width: dateWidth }}>From</ThemedText>
+          {Array.from({ length: 7 }, (_, index) => (
+            <View key={index} style={styles.calendarDay}>
+              {/* Short chart-axis labels keep their column geometry at 2×;
+                  each day also has a full date/count accessibility label. */}
+              <ThemedText type="caption" themeColor="textSecondary" maxFontSizeMultiplier={1.5}>{weekdayNames[(weekday + index) % 7]}</ThemedText>
+            </View>
+          ))}
+        </View>
+        {visibleWeeks.map((week, index) => {
+          const wi = firstWeek + index;
           const weekSessions = week.reduce((sum, day) => sum + day.count, 0);
           const weekActive = week.filter((day) => day.count > 0).length;
           return (
-            <HeatmapRow
+            <View
               key={wi}
               testID={testID ? `${testID}-w${wi}` : undefined}
-              intensities={week.map((d) => (maxCount > 0 ? d.count / maxCount : 0))}
-              weekLabel={`Week of ${calendarKeyLabel(week[0].dateKey)}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}
-            />
+              style={styles.calendarRow}
+              accessible={false}
+              accessibilityLabel={`Week of ${calendarKeyLabel(week[0].dateKey)}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}>
+              <ThemedText type="caption" themeColor="textSecondary" style={{ width: dateWidth }}>
+                {calendarKeyLabel(week[0].dateKey)}
+              </ThemedText>
+              {Array.from({ length: 7 }, (_, dayIndex) => {
+                const day = week[dayIndex];
+                return <View key={dayIndex} style={styles.calendarDay}>
+                  {day ? <HeatmapCell intensity={maxCount > 0 ? day.count / maxCount : 0}
+                    testID={testID ? `${testID}-day-${day.dateKey}` : undefined}
+                    label={`${calendarKeyLabel(day.dateKey)}: ${plural(day.count, 'session')}`} /> : null}
+                </View>;
+              })}
+            </View>
           );
         })}
       </View>
+      <View style={styles.calendarLegend} testID={testID ? `${testID}-legend` : undefined}>
+        <ThemedText type="caption" themeColor="textSecondary">Sessions per day</ThemedText>
+        {legendCounts.map((count) => <View key={count} style={styles.calendarLegendItem}>
+          <HeatmapCell intensity={maxCount > 0 ? count / maxCount : 0} />
+          <ThemedText type="caption" themeColor="textSecondary">{count}</ThemedText>
+        </View>)}
+      </View>
+      {weeks.length > 8 ? <Button variant="ghost" size="sm"
+        testID={testID ? `${testID}-toggle` : undefined}
+        label={expanded ? 'Show recent weeks' : `Show all ${weeks.length} weeks`}
+        accessibilityState={{ expanded }} onPress={() => setExpanded((value) => !value)} /> : null}
     </View>
   );
 }
@@ -517,6 +566,11 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
     flexWrap: 'wrap',
   },
+  calendarRows: { gap: Spacing.one, marginTop: Spacing.two },
+  calendarRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.half },
+  calendarDay: { flex: 1, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
+  calendarLegend: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.two },
+  calendarLegendItem: { flexDirection: 'row', alignItems: 'center', gap: Spacing.half },
   shareTrack: {
     borderRadius: Radii.pill,
     overflow: 'hidden',

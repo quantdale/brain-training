@@ -131,3 +131,14 @@ passes; final combined wave validation is still required. No failure is relabele
 Native preview02 does not contain this wave. Provider access works; native
 gameplay/visual/state acceptance remains open. Profile blank-frame evidence and
 current source mitigation are recorded in NATIVE_PREVIEW02.md.
+
+
+## Native clipped tutorial and sibling recovery
+
+ARTEMISa3f662cd step42 independently shows GridNavigator first-play demo clipping
+full-width answer miniatures. Cause and source repair: PRESENTATION_RECOVERY.md.
+Two valid layout regressions fail before/normal tutorial control passes; all3
+pass after. TransformMatch source sibling has unbounded percent-grid parents
+and missing rendered demo choices;4 valid red-before failures/one control,
+all5 after and11 suites143 tests PASS. Both game versions1.2; generator/scoring
+retained. New native proof required; no old blocked journey reclassifiedPASS.

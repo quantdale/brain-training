@@ -184,7 +184,7 @@ describe('SpatialTransformMatchScreen', () => {
     // Instant answers: 5 rounds × (100 base + 50 speed bonus).
     expect(raw.score).toBe(5 * MAX_ROUND_SCORE);
     expect(raw.roundsPassed).toBe(5);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

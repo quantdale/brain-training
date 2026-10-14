@@ -46,7 +46,7 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { MiniBarChart, HeatmapRow } from '@/components/progress-charts';
+import { MiniBarChart, CalendarHeatmap } from '@/components/progress-charts';
 import {
   BackLink,
   Badge,
@@ -258,6 +258,7 @@ export default function ProgressDomainScreen() {
 
       {/* Quiet window row (lock §5/§8): tracked kicker + segmented control
           between hairline rules — the same grammar as the Progress tab. */}
+      {loaded && !error && !unseen ? (
       <View
         style={[styles.windowRow, { borderTopColor: theme.border, borderBottomColor: theme.border }]}
         testID="progress-domain-window-row">
@@ -281,6 +282,7 @@ export default function ProgressDomainScreen() {
           Current rating and game records are all-time. Metric trends below use all recorded domain sessions.
         </ThemedText>
       </View>
+      ) : null}
 
       {!loaded ? (
         <>
@@ -503,32 +505,8 @@ export default function ProgressDomainScreen() {
 
       <Card style={styles.evidenceCard} testID="progress-domain-activity">
         <DomainHeading label="Activity" family={family} />
-        <ThemedText type="caption" themeColor="textSecondary">
-          {calendar.days.length > 0
-            ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
-            : 'No activity in this view yet'}
-        </ThemedText>
-        <View style={styles.heatmap}>
-          {(() => {
-            const max = calendar.busiest?.count ?? 0;
-            const weeks: typeof calendar.days[] = [];
-            for (let i = 0; i < calendar.days.length; i += 7) {
-              weeks.push(calendar.days.slice(i, i + 7));
-            }
-            return weeks.map((week, wi) => {
-              const weekSessions = week.reduce((sum, day) => sum + day.count, 0);
-              const weekActive = week.filter((day) => day.count > 0).length;
-              return (
-                <HeatmapRow
-                  key={wi}
-                  testID={`progress-domain-heatmap-w${wi}`}
-                  intensities={week.map((d) => (max > 0 ? d.count / max : 0))}
-                  weekLabel={`Week of ${formatDayLabel(Date.parse(`${week[0].dateKey}T00:00:00Z`))}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}
-                />
-              );
-            });
-          })()}
-        </View>
+        <CalendarHeatmap days={calendar.days} maxCount={calendar.busiest?.count ?? 0}
+          testID="progress-domain-heatmap" />
         <ThemedText type="caption" themeColor="textSecondary">
           {calendar.activeDays} active days · {calendar.totalSessions} sessions in this view{windowKey === 'all' ? ' · latest 84 days shown' : ''}.
         </ThemedText>

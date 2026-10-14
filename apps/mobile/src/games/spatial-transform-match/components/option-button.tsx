@@ -20,6 +20,8 @@ import { describePattern, PatternGrid } from "./pattern-grid";
 export interface OptionButtonProps {
     /** 0-based option index; used for the testID. */
     index: number;
+    /** Tutorials retain their existing control IDs while sharing real candidates. */
+    testID?: string;
     /** The grid size for the pattern. */
     gridSize: number;
     /** The pattern to display. */
@@ -39,6 +41,7 @@ export interface OptionButtonProps {
 
 export const OptionButton = memo(function OptionButton({
     index,
+    testID,
     gridSize,
     pattern,
     selected,
@@ -47,7 +50,7 @@ export const OptionButton = memo(function OptionButton({
     onPressOption,
 }: OptionButtonProps) {
     const theme = useTheme();
-    const optionTestID = testId(GAME_ID, "option", String(index));
+    const optionTestID = testID ?? testId(GAME_ID, "option", String(index));
 
     // Verdicts change fill AND icon, never colour alone: the correct option
     // gets a success-soft fill plus a ✓ badge, the wrong pick a danger-soft
@@ -101,6 +104,7 @@ export const OptionButton = memo(function OptionButton({
                 <PatternGrid
                     gridSize={gridSize}
                     pattern={pattern}
+                    compact
                     testID={testId(GAME_ID, "option-grid", String(index))}
                 />
             </View>
@@ -128,6 +132,9 @@ export const OptionButton = memo(function OptionButton({
 
 const styles = StyleSheet.create({
     container: {
+        // Percent-width cells need a finite parent. Otherwise a supposedly
+        // miniature option grows into a full board and pushes later choices away.
+        width: 96,
         borderRadius: Radii.medium,
         padding: Spacing.one,
         minWidth: MIN_TOUCH_TARGET,

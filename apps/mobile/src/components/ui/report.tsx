@@ -58,6 +58,8 @@ export function Report({ children, title, action, testID, style, ...rest }: Repo
 export interface ReportRowProps {
   label: string;
   value?: string;
+  /** Stable identifier for callers that expose an individual metric value. */
+  valueTestID?: string;
   /** Trailing node rendered after the value (e.g. a metric chip). */
   trailing?: ReactNode;
   /** Colour role for the value (defaults to primary ink). */
@@ -89,6 +91,7 @@ export interface ReportRowProps {
 export function ReportRow({
   label,
   value,
+  valueTestID,
   trailing,
   valueTone = 'text',
   valueType = 'label',
@@ -105,7 +108,7 @@ export function ReportRow({
   const theme = useTheme();
   const stacked = useStackedRow(layout);
   const evidence = value !== undefined ? (
-    <ThemedText type={valueType} themeColor={valueTone}
+    <ThemedText testID={valueTestID} type={valueType} themeColor={valueTone}
       style={[styles.value, stacked && styles.valueStacked]}>
       {value}
     </ThemedText>

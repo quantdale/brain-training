@@ -14,13 +14,9 @@
  * - The share sheet is offered where available; when the platform reports it
  *   unavailable we say so plainly instead of failing silently.
  *
- * Presentation (campaign 026, design-language v3 "Neon Arcade"): a
- * storage-summary hero leads with the accent spark; every card header carries
- * a family identity mark (export info, backups accent, import xp, wipe
- * danger); the backup list and import modes are `ListRow`s with identity
- * icons; the empty backups state is designed (spark + headline + one line);
- * the destructive wipe stays a danger action gated by the typed DELETE
- * confirmation.
+ * Campaign 077: compact local status, early backup action, disclosed record
+ * counts and explicit data ownership. Import validation/preview, live consent,
+ * busy guards and destructive confirmations remain owned by existing handlers.
  */
 
 import { useCallback, useRef, useState } from "react";
@@ -40,8 +36,9 @@ import {
   HAIRLINE,
   ListRow,
   Skeleton,
-  Spark,
   StatBlock,
+  ReportRow,
+  AppIcon,
   TextField,
 } from "@/components/ui";
 import {
@@ -147,6 +144,7 @@ export default function DataManagementScreen() {
       : hasInitializedLocalState
         ? "Ready"
         : "Empty";
+  const [showLocalDetails, setShowLocalDetails] = useState(false);
   const [backupName, setBackupName] = useState("");
   const [exportText, setExportText] = useState<string | null>(null);
   const [lastExportName, setLastExportName] = useState<string | null>(null);
@@ -599,19 +597,13 @@ export default function DataManagementScreen() {
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
             <ThemedText type="title" testID="data-management-title">
-              Data Management
+              Backups & data
             </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Your training history lives in this app on this phone — there
-              is no account copy. Files you export or share leave through
-              the share sheet, and Android&apos;s own device backup may carry
-              exported files to a new phone. Export a backup file you
-              control, preview exactly what a restore would change, and
-              delete local data only when you mean it. All operations
-              validate before they write and work fully offline.
+            <ThemedText type="bodySmall" themeColor="textSecondary">
+              Save a backup, restore your history, or manage data on this phone.
             </ThemedText>
           </View>
-          <Spark size={30} color={theme.info} />
+
         </View>
       </Entrance>
 
@@ -647,35 +639,38 @@ export default function DataManagementScreen() {
         <>
           {/* Storage-summary hero: the screen's metric. */}
           <Entrance index={1}>
-            <Card variant="hero" testID="data-counts-hero">
+            <Card variant="outlined" padding="sm" testID="data-counts-hero">
               <View style={styles.heroRow}>
                 <View style={styles.heroText}>
                   <StatBlock
                     label="Local database"
                     value={storageSummary}
-                    valueType="numeralXl"
+                    valueType="label"
                     tone="accent"
                     testID="data-storage-summary"
                   />
                 </View>
-                <Spark size={44} color={theme.accent} />
+
               </View>
               <ThemedText
                 type="caption"
                 themeColor="textSecondary"
                 testID="data-storage-size"
               >
-                {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
-                {counts.workoutInstances} workout instances ·{" "}
-                {counts.tutorialState} tutorial states
+                {counts.gameSessions} saved sessions · {counts.gameFavorites} favorites
               </ThemedText>
             </Card>
           </Entrance>
 
+          <Button label={showLocalDetails ? "Hide local data details" : "View local data details"}
+            variant="ghost" size="sm" testID="data-counts-toggle"
+            accessibilityState={{ expanded: showLocalDetails }}
+            onPress={() => setShowLocalDetails((shown) => !shown)} />
+          {showLocalDetails ? (
           <Entrance index={2}>
             <Card testID="data-counts">
-              <CardHeader title="Local Data" soft="infoSoft" ink="infoText" />
-              <View style={styles.countGrid}>
+              <CardHeader title="Local data" soft="infoSoft" ink="infoText" />
+              <View>
                 <Count
                   label="Sessions"
                   value={counts.gameSessions}
@@ -714,6 +709,7 @@ export default function DataManagementScreen() {
               </View>
             </Card>
           </Entrance>
+          ) : null}
         </>
       )}
 
@@ -721,11 +717,7 @@ export default function DataManagementScreen() {
         <Card testID="data-export-card">
           <CardHeader title="Export Backup" soft="infoSoft" ink="infoText" />
           <ThemedText type="caption" themeColor="textSecondary">
-            Creates one versioned, checksummed JSON file containing your full
-            local training history: sessions, ratings, coins, quests,
-            achievements, streak inventory and settings. It is saved in this
-            app&apos;s backups folder on your phone; the app itself uploads
-            nothing. Use Share to put a copy outside the app.
+            Save your full history and settings as a checked JSON file. Use Share to keep a copy outside this app. Nothing is uploaded by the app.
           </ThemedText>
           <TextField
             label="Backup name"
@@ -831,7 +823,7 @@ export default function DataManagementScreen() {
             </View>
           ) : backupsStatus === 'empty' ? (
             <EmptyState
-              icon={<Spark size={22} color={theme.accent} />}
+              icon={<AppIcon name="save" size={22} color={theme.accent} />}
               title="No saved backups yet"
               message="Export above to create one."
               testID="data-saved-backups-empty"
@@ -848,7 +840,7 @@ export default function DataManagementScreen() {
                   <View style={styles.backupName}>
                     <ListRow
                       title={name}
-                      icon={<Spark size={14} color={theme.infoText} />}
+                      icon={<AppIcon name="save" size={18} color={theme.infoText} />}
                       tone="infoSoft"
                       showChevron={false}
                     />
@@ -938,7 +930,7 @@ export default function DataManagementScreen() {
                   <View style={styles.backupName}>
                     <ListRow
                       title={name}
-                      icon={<Spark size={14} color={theme.warningText} />}
+                      icon={<AppIcon name="info" size={18} color={theme.warningText} />}
                       tone="warningSoft"
                       showChevron={false}
                     />
@@ -979,13 +971,13 @@ export default function DataManagementScreen() {
             <ListRow
               title="Merge"
               subtitle="Adds what the backup contains that your phone is missing. Nothing currently on the phone is deleted or overwritten."
-              icon={<Spark size={16} color={theme.successText} />}
+              icon={<AppIcon name="layers" size={18} color={theme.successText} />}
               tone="successSoft"
             />
             <ListRow
               title="Replace"
               subtitle="Erases your current local data first, then restores exactly what is in the backup. Anything not in the backup is gone permanently."
-              icon={<Spark size={16} color={theme.dangerText} />}
+              icon={<AppIcon name="retry" size={18} color={theme.dangerText} />}
               tone="dangerSoft"
             />
           </Card>
@@ -1198,6 +1190,19 @@ export default function DataManagementScreen() {
         </Card>
       </Entrance>
 
+      <Card variant="outlined" testID="data-privacy">
+        <ThemedText type="label">Where your data lives</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Your training history lives in this app on this phone — there
+              is no account copy. Files you export or share leave through
+              the share sheet, and Android&apos;s own device backup may carry
+              exported files to a new phone. Export a backup file you
+              control, preview exactly what a restore would change, and
+              delete local data only when you mean it. All operations
+              validate before they write and work fully offline.
+            </ThemedText>
+      </Card>
+
       {message ? (
         <Card testID="data-message" accessibilityLiveRegion="polite">
           <ThemedText type="small" themeColor="textSecondary">
@@ -1209,58 +1214,20 @@ export default function DataManagementScreen() {
   );
 }
 
-function Count({
-  label,
-  value,
-  testID,
-}: {
-  label: string;
-  value: number;
-  testID: string;
-}) {
-  const theme = useTheme();
-  return (
-    <View
-      style={[
-        styles.countCell,
-        { backgroundColor: theme.surfaceSunken, borderColor: theme.border },
-      ]}
-      testID={testID}
-    >
-      <ThemedText type="numeral" themeColor="accentText">
-        {value}
-      </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-    </View>
-  );
+function Count({ label, value, testID }: { label: string; value: number; testID: string }) {
+  return <ReportRow label={label} value={String(value)} testID={testID} divider />;
 }
 
-/**
- * Card header with an identity mark. Each data section keeps one family hue
- * (export info, backups accent, import xp, wipe danger) so sections are
- * distinguishable before their titles are read.
- */
-function CardHeader({
-  title,
-  soft,
-  ink,
-}: {
-  title: string;
-  soft: ThemeColor;
-  ink: ThemeColor;
-}) {
+/** One vector vocabulary, with the operation named beside its icon. */
+function CardHeader({ title, soft, ink }: { title: string; soft: ThemeColor; ink: ThemeColor }) {
   const theme = useTheme();
+  const icon = soft === 'dangerSoft' ? 'delete' : soft === 'xpSoft' ? 'upload' : soft === 'accentSoft' ? 'layers' : 'save';
   return (
     <View style={styles.cardHeader}>
       <View style={[styles.cardHeaderMark, { backgroundColor: theme[soft] }]}>
-        <Spark size={14} color={theme[ink]} />
+        <AppIcon name={icon} size={18} color={theme[ink]} />
       </View>
-      <ThemedText type="eyebrow" themeColor="textMuted">
-        SECTION
-      </ThemedText>
-      <ThemedText type="headline">{title}</ThemedText>
+      <ThemedText type="headline" style={{ flex: 1 }}>{title}</ThemedText>
     </View>
   );
 }
@@ -1297,21 +1264,6 @@ const styles = StyleSheet.create({
   heroText: {
     flex: 1,
     gap: Spacing.one,
-  },
-  countGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  countCell: {
-    flexBasis: "30%",
-    flexGrow: 1,
-    minWidth: 88,
-    alignItems: "center",
-    gap: Spacing.half,
-    paddingVertical: Spacing.twoHalf,
-    borderRadius: Radii.medium,
-    borderWidth: HAIRLINE,
   },
   row: {
     flexDirection: "row",

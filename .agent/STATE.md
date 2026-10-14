@@ -10,45 +10,47 @@
 
 ## Current checkpoint — 2026-10-15 local
 
-Pushed8d772c7b1d64e6d88621aba3913f87adf4cb2612 contains the14-module
-observation/input/tutorial repair wave, five Progress routes and shared/discovery/
-Profile critique corrections. Combined wave169 suites/1735 tests/5 snapshots,
-global TypeScript and full-source zero-warning lint passed. Whole Jest03 then
-found two old UI expectations (690 suites/7873 tests pass,two failures); corrected
-SVG/disclosure tests pass30/30. Whole Jest04 PASS692 suites/7875 tests/5 snapshots,
-five reviewed opt-in skips. Global types and affected test lint pass again.
-Details and all earlier failures remain in VALIDATION.md and077/evidence.
+New source wave on base5df95a3af1d2fc50316f0d2d9e93751db52e7a35 contains concise
+Results/saved continuation before detailed facts, compact data/backup actions,
+scrollable provider-free2x recovery, and all four Progress preview03 critique
+corrections. Independent source review found no changed data/persistence/workout
+CAS/reward/retry handlers; its record-caption and compact result-art findings
+were corrected. Native acceptance remains separate.
 
-Native preview03 built from1106 inventoried8d772c7b app files with zero differences.
-Build PASS532 tasks/3m11s; APK30fb56fc9b291d470270698a2f441626266eac898292b577e4ca5acd1a644723,
-52,304,659B,com.braintraining.app0.1.0/1000,x86_64/debug-signed. Installed-r;
-device hash matches; exact before/after SQLite preserved, integrityok/sessions6
-and persistedSystem preference retained. Cold launch6288ms observed under check
-load, not a performance acceptance result. Permission boundary8 entries PASS.
+ARTEMIS Proa3f662cd-4ee7-49a0-9f7e-771019f3bd82 exposed a real High clipped
+GridNavigator tutorial (root independently inspected step42). Source repair:
+finite96dp miniatures/compact cells,200dp source board, explicit bounded long-demo
+scrolling through existing TutorialFrame, clear choose-board wording. Related
+TransformMatch repair shows actual demo candidates and bounds source/options.
+Both game versions1.2; generation/scoring retained (Grid1.0/1.2, Transform1.2/1.2).
+Grid has2 valid red-before failures/one passing normal completion control;
+Transform4 valid failures/one control. Current integrated45 suites576 tests PASS,
+35.323s; global TS05 and current affected lint05 exit0. Full-source lint03 also
+passed; final affected imports/geometry linted again. Full whole-app rerun remains
+open; earlier whole Jest04 passed692 suites7875 tests/5 snapshots with one
+unresolved worker forced-exit warning. Initial failures remain documented.
 
-Default native capture22/22 PASS across11 surfaces/two directly witnessed themes.
-Independent reviewer inspected all22: no P1 missing/overlapping essential content;
-Profile identity visible after Home→Games→Profile in both current frames. Preserve
-the failed02frame and unknown original cause. Further corrections required:
-dark selected-window visibility, performance/game context in history, interpretable
-calendar anchors/numeric legend and untrained-domain hierarchy. Populated domain/
-game and compact/2×/larger/reduced-motion/below-fold states remain open.
+Pro run saved two actual games,186XP/49coins,2/4; restarted twice, opened Progress
+and ended Home top. Root independently inspected step52 Home. Leg3 BLOCKED,
+leg4 NOT VALIDATED; ONLINE observed, no offlinePASS. Provider then rejected a
+malformed tool-message history with400 during finalization; diagnose ready5/5.
+Root stopped the paused task: terminal status CANCELLED, not completed/PASS.
+External notes and images retained; new-APK continuation still required.
 
-ARTEMIS provider access works. Pro workout/persistence trace
-a3f662cd-4ee7-49a0-9f7e-771019f3bd82 is running on emulator-5570. It observed actual
-network settings ONLINE (airplane0/wifi2/mobile1); no offline PASS is inferred.
-No terminal gameplay PASS yet. The device is reserved to that task until terminal;
-do not install, force-stop, capture/navigate or otherwise interfere concurrently.
-External traces stay outside Git. See evidence/NATIVE_PREVIEW03.md.
+Pre-install exact SQLite preserved locally in native-preview04/
+sqlite-preserved-before-install03; separate working-copy integrityok/sessions8.
+Two initial access/path attempts failed validation and are not accepted backups.
+Native04 not built/installed yet. Current installed APK remains30fb56fc9b291d470270698a2f441626266eac898292b577e4ca5acd1a644723,
+source8d772c7b, now force-stopped for safe preservation. Emulator5570 is released
+from the cancelled task; no other device or host input used. Next: freeze/build/
+install new exact source, profile captures/independent critique, repaired actual
+workout continuation, data/offline/performance, actual clean checkout and ending
+SHA four workflows, final verified visible Home. Full original077 remains ACTIVE.
 
-At8d772c7b Integrity38639600658 and Android38639600627 passed; App38639600811
-failed the same two old UI assertions, verified from its artifact; iOS38639600766
-pending at last check. Test-only corrective checkpoint is next; installed app
-source stays8d772c7b. Full original Campaign077 remains ACTIVE. Next: finish the
-Progress critique corrections, Results/data/recovery presentation and motion,
-required current-source profile/game/data/offline/performance journeys, actual
-clean checkout, ending-SHA four workflows and verified visible Home handoff.
-No temporary Git branches/worktrees were created; one dedicated visible AVD.
+At5df95a3a App38642396926, Integrity38642396742 and Android38642396618 SUCCESS;
+iOS38642396880 still in progress at last poll. Prior8d iOS38639600766 CANCELLED.
+No final-SHA certification claimed. No temporary branches/worktrees created.
+Details: evidence/PRESENTATION_RECOVERY.md and VALIDATION.md.
 
 ## Last pushed implementation checkpoint — 2026-10-14
 

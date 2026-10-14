@@ -483,9 +483,9 @@ export const registry: readonly GameDefinition[] = [
     secondaryDomains: [
     "Attention"
   ],
-    description: "A marker sits on a grid facing a direction. Read the move/turn commands and tap the cell where the marker ends up.",
+    description: "Follow a marker through move and turn commands. Choose the small board that marks its final cell.",
     sdkVersion: "0.1.0",
-    gameVersion: "1.1.0",
+    gameVersion: "1.2.0",
     generatorVersion: "1.0.0",
     contentVersion: null,
     hasTutorial: true,
@@ -513,7 +513,7 @@ export const registry: readonly GameDefinition[] = [
   ],
     description: "A grid pattern is transformed — pick the correct rotated or mirrored version from the options.",
     sdkVersion: "0.1.0",
-    gameVersion: "1.1.0",
+    gameVersion: "1.2.0",
     generatorVersion: "1.2.0",
     contentVersion: null,
     hasTutorial: true,

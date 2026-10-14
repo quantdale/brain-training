@@ -150,6 +150,8 @@ describe('progress detail screen', () => {
     const pbHeader = screen.getByTestId('progress-detail-pb-header');
     expect(StyleSheet.flatten(pbHeader.props.style).flexWrap).toBe('wrap');
     expect(within(pbHeader).getByText('1 session')).toBeOnTheScreen();
+    expect(within(pbHeader).getByText('Best session performance')).toBeOnTheScreen();
+    expect(within(screen.getByTestId('progress-detail-pb')).getByText(/Memory · Jan 1/)).toBeOnTheScreen();
 
     // Per-domain history: one block per domain, entries carry rating + delta.
     expect(screen.getByTestId('progress-detail-domain-memory')).toBeOnTheScreen();

@@ -25,13 +25,12 @@ import {
   loadProgressSnapshot,
   monthlyActivity,
   weekdayDistribution,
-  type CalendarDay,
   type ProgressSnapshot,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
+import { CalendarHeatmap, LabeledBars } from '@/components/progress-charts';
 import {
   BackLink,
   Card,
@@ -144,46 +143,8 @@ export default function ProgressActivityScreen() {
       <Entrance index={1}>
       <Card style={styles.evidenceCard} testID="progress-activity-heatmap">
         <ThemedText type="headline">Training days</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          {calendar.days.length > 0
-            ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
-            : 'No activity in this view yet'}
-        </ThemedText>
-        <View style={styles.heatmap}>
-          {(() => {
-            const weeks: CalendarDay[][] = [];
-            for (let i = 0; i < calendar.days.length; i += 7) {
-              weeks.push(calendar.days.slice(i, i + 7));
-            }
-            return weeks.map((week, wi) => {
-              const weekSessions = week.reduce((sum, day) => sum + day.count, 0);
-              const weekActive = week.filter((day) => day.count > 0).length;
-              return (
-                <HeatmapRow
-                  key={wi}
-                  testID={`progress-activity-heatmap-w${wi}`}
-                  intensities={week.map((d) => (maxCount > 0 ? d.count / maxCount : 0))}
-                  weekLabel={`Week of ${formatDayLabel(Date.parse(`${week[0].dateKey}T00:00:00Z`))}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}
-                />
-              );
-            });
-          })()}
-        </View>
-        <View style={styles.legend}>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Less
-          </ThemedText>
-          <View style={styles.legendCells}>
-            {[0, 0.33, 0.66, 1].map((v, i) => (
-              <View key={i} style={styles.legendCell} testID={`progress-activity-legend-${i}`}>
-                <HeatmapRow intensities={[v]} />
-              </View>
-            ))}
-          </View>
-          <ThemedText type="caption" themeColor="textSecondary">
-            More
-          </ThemedText>
-        </View>
+        <CalendarHeatmap days={calendar.days} maxCount={maxCount}
+          testID="progress-activity-calendar" />
       </Card>
       </Entrance>
 

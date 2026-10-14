@@ -24,6 +24,7 @@ import { applyTransform, generateSourcePattern } from '../generator';
 import { GAME_ID, TRANSFORM_LABELS } from '../types';
 import type { TransformType } from '../types';
 import { GameButton } from './button';
+import { OptionButton } from './option-button';
 import { PatternGrid } from './pattern-grid';
 
 /** Deterministic demo seed so the tutorial board is identical on every device. */
@@ -46,14 +47,13 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <TutorialFrame gameId={GAME_ID}>
+    <TutorialFrame gameId={GAME_ID} scrollable={step === 'demo'}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            You&apos;ll see a grid pattern briefly — memorize it. The source then
-            hides: work out which transform was applied and pick the option
-            showing the transformed version.
+            You&apos;ll see a grid pattern briefly — memorize it. After it hides,
+            follow the named rotation or mirror and choose the matching pattern.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
@@ -133,23 +133,28 @@ function DemoRound({ attempt, onCorrect, onWrong, onSkip }: DemoRoundProps) {
       <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'tutorial-demo-status')}>
         Apply &quot;{TRANSFORM_LABELS[DEMO_TRANSFORM]}&quot; and pick the correct result.
       </ThemedText>
-      <PatternGrid
-        gridSize={DEMO_GRID_SIZE}
-        pattern={source}
-        testID={testId(GAME_ID, 'tutorial-source')}
-        accessibilityLabel="Demo source pattern"
-      />
+      <View style={styles.sourceBoard}>
+        <PatternGrid
+          gridSize={DEMO_GRID_SIZE}
+          pattern={source}
+          testID={testId(GAME_ID, 'tutorial-source')}
+          accessibilityLabel="Demo source pattern"
+        />
+      </View>
       <ThemedText type="caption" themeColor="textSecondary">
-        {TRANSFORM_LABELS[DEMO_TRANSFORM]}
+        Choose the matching pattern.
       </ThemedText>
       <View style={styles.optionRow}>
         {options.map((opt, i) => (
-          <GameButton
+          <OptionButton
             key={i}
+            index={i}
             testID={testId(GAME_ID, 'tutorial-option', String(i))}
-            label={`Option ${i + 1}`}
-            variant="secondary"
-            onPress={() => handleOptionPress(i)}
+            gridSize={DEMO_GRID_SIZE}
+            pattern={opt}
+            selected={false}
+            correct={false}
+            onPressOption={handleOptionPress}
           />
         ))}
       </View>
@@ -169,8 +174,11 @@ const styles = StyleSheet.create({
   body: {
     gap: Spacing.three,
   },
+  sourceBoard: { alignSelf: 'center', width: '100%', maxWidth: 200 },
   optionRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: Spacing.two,
   },
 });

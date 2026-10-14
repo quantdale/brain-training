@@ -51,7 +51,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <TutorialFrame gameId={GAME_ID}>
+    <TutorialFrame gameId={GAME_ID} scrollable={step === 'demo'}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -151,7 +151,7 @@ function DemoRound({ attempt, onCorrect, onWrong, onSkip }: DemoRoundProps) {
     <View style={styles.body}>
       <ThemedText type="headline">Demo</ThemedText>
       <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'tutorial-demo-status')}>
-        {`Facing ${DIR_ARROW[DEMO_DIR]} at the marked cell, follow the commands and tap where it ends up.`}
+        {`Facing ${DIR_ARROW[DEMO_DIR]} at the marked cell, follow the commands. Choose the small board that marks the final cell.`}
       </ThemedText>
       <View
         style={styles.board}
@@ -191,7 +191,9 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   board: {
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 200,
   },
   optionRow: {
     flexDirection: 'row',

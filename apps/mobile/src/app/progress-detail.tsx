@@ -109,6 +109,10 @@ export default function ProgressDetailScreen() {
     () => buildNormalizedBestHistory(data.recent, nowMs),
     [data.recent, nowMs],
   );
+  const recordedGameLabel = (sessionId: string | null | undefined) => {
+    const session = data.recent.find((entry) => entry.id === sessionId);
+    return session ? getGameDefinition(session.gameId)?.name ?? session.gameId : 'Recorded session';
+  };
   const rollingSeries = useMemo(() => {
     const ascending = data.recent
       .slice()
@@ -176,7 +180,7 @@ export default function ProgressDetailScreen() {
           <Card style={styles.evidenceCard} variant="outlined" padding="md" testID="progress-detail-pb">
             <View style={styles.cardHeader} testID="progress-detail-pb-header">
               <ThemedText type="eyebrow" themeColor="textSecondary">
-                Recent personal best
+                Best session performance
               </ThemedText>
               <Badge
                 label={`${data.recent.length} session${data.recent.length === 1 ? '' : 's'}`}
@@ -188,8 +192,8 @@ export default function ProgressDetailScreen() {
               <ThemedText type="headline">
                 {formatPercent(bestHistory.current.value)}
               </ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                {formatDayLabel(bestHistory.current.t)}
+              <ThemedText type="caption" themeColor="textSecondary" style={styles.heroContext}>
+                {recordedGameLabel(bestHistory.current.sessionId)} · {formatDayLabel(bestHistory.current.t)}
               </ThemedText>
             </View>
             {/* The hero already states the best value and its date: enumerate
@@ -201,8 +205,9 @@ export default function ProgressDetailScreen() {
                 {bestHistory.events.slice(-5).map((event, index) => (
                   <ReportRow
                     key={`${event.t}-${event.value}`}
-                    label={formatDayLabel(event.t)}
-                    value={formatPercent(event.value)}
+                    label={recordedGameLabel(event.sessionId)}
+                    hint={formatDayLabel(event.t)}
+                    value={`${formatPercent(event.value)} performance`}
                     divider={index < Math.min(bestHistory.events.length, 5) - 1}
                     testID={`progress-detail-pb-${event.t}`}
                   />
@@ -210,7 +215,7 @@ export default function ProgressDetailScreen() {
               </View>
             ) : null}
             <ThemedText type="caption" themeColor="textSecondary">
-              Best across the {data.recent.length} session{data.recent.length === 1 ? '' : 's'} loaded (up to {ANALYTICS_WINDOW}) ·
+              Performance follows each game’s scoring rules. Best across the {data.recent.length} session{data.recent.length === 1 ? '' : 's'} loaded (up to {ANALYTICS_WINDOW}) ·
               held{' '}
               {bestHistory.standingDays === 0
                 ? 'for less than a day'
@@ -456,9 +461,11 @@ const styles = StyleSheet.create({
   },
   heroRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'baseline',
     gap: Spacing.three,
   },
+  heroContext: { flexGrow: 1, flexShrink: 1, flexBasis: 160, minWidth: 0 },
   cardHeader: {
     flexDirection: 'row',
     // At 2× text the tracked heading plus count badge exceeds the card;

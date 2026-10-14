@@ -287,6 +287,7 @@ describe('data-management UX contract', () => {
     await renderScreen();
 
     // Counts bind to the mocked engine snapshot.
+    await fireEvent.press(await screen.findByTestId('data-counts-toggle'));
     expect(await screen.findByTestId('data-count-sessions')).toBeOnTheScreen();
     expect(await screen.findByText('7')).toBeOnTheScreen();
     // A backend without PRAGMA byte metrics is still populated: the profile

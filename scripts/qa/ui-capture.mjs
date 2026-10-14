@@ -118,6 +118,25 @@ const SURFACES = [
     settleMs: 3000,
     expects: ['progress-game-title', 'progress-game-loading', 'progress-game-error'],
   },
+  // These use actually played preview03 workout games. Keep the original
+  // Memory routes as empty-state witnesses; populated analytics need their
+  // own explicit route/state provenance rather than relabeling those frames.
+  {
+    id: 'progress-domain-attention',
+    route: '/progress-domain?domain=Attention',
+    settleMs: 3000,
+    expects: ['progress-domain-title'],
+    expectedText: 'Attention',
+    default: false,
+  },
+  {
+    id: 'progress-game-deduction-table',
+    route: '/progress-game?gameId=logic-deduction-table',
+    settleMs: 3000,
+    expects: ['progress-game-title'],
+    expectedText: 'Deduction Table',
+    default: false,
+  },
   {
     id: 'storage-unavailable',
     route: '/storage-unavailable',

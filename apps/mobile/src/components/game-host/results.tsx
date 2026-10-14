@@ -16,7 +16,7 @@
  */
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { liveAudioHaptics, testId } from '@/sdk';
 import { trackSessionPersist } from '@/sdk/perf';
@@ -25,7 +25,7 @@ import { ThemedText } from '@/components/themed-text';
 import { GameWorldArt } from '@/components/discovery/game-identity';
 import { FeedbackCard } from '@/components/shell';
 import { performanceBand } from '@/components/shell/format';
-import { Card, Confetti, Spark } from '@/components/ui';
+import { AnimatedNumber, Card, Confetti, Spark } from '@/components/ui';
 import { launchAnimation } from '@/components/ui/motion';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
@@ -115,6 +115,8 @@ export function GameResults({
   children,
 }: GameResultsProps) {
   const theme = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const showArtwork = width >= 360 && fontScale < 1.5;
   const definition = getGameDefinition(gameId);
   // Dev-only perf seam (campaign 010, debt D4): bracket the session-completion
   // DB write as observed through the persistence lifecycle — from the first
@@ -310,24 +312,32 @@ export function GameResults({
 
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
-      {/* One result artifact (campaign 055): the game world and the band
-          headline are the event. Facts, reward and actions support it.
-          065: the artifact is a polite live region so the headline is
-          announced when the results appear (same pattern as /results). */}
-      {/* Change 076 (lock section 1): the artifact is the immersive stage —
-          charcoal panel, white type, the played board as the still. */}
+      {/* The outcome stays compact so saved rewards and the next action do
+          not disappear below game-specific statistics. The illustration is
+          identity only; measured performance remains native, readable text. */}
       <View
-        style={[styles.stageArtifact, { backgroundColor: theme.stage, borderColor: theme.stageBorder }]}
+        style={[styles.stageArtifact, { backgroundColor: theme.surface, borderColor: theme.border }]}
         testID={testId(gameId, 'result-artifact')}
         accessibilityLiveRegion="polite">
-        {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
+        {definition && showArtwork ? (
+          <View style={styles.resultArt} pointerEvents="none">
+            <GameWorldArt game={definition} size="thumbnail" testID={testId(gameId, 'result-world')} />
+          </View>
+        ) : null}
         <View style={styles.resultBody}>
           <ThemedText
             type="resultHeadline"
-            themeColor="stageInk"
             testID={testId(gameId, 'result-headline')}>
             {headline}
           </ThemedText>
+          {band !== null && normalizedResult !== undefined ? (
+            <View>
+              <AnimatedNumber value={Math.round(normalizedResult * 100)}
+                format={(n) => `${Math.round(n)}%`} type="numeral"
+                testID={testId(gameId, 'result-performance')} />
+              <ThemedText type="caption" themeColor="textSecondary">Session performance</ThemedText>
+            </View>
+          ) : null}
           {badge}
         </View>
       </View>
@@ -342,9 +352,6 @@ export function GameResults({
           Your session could not be saved. {lastError ?? ''}
         </ThemedText>
       ) : null}
-      <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
-        {children}
-      </View>
       {forced ? (
         <ThemedText type="caption" themeColor="warning" testID={testId(gameId, 'forced-badge')}>
           QA-forced session
@@ -465,6 +472,9 @@ export function GameResults({
           onPress={onQuit}
         />
       </View>
+      <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
+        {children}
+      </View>
     </View>
   );
 }
@@ -474,13 +484,24 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   stageArtifact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.two,
     borderRadius: Radii.large,
     overflow: 'hidden',
     borderWidth: 1.5,
   },
   resultBody: {
-    padding: Spacing.three,
+    flex: 1,
+    minWidth: 0,
+    padding: Spacing.one,
     gap: Spacing.two,
+  },
+  resultArt: {
+    width: 64,
+    height: 72,
+    overflow: 'hidden',
+    marginRight: Spacing.two,
   },
   facts: {
     gap: Spacing.half,
