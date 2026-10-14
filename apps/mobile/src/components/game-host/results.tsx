@@ -209,6 +209,7 @@ export function GameResults({
   const [derivedAdvance, setDerivedAdvance] =
     useState<WorkoutSessionAdvanceResult | null>(null);
   const [advanceError, setAdvanceError] = useState<string | null>(null);
+  const [advanceAttempt, setAdvanceAttempt] = useState(0);
   // Re-arms on restart (idle/started) so a replayed session resolves fresh
   // navigation from durable state instead of reusing the previous leg's view.
   const advancedLaunchRef = useRef<string | null>(null);
@@ -226,6 +227,7 @@ export function GameResults({
       return;
     }
     advancedLaunchRef.current = launchKey;
+    setAdvanceError(null);
 
     let cancelled = false;
     void advanceWorkoutForSession({
@@ -251,7 +253,17 @@ export function GameResults({
     return () => {
       cancelled = true;
     };
-  }, [persistState, workout, launchOwnsThisGame, workoutLaunch, gameId]);
+  }, [persistState, workout, launchOwnsThisGame, workoutLaunch, gameId, advanceAttempt]);
+
+  const retryWorkoutAdvance = useCallback(() => {
+    // Retry only the durable workout CAS, never the already-saved session or
+    // its rewards. Clearing the visible error also removes this retry action
+    // while the request is pending, preventing repeated submissions.
+    if (advanceError === null) return;
+    advancedLaunchRef.current = null;
+    setAdvanceError(null);
+    setAdvanceAttempt((attempt) => attempt + 1);
+  }, [advanceError]);
 
   const succeeded = persistState === 'succeeded';
   const nextGameId = workout !== undefined
@@ -274,8 +286,11 @@ export function GameResults({
     workout?.totalGames ??
     derivedAdvance?.instance?.gameIds.length ??
     (workoutCompleted && workoutLaunch ? workoutLaunch.legIndex + 1 : null);
+  const workoutSkipped = new Set(derivedAdvance?.instance?.skippedIndices ?? []).size;
   const completionProgress = workoutTotalGames
-    ? `${workoutTotalGames}/${workoutTotalGames} games complete`
+    ? workoutSkipped > 0
+      ? `${Math.max(0, workoutTotalGames - workoutSkipped)} games played · ${workoutSkipped} skipped`
+      : `${workoutTotalGames}/${workoutTotalGames} games complete`
     : 'All games complete';
   const nextGameDetail = nextGameName
     ? `${nextGameName}${nextPosition !== null ? ` · Game ${nextPosition}${workoutTotalGames ? ` of ${workoutTotalGames}` : ''}` : ''}`
@@ -409,6 +424,14 @@ export function GameResults({
       ) : null}
 
       <View style={styles.buttonRow}>
+        {showAdvanceError ? (
+          <GameButton
+            testID={testId(gameId, 'workout-advance-retry')}
+            label="Retry workout progress"
+            sublabel="Your game is already saved"
+            onPress={retryWorkoutAdvance}
+          />
+        ) : null}
         {showNextGame ? (
           <GameButton
             testID={testId(gameId, 'next-game')}

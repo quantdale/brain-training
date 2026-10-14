@@ -11,7 +11,7 @@ import {
   effectiveParamsForStep,
   escalateStep,
 } from '../difficulty';
-import { createInitialOddOneOutState } from '../types';
+import { inputStamp, createInitialOddOneOutState } from '../types';
 import type { OddOneOutBoard, OddOneOutGameState } from '../types';
 
 const NOW = 1_000;
@@ -49,9 +49,10 @@ function expectedBoard(state: OddOneOutGameState, seed: string): OddOneOutBoard 
 function passRound(
   state: OddOneOutGameState,
   seed: string,
-  nowMs = NOW,
+  nowMs = state.roundStartedAtMs,
 ): OddOneOutGameState {
   return oddOneOutReducer(state, {
+    stamp: inputStamp(state),
     type: 'tap-tile',
     index: expectedBoard(state, seed).oddIndex,
     nowMs,
@@ -59,10 +60,10 @@ function passRound(
 }
 
 /** Tap a deliberately wrong tile (the first wrong item that is not the odd one). */
-function wrongRound(state: OddOneOutGameState, seed: string, nowMs = NOW): OddOneOutGameState {
+function wrongRound(state: OddOneOutGameState, seed: string, nowMs = state.roundStartedAtMs): OddOneOutGameState {
   const board = expectedBoard(state, seed);
   const wrongIndex = (board.oddIndex + 1) % state.gridSize;
-  return oddOneOutReducer(state, { type: 'tap-tile', index: wrongIndex, nowMs });
+  return oddOneOutReducer(state, { stamp: inputStamp(state), type: 'tap-tile', index: wrongIndex, nowMs });
 }
 
 describe('select-difficulty', () => {
@@ -132,17 +133,18 @@ describe('start-session', () => {
 
 describe('tick', () => {
   it('refreshes the displayed remainder in the playing phase', () => {
-    const state = oddOneOutReducer(startSession('r'), { type: 'tick', remainingMs: 10_500 });
+    const state = oddOneOutReducer(startSession('r'), { stamp: inputStamp(startSession('r')), type: 'tick', nowMs: startSession('r').deadlineMs - (10_500) });
     expect(state.remainingMs).toBe(10_500);
-    expect(oddOneOutReducer(state, { type: 'tick', remainingMs: -4 }).remainingMs).toBe(0);
+    expect(oddOneOutReducer(state, { stamp: inputStamp(state), type: 'tick', nowMs: state.deadlineMs - (-4) }).remainingMs).toBe(0);
   });
 
   it('is ignored outside the playing phase or while paused', () => {
-    const paused = oddOneOutReducer(startSession('r'), { type: 'pause', remainingMs: 5_000 });
-    expect(oddOneOutReducer(paused, { type: 'tick', remainingMs: 1 }).remainingMs).toBe(5_000);
+    const paused = oddOneOutReducer(startSession('r'), { type: 'pause', nowMs: startSession('r').deadlineMs - (5_000) });
+    expect(oddOneOutReducer(paused, { stamp: inputStamp(paused), type: 'tick', nowMs: paused.deadlineMs - (1) }).remainingMs).toBe(5_000);
     const inIntro = oddOneOutReducer(createInitialOddOneOutState(), {
+      stamp: inputStamp(createInitialOddOneOutState()),
       type: 'tick',
-      remainingMs: 1,
+      nowMs: createInitialOddOneOutState().deadlineMs - (1),
     });
     expect(inIntro.remainingMs).toBe(0);
   });
@@ -154,6 +156,7 @@ describe('tap-tile', () => {
     // Deadline is NOW + 12_000; a tap one tick later must be an exact no-op —
     // the round stays in `playing` and the timeout path still resolves it.
     const late = oddOneOutReducer(state, {
+      stamp: inputStamp(state),
       type: 'tap-tile',
       index: expectedBoard(state, 'late-tap').oddIndex,
       nowMs: NOW + 12_001,
@@ -161,17 +164,17 @@ describe('tap-tile', () => {
     expect(late).toBe(state);
     expect(Object.is(late, state)).toBe(true);
 
-    // A tap exactly at the boundary is honored (tie goes to the player), and
-    // the tick-driven timeout still ends an unanswered round.
+    // The absolute deadline closes the window, including an exact-boundary
+    // tap delivered before the tick-driven timeout has run.
     const atBoundary = oddOneOutReducer(state, {
+      stamp: inputStamp(state),
       type: 'tap-tile',
       index: expectedBoard(state, 'late-tap').oddIndex,
       nowMs: NOW + 12_000,
     });
-    expect(atBoundary.phase).toBe('roundResult');
-    expect(atBoundary.roundOutcome).toBe('passed');
+    expect(atBoundary).toBe(state);
 
-    const timedOut = oddOneOutReducer(late, { type: 'round-timeout' });
+    const timedOut = oddOneOutReducer(late, { stamp: inputStamp(late), nowMs: late.deadlineMs, type: 'round-timeout' });
     expect(timedOut.phase).toBe('roundResult');
     expect(timedOut.roundOutcome).toBe('timeout');
     expect(timedOut.stats.timeouts).toBe(1);
@@ -180,7 +183,7 @@ describe('tap-tile', () => {
 
   it('passes the round on the first try with points + bonus', () => {
     let state = startSession('tap', 'normal');
-    state = oddOneOutReducer(state, { type: 'tap-tile', index: expectedBoard(state, 'tap').oddIndex, nowMs: NOW + 6_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'tap-tile', index: expectedBoard(state, 'tap').oddIndex, nowMs: NOW + 6_000 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('passed');
     expect(state.stats.score).toBe(125);
@@ -218,7 +221,7 @@ describe('tap-tile', () => {
   it('penalizes wrong taps against an existing score', () => {
     let state = startSession('tap-two');
     state = passRound(state, 'tap-two'); // score 125
-    state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + 15_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + 15_000 });
     state = wrongRound(state, 'tap-two'); // -25 → 100
     expect(state.stats.score).toBe(100);
     expect(state.phase).toBe('playing');
@@ -228,16 +231,16 @@ describe('tap-tile', () => {
     let state = startSession('x');
     state = passRound(state, 'x');
     const played = state.stats.roundsPlayed;
-    const after = oddOneOutReducer(state, { type: 'tap-tile', index: 0, nowMs: NOW });
+    const after = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'tap-tile', index: 0, nowMs: NOW });
     expect(after.stats.roundsPlayed).toBe(played);
-    const paused = oddOneOutReducer(startSession('x'), { type: 'pause', remainingMs: 9_000 });
-    expect(oddOneOutReducer(paused, { type: 'tap-tile', index: 0, nowMs: NOW }).roundWrongTaps).toBe(0);
+    const paused = oddOneOutReducer(startSession('x'), { type: 'pause', nowMs: startSession('x').deadlineMs - (9_000) });
+    expect(oddOneOutReducer(paused, { stamp: inputStamp(paused), type: 'tap-tile', index: 0, nowMs: NOW }).roundWrongTaps).toBe(0);
   });
 });
 
 describe('round-timeout', () => {
   it('marks the round failed when the window expires', () => {
-    const state = oddOneOutReducer(startSession('t'), { type: 'round-timeout' });
+    const state = oddOneOutReducer(startSession('t'), { stamp: inputStamp(startSession('t')), nowMs: startSession('t').deadlineMs, type: 'round-timeout' });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('timeout');
     expect(state.remainingMs).toBe(0);
@@ -248,10 +251,10 @@ describe('round-timeout', () => {
   });
 
   it('is ignored while paused or outside the playing phase', () => {
-    const paused = oddOneOutReducer(startSession('t'), { type: 'pause', remainingMs: 9_000 });
-    expect(oddOneOutReducer(paused, { type: 'round-timeout' }).phase).toBe('playing');
-    const results = oddOneOutReducer(startSession('t'), { type: 'round-timeout' });
-    expect(oddOneOutReducer(results, { type: 'round-timeout' }).stats.timeouts).toBe(1);
+    const paused = oddOneOutReducer(startSession('t'), { type: 'pause', nowMs: startSession('t').deadlineMs - (9_000) });
+    expect(oddOneOutReducer(paused, { stamp: inputStamp(paused), nowMs: paused.deadlineMs, type: 'round-timeout' }).phase).toBe('playing');
+    const results = oddOneOutReducer(startSession('t'), { stamp: inputStamp(startSession('t')), nowMs: startSession('t').deadlineMs, type: 'round-timeout' });
+    expect(oddOneOutReducer(results, { stamp: inputStamp(results), nowMs: results.deadlineMs, type: 'round-timeout' }).stats.timeouts).toBe(1);
   });
 });
 
@@ -260,7 +263,7 @@ describe('next-round', () => {
     let state = startSession('escalate');
     state = passRound(state, 'escalate');
     const prevBoard = state.board;
-    state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + 15_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + 15_000 });
     expect(state.phase).toBe('playing');
     expect(state.roundIndex).toBe(1);
     expect(state.step).toBe(1);
@@ -274,8 +277,8 @@ describe('next-round', () => {
 
   it('holds the step after a failure', () => {
     let state = startSession('hold');
-    state = oddOneOutReducer(state, { type: 'round-timeout' });
-    state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + 15_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'round-timeout' });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + 15_000 });
     expect(state.roundIndex).toBe(1);
     expect(state.step).toBe(0);
     expect(state.subtlety).toBe(0);
@@ -284,10 +287,10 @@ describe('next-round', () => {
   it('moves ±1 for adaptive sessions', () => {
     let state = startSession('adapt', 'adaptive');
     state = passRound(state, 'adapt');
-    state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + 15_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + 15_000 });
     expect(state.step).toBe(1);
-    state = oddOneOutReducer(state, { type: 'round-timeout' });
-    state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + 20_000 });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'round-timeout' });
+    state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + 20_000 });
     expect(state.step).toBe(0);
   });
 
@@ -296,7 +299,7 @@ describe('next-round', () => {
     let step = 0;
     for (let round = 0; round < 5; round += 1) {
       state = passRound(state, 'final');
-      state = oddOneOutReducer(state, { type: 'next-round', nowMs: NOW + (round + 1) * 15_000 });
+      state = oddOneOutReducer(state, { stamp: inputStamp(state), type: 'next-round', nowMs: NOW + (round + 1) * 15_000 });
       const params = ODD_ONE_OUT_DIFFICULTY_PARAMS.easy;
       step = escalateStep(step, true, 'easy', params);
       const effective = effectiveParamsForStep(params, step);
@@ -317,10 +320,10 @@ describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
     const inIntro = oddOneOutReducer(createInitialOddOneOutState(), {
       type: 'pause',
-      remainingMs: 0,
+      nowMs: createInitialOddOneOutState().deadlineMs - (0),
     });
     expect(inIntro.paused).toBe(false);
-    let state = oddOneOutReducer(startSession('p'), { type: 'pause', remainingMs: 9_000 });
+    let state = oddOneOutReducer(startSession('p'), { type: 'pause', nowMs: startSession('p').deadlineMs - (9_000) });
     expect(state.paused).toBe(true);
     expect(state.remainingMs).toBe(9_000);
     state = oddOneOutReducer(state, { type: 'resume', nowMs: NOW + 30_000 });
@@ -331,11 +334,11 @@ describe('pause / resume', () => {
   });
 
   it('cannot pause while paused or on results, and roundResult pause is allowed', () => {
-    let state = oddOneOutReducer(startSession('p'), { type: 'pause', remainingMs: 5_000 });
-    state = oddOneOutReducer(state, { type: 'pause', remainingMs: 1_000 });
+    let state = oddOneOutReducer(startSession('p'), { type: 'pause', nowMs: startSession('p').deadlineMs - (5_000) });
+    state = oddOneOutReducer(state, { type: 'pause', nowMs: state.deadlineMs - (1_000) });
     expect(state.remainingMs).toBe(5_000);
-    const result = oddOneOutReducer(startSession('p'), { type: 'round-timeout' });
-    expect(oddOneOutReducer(result, { type: 'pause', remainingMs: 0 }).paused).toBe(true);
+    const result = oddOneOutReducer(startSession('p'), { stamp: inputStamp(startSession('p')), nowMs: startSession('p').deadlineMs, type: 'round-timeout' });
+    expect(oddOneOutReducer(result, { type: 'pause', nowMs: result.deadlineMs - (0) }).paused).toBe(true);
   });
 });
 

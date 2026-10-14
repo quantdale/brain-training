@@ -1,47 +1,29 @@
-/**
- * Profile — player identity, records and quiet settings (campaign 055).
- *
- * Campaign 052: identity dissolved into a long record/settings document of
- * stacked stat cards. The refinement lock (§2.7) makes the first viewport a
- * player card: monogram plate + name (`display_name` or "Player") + level
- * emblem + XP progress + streak rail + equipped cosmetic chips, with an
- * on-device honesty line. Motivation, milestones, quests and achievements
- * follow in Report grammar; data and settings become quiet entry rows.
- *
- * All economy behaviour is untouched: streak item purchase/apply still flows
- * through the idempotent repositories, rewards stay owned by `/rewards`, and
- * every existing testID/accessibility seam is preserved.
- *
- * Change 076 (Training-Studio lock, REFERENCE_LOCK.md): the player card is the
- * screen's one focal object and moves onto the immersive stage panel — white
- * instrument numerals, translucent stage wells. Quests/achievements/cosmetics
- * become numbered hairline fact rows (lock §8); theme/settings become quiet
- * bordered rows. Red appears only as identity tones, never an action fill
- * (this screen has no primary action). Semantics and data flow are unchanged.
- */
+/** Profile keeps identity and preferences before optional training records.
+ * Rewards owns claims and cosmetics; streak purchases retain their stable
+ * operation keys and the existing transactional repositories. */
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
 import { StateCard } from "@/components/shell";
-import { Report, ReportRow } from "@/components/ui/report";
+import { formatGoalProgress } from "@/components/shell/format";
 import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { MIN_TOUCH_TARGET } from "@/components/a11y";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
 import {
   Badge,
+  AppIcon,
+  type AppIconName,
   Button,
   Card,
   Entrance,
   HAIRLINE,
-  ListRow,
   ProgressBar,
-  Spark,
   StreakStrip,
   Tappable,
   showToast,
@@ -106,12 +88,6 @@ import {
   type ThemeOption,
 } from "@/theme/registry";
 import { localDateString } from "@/workout/today";
-
-/** Stage-panel surface language (REFERENCE_LOCK §7): the same translucent
- *  white ramp the shared stage chrome (SessionHeader) uses, so screen-local
- *  stage content never invents a new opacity step. */
-const STAGE_WELL = "rgba(255, 255, 255, 0.08)";
-const STAGE_LINE = "rgba(255, 255, 255, 0.28)";
 
 const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] =
   [
@@ -433,6 +409,11 @@ async function loadProfile(
 export default function ProfileScreen() {
   const { themeId, setThemeId } = useSettings();
   const theme = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width < 360 || fontScale >= 1.5;
+  const [showMilestones, setShowMilestones] = useState(false);
+  const [showQuests, setShowQuests] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   // 072: `status` distinguishes a failure from "no data yet". The hook already
   // carried `error`, but a screen that only checked `loaded` (and Profile did
@@ -651,429 +632,258 @@ export default function ProfileScreen() {
     <ScreenShell>
       <Entrance index={0}>
         <View style={styles.headerText}>
-          <ThemedText type="eyebrow" themeColor="textMuted">
-            PLAYER
-          </ThemedText>
-          <ThemedText type="title" testID="profile-title">
-            Profile
-          </ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Your level, streak, rewards and settings.
+          <ThemedText type="title" testID="profile-title">Profile</ThemedText>
+          <ThemedText type="bodySmall" themeColor="textSecondary">
+            Your training, your preferences.
           </ThemedText>
         </View>
       </Entrance>
 
-      {/* The screen's one focal object: the player card on the immersive stage
-          (REFERENCE_LOCK §1/§7) — white instrument numerals, translucent stage
-          wells. Level/XP/streak read as identity attributes here, not four
-          equal stat tiles. */}
       <Entrance index={1}>
-        <Card variant="stage" padding="lg" testID="profile-identity">
+        <Card padding="md" testID="profile-identity" style={styles.identityCard}>
           <View style={styles.identityRow}>
             <View
-              style={[
-                styles.monogram,
-                {
-                  backgroundColor: STAGE_WELL,
-                  borderColor: frameColor,
-                },
-              ]}
+              style={[styles.monogram, { backgroundColor: theme.surfaceSunken, borderColor: frameColor }]}
               accessibilityRole="image"
-              accessibilityLabel={`${data.displayName} avatar`}
-            >
-              <ThemedText
-                type="headline"
-                themeColor="stageInk"
-                allowFontScaling={false}
-                aria-hidden
-              >
-                {monogram}
-              </ThemedText>
+              accessibilityLabel={data.displayName + " avatar"}>
+              <ThemedText type="headline" allowFontScaling={false} aria-hidden>{monogram}</ThemedText>
             </View>
             <View style={styles.identityText}>
-              <ThemedText
-                type="headline"
-                themeColor="stageInk"
-                numberOfLines={1}
-                testID="profile-name"
-              >
-                {data.displayName}
-              </ThemedText>
-              <ThemedText
-                type="caption"
-                themeColor="stageInk"
-                style={styles.stageCaption}
-              >
-                Your training record is saved on this device.
-              </ThemedText>
+              <ThemedText type="headline" testID="profile-name">{data.displayName}</ThemedText>
+              <View
+                testID="profile-metric-level"
+                style={[styles.levelPill, { backgroundColor: theme.xpSoft }]}>
+                <ThemedText type="label" themeColor="xpText">Level {level}</ThemedText>
+              </View>
             </View>
           </View>
-
-          <View style={styles.levelRow}>
-            <View
-              testID="profile-metric-level"
-              style={[styles.levelPill, { backgroundColor: theme.xp }]}
-            >
-              <ThemedText type="label" themeColor="xpOn">
-                Level {level}
-              </ThemedText>
-            </View>
-            <View style={styles.levelProgress}>
-              {hasProgress ? (
-                <ProgressBar
-                  value={levelProgress(data.totalXp)}
-                  tone="xp"
-                  valueLabel={`${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
-                  accessibilityLabel={`Level ${level} progress: ${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
-                />
-              ) : (
-                <ThemedText
-                  type="caption"
-                  themeColor="stageInk"
-                  style={styles.stageCaption}
-                >
-                  No XP yet — play a game to start your level.
-                </ThemedText>
-              )}
-            </View>
+          {hasProgress ? (
+            <ProgressBar
+              value={levelProgress(data.totalXp)}
+              tone="xp"
+              valueLabel={formatGoalProgress(xpIntoLevel(data.totalXp), xpForNextLevel(data.totalXp)) + " XP"}
+              accessibilityLabel={"Level " + level + " progress: " + formatGoalProgress(xpIntoLevel(data.totalXp), xpForNextLevel(data.totalXp)) + " XP"}
+            />
+          ) : (
+            <ThemedText type="caption" themeColor="textSecondary">
+              No XP yet — play a game to start your level.
+            </ThemedText>
+          )}
+          <View testID="profile-metrics" style={[styles.metricStrip, stacked && styles.stack]}>
+            <Metric testID="profile-metric-xp" value={compactNumber(data.totalXp)} label="Total XP" />
+            <Metric testID="profile-metric-streak" value={String(data.currentStreak)} label="Day streak" />
+            <Metric testID="profile-metric-coins" value={compactNumber(data.balance)} label="Coins" />
           </View>
-
-          {/* Instrument row (lock §1): white tabular numerals over translucent
-              stage separators — the metric strip IS the identity instrument. */}
-          <View style={styles.metricStrip}>
-            <Metric
-              testID="profile-metric-xp"
-              value={compactNumber(data.totalXp)}
-              label="Total XP"
-            />
-            <View
-              style={[styles.metricDivider, { backgroundColor: STAGE_LINE }]}
-            />
-            <Metric
-              testID="profile-metric-streak"
-              value={`${data.currentStreak}`}
-              label="Day streak"
-            />
-            <View
-              style={[styles.metricDivider, { backgroundColor: STAGE_LINE }]}
-            />
-            <Metric
-              testID="profile-metric-coins"
-              value={compactNumber(data.balance)}
-              label="Coins"
-            />
-          </View>
-
-          <View style={styles.railRow}>
-            <StreakStrip
-              count={data.currentStreak}
-              days={7}
-              testID="profile-streak-week"
-            />
-            {data.atRisk ? (
-              <Badge tone="warning" label="At risk" size="sm" />
-            ) : null}
-          </View>
-
-          {data.atRisk ? (
-            /* Feedback band (lock §6): warning soft fill carries the tone with
-               text + glyph, legible on the stage in both schemes. */
-            <View
-              style={[styles.atRiskBand, { backgroundColor: theme.warningSoft }]}
-              testID="profile-streak-at-risk"
-              accessibilityLiveRegion="polite"
-            >
-              <ThemedText type="caption" themeColor="warningSoftText">
-                ⚠ Your streak is at risk — play today to keep it alive.
-              </ThemedText>
-            </View>
-          ) : null}
-
           {data.equippedCosmetics.length > 0 ? (
             <Tappable
               testID="profile-equipped"
               onPress={() => router.replace("/rewards")}
               feedback="tap"
-              accessibilityLabel={`Equipped cosmetics: ${data.equippedCosmetics
-                .map((item) => item.name)
-                .join(", ")}. Opens Rewards`}
+              accessibilityLabel={"Equipped cosmetics: " + data.equippedCosmetics.map((item) => `${item.slot === 'avatarFrame' ? 'Frame' : item.slot === 'accent' ? 'Color' : 'Effect'}: ${item.name}`).join(", ") + ". Opens Rewards"}
               accessibilityHint="Opens Rewards to change your cosmetics"
-              style={styles.equippedRow}
-              pressedStyle={{ backgroundColor: STAGE_WELL }}>
-              <ThemedText
-                type="caption"
-                themeColor="stageInk"
-                style={styles.stageCaption}>
-                Equipped
+              style={[styles.equippedRow, { borderTopColor: theme.border }]}
+              pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+              <AppIcon name="layers" size={18} />
+              <ThemedText type="caption" themeColor="textSecondary" style={styles.flexText}>
+                {data.equippedCosmetics.map((item) => `${item.slot === 'avatarFrame' ? 'Frame' : item.slot === 'accent' ? 'Color' : 'Effect'}: ${item.name}`).join(" · ")}
               </ThemedText>
-              {data.equippedCosmetics.map((item) => (
-                <View
-                  key={item.slot}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: STAGE_WELL,
-                      borderColor: STAGE_LINE,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.chipObject,
-                      { backgroundColor: item.color ?? theme.accent },
-                    ]}
-                  />
-                  <ThemedText type="caption" themeColor="stageInk">
-                    {item.name}
-                  </ThemedText>
-                </View>
-              ))}
-              <ThemedText
-                type="body"
-                themeColor="stageInk"
-                style={styles.stageCaption}
-                aria-hidden
-              >
-                {"›"}
-              </ThemedText>
+              <AppIcon name="chevron" size={18} />
             </Tappable>
           ) : null}
         </Card>
       </Entrance>
 
-      {/* Streak protection: the controls that use coins and inventory. The
-          records below stay borderless with hairline rows (Report grammar). */}
-      <Entrance index={2}>
-        <Report title="Streak" testID="profile-streak">
-          <ReportRow
-            label="Longest streak"
-            value={`${data.longestStreak} days`}
-            valueTone="streakText"
-            divider
-          />
-          <ReportRow
-            label="Protection items"
-            value={`${protectionCount}`}
-            valueTone="infoText"
-            divider
-          />
-          {STREAK_ITEMS.map((item, index) => {
-            const canApply =
-              item.kind === "freeze"
-                ? canApplyFreeze(
-                    data.streakState,
-                    data.profileSettings,
-                    new Date(),
-                  )
-                : item.kind === "recovery"
-                  ? canApplyRecovery(
-                      data.streakState,
-                      data.profileSettings,
-                      new Date(),
-                    )
-                  : canApplyShield(
-                      data.streakState,
-                      data.profileSettings,
-                      new Date(),
-                    );
-            const itemTone = ITEM_TONES[item.kind];
-            return (
-              <ReportRow
-                key={item.kind}
-                icon={
-                  <View
+      {/* Preferences precede every progression list, including on populated profiles. */}
+      <View style={styles.preferences} testID="profile-preferences">
+        <Card variant="outlined" padding="md" testID="theme-card" style={styles.settingsCard}>
+          <View style={styles.sectionHeading}>
+            <AppIcon name="settings" tone="accent" />
+            <ThemedText type="subtitle" accessibilityRole="header">Appearance</ThemedText>
+          </View>
+          <View style={styles.themeOptions}>
+            {THEME_OPTIONS.map((option) => {
+              const selected = option.id === themeId;
+              return (
+                <View key={option.id} testID={"theme-option-" + option.id}
+                  style={stacked ? styles.fullWidth : styles.themeOptionCell}>
+                  <Tappable
+                    onPress={() => onSelectTheme(option)}
+                    testID={"profile-settings-theme-" + option.id}
+                    accessibilityLabel={"Theme " + option.label + (selected ? ", active" : "")}
+                    accessibilityState={{ selected }}
                     style={[
-                      styles.itemIcon,
-                      { backgroundColor: theme[itemTone.soft] },
+                      styles.themeOption,
+                      { backgroundColor: selected ? theme.accentSoft : theme.surface,
+                        borderColor: selected ? theme.accent : theme.border },
                     ]}
-                  >
-                    <Spark size={16} color={theme[itemTone.ink]} />
-                  </View>
-                }
-                label={`${item.label} × ${data.inventory[item.kind]}`}
-                hint={item.caption}
-                accessibilityLabel={`${item.label}: ${data.inventory[item.kind]} owned. ${item.caption}`}
-                divider={index < STREAK_ITEMS.length - 1}
-                trailing={
-                  <View style={styles.itemActions}>
-                    {canApply ? (
-                      <Button
-                        label="Apply"
-                        size="sm"
-                        variant="secondary"
-                        fullWidth={false}
-                        testID={`streak-apply-${item.kind}`}
-                        accessibilityLabel={`Apply ${item.label}`}
-                        onPress={() => onApplyStreakItem(item.kind)}
-                      />
-                    ) : null}
-                    <Button
-                      label={`${ITEM_COSTS[item.kind]} coins`}
-                      size="sm"
-                      variant="secondary"
-                      fullWidth={false}
-                      testID={`streak-buy-${item.kind}`}
-                      accessibilityLabel={`Buy ${item.label} for ${ITEM_COSTS[item.kind]} coins`}
-                      disabled={
-                        !canPurchase(
-                          data.balance,
-                          item.kind,
-                          data.profileSettings,
-                          new Date(),
-                        )
-                      }
-                      onPress={() => {
-                        // Fire-and-forget: the handler owns its async failure
-                        // surface, and returning the promise would make the
-                        // test harness adopt an in-flight purchase.
-                        void onBuyStreakItem(item.kind);
-                      }}
-                    />
-                  </View>
-                }
-              />
+                    pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+                    <AppIcon name={option.mode === "dark" ? "moon" : option.mode === "light" ? "sun" : "settings"}
+                      size={18} tone={selected ? "accentText" : "textSecondary"} />
+                    <ThemedText type="label" themeColor={selected ? "accentText" : "text"}>{option.label}</ThemedText>
+                  </Tappable>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
+        <View testID="profile-sensory-card">
+          <SensorySettingsCard title="Sound & feel" />
+        </View>
+        <Tappable
+          testID="profile-data-management"
+          onPress={() => router.replace("/data-management")}
+          accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
+          accessibilityHint="Opens data management"
+          style={[styles.destination, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+          <AppIcon name="save" tone="accent" />
+          <View style={styles.flexText}>
+            <ThemedText type="bodyLarge">Your data</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">Saved on this device. Backup, restore or delete.</ThemedText>
+          </View>
+          <AppIcon name="chevron" />
+        </Tappable>
+      </View>
+
+      <View testID="profile-rewards">
+        <View testID="profile-rewards-entry">
+          <Tappable
+            testID="profile-cosmetics"
+            onPress={() => router.replace("/rewards")}
+            accessibilityLabel="Open Rewards. Claim rewards and manage cosmetics"
+            accessibilityHint="Opens the single place to claim rewards and manage cosmetics"
+            style={[styles.destination, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+            <AppIcon name="layers" tone="accent" />
+            <View style={styles.flexText}>
+              <ThemedText type="bodyLarge">Open Rewards</ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                {pendingRewardCount > 0 ? "Claim earned rewards and choose your cosmetics." : "Your collection and reward history."}
+              </ThemedText>
+              <ThemedText type="caption" themeColor={pendingRewardCount > 0 ? "warningText" : "textSecondary"}
+                testID="profile-rewards-pending">
+                {pendingRewardCount > 0 ? pendingRewardCount + " ready" : "No rewards waiting"}
+              </ThemedText>
+            </View>
+            <AppIcon name="chevron" />
+          </Tappable>
+        </View>
+      </View>
+
+      <View style={styles.section} testID="profile-streak">
+        <View style={styles.sectionHeading}>
+          <AppIcon name="streak" tone="streakText" />
+          <ThemedText type="subtitle" accessibilityRole="header">Streak & protection</ThemedText>
+        </View>
+        <View style={[styles.railRow, stacked && styles.stack]}>
+          <StreakStrip count={data.currentStreak} days={7} testID="profile-streak-week" />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {"Best " + data.longestStreak + " days · " + protectionCount + " protection items"}
+          </ThemedText>
+        </View>
+        {data.atRisk ? (
+          <View style={[styles.atRiskBand, { backgroundColor: theme.warningSoft }]}
+            testID="profile-streak-at-risk" accessibilityLiveRegion="polite">
+            <AppIcon name="info" size={18} tone="warningText" />
+            <ThemedText type="caption" themeColor="warningText" style={styles.flexText}>
+              Your streak is at risk — play today to keep it alive.
+            </ThemedText>
+          </View>
+        ) : null}
+        {STREAK_ITEMS.map((item) => {
+          const canApply = item.kind === "freeze"
+            ? canApplyFreeze(data.streakState, data.profileSettings, new Date())
+            : item.kind === "recovery"
+              ? canApplyRecovery(data.streakState, data.profileSettings, new Date())
+              : canApplyShield(data.streakState, data.profileSettings, new Date());
+          const itemTone = ITEM_TONES[item.kind];
+          return (
+            <View key={item.kind} style={[styles.protectionItem, { borderTopColor: theme.border }]}>
+              <View style={styles.itemHeading}>
+                <View style={[styles.itemIcon, { backgroundColor: theme[itemTone.soft] }]}>
+                  <AppIcon name={item.kind === "recovery" ? "retry" : "shield"} size={18} tone={itemTone.ink} />
+                </View>
+                <View style={styles.flexText}>
+                  <ThemedText type="bodyLarge">{item.label + " × " + data.inventory[item.kind]}</ThemedText>
+                  <ThemedText type="caption" themeColor="textSecondary">{item.caption}</ThemedText>
+                </View>
+              </View>
+              <View style={styles.itemActions}>
+                {canApply ? (
+                  <Button label="Apply" size="sm" variant="secondary" fullWidth={false}
+                    testID={"streak-apply-" + item.kind} accessibilityLabel={"Apply " + item.label}
+                    onPress={() => onApplyStreakItem(item.kind)} />
+                ) : null}
+                <Button label={ITEM_COSTS[item.kind] + " coins"} size="sm" variant="secondary" fullWidth={false}
+                  testID={"streak-buy-" + item.kind}
+                  accessibilityLabel={"Buy " + item.label + " for " + ITEM_COSTS[item.kind] + " coins"}
+                  disabled={!canPurchase(data.balance, item.kind, data.profileSettings, new Date())}
+                  onPress={() => { void onBuyStreakItem(item.kind); }} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={styles.section} testID="profile-records">
+        <ThemedText type="subtitle" accessibilityRole="header">Training goals</ThemedText>
+        <ExpandableSection title="Streak milestones" testID="profile-milestones" icon="streak"
+          summary={nextMilestone ? nextMilestone.remaining + " days to " + nextMilestone.milestone.label : "Your streak milestones"}
+          expanded={showMilestones} onToggle={() => setShowMilestones((shown) => !shown)}>
+          {data.milestoneRows.map(({ milestone, reached, claimed, remaining }, index) => {
+            const readout = formatGoalProgress(data.longestStreak, milestone.days) + " days";
+            return (
+              <RecordRow key={milestone.id} testID={"profile-milestone-" + milestone.id} title={milestone.label}
+                meter={<ProgressBar value={milestone.days <= 0 ? 1 : Math.min(data.longestStreak / milestone.days, 1)}
+                  tone="streak" valueLabel={readout} accessibilityLabel={milestone.label + ", " + readout} />}
+                hint={milestone.description
+                  + (milestone.rewardXp || milestone.rewardCurrency ? " · +" + (milestone.rewardXp ?? 0) + " XP / +" + (milestone.rewardCurrency ?? 0) + " coins" : "")
+                  + (!reached && remaining > 0 ? " · " + remaining + " days to go" : "")
+                  + (reached && !claimed ? " · Complete — available in Rewards" : "")
+                  + (claimed ? " · Claimed" : "")}
+                badge={reached && !claimed ? <Badge tone="accent" label="In Rewards" size="sm" />
+                  : claimed ? <Badge tone="success" label="Claimed" size="sm" /> : undefined}
+                divider={index < data.milestoneRows.length - 1} />
             );
           })}
-        </Report>
-      </Entrance>
+        </ExpandableSection>
 
-      {/* Streak milestones are motivation evidence; Rewards owns the claim. */}
-      <Entrance index={3}>
-        <Report title="Streak milestones" testID="profile-milestones">
-          {nextMilestone ? (
-            <ReportRow
-              label="Next milestone"
-              value={nextMilestone.milestone.label}
-              hint={`${nextMilestone.remaining} days to go`}
-              divider
-            />
-          ) : null}
-          {data.milestoneRows.map(
-            ({ milestone, reached, claimed, remaining }, index) => (
-              <RecordRow
-                key={milestone.id}
-                testID={`profile-milestone-${milestone.id}`}
-                index={index}
-                title={milestone.label}
-                meter={
-                  <ProgressBar
-                    value={
-                      milestone.days <= 0
-                        ? 1
-                        : Math.min(data.longestStreak / milestone.days, 1)
-                    }
-                    tone="streak"
-                    valueLabel={`${Math.min(data.longestStreak, milestone.days)}/${milestone.days} days`}
-                    accessibilityLabel={`${milestone.label}, ${Math.min(data.longestStreak, milestone.days)} of ${milestone.days} days`}
-                  />
-                }
-                hint={`${milestone.description}${
-                  milestone.rewardXp || milestone.rewardCurrency
-                    ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
-                    : ""
-                }${
-                  !reached && remaining > 0 ? ` · ${remaining} days to go` : ""
-                }${reached && !claimed ? " · Complete — available in Rewards" : ""}${
-                  claimed ? " · ✓ Claimed" : ""
-                }`}
-                badge={
-                  reached && !claimed ? (
-                    <Badge tone="accent" label="In Rewards" size="sm" />
-                  ) : claimed ? (
-                    <Badge tone="success" label="✓ Claimed" size="sm" />
-                  ) : null
-                }
-                divider={index < data.milestoneRows.length - 1}
-              />
-            ),
-          )}
-        </Report>
-      </Entrance>
-
-      {/* Quests — live progress; the once-only claim lives in Rewards. */}
-      <Entrance index={4}>
-        <Report title="Quests" testID="profile-quests">
+        <ExpandableSection title="Quests" testID="profile-quests" icon="target"
+          summary={data.questEvals.length + " active" + (claimableQuests > 0 ? " · " + claimableQuests + " ready in Rewards" : "")}
+          expanded={showQuests} onToggle={() => setShowQuests((shown) => !shown)}>
           {claimableQuests > 0 ? (
-            <ThemedText
-              type="caption"
-              themeColor="warningText"
-              testID="profile-quests-ready"
-              accessibilityLiveRegion="polite"
-              style={styles.readyLine}
-            >
-              {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
-              available in Rewards.
+            <ThemedText type="caption" themeColor="warningText" testID="profile-quests-ready" accessibilityLiveRegion="polite">
+              {claimableQuests + " quest reward" + (claimableQuests === 1 ? "" : "s") + " available in Rewards."}
             </ThemedText>
           ) : null}
           {data.questEvals.length === 0 ? (
-            <ReportRow
-              label="No quests yet"
-              hint="Quests appear as you play."
-            />
-          ) : (
-            data.questEvals.map((evaluation, index) => {
-              const row = data.questRows.get(evaluation.questId);
-              const claimed = row?.claimedAt != null;
-              const completed =
-                evaluation.completed || row?.completedAt != null;
-              const definition = QUEST_DEFINITIONS_V1.find(
-                (d) => d.id === evaluation.questId,
-              );
-              const progress =
-                evaluation.goal <= 0
-                  ? evaluation.completed
-                    ? 1
-                    : 0
-                  : Math.min(evaluation.progress / evaluation.goal, 1);
-              const shown = Math.min(evaluation.progress, evaluation.goal);
-              return (
-                <RecordRow
-                  key={evaluation.questId}
-                  testID={`profile-quest-${evaluation.questId}`}
-                  index={index}
-                  title={definition?.title ?? evaluation.questId}
-                  meter={
-                    <ProgressBar
-                      value={progress}
-                      valueLabel={`${shown}/${evaluation.goal}`}
-                      accessibilityLabel={`${definition?.title ?? evaluation.questId}, ${shown} of ${evaluation.goal}`}
-                    />
-                  }
-                  hint={
-                    claimed
-                      ? "✓ Claimed"
-                      : completed
-                        ? "Complete — available in Rewards"
-                        : "In progress"
-                  }
-                  badge={
-                    completed && !claimed && definition ? (
-                      <Badge tone="accent" label="In Rewards" size="sm" />
-                    ) : claimed ? (
-                      <Badge tone="success" label="✓ Claimed" size="sm" />
-                    ) : null
-                  }
-                  divider={index < data.questEvals.length - 1}
-                />
-              );
-            })
-          )}
-        </Report>
-      </Entrance>
+            <ThemedText type="bodySmall" themeColor="textSecondary">Quests appear as you play.</ThemedText>
+          ) : data.questEvals.map((evaluation, index) => {
+            const row = data.questRows.get(evaluation.questId);
+            const claimed = row?.claimedAt != null;
+            const completed = evaluation.completed || row?.completedAt != null;
+            const definition = QUEST_DEFINITIONS_V1.find((candidate) => candidate.id === evaluation.questId);
+            const title = definition?.title ?? evaluation.questId;
+            const progress = evaluation.goal <= 0 ? evaluation.completed ? 1 : 0 : Math.min(evaluation.progress / evaluation.goal, 1);
+            const readout = formatGoalProgress(evaluation.progress, evaluation.goal, "count");
+            return (
+              <RecordRow key={evaluation.questId} testID={"profile-quest-" + evaluation.questId} title={title}
+                meter={<ProgressBar value={progress} valueLabel={readout} accessibilityLabel={title + ", " + readout} />}
+                hint={claimed ? "Claimed" : completed ? "Complete — available in Rewards" : "In progress"}
+                badge={completed && !claimed && definition ? <Badge tone="accent" label="In Rewards" size="sm" />
+                  : claimed ? <Badge tone="success" label="Claimed" size="sm" /> : undefined}
+                divider={index < data.questEvals.length - 1} />
+            );
+          })}
+        </ExpandableSection>
 
-      {/* Achievements — unlocked vs in-progress vs locked treatments. */}
-      <Entrance index={5}>
-        <Report title="Achievements" testID="profile-achievements">
+        <ExpandableSection title="Achievements" testID="profile-achievements" icon="award"
+          summary={data.unlocks.size + " unlocked of " + ACHIEVEMENT_DEFINITIONS_V1.length
+            + (claimableAchievements > 0 ? " · " + claimableAchievements + " ready in Rewards" : "")}
+          expanded={showAchievements} onToggle={() => setShowAchievements((shown) => !shown)}>
           {claimableAchievements > 0 ? (
-            <ThemedText
-              type="caption"
-              themeColor="warningText"
-              testID="profile-achievements-ready"
-              accessibilityLiveRegion="polite"
-              style={styles.readyLine}
-            >
-              {claimableAchievements} achievement reward
-              {claimableAchievements === 1 ? "" : "s"} available in Rewards.
+            <ThemedText type="caption" themeColor="warningText" testID="profile-achievements-ready" accessibilityLiveRegion="polite">
+              {claimableAchievements + " achievement reward" + (claimableAchievements === 1 ? "" : "s") + " available in Rewards."}
             </ThemedText>
           ) : null}
           {ACHIEVEMENT_DEFINITIONS_V1.map((definition, index) => {
@@ -1084,135 +894,21 @@ export default function ProfileScreen() {
             const progress = evaluated?.progress ?? (unlocked ? 1 : 0);
             const goal = evaluated?.goal ?? 1;
             const ratio = evaluated?.ratio ?? (unlocked ? 1 : 0);
+            const unit = definition.criteria.type === "best-normalized" ? "percent" : "count";
+            const readout = formatGoalProgress(progress, goal, unit);
             return (
-              <RecordRow
-                key={definition.id}
-                testID={`profile-achievement-${definition.id}`}
-                index={index}
-                title={`${!unlocked ? "🔒 " : ""}${definition.title}`}
-                titleTone={unlocked || claimed ? "text" : "textMuted"}
-                meter={
-                  progress > 0 || unlocked ? (
-                    <ProgressBar
-                      value={ratio}
-                      valueLabel={`${Math.min(progress, goal)}/${goal}`}
-                      accessibilityLabel={`${definition.title}, ${Math.min(progress, goal)} of ${goal}`}
-                    />
-                  ) : undefined
-                }
-                hint={`${definition.description} · ${
-                  claimed
-                    ? "✓ Claimed"
-                    : unlocked
-                      ? "Unlocked — available in Rewards"
-                      : progress > 0
-                        ? "In progress — locked"
-                        : "Locked"
-                }`}
-                badge={
-                  unlocked && !claimed ? (
-                    <Badge tone="accent" label="In Rewards" size="sm" />
-                  ) : claimed ? (
-                    <Badge tone="success" label="✓ Claimed" size="sm" />
-                  ) : null
-                }
-                divider={index < ACHIEVEMENT_DEFINITIONS_V1.length - 1}
-              />
+              <RecordRow key={definition.id} testID={"profile-achievement-" + definition.id} title={definition.title}
+                meter={progress > 0 || unlocked ? (
+                  <ProgressBar value={ratio} valueLabel={readout} accessibilityLabel={definition.title + ", " + readout} />
+                ) : undefined}
+                hint={definition.description + " · " + (claimed ? "Claimed" : unlocked
+                  ? "Unlocked — available in Rewards" : progress > 0 ? "In progress — locked" : "Locked")}
+                badge={unlocked && !claimed ? <Badge tone="accent" label="In Rewards" size="sm" />
+                  : claimed ? <Badge tone="success" label="Claimed" size="sm" /> : undefined}
+                divider={index < ACHIEVEMENT_DEFINITIONS_V1.length - 1} />
             );
           })}
-        </Report>
-      </Entrance>
-
-      {/* Rewards owns all claim actions, cosmetics and reward history. Profile
-          keeps a single quiet entry row plus a live pending count. */}
-      <Entrance index={6}>
-        <Report title="Rewards" testID="profile-rewards">
-          <View testID="profile-rewards-entry">
-            <ListRow
-              title="Open Rewards"
-              subtitle={
-                pendingRewardCount > 0
-                  ? `${pendingRewardCount} ready to claim · Manage cosmetics and reward history`
-                  : "No rewards waiting · Manage cosmetics and reward history"
-              }
-              meta={
-                pendingRewardCount > 0 ? `${pendingRewardCount} ready` : "Open"
-              }
-              metaTestID="profile-rewards-pending"
-              icon={<Spark size={16} color={theme.currencyText} />}
-              tone="currencySoft"
-              onPress={() => router.replace("/rewards")}
-              // Preserve the established automation seam while the row's
-              // visible ownership language stays player-facing.
-              testID="profile-cosmetics"
-              accessibilityLabel="Open Rewards. Claim rewards and manage cosmetics"
-              accessibilityHint="Opens the single place to claim rewards and manage cosmetics"
-            />
-          </View>
-        </Report>
-      </Entrance>
-
-      {/* Data portability — export / import / wipe (Session 05). A quiet
-          entry row: the destination speaks for itself, no identity chrome. */}
-      <Entrance index={7}>
-        <Report title="Your data">
-          <ReportRow
-            label="Data Management"
-            hint="Backup, restore, and delete your local training data"
-            onPress={() => router.replace("/data-management")}
-            testID="profile-data-management"
-          />
-        </Report>
-      </Entrance>
-
-      {/* Theme selection (theme registry seam) — quiet bordered settings card
-          (lock §5 secondary): hairline-separated rows inside one border, no
-          elevation, no identity chrome. */}
-      <Entrance index={8}>
-        <Card
-          variant="outlined"
-          padding="lg"
-          testID="theme-card"
-          style={styles.settingsCard}
-        >
-          <ThemedText type="eyebrow" themeColor="textMuted">
-            THEME
-          </ThemedText>
-          <View>
-            {THEME_OPTIONS.map((option, index) => {
-              const selected = option.id === themeId;
-              return (
-                <View key={option.id} testID={`theme-option-${option.id}`}>
-                  <ReportRow
-                    label={option.label}
-                    hint={selected ? "Active" : option.mode}
-                    icon={
-                      <Spark
-                        size={14}
-                        color={selected ? theme.accentOn : theme.textMuted}
-                      />
-                    }
-                    trailing={
-                      selected ? (
-                        <Badge tone="success" label="✓ Active" size="sm" />
-                      ) : undefined
-                    }
-                    onPress={() => onSelectTheme(option)}
-                    testID={`profile-settings-theme-${option.id}`}
-                    accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
-                    divider={index < THEME_OPTIONS.length - 1}
-                  />
-                </View>
-              );
-            })}
-          </View>
-        </Card>
-      </Entrance>
-
-      {/* Sensory toggles live in the shared sensory card (owned outside this
-          surface); the wrapper pins the profile-settings testID family. */}
-      <View testID="profile-sensory-card">
-        <SensorySettingsCard />
+        </ExpandableSection>
       </View>
 
       <RewardCelebrationHost />
@@ -1220,91 +916,52 @@ export default function ProfileScreen() {
   );
 }
 
-/**
- * One identity attribute in the player card's instrument strip (lock §1):
- * white tabular numeral over a tracked uppercase metric label, separated by
- * translucent stage hairlines — an instrument reading, not a tile.
- */
-function Metric({
-  value,
-  label,
-  testID,
-}: {
-  value: string;
-  label: string;
-  testID?: string;
-}) {
+/** Small identity facts retain full labels and the established automation IDs. */
+function Metric({ value, label, testID }: { value: string; label: string; testID?: string }) {
   return (
     <View testID={testID} style={styles.metric}>
-      <ThemedText type="numeral" themeColor="stageInk">
-        {value}
-      </ThemedText>
-      <ThemedText
-        type="caption"
-        themeColor="stageInk"
-        style={styles.metricLabel}
-      >
-        {label}
-      </ThemedText>
+      <ThemedText type="bodyLarge">{value}</ThemedText>
+      <ThemedText type="caption" themeColor="textSecondary">{label}</ThemedText>
     </View>
   );
 }
 
-/**
- * One progress record inside a Report. `ReportRow` has no meter slot, so the
- * meterized rows (milestones, quests, achievements) share this local row that
- * keeps the same hairline grammar and 44 dp floor. When `index` is given the
- * row carries the lock §8 numbered marker (`01`, `02`…) — quiet, credible
- * ordering for secondary reports.
- */
-function RecordRow({
-  testID,
-  index,
-  title,
-  titleTone = "text",
-  meter,
-  hint,
-  badge,
-  divider = false,
-}: {
-  testID: string;
-  index?: number;
-  title: string;
-  titleTone?: ThemeColor;
-  meter?: ReactNode;
-  hint: string;
-  badge?: ReactNode;
-  divider?: boolean;
+/** A deliberate disclosure keeps growing record lists out of the settings path. */
+function ExpandableSection({ title, summary, icon, testID, expanded, onToggle, children }: {
+  title: string; summary: string; icon: AppIconName; testID: string;
+  expanded: boolean; onToggle: () => void; children: ReactNode;
 }) {
   const theme = useTheme();
   return (
-    <View
-      testID={testID}
-      style={[
-        styles.recordRow,
-        divider
-          ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border }
-          : null,
-      ]}
-    >
-      {index !== undefined ? (
-        <ThemedText
-          type="caption"
-          themeColor="textMuted"
-          style={styles.recordIndex}
-        >
-          {String(index + 1).padStart(2, "0")}
-        </ThemedText>
-      ) : null}
-      <View style={styles.recordText}>
-        <ThemedText type="bodySmall" themeColor={titleTone}>
-          {title}
-        </ThemedText>
-        {meter}
-        <ThemedText type="caption" themeColor="textSecondary">
-          {hint}
-        </ThemedText>
-      </View>
+    <Card variant="outlined" padding="md" testID={testID} style={styles.section}>
+      <Tappable testID={testID + "-toggle"} onPress={onToggle}
+        accessibilityLabel={title + ". " + summary}
+        accessibilityHint={expanded ? "Hide these records" : "Show these records"}
+        accessibilityState={{ expanded }}
+        style={styles.disclosureHeading}
+        pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+        <AppIcon name={icon} tone="accent" />
+        <View style={styles.flexText}>
+          <ThemedText type="bodyLarge">{title}</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">{summary}</ThemedText>
+        </View>
+        <AppIcon name={expanded ? "expand" : "chevron"} />
+      </Tappable>
+      {expanded ? <View style={[styles.records, { borderTopColor: theme.border }]}>{children}</View> : null}
+    </Card>
+  );
+}
+
+function RecordRow({ testID, title, meter, hint, badge, divider = false }: {
+  testID: string; title: string; meter?: ReactNode; hint: string; badge?: ReactNode; divider?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <View testID={testID} style={[styles.recordRow,
+      divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null]}>
+      <ThemedText type="bodyLarge">{title}</ThemedText>
+      {meter}
+      <ThemedText type="caption" themeColor="textSecondary">{hint}</ThemedText>
       {badge ? <View style={styles.recordBadge}>{badge}</View> : null}
     </View>
   );
@@ -1312,155 +969,42 @@ function RecordRow({
 
 /** Compact XP/coin display so a large balance cannot break the identity strip. */
 function compactNumber(value: number): string {
-  if (!Number.isFinite(value)) {
-    return "0";
-  }
-  if (Math.abs(value) >= 1e6) {
-    return `${(value / 1e6).toFixed(1)}M`;
-  }
-  if (Math.abs(value) >= 1e5) {
-    return `${Math.round(value / 1e3)}k`;
-  }
-  return `${Math.round(value)}`;
+  if (!Number.isFinite(value)) return "0";
+  if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1) + "M";
+  if (Math.abs(value) >= 1e5) return Math.round(value / 1e3) + "k";
+  return String(Math.round(value));
 }
 
 const styles = StyleSheet.create({
-  headerText: {
-    gap: Spacing.half,
-  },
-  // 072: spacing for the loading block, matching Home's shell loading
-  // primitive so both screens read identically while data settles.
-  loadingBlock: {
-    gap: Spacing.two,
-  },
-  identityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.three,
-  },
-  monogram: {
-    width: 64,
-    height: 64,
-    borderRadius: Radii.pill,
-    borderWidth: 3,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  identityText: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  levelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  levelPill: {
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.twoHalf,
-    paddingVertical: Spacing.one,
-  },
-  levelProgress: {
-    flex: 1,
-  },
-  metricStrip: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  metric: {
-    flex: 1,
-    gap: Spacing.half,
-    alignItems: "flex-start",
-  },
-  // Metric label language (lock §2): uppercase + tracking, dimmed on stage.
-  // The text content itself keeps its original casing (test contract reads
-  // e.g. "50Coins"); the transform is purely visual.
-  metricLabel: {
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    opacity: 0.68,
-  },
-  // Secondary copy on the stage panel: stage ink dimmed instead of a second
-  // grey (lock §7 — the stage reads in white type).
-  stageCaption: {
-    opacity: 0.68,
-  },
-  atRiskBand: {
-    borderRadius: Radii.small,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.oneHalf,
-  },
-  metricDivider: {
-    width: HAIRLINE,
-    alignSelf: "stretch",
-    marginHorizontal: Spacing.two,
-  },
-  railRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.two,
-  },
-  equippedRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: Spacing.oneHalf,
-    minHeight: MIN_TOUCH_TARGET,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.one,
-    borderWidth: HAIRLINE,
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-  },
-  chipObject: {
-    width: 14,
-    height: 14,
-    borderRadius: Radii.extraSmall,
-  },
-  itemIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: Radii.medium,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemActions: {
-    flexDirection: "row",
-    gap: Spacing.two,
-    // 076 review fix: the trailing actions cannot collapse when the row's
-    // caption wraps at compact - the 44dp touch floor holds for the buttons.
-    minHeight: MIN_TOUCH_TARGET,
-    alignItems: "center",
-  },
-  readyLine: {
-    paddingVertical: Spacing.one,
-  },
-  settingsCard: {
-    gap: Spacing.two,
-  },
-  recordRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.three,
-    minHeight: MIN_TOUCH_TARGET,
-    paddingVertical: Spacing.two,
-  },
-  // Lock §8 numbered marker: fixed-width so values align down the column.
-  recordIndex: {
-    minWidth: 22,
-    fontVariant: ["tabular-nums"],
-  },
-  recordText: {
-    flex: 1,
-    gap: Spacing.one,
-  },
-  recordBadge: {
-    alignItems: "flex-end",
-    flexShrink: 0,
-  },
+  headerText: { gap: Spacing.half },
+  loadingBlock: { gap: Spacing.two },
+  identityCard: { gap: Spacing.two },
+  identityRow: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  monogram: { width: 48, height: 48, borderRadius: Radii.pill, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  identityText: { flex: 1, gap: Spacing.one },
+  levelPill: { alignSelf: "flex-start", borderRadius: Radii.pill, paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
+  metricStrip: { flexDirection: "row", gap: Spacing.two },
+  metric: { flex: 1, gap: Spacing.half },
+  stack: { flexDirection: "column", alignItems: "stretch" },
+  flexText: { flex: 1, minWidth: 0, gap: Spacing.half },
+  equippedRow: { flexDirection: "row", alignItems: "center", gap: Spacing.one, minHeight: MIN_TOUCH_TARGET, borderTopWidth: HAIRLINE, paddingTop: Spacing.one },
+  preferences: { gap: Spacing.three },
+  section: { gap: Spacing.two },
+  sectionHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.oneHalf },
+  settingsCard: { gap: Spacing.two },
+  themeOptions: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.one },
+  themeOptionCell: { flexBasis: "30%", flexGrow: 1, minWidth: 84 },
+  fullWidth: { width: "100%" },
+  themeOption: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: Spacing.one, minHeight: MIN_TOUCH_TARGET, borderWidth: 1, borderRadius: Radii.pill, paddingHorizontal: Spacing.one, paddingVertical: Spacing.one },
+  destination: { flexDirection: "row", alignItems: "center", gap: Spacing.two, minHeight: MIN_TOUCH_TARGET, borderWidth: HAIRLINE, borderRadius: Radii.medium, padding: Spacing.two },
+  railRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.two },
+  atRiskBand: { flexDirection: "row", alignItems: "center", gap: Spacing.one, borderRadius: Radii.small, padding: Spacing.two },
+  protectionItem: { borderTopWidth: HAIRLINE, paddingTop: Spacing.two, gap: Spacing.two },
+  itemHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  itemIcon: { width: 36, height: 36, borderRadius: Radii.medium, alignItems: "center", justifyContent: "center" },
+  itemActions: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.two, minHeight: MIN_TOUCH_TARGET },
+  disclosureHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.two, minHeight: MIN_TOUCH_TARGET },
+  records: { borderTopWidth: HAIRLINE },
+  recordRow: { gap: Spacing.one, minHeight: MIN_TOUCH_TARGET, paddingVertical: Spacing.two },
+  recordBadge: { alignSelf: "flex-start" },
 });

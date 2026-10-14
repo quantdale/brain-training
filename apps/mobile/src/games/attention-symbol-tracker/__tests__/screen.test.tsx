@@ -280,7 +280,7 @@ describe('SymbolTrackerScreen', () => {
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SymbolTrackerRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

@@ -18,6 +18,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/theme/tokens';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
+import { AppIcon } from './app-icon';
 
 /** Props accepted by {@link BackLink}. */
 export interface BackLinkProps {
@@ -106,8 +107,9 @@ export function BackLink({
       // The row is already 44 dp tall, so the press feedback only needs to
       // read as movement, not as a size change.
       pressedScale={0.97}>
+      <AppIcon name="back" size={18} tone="accentText" />
       <ThemedText type="bodySmall" themeColor="accentText">
-        ‹ {label}
+        {label}
       </ThemedText>
     </Tappable>
   );

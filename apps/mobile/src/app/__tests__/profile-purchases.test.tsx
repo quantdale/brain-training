@@ -326,6 +326,7 @@ describe('profile ownership grouping (campaign 034)', () => {
     expect(screen.getByTestId('profile-rewards-pending')).toHaveTextContent(
       '1 ready',
     );
+    await fireEvent.press(screen.getByTestId('profile-achievements-toggle'));
     expect(
       screen.getByText(/Unlocked — available in Rewards/),
     ).toBeOnTheScreen();

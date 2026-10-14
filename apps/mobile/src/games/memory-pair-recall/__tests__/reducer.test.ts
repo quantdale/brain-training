@@ -6,6 +6,7 @@ import { pairRecallGameReducer, createInitialPairRecallState } from "../reducer"
 import { generateRound } from "../generator";
 import { PAIR_RECALL_DIFFICULTY_PARAMS } from "../difficulty";
 import { perfectSessionScore } from "../scoring";
+import { inputStamp } from "../types";
 import type { PairRecallGameState, PairRecallRound } from "../types";
 
 /** Select a difficulty (intro step). */
@@ -19,6 +20,7 @@ function selectLevel(
 /** Start a session from the intro with a fixed seed. */
 function begin(state: PairRecallGameState, seed = "reducer-seed"): PairRecallGameState {
   return pairRecallGameReducer(state, {
+    nowMs: 1000,
     type: "start-session",
     seed,
     sessionId: "sid-1",
@@ -33,6 +35,7 @@ function answerAllCorrect(state: PairRecallGameState): PairRecallGameState {
   for (let i = 0; i < round.cueOrder.length; i += 1) {
     const pairIndex = round.cueOrder[next.cueIndex];
     next = pairRecallGameReducer(next, {
+      stamp: inputStamp(next),
       type: "respond",
       responseId: round.pairs[pairIndex].responseId,
     });
@@ -70,17 +73,17 @@ describe("pairRecallGameReducer", () => {
 
   it("study-tick moves to recall; taps are ignored while studying", () => {
     let state = begin(selectLevel(createInitialPairRecallState()));
-    const duringStudy = pairRecallGameReducer(state, { type: "respond", responseId: 0 });
+    const duringStudy = pairRecallGameReducer(state, { stamp: inputStamp(state), type: "respond", responseId: 0 });
     expect(duringStudy.phase).toBe("study");
 
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     expect(state.phase).toBe("recall");
     expect(state.cueIndex).toBe(0);
   });
 
   it("scores a fully correct round as passed with full credit", () => {
     let state = begin(selectLevel(createInitialPairRecallState()));
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     state = answerAllCorrect(state);
     expect(state.phase).toBe("roundResult");
     expect(state.roundOutcome).toBe("passed");
@@ -93,17 +96,18 @@ describe("pairRecallGameReducer", () => {
 
   it("gives partial credit and penalizes wrong picks", () => {
     let state = begin(selectLevel(createInitialPairRecallState(), "normal"));
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     const round = state.round!;
     // Answer the first cue WRONG (pick a response that is not the partner).
     const firstPair = round.pairs[round.cueOrder[0]];
     const wrongResponse = round.responseOptions.find((id) => id !== firstPair.responseId)!;
-    state = pairRecallGameReducer(state, { type: "respond", responseId: wrongResponse });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), type: "respond", responseId: wrongResponse });
     expect(state.wrongCues).toBe(1);
     // Then finish the remaining cues correctly.
     while (state.phase === "recall") {
       const pairIndex = round.cueOrder[state.cueIndex];
       state = pairRecallGameReducer(state, {
+        stamp: inputStamp(state),
         type: "respond",
         responseId: round.pairs[pairIndex].responseId,
       });
@@ -116,44 +120,45 @@ describe("pairRecallGameReducer", () => {
 
   it("ignores extra responses after the round is scored (double-submit)", () => {
     let state = begin(selectLevel(createInitialPairRecallState()));
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     state = answerAllCorrect(state);
     const scored = state;
-    const again = pairRecallGameReducer(scored, { type: "respond", responseId: 0 });
+    const again = pairRecallGameReducer(scored, { stamp: inputStamp(scored), type: "respond", responseId: 0 });
     expect(again).toBe(scored);
   });
 
   it("escalates the pair count on a pass and holds on a failure (fixed levels)", () => {
     let state = begin(selectLevel(createInitialPairRecallState()));
     const initialCount = PAIR_RECALL_DIFFICULTY_PARAMS.normal.initialPairCount;
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     state = answerAllCorrect(state);
-    state = pairRecallGameReducer(state, { type: "next-round" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "next-round" });
     expect(state.pairCount).toBe(initialCount + 1);
     expect(state.prevRound).not.toBeNull();
 
     // Fail round 2 → count holds.
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     const round = state.round!;
     const firstPair = round.pairs[round.cueOrder[0]];
     const wrongResponse = round.responseOptions.find((id) => id !== firstPair.responseId)!;
-    state = pairRecallGameReducer(state, { type: "respond", responseId: wrongResponse });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), type: "respond", responseId: wrongResponse });
     while (state.phase === "recall") {
       const pairIndex = round.cueOrder[state.cueIndex];
       state = pairRecallGameReducer(state, {
+        stamp: inputStamp(state),
         type: "respond",
         responseId: round.pairs[pairIndex].responseId,
       });
     }
-    state = pairRecallGameReducer(state, { type: "next-round" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "next-round" });
     expect(state.pairCount).toBe(initialCount + 1);
   });
 
   it("carries re-paired stimuli into the next round (interference)", () => {
     let state = begin(selectLevel(createInitialPairRecallState(), "normal"), "interference-seed");
-    state = pairRecallGameReducer(state, { type: "study-tick" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     state = answerAllCorrect(state);
-    state = pairRecallGameReducer(state, { type: "next-round" });
+    state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "next-round" });
     const prevMap = new Map(
       state.prevRound!.pairs.map((p) => [p.stimulusId, p.responseId]),
     );
@@ -168,9 +173,9 @@ describe("pairRecallGameReducer", () => {
     let state = begin(selectLevel(createInitialPairRecallState(), "easy"), "finish-seed");
     const rounds = PAIR_RECALL_DIFFICULTY_PARAMS.easy.rounds;
     for (let r = 0; r < rounds; r += 1) {
-      state = pairRecallGameReducer(state, { type: "study-tick" });
+      state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
       state = answerAllCorrect(state);
-      state = pairRecallGameReducer(state, { type: "next-round" });
+      state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "next-round" });
     }
     expect(state.phase).toBe("results");
     expect(state.stats.roundsPassed).toBe(rounds);
@@ -178,12 +183,12 @@ describe("pairRecallGameReducer", () => {
 
   it("pauses and resumes; timers' actions are ignored while paused", () => {
     let state = begin(selectLevel(createInitialPairRecallState()));
-    state = pairRecallGameReducer(state, { type: "pause" });
+    state = pairRecallGameReducer(state, { nowMs: state.studyDeadlineMs - state.studyRemainingMs, type: "pause" });
     expect(state.paused).toBe(true);
     // Study tick while paused is a no-op.
-    const frozen = pairRecallGameReducer(state, { type: "study-tick" });
+    const frozen = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
     expect(frozen.phase).toBe("study");
-    state = pairRecallGameReducer(state, { type: "resume" });
+    state = pairRecallGameReducer(state, { nowMs: state.studyDeadlineMs - state.studyRemainingMs, type: "resume" });
     expect(state.paused).toBe(false);
   });
 
@@ -225,7 +230,7 @@ describe("pairRecallGameReducer", () => {
   it("regenerates identical rounds from the same seed after restart", () => {
     const run = () => {
       let state = begin(selectLevel(createInitialPairRecallState(), "normal"), "restart-seed");
-      state = pairRecallGameReducer(state, { type: "study-tick" });
+      state = pairRecallGameReducer(state, { stamp: inputStamp(state), nowMs: state.studyDeadlineMs, type: "study-tick" });
       return (state.round as PairRecallRound).pairs;
     };
     expect(run()).toEqual(run());
@@ -259,6 +264,7 @@ describe("restart leak guards (campaign 023 audit)", () => {
     });
 
     const restarted = pairRecallGameReducer(state, {
+      nowMs: 2000,
       type: "start-session",
       seed: "auth-bleed-2",
       sessionId: "sid-2",

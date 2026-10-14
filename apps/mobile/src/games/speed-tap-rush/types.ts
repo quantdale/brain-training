@@ -29,6 +29,20 @@ export interface TargetPosition {
   readonly y: number;
 }
 
+/** Measured playfield layout, in the same dp units as native touch coordinates. */
+export interface FieldGeometry {
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Identity of the target the player saw; pause invalidates queued input. */
+export interface TapRushTargetStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly targetIndex: number;
+  readonly inputEpoch: number;
+}
+
 /** Game-defined difficulty tuning; recorded in the resolved difficulty profile. */
 export interface TapRushDifficultyParams {
   /** Targets per round. */
@@ -153,11 +167,14 @@ export type TapRushAction =
       /** Tap position in normalized field coordinates. */
       x: number;
       y: number;
+      geometry: FieldGeometry;
+      stamp: TapRushTargetStamp;
       /** Monotonic clock value at tap time. */
       nowMs: number;
     }
   | {
       type: 'target-expired';
+      stamp: TapRushTargetStamp;
       /** Monotonic clock value when the window closed. */
       nowMs: number;
     }
@@ -219,6 +236,8 @@ export interface TapRushGameState {
   targets: readonly TargetPosition[];
   /** 0-based index of the live target within `targets`. */
   targetIndex: number;
+  /** Changes across session starts and pause/resume boundaries. */
+  inputEpoch: number;
   /** Monotonic clock value when the live target appeared; null when idle. */
   spawnedAtMs: number | null;
   /** Monotonic clock value by which the live target must be tapped. */
@@ -263,6 +282,7 @@ export function createInitialTapRushState(): TapRushGameState {
     windowMs: 0,
     targets: [],
     targetIndex: 0,
+    inputEpoch: 0,
     spawnedAtMs: null,
     deadlineMs: null,
     lastVerdict: null,
@@ -280,5 +300,14 @@ export function createInitialTapRushState(): TapRushGameState {
     authoritativeCurrency: null,
     authoritativeDeltas: [],
     tutorialOpen: false,
+  };
+}
+
+export function targetStamp(state: TapRushGameState): TapRushTargetStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    targetIndex: state.targetIndex,
+    inputEpoch: state.inputEpoch,
   };
 }

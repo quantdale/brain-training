@@ -5,8 +5,8 @@
   "secondaryDomains": ["Attention"],
   "description": "Crack a hidden color code using logic and deduction. Get feedback on each guess to narrow down the solution.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
-  "generatorVersion": "1.0.0",
+  "gameVersion": "1.1.0",
+  "generatorVersion": "1.1.0",
   "contentVersion": null,
   "hasTutorial": true
 }

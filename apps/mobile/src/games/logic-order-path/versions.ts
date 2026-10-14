@@ -9,7 +9,7 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.1.0';
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

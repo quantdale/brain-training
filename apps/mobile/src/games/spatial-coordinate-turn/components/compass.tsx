@@ -58,14 +58,14 @@ const DIR_ANGLE: Readonly<Record<Dir, number>> = {
 };
 
 /** Human-readable label for a command. */
-export function commandLabel(command: Command): string {
+export function commandLabel(command: Command, directions: 4 | 8 = 4): string {
   switch (command.type) {
     case 'left':
-      return 'Turn left';
+      return `Turn left ${360 / directions}°`;
     case 'right':
-      return 'Turn right';
+      return `Turn right ${360 / directions}°`;
     case 'about':
-      return 'Turn around';
+      return 'Turn around 180°';
     case 'forward':
       return `Move forward ${command.steps ?? 1}`;
     case 'back':
@@ -112,11 +112,13 @@ export function CompassView({ heading, testID, size = 96 }: CompassViewProps) {
 
 export interface CommandListProps {
   readonly commands: readonly Command[];
+  /** One turn advances one heading in the active direction set. */
+  readonly directions?: 4 | 8;
   readonly testID: string;
 }
 
 /** Readable vertical list of the command sequence. */
-export function CommandList({ commands, testID }: CommandListProps) {
+export function CommandList({ commands, directions = 4, testID }: CommandListProps) {
   return (
     <View style={styles.commandList} testID={testID}>
       {commands.map((command, i) => (
@@ -124,7 +126,7 @@ export function CommandList({ commands, testID }: CommandListProps) {
           key={i}
           type="bodyLarge"
           testID={testId(GAME_ID, 'command', String(i))}>
-          {`${i + 1}. ${commandLabel(command)}`}
+          {`${i + 1}. ${commandLabel(command, directions)}`}
         </ThemedText>
       ))}
     </View>

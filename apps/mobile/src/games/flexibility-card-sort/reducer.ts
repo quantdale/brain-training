@@ -31,7 +31,7 @@ import {
 } from './difficulty';
 import { generateRound, pickInitialRule, planDiscoveryBlocks } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialFlexibilityState, otherRule } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialFlexibilityState, otherRule } from './types';
 import type {
   Card,
   FlexibilityAction,
@@ -104,6 +104,7 @@ export function flexibilityGameReducer(
       const round = generateForRound(action.seed, 0, rule, params, null);
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'roundActive',
         paused: false,
         profile,
@@ -182,6 +183,9 @@ export function flexibilityGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null || state.round === null) {
         return state;
       }
@@ -260,11 +264,11 @@ export function flexibilityGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

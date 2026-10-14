@@ -1,5 +1,14 @@
 # Ultimate Goal and Goal-Mode Entry
 
+## Current owner directive — Campaign077 (active)
+
+Execute `.agent/CAMPAIGN077_OWNER_BRIEF.md` fully through the077 OpenSpec change.
+The owner authorizes the complete redesign, original ImageGen artwork, Refero
+research, all42-game correctness recovery, engineering/runtime certification,
+and visible Android handoff. This supersedes the historical execution targets
+below without rewriting their evidence. Follow the current STATE/CURRENT_CAMPAIGN
+and tasks; do not stop after research, assets, or isolated tests.
+
 ## Ultimate product goal
 
 Build the original, closed-source, offline-first Android+iOS brain-training product defined by `docs/PROJECT_CONSTITUTION.md`, with a large modular catalog, adaptive scoring/progression, strong local ownership, and optional future cloud/AI/monetization layers.

@@ -19,6 +19,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import {
   isDevBuild,
@@ -58,7 +59,7 @@ import {
   persistSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialState } from './types';
+import { GAME_ID, createInitialState, type PatternTapBackAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface PatternTapBackScreenProps {
@@ -87,10 +88,21 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
   });
+
+  const applyGameplayAction = useCallback((action: PatternTapBackAction) => {
+    const current = stateRef.current;
+    const next = gameReducer(current, action);
+    // Advance the serial cursor before React commits. The entire path has
+    // already been shown, so distinct queued native presses must all count.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -104,11 +116,16 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => applyGameplayAction({ type: 'pause' }),
   });
 
   const tutorial = useMemo(() => createTutorialLifecycle_(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => {
+    createQaForceStateHooks(applyGameplayAction).forceWin();
+  }, [applyGameplayAction]);
+  const forceLose = useCallback(() => {
+    createQaForceStateHooks(applyGameplayAction).forceLose();
+  }, [applyGameplayAction]);
 
   const params = state.profile !== null ? paramsFromProfile(state.profile) : null;
   const gridSize = params?.gridSize ?? 9;
@@ -126,22 +143,43 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   const baseObserveMs = params?.baseObserveMs ?? 500;
   const stepObserveMs = params?.stepObserveMs ?? 200;
   const observeDuration = (step: number) => baseObserveMs + stepObserveMs * step;
+  const observingStamp = useMemo(() => ({
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    observeIndex: state.observeIndex,
+  }), [
+    state.sessionId, state.roundIndex, state.inputEpoch, state.observeIndex,
+  ]);
+  const inputStamp = useMemo(() => ({
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    inputIndex: state.inputIndex,
+  }), [
+    state.sessionId, state.roundIndex, state.inputEpoch, state.inputIndex,
+  ]);
+  const recallWindowStamp = useMemo(() => ({
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+  }), [state.sessionId, state.roundIndex, state.inputEpoch]);
 
   // ---- Observe pacing: one tick per tile with scaling duration. Pause
   // deactivates the timer; resume continues the current tile's remainder.
   useGameDeadlineTimeout(
     state.phase === 'observe' && !state.paused,
-    () => dispatch({ type: 'observe-tick' }),
+    () => applyGameplayAction({ type: 'observe-tick', stamp: observingStamp }),
     observeDuration(state.observeIndex),
     clock,
     `observe:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.observeIndex}`,
   );
 
-  // ---- Recall auto-highlight: after a correct tap, briefly show the tile
-  // selected, then clear to allow the next tap. Pause preserves its remainder.
+  // ---- Cosmetic feedback may overlap the next tap. Each clear is stamped,
+  // so an old feedback timer cannot clear the newer selection.
   useGameDeadlineTimeout(
     state.phase === 'recall' && !state.paused && state.recallHighlight,
-    () => dispatch({ type: 'recall-tick' }),
+    () => applyGameplayAction({ type: 'recall-tick', stamp: inputStamp }),
     200,
     clock,
     `highlight:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.inputIndex}`,
@@ -258,9 +296,9 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      applyGameplayAction({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -268,34 +306,50 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   }, [session, goBack]);
 
   const handleTapTile = useCallback(
-    (index: number) => {
+    (index: number, event: GestureResponderEvent) => {
       const current = stateRef.current;
-      if (current.phase !== 'recall' || current.paused || current.recallHighlight) {
+      if (state.phase !== 'recall' || current.phase !== 'recall' ||
+          current.paused || session.status() !== 'active') {
         return;
       }
-      if (index === current.sequence[current.inputIndex]) {
+      if (recallWindowStamp.sessionId !== current.sessionId ||
+          recallWindowStamp.roundIndex !== current.roundIndex ||
+          recallWindowStamp.inputEpoch !== current.inputEpoch) {
+        return;
+      }
+      // Native payload identity distinguishes duplicate delivery from a new
+      // physical press, even on the same tile or within one render batch.
+      const nativePress = event?.nativeEvent;
+      if (nativePress == null || deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+      const next = applyGameplayAction({
+        type: 'tap-tile',
+        index,
+        stamp: { ...recallWindowStamp, inputIndex: current.inputIndex },
+      });
+      if (next === null) return;
+      if (next.stats.correctTaps > current.stats.correctTaps) {
         liveAudioHaptics.playSfx('memory-tile-correct');
         liveAudioHaptics.haptic('light');
       } else {
         liveAudioHaptics.playSfx('memory-tile-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-tile', index });
     },
-    [dispatch],
+    [applyGameplayAction, recallWindowStamp, session, state.phase],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -338,7 +392,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   const visualFor = useCallback(
     (index: number): TileVisualState => {
       if (state.phase === 'observe') {
-        return index === state.observeIndex ? 'observed' : 'idle';
+        return index === state.sequence[state.observeIndex] ? 'observed' : 'idle';
       }
       if (state.phase === 'roundResult') {
         if (
@@ -397,7 +451,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
         </ThemedText>
       }
       score={String(state.stats.score)}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
@@ -462,6 +516,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
                 gridSize={currentGridSize}
                 testID={testId(GAME_ID, 'recall-grid')}
                 visualFor={visualFor}
+                disabled={state.paused}
                 onPressTile={handleTapTile}
               />
             </>
@@ -491,7 +546,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => applyGameplayAction({ type: 'next-round' })}
               />
             </View>
           ) : null}

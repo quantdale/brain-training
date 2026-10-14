@@ -59,7 +59,7 @@ const WordChip = memo(function WordChip({
           opacity: pressed ? 0.7 : isTapped ? 0.4 : 1,
         },
       ]}>
-      <ThemedText type="smallBold" style={{ color: '#FFFFFF' }} numberOfLines={1}>
+      <ThemedText type="smallBold" style={{ color: isTapped ? theme.textSecondary : theme.languageOn }} numberOfLines={1}>
         {word}
       </ThemedText>
     </Pressable>

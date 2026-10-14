@@ -118,11 +118,11 @@ describe('Button disabled treatment (076-f D3)', () => {
     const darkBg = slot(Colors.dark, 'backgroundElement');
     expect(contrast(darkFg, darkBg)).toBeGreaterThanOrEqual(4.5);
 
-    // A token that FAILS the floor on the light palette, recorded so the slot
-    // choice above is a measured decision rather than a preference:
-    // `textMuted` on the dimmed light fill is 2.35:1 — the same unreadable
-    // outcome the repair exists to remove.
-    expect(contrast(slot(Colors.light, 'textMuted'), lightBg)).toBeLessThan(4.5);
+    // Play Lab improves muted ink too. Disabled controls retain the stronger
+    // secondary role so the label never disappears as the fill recedes.
+    expect(contrast(lightFg, lightBg)).toBeGreaterThan(
+      contrast(slot(Colors.light, 'textMuted'), lightBg),
+    );
 
     // The collapse that motivated the fix, computed properly. A whole-
     // control 0.5 opacity composites BOTH the fill and the label over the stage

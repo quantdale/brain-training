@@ -85,6 +85,7 @@ async function tapValue(value: number) {
   await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'number-line')), {
     nativeEvent: { locationX: xOf(value) },
   });
+  await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-estimate')));
 }
 
 describe('NumberLineScreen', () => {
@@ -111,8 +112,9 @@ describe('NumberLineScreen', () => {
 
     expect(screen.getByTestId(testId(GAME_ID, 'round', '1'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'number-line'))).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, 'line-flag'))).toBeOnTheScreen();
-    // Endpoint labels show the range but never the target value.
+    expect(screen.queryByTestId(testId(GAME_ID, 'line-flag'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'target-value'))).toBeOnTheScreen();
+    // Endpoints show the range; the numeric target is shown separately.
     expect(screen.getByTestId(testId(GAME_ID, 'line-label-min'))).toHaveTextContent('0');
     expect(screen.getByTestId(testId(GAME_ID, 'line-label-max'))).toHaveTextContent('100');
   });
@@ -143,11 +145,12 @@ describe('NumberLineScreen', () => {
 
     const rounds = generateSessionRounds(createRng(seed), NORMAL);
     for (let i = 0; i < rounds.length; i += 1) {
-      await tapValue(rounds[i].target);
+      const displayedTarget = Number(screen.getByTestId(testId(GAME_ID, 'target-value')).props.children);
+      await tapValue(displayedTarget);
       if (i < rounds.length - 1) {
         expect(screen.getByTestId(testId(GAME_ID, 'round-hit'))).toBeOnTheScreen();
         expect(screen.getByTestId(testId(GAME_ID, 'reveal'))).toHaveTextContent(
-          `The flag was at ${rounds[i].target}. You tapped ${rounds[i].target}.`,
+          `The target was ${displayedTarget}. You estimated ${displayedTarget}.`,
         );
         await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
       }
@@ -272,6 +275,7 @@ describe('NumberLineScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'number-line')), {
       nativeEvent: { locationX: adaptiveX },
     });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-estimate')));
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));

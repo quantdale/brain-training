@@ -98,7 +98,16 @@ function answerRatio(answerMs: number, budgetMs: number): number {
   return budgetMs > 0 ? clamp01(answerMs / budgetMs) : 1;
 }
 
-export function wordChainReducer(
+export function wordChainReducer(state: LanguageWordChainState, action: LanguageWordChainAction): LanguageWordChainState {
+  // Every live caller stamps the cue it displayed. Unstamped pure actions
+  // remain usable for deterministic fixtures; stored results contain no cue.
+  if ('cue' in action && action.cue !== undefined && (action.cue.sessionId !== state.sessionId || action.cue.roundIndex !== state.roundIndex || action.cue.inputEpoch !== state.inputEpoch)) return state;
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex || next.currentStepIndex !== state.currentStepIndex)) return { ...next, inputEpoch: state.inputEpoch + 1 };
+  return next;
+}
+
+function reduceGameState(
   state: LanguageWordChainState,
   action: LanguageWordChainAction,
 ): LanguageWordChainState {
@@ -297,6 +306,7 @@ export function wordChainReducer(
     case "next-round": {
       if (
         state.phase !== "roundResult" ||
+        state.paused ||
         state.params === null ||
         state.difficulty === null
       ) {

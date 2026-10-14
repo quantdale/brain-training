@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { flexibilityGameReducer } from '../reducer';
-import { createInitialFlexibilityState , otherRule } from '../types';
+import { continuationStamp, createInitialFlexibilityState, otherRule } from '../types';
 import type { FlexibilityGameState } from '../types';
 import { generateRound, pickInitialRule, planDiscoveryBlocks } from '../generator';
 import { perfectSessionScore, roundScore } from '../scoring';
@@ -35,7 +35,7 @@ function wrongPick(state: FlexibilityGameState, responseMs = 0): FlexibilityGame
 }
 
 function next(state: FlexibilityGameState): FlexibilityGameState {
-  return flexibilityGameReducer(state, { type: 'next-round' });
+  return flexibilityGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
 }
 
 function expireNotice(state: FlexibilityGameState): FlexibilityGameState {
@@ -266,7 +266,7 @@ describe('next-round', () => {
 
   it('is ignored outside roundResult', () => {
     const inActive = startSession('n');
-    const after = flexibilityGameReducer(inActive, { type: 'next-round' });
+    const after = flexibilityGameReducer(inActive, { stamp: continuationStamp(inActive), type: 'next-round' });
     expect(after.roundIndex).toBe(0);
   });
 });

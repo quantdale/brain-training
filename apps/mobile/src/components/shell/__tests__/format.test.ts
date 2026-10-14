@@ -4,11 +4,27 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { formatRelativeDay, performanceBand, playerFacingReason } from '../format';
+import { formatGoalProgress, formatRelativeDay, performanceBand, playerFacingReason } from '../format';
 
 // Fixed reference clock: 2026-08-21T12:00:00 local (midday avoids any
 // DST-boundary midnight edge in the test timezone).
 const NOW = new Date(2026, 7, 21, 12, 0, 0).getTime();
+
+describe('goal readouts', () => {
+  it('shows normalized evidence as percentages without floating-point artifacts', () => {
+    expect(formatGoalProgress(0.5599999999999999, 0.9, 'percent')).toBe('56% / 90%');
+    expect(formatGoalProgress(0, 1, 'percent')).toBe('0% / 100%');
+  });
+  it('keeps count units and caps only the displayed progress at the goal', () => {
+    expect(formatGoalProgress(102, 50000)).toBe('102 / 50000');
+    expect(formatGoalProgress(11, 10)).toBe('10 / 10');
+    expect(formatGoalProgress(0, 1)).toBe('0 / 1');
+  });
+  it('reports unavailable evidence honestly', () => {
+    expect(formatGoalProgress(Number.NaN, 10)).toBe('—');
+    expect(formatGoalProgress(1, 0)).toBe('—');
+  });
+});
 
 describe('formatRelativeDay', () => {
   it('labels the same local day as Today', () => {
@@ -56,7 +72,7 @@ describe('performanceBand', () => {
 describe('playerFacingReason', () => {
   it('strips the internal rating figure from a weak-domain reason', () => {
     expect(playerFacingReason('weak Language domain (rating 986)')).toBe(
-      'weak Language domain',
+      'Practice your Language skills',
     );
   });
 

@@ -1,102 +1,13 @@
-# Execution Prompt — Campaign 076-F terminal closure
+# Execution Prompt — Campaign077
 
-> **ACTIVE CLOSURE BINDING:** execute
-> `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`.
-> Do not execute the historical redesign waves below. Do not treat
-> `evidence/VERDICT.md` or this file's older checkpoint as current truth until
-> that prompt's reconciliation commit lands.
+**Status:** ACTIVE
+**Change:** `077-frontier-product-experience-rebuild`
+**Planned-From:** `c7bbf0ddfa184204027d8b6df14deab5abf87a6e`
+**Planned-At:** 2026-10-14
+**Target-Branch:** main
 
-**Status:** ACTIVE — `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`
-**Execute:** `.agent/CAMPAIGN076F_EVIDENCE_RECONCILIATION_AND_TERMINAL_CLOSURE_PROMPT.md`
-**Mode:** day. One dedicated emulator. No host mouse, host keyboard, or
-desktop-focus automation. ARTEMIS at `D:\Tools\artemis` is the only gameplay and
-journey driver; ADB may only install, log, screenshot and dump hierarchy.
+Execute `.agent/CAMPAIGN077_OWNER_BRIEF.md` fully through the077 change EXECUTION/proposal/design/specs/tasks/evidence. Resume the first genuinely incomplete requirement; retain full scope across turns. This owner brief supersedes the076 execution target/visual direction without rewriting historical evidence.
 
-**Current controller fact (2026-10-09, re-probed and still true):**
-authentication was restored by an owner-directed move to the external
-**OpenDesign** endpoint. Object detection remains on the required Gemini **ER**
-model. Credentials stay only in `D:\Tools\artemis\.env`. Do **not** copy that
-endpoint configuration into Git, do not switch provider again unless
-authentication fails and the owner has already selected the replacement, and do
-not revert to the Google free tier. See
-`openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
+Repair reproduced Critical/High defects before feature expansion. Establish fresh baseline/provenance and three-direction Refero comparison; lock coherent system; generate/inspect/bundle original ImageGen art; rebuild shared and major surfaces/all game presentation; refine interactions; converge/independently critique actual screenshots; execute native/runtime/data/clean-checkout/ending-SHA CI gates; leave updatedHome in verified visible emulator and provide all section17 report fields.
 
-**Reconciled 2026-10-09 (supersedes the quota-only correction below):** the
-quota-only statement was true of the Google route and is now historical. The
-ledgers were also moved back — 076-f `tasks.md` is **4 checked / 38 unchecked**
-and the parent ledger is **58 checked**, because `b7cf09b` superseded the
-accepted game rows without updating the boxes. Evidence:
-`…/076-f-final-product-certification/evidence/RECONCILIATION.md`.
-
-**Terminal identity:** application source
-`b293a02e1cd5df260a66dd886c1d279978b68994`, APK
-`e243341fd4f9641810038a2695540fdd0b9b29634ebb91b48afbbde591b7635f`
-(48,888,452 B). Recorded once in
-`…/076-f-final-product-certification/evidence/TERMINAL_IDENTITY.json`.
-
-## Historical execution prompt — Campaign 076 redesign
-
-**Status:** HISTORICAL — do not execute. Former verdict `CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED`.
-**Change:** `076-product-wide-ui-ux-reboot` (ACTIVE)
-**Start-SHA:** `b6654fb` (proposal head; Explore baseline `d3d0b99`)
-**Target-Branch:** `main`
-**Predecessor:** Phase 10 terminal certification (`f813e6a` / `b6654fb` docs)
-
-## Authority
-
-Owner goal directive (goal_id `d0710eff-2340-4933-96b2-7e9304558107`):
-perform openspec apply on `openspec/changes/076-product-wide-ui-ux-reboot/` —
-implement its staged tasks (baseline evidence → three prototype directions →
-reference lock → shared compositional contract → route redesigns → 42 game
-modules → convergence and device certification) until every task is complete
-or an honestly BLOCKED condition is durably recorded.
-
-## Guardrails
-
-- Old-release device baseline (`d631ab9a…`, source `d3d0b992…`) must be
-  captured for every affected route/game state **before** editing it; the
-  post-change screenshots must be matched captures on the same configuration.
-- Never alter scoring, persistence, workout ownership, economy, offline
-  behavior, or registry semantics from visual-only edits.
-- One orchestrator-owned emulator; ARTEMIS doctor verified READY (evidence in
-  openspec/changes/076-product-wide-ui-ux-reboot/evidence/task-1-2-artemis.md).
-- Shared hotspots (theme tokens, ui primitives, game-host/game-ui contracts)
-  have one writer; swarm packets own disjoint route/game directories only.
-- Task-ownership: `.agent/task-ownership.json` binds parallel packets per
-  wave; coders never edit orchestrator-only surfaces.
-
-## Current checkpoint — 2026-10-08 (superseded by 076-f; see banner above)
-
-See change `evidence/CLOSURE_CHECKPOINT.md`: source `c324960` four workflows
-GREEN; new APK `de6c5fcd…`, reviewed/filed 90 route pairs + 2 scrolled Results
-pairs and 0 automated violations (32 occluded unmeasurable). Current Pro
-HTTP 401 Invalid credential, no steps: **BLOCKED_EXTERNAL_ARTEMIS_PROVIDER**.
-Owner must restore configured credentials only externally; no retry/fallback.
-All 22 current-build gap states and remaining acceptance still owed; no
-checkbox moved. iOS BUILD PASS / RUNTIME NOT VALIDATED.
-
-*2026-10-08 correction (076-f task 1.1): the HTTP 401 above is historical.
-Re-probed under 076-f the credential is valid; the failure class is provider
-**quota exhaustion** on the free tier. See
-`openspec/changes/076-f-final-product-certification/evidence/CONTROLLER.md`.
-The four workflows at evidence SHA `7e7374b` are green (37719414181 /
-37719414125 / 37719414141 / 37719414138), so that SHA no longer lacks remote
-verification. Neither correction is release acceptance.*
-
-## Historical review checkpoint / outstanding acceptance scope
-
-After review, 22/168 individual core game-state frames have no valid visual
-proof; the final-build 90-route capture matrix aborted amid launcher/SystemUI
-ANRs; ARTEMIS Pro journeys remain provider-BLOCKED after nine attempts;
-iOS remains NOT VALIDATED. Reconcile these without substituting ADB for Pro or
-old-build captures for the final APK. See `evidence/GAME_ASSESSMENT.md`,
-`evidence/WAVE14_EVIDENCE.md` and `.agent/KNOWN_ISSUES.md`.
-
-## Waves
-
-1. Baseline inventory + old-build captures (tasks 1.x)
-2. Three prototype directions + scorecard + reference lock (tasks 2.x)
-3. Shared compositional contract + canary journey (tasks 3.x)
-4. Route redesigns: navigation/discovery/workout + supporting routes (tasks 4–5)
-5. Game domain packets ×8 (tasks 6–13), 7 coders max, device verification per wave
-6. Convergence + device certification + release + durable state (tasks 14.x)
+Follow AGENTS.md. Root targets emulator-5570 and owns shared/generated/config/state/device surfaces. ARTEMIS stays external, used selectively for needed gameplay journeys, with external credentials. No host-input/focus automation. Day mode restrains build/test load. PHYSICAL_ANDROID/IOS_RUNTIME remain NOT VALIDATED without evidence. Complete only after the original brief is proven requirement by requirement.

@@ -7,6 +7,8 @@
  *   may still carry exported files — see the Data Management header copy).
  * - Previews never write; Replace/Delete are two-tap (shared ConfirmButton);
  *   wipe additionally requires typing DELETE.
+ * - Imports require a matching preview; loss of unsupported backup fields
+ *   additionally requires acknowledgement of that preview's loss list.
  * - Destructive actions are two-tap (Replace import, per-backup Delete) using
  *   the shared ConfirmButton — same arm/confirm pattern as reward purchases.
  * - The share sheet is offered where available; when the platform reports it
@@ -21,7 +23,7 @@
  * confirmation.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
@@ -92,6 +94,13 @@ const EMPTY_COUNTS: LocalDataCounts = {
   storageBytes: 0,
 };
 
+interface PreviewSnapshot {
+  text: string;
+  mode: "merge" | "replace";
+  revision: number;
+  result: ImportPreview;
+}
+
 async function loadCounts(): Promise<LocalDataCounts> {
   return countLocalData(getDb());
 }
@@ -142,10 +151,62 @@ export default function DataManagementScreen() {
   const [exportText, setExportText] = useState<string | null>(null);
   const [lastExportName, setLastExportName] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
-  const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [previewSnapshot, setPreviewSnapshot] = useState<PreviewSnapshot | null>(
+    null,
+  );
+  const [acknowledgedPreview, setAcknowledgedPreview] = useState<PreviewSnapshot | null>(
+    null,
+  );
+  const acknowledgedPreviewRef = useRef<PreviewSnapshot | null>(null);
+  const previewRevisionRef = useRef(0);
+  const restoreInFlightRef = useRef(false);
+  const preview = previewSnapshot?.result ?? null;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [wipeConfirm, setWipeConfirm] = useState("");
+  const invalidatePreview = useCallback(() => {
+    // A revision also rejects an old asynchronous result when the text is
+    // edited and then changed back to the same bytes before that result lands.
+    const revision = ++previewRevisionRef.current;
+    setPreviewSnapshot(null);
+    acknowledgedPreviewRef.current = null;
+    setAcknowledgedPreview(null);
+    return revision;
+  }, []);
+  const updateImportText = useCallback(
+    (text: string) => {
+      invalidatePreview();
+      setImportText(text);
+      setMessage(null);
+    },
+    [invalidatePreview],
+  );
+  const onAcknowledgeLoss = useCallback(() => {
+    if (
+      busy ||
+      !previewSnapshot ||
+      previewSnapshot.revision !== previewRevisionRef.current ||
+      previewSnapshot.text !== importText ||
+      !previewSnapshot.result.valid ||
+      !previewSnapshot.result.forwardCompatibility?.lossy
+    ) {
+      return;
+    }
+    const next =
+      acknowledgedPreviewRef.current === previewSnapshot ? null : previewSnapshot;
+    // Keep consent current even if a captured apply callback runs before
+    // React has rendered a withdrawal of the acknowledgement.
+    acknowledgedPreviewRef.current = next;
+    setAcknowledgedPreview(next);
+  }, [busy, importText, previewSnapshot]);
+  const canApplyImport = (mode: "merge" | "replace") =>
+    !!previewSnapshot &&
+    previewSnapshot.text === importText &&
+    previewSnapshot.mode === mode &&
+    preview?.mode === mode &&
+    preview.valid &&
+    (!preview.forwardCompatibility?.lossy ||
+      acknowledgedPreview === previewSnapshot);
   // Names currently held by the transport. Loaded through the shared db-data
   // hook so backups saved by earlier sessions are visible on arrival and the
   // inventory re-lists whenever `refreshKey` bumps (save/delete/load).
@@ -273,7 +334,7 @@ export default function DataManagementScreen() {
       setMessage(null);
       try {
         const text = await backupTransport.readBackup(name);
-        setImportText(text);
+        updateImportText(text);
         setMessage(
           `Loaded "${name}" into the import box. Preview before applying.`,
         );
@@ -283,7 +344,7 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [busy],
+    [busy, updateImportText],
   );
 
   const onDeleteBackup = useCallback(
@@ -319,7 +380,7 @@ export default function DataManagementScreen() {
         setMessage(null);
         return;
       }
-      setImportText(picked.text);
+      updateImportText(picked.text);
       setMessage(
         `Loaded "${picked.name}" into the import box. Preview before applying.`,
       );
@@ -328,14 +389,14 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [busy]);
+  }, [busy, updateImportText]);
 
   const onPreview = useCallback(
     async (mode: "merge" | "replace") => {
       // Same in-flight guard as the sibling handlers: a fast double-tap (or a
       // re-entrant dispatch racing the disabled state) must not start a second
       // preview pass while one is still running.
-      if (busy) {
+      if (busy || restoreInFlightRef.current) {
         return;
       }
       if (!importText.trim()) {
@@ -350,11 +411,14 @@ export default function DataManagementScreen() {
         );
         return;
       }
+      const revision = invalidatePreview();
+      restoreInFlightRef.current = true;
       setBusy(true);
       setMessage(null);
       try {
         const result = await previewImport(getDb(), importText, mode);
-        setPreview(result);
+        if (revision !== previewRevisionRef.current) return;
+        setPreviewSnapshot({ text: importText, mode, revision, result });
         if (!result.valid) {
           setMessage(
             `Preview rejected (${result.error?.kind}): ${result.error?.message}`,
@@ -375,51 +439,61 @@ export default function DataManagementScreen() {
           );
         }
       } catch (e) {
+        if (revision !== previewRevisionRef.current) return;
         setMessage(`Preview failed: ${(e as Error).message}`);
       } finally {
+        restoreInFlightRef.current = false;
         setBusy(false);
       }
     },
-    [busy, importText],
+    [busy, importText, invalidatePreview],
   );
 
   const onImport = useCallback(
     async (mode: "merge" | "replace") => {
-      if (busy) {
+      if (busy || restoreInFlightRef.current) {
         return;
       }
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
         return;
       }
-      // 062: same oversized-paste refusal as preview (import re-validates
-      // through previewImport, which would otherwise parse the huge text).
+      // 062: retain the size guard at the mutation caller as well as preview.
       if (importText.length > MAX_BACKUP_TEXT_LENGTH) {
         setMessage(
           `That text is too large to import (limit ${MAX_BACKUP_TEXT_LENGTH} characters). Load it from a file instead.`,
         );
         return;
       }
-      // Validate before mutation (the engine validates again inside its own
-      // transaction; this pass surfaces typed rejections without writing).
+      if (
+        !previewSnapshot ||
+        previewSnapshot.revision !== previewRevisionRef.current ||
+        previewSnapshot.text !== importText ||
+        previewSnapshot.mode !== mode ||
+        previewSnapshot.result.mode !== mode ||
+        !previewSnapshot.result.valid
+      ) {
+        setMessage(`Preview this backup in ${mode} mode before importing.`);
+        return;
+      }
+      const previewResult = previewSnapshot.result;
+      if (
+        previewResult.forwardCompatibility?.lossy &&
+        acknowledgedPreviewRef.current !== previewSnapshot
+      ) {
+        setMessage("Acknowledge the listed backup data loss before importing.");
+        return;
+      }
+      restoreInFlightRef.current = true;
       setBusy(true);
       setMessage(null);
       try {
-        const previewResult = await previewImport(getDb(), importText, mode);
-        if (!previewResult.valid) {
-          setMessage(
-            `Import rejected: ${previewResult.error?.kind} — ${previewResult.error?.message}`,
-          );
-          return;
-        }
-        // Reuse the preview's already-validated payload (same importText) —
-        // re-parsing large backups doubled the synchronous work per import.
+        // Apply the payload that passed the displayed dry-run. Exact text,
+        // mode, revision and consent were checked before any mutation; the
+        // portability engine retains its validation and transaction guards.
         const parsed =
           previewResult.parsed ?? parseAndValidateBackup(importText);
-        // 070: pass the forward-compat verdict the user was SHOWN, so the
-        // result records exactly what was accepted rather than a second,
-        // independently computed opinion. A lossy import is the user's choice,
-        // not a failure — merge/replace proceed unchanged.
+        // Record the same loss list that was displayed and explicitly accepted.
         const acknowledgedLossy = previewResult.forwardCompatibility?.lossy
           ? {
               count: previewResult.forwardCompatibility.items.length,
@@ -454,15 +528,16 @@ export default function DataManagementScreen() {
             ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).${suffix}`
             : `Merge complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added.`,
         );
-        setPreview(null);
+        invalidatePreview();
         refresh();
       } catch (e) {
         setMessage(`Import failed: ${(e as Error).message}`);
       } finally {
+        restoreInFlightRef.current = false;
         setBusy(false);
       }
     },
-    [busy, importText, refresh],
+    [busy, importText, invalidatePreview, previewSnapshot, refresh],
   );
 
   const onWipe = useCallback(async () => {
@@ -498,7 +573,7 @@ export default function DataManagementScreen() {
       );
       setExportText(null);
       setLastExportName(null);
-      setPreview(null);
+      invalidatePreview();
       setWipeConfirm("");
       refresh();
     } catch (e) {
@@ -506,7 +581,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [busy, refresh, wipeConfirm]);
+  }, [busy, invalidatePreview, refresh, wipeConfirm]);
 
   return (
     <ScreenShell>
@@ -933,7 +1008,7 @@ export default function DataManagementScreen() {
               },
             ]}
             value={importText}
-            onChangeText={setImportText}
+            onChangeText={updateImportText}
             accessibilityLabel="Backup JSON input"
           />
           <View style={styles.row}>
@@ -995,15 +1070,38 @@ export default function DataManagementScreen() {
                 // message above: that message is gone the moment the user
                 // interacts, and this is a decision they must make with the
                 // consequences in front of them.
-                <ThemedText
-                  type="caption"
-                  themeColor="warning"
-                  testID="data-preview-lossy-warning"
-                  accessibilityLiveRegion="polite"
-                >
-                  {preview.forwardCompatibility.summary} Clear the backup text
-                  above to cancel.
-                </ThemedText>
+                <View style={styles.rows}>
+                  <ThemedText
+                    type="caption"
+                    themeColor="warning"
+                    testID="data-preview-lossy-warning"
+                    accessibilityLiveRegion="polite"
+                  >
+                    {preview.forwardCompatibility.summary} Clear the backup text
+                    above to cancel.
+                  </ThemedText>
+                  <Button
+                    label={
+                      acknowledgedPreview === previewSnapshot
+                        ? "Data loss acknowledged"
+                        : "I acknowledge the listed data loss"
+                    }
+                    variant="secondary"
+                    size="sm"
+                    testID="data-preview-lossy-acknowledge"
+                    accessibilityLabel="Acknowledge the listed backup data loss"
+                    accessibilityHint={
+                      acknowledgedPreview === previewSnapshot
+                        ? "Tap to withdraw acknowledgement."
+                        : "Required before importing this backup."
+                    }
+                    accessibilityState={{
+                      selected: acknowledgedPreview === previewSnapshot,
+                    }}
+                    disabled={busy}
+                    onPress={onAcknowledgeLoss}
+                  />
+                </View>
               )}
               {preview.notes.map((n, i) => (
                 <ThemedText key={i} type="caption" themeColor="textSecondary">
@@ -1020,7 +1118,7 @@ export default function DataManagementScreen() {
               fullWidth={false}
               testID="data-import-merge"
               accessibilityLabel="Apply merge import"
-              disabled={busy || !importText.trim()}
+              disabled={busy || !canApplyImport("merge")}
               onPress={() => void onImport("merge")}
             />
             {/* Replace is destructive: first tap arms ("Tap again…"), second
@@ -1031,7 +1129,7 @@ export default function DataManagementScreen() {
               confirmLabel="Tap again to erase and restore"
               accessibilityLabel="Apply replace import"
               variant="danger"
-              disabled={busy || !importText.trim()}
+              disabled={busy || !canApplyImport("replace")}
               onConfirm={() => void onImport("replace")}
             />
           </View>

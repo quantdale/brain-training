@@ -209,6 +209,22 @@ function validPreview(mode: 'merge' | 'replace'): ImportPreview {
   };
 }
 
+function lossyPreview(mode: 'merge' | 'replace'): ImportPreview {
+  const preview = validPreview(mode);
+  preview.forwardCompatibility = {
+    lossy: true,
+    items: [
+      { kind: 'data-field', path: 'data.profile.streakFreezes' },
+      { kind: 'section', path: 'data.streakFreezeInventory' },
+    ],
+    summary:
+      'This backup was written by a newer version of the app: 2 items ' +
+      '(data.profile.streakFreezes, data.streakFreezeInventory) cannot be ' +
+      'restored by this version and will be lost.',
+  };
+  return preview;
+}
+
 async function renderScreen() {
   // renderRouter enables fake timers internally, and its awaited promise can
   // resolve before expo-router finishes mounting the initial route on a slow
@@ -231,6 +247,32 @@ async function typeImportJson(text = '{"backup":true}') {
   await waitFor(() => {
     expect(screen.getByTestId('data-import-input').props.value).toBe(text);
   });
+}
+
+async function showPreview(mode: 'merge' | 'replace') {
+  await fireEvent.press(screen.getByTestId(`data-preview-${mode}`));
+  await waitFor(() =>
+    expect(screen.getByTestId('data-preview-output')).toHaveTextContent(
+      new RegExp(`Preview \\(${mode}\\): Valid`),
+    ),
+  );
+  await waitFor(() =>
+    expect(screen.getByTestId(`data-preview-${mode}`)).toBeEnabled(),
+  );
+}
+
+function capturePressCallback(testID: string): () => void {
+  // RNTL 14 resolves press handlers through the fiber because native host
+  // props no longer expose onPress. Capture the same real caller so the test
+  // can invoke it after its original UI context has become unavailable.
+  let fiber = screen.getByTestId(testID).unstable_fiber;
+  while (fiber) {
+    if (fiber.memoizedProps?.testID === testID && typeof fiber.memoizedProps.onPress === 'function') {
+      return fiber.memoizedProps.onPress as () => void;
+    }
+    fiber = fiber.return;
+  }
+  throw new Error(`No press callback found for ${testID}`);
 }
 
 describe('data-management UX contract', () => {
@@ -326,6 +368,7 @@ describe('data-management UX contract', () => {
     mockedPreviewImport.mockResolvedValue(validPreview('replace'));
     await renderScreen();
     await typeImportJson();
+    await showPreview('replace');
 
     const replaceButton = screen.getByTestId('data-import-replace');
     await fireEvent.press(replaceButton);
@@ -355,21 +398,8 @@ describe('data-management UX contract', () => {
     // silently drops unknown content and the next export writes it back
     // missing. The user must SEE that before committing, and the applied result
     // must carry the record so the loss is not invisible afterwards.
-    const lossy = validPreview('merge');
-    const verdict: NonNullable<ImportPreview['forwardCompatibility']> = {
-      lossy: true,
-      // Sorted, as the real detector emits them, so this test asserts the
-      // screen preserves the detector's order rather than a fixture quirk.
-      items: [
-        { kind: 'data-field', path: 'data.profile.streakFreezes' },
-        { kind: 'section', path: 'data.streakFreezeInventory' },
-      ],
-      summary:
-        'This backup was written by a newer version of the app: 2 items ' +
-        '(data.profile.streakFreezes, data.streakFreezeInventory) cannot be ' +
-        'restored by this version and will be lost.',
-    };
-    lossy.forwardCompatibility = verdict;
+    const lossy = lossyPreview('merge');
+    const verdict = lossy.forwardCompatibility!;
     mockedPreviewImport.mockResolvedValue(lossy);
     await renderScreen();
     await typeImportJson();
@@ -388,7 +418,18 @@ describe('data-management UX contract', () => {
     // (c) Cancelling is possible without importing.
     expect(mockedApplyImport).not.toHaveBeenCalled();
 
-    // (d) Proceeding is allowed, and the acknowledgement is recorded.
+    // (d) Reading a preview alone is not consent to lose the listed fields.
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('data-import-merge'));
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+    expect(screen.getByTestId('data-import-merge')).toBeEnabled();
+    const applyAcknowledged = capturePressCallback('data-import-merge');
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+    await act(async () => { applyAcknowledged(); });
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
     await fireEvent.press(await screen.findByTestId('data-import-merge'));
     await waitFor(() =>
       expect(mockedApplyImport).toHaveBeenCalledWith(
@@ -405,6 +446,8 @@ describe('data-management UX contract', () => {
     // The import itself still completes normally: a lossy import is a choice,
     // not a failure state.
     expect(await screen.findByTestId('data-message')).toHaveTextContent(/Merge complete/);
+    // The applied verdict comes from this displayed preview, not another pass.
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
   });
 
   it('070: a fully-understood backup shows no lossy warning', async () => {
@@ -420,6 +463,7 @@ describe('data-management UX contract', () => {
     mockedPreviewImport.mockResolvedValue(validPreview('replace'));
     await renderScreen();
     await typeImportJson();
+    await showPreview('replace');
 
     await fireEvent.press(screen.getByTestId('data-import-replace'));
     await screen.findByText(/Tap again to erase and restore/);
@@ -436,10 +480,11 @@ describe('data-management UX contract', () => {
     expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
   });
 
-  it('applies Merge import on a single tap', async () => {
+  it('applies a previewed Merge import on a single tap', async () => {
     mockedPreviewImport.mockResolvedValue(validPreview('merge'));
     await renderScreen();
     await typeImportJson();
+    await showPreview('merge');
 
     await fireEvent.press(await screen.findByTestId('data-import-merge'));
 
@@ -459,6 +504,254 @@ describe('data-management UX contract', () => {
     expect(mockedRefreshProgression).not.toHaveBeenCalled();
   });
 
+  it.each(['merge', 'replace'] as const)(
+    '077: requires a displayed matching preview before applying %s',
+    async (mode) => {
+      mockedPreviewImport.mockResolvedValue(validPreview(mode));
+      await renderScreen();
+      await typeImportJson();
+
+      expect(screen.getByTestId(`data-import-${mode}`)).toBeDisabled();
+      await fireEvent.press(screen.getByTestId(`data-import-${mode}`));
+      await fireEvent.press(screen.getByTestId(`data-import-${mode}`));
+      expect(mockedPreviewImport).not.toHaveBeenCalled();
+      expect(mockedApplyImport).not.toHaveBeenCalled();
+    },
+  );
+
+  it('077: only the previewed mode can be applied', async () => {
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('merge');
+    expect(screen.getByTestId('data-import-merge')).toBeEnabled();
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+
+    mockedPreviewImport.mockResolvedValue(validPreview('replace'));
+    await showPreview('replace');
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    expect(screen.getByTestId('data-import-replace')).toBeEnabled();
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a different nonempty backup', '{"otherBackup":true}'],
+    ['a whitespace-only change', ' {"backup":true} '],
+    ['clearing the input', ''],
+  ])('077: %s invalidates the preview and Replace confirmation', async (_label, text) => {
+    mockedPreviewImport.mockResolvedValue(validPreview('replace'));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('replace');
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(screen.getByText(/Tap again to erase and restore/)).toBeOnTheScreen();
+
+    await typeImportJson(text);
+    expect(screen.queryByTestId('data-preview-output')).toBeNull();
+    expect(screen.queryByTestId('data-message')).toBeNull();
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+    expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+
+    // Returning to the old bytes must not restore its preview or armed action.
+    await typeImportJson();
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+    await showPreview('replace');
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledTimes(1));
+  });
+
+  it.each([
+    ['saved backup', 'different bytes', '{"saved":true}'],
+    ['saved backup', 'the same bytes', '{"backup":true}'],
+    ['picked file', 'different bytes', '{"picked":true}'],
+    ['picked file', 'the same bytes', '{"backup":true}'],
+  ])('077: loading a %s with %s invalidates its previous preview', async (source, _label, text) => {
+    await transport.writeBackup('loaded.json', text);
+    mockedPickBackupFile.mockResolvedValue({ name: 'picked.json', text });
+    mockedPreviewImport.mockResolvedValue(validPreview('replace'));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('replace');
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+
+    await fireEvent.press(screen.getByTestId(
+      source === 'saved backup' ? 'data-backup-load-loaded.json' : 'data-import-from-file',
+    ));
+    await waitFor(() => expect(screen.getByTestId('data-message')).toHaveTextContent(/Loaded/));
+    expect(screen.getByTestId('data-import-input').props.value).toBe(text);
+    expect(screen.queryByTestId('data-preview-output')).toBeNull();
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+    expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+  });
+
+  it('077: a captured apply callback cannot import after an edit', async () => {
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('merge');
+    // Capture the live caller before changing its context; this bypasses the
+    // newly-disabled control and pins the handler's own safety check.
+    const applyPrevious = capturePressCallback('data-import-merge');
+    await typeImportJson('{"changed":true}');
+    await act(async () => { applyPrevious(); });
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+  });
+
+  it('077: lossy Replace needs acknowledgement before its two confirming taps', async () => {
+    const lossy = lossyPreview('replace');
+    mockedPreviewImport.mockResolvedValue(lossy);
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('replace');
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
+
+    const acknowledge = screen.getByTestId('data-preview-lossy-acknowledge');
+    expect(acknowledge.props.accessibilityState?.selected).toBe(false);
+    await fireEvent.press(acknowledge);
+    expect(screen.getByTestId('data-preview-lossy-acknowledge').props.accessibilityState?.selected).toBe(true);
+    expect(screen.getByTestId('data-import-replace')).toBeEnabled();
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledWith(
+      expect.anything(),
+      lossy.parsed,
+      'replace',
+      {
+        count: 2,
+        summary: lossy.forwardCompatibility!.summary,
+        paths: ['data.profile.streakFreezes', 'data.streakFreezeInventory'],
+      },
+    ));
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
+  });
+
+  it('077: withdrawing lossy acknowledgement disarms Replace', async () => {
+    mockedPreviewImport.mockResolvedValue(lossyPreview('replace'));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('replace');
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+    const previousAcknowledgement = capturePressCallback('data-preview-lossy-acknowledge');
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(screen.getByText(/Tap again to erase and restore/)).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+    expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
+    await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+
+    // The old acknowledgement callback must not accept a fresh preview.
+    await showPreview('replace');
+    await act(async () => { previousAcknowledgement(); });
+    expect(screen.getByTestId('data-preview-lossy-acknowledge').props.accessibilityState?.selected).toBe(false);
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+  });
+
+  it.each(['paste', 'saved backup', 'picked file'])(
+    '077: %s clears acknowledgement even if the next preview lists the same losses',
+    async (source) => {
+      await transport.writeBackup('loaded.json', '{"loaded":true}');
+      mockedPickBackupFile.mockResolvedValue({ name: 'picked.json', text: '{"picked":true}' });
+      mockedPreviewImport.mockResolvedValue(lossyPreview('merge'));
+      await renderScreen();
+      await typeImportJson();
+      await showPreview('merge');
+      await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+      expect(screen.getByTestId('data-import-merge')).toBeEnabled();
+
+      if (source === 'paste') {
+        await typeImportJson('{"changed":true}');
+      } else {
+        await fireEvent.press(screen.getByTestId(
+          source === 'saved backup' ? 'data-backup-load-loaded.json' : 'data-import-from-file',
+        ));
+        await waitFor(() => expect(screen.getByTestId('data-message')).toHaveTextContent(/Loaded/));
+      }
+      expect(screen.queryByTestId('data-preview-lossy-acknowledge')).toBeNull();
+      await showPreview('merge');
+      expect(screen.getByTestId('data-preview-lossy-acknowledge').props.accessibilityState?.selected).toBe(false);
+      expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+      expect(mockedApplyImport).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['merge', 'replace'] as const)(
+    '077: a new %s preview clears the previous lossy acknowledgement while pending',
+    async (mode) => {
+      mockedPreviewImport.mockResolvedValue(lossyPreview('merge'));
+      await renderScreen();
+      await typeImportJson();
+      await showPreview('merge');
+      await fireEvent.press(screen.getByTestId('data-preview-lossy-acknowledge'));
+
+      let release!: (value: ImportPreview) => void;
+      mockedPreviewImport.mockReturnValue(new Promise<ImportPreview>((resolve) => { release = resolve; }));
+      await fireEvent.press(screen.getByTestId(`data-preview-${mode}`));
+      expect(screen.queryByTestId('data-preview-output')).toBeNull();
+      expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+      expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+
+      const next = lossyPreview(mode);
+      next.forwardCompatibility!.items = [{ kind: 'section', path: 'data.newRewards' }];
+      next.forwardCompatibility!.summary = 'data.newRewards will be lost.';
+      await act(async () => { release(next); });
+      expect(screen.getByTestId('data-preview-lossy-warning')).toHaveTextContent(/data\.newRewards will be lost\./);
+      expect(screen.getByTestId('data-preview-lossy-acknowledge').props.accessibilityState?.selected).toBe(false);
+      expect(screen.getByTestId(`data-import-${mode}`)).toBeDisabled();
+      expect(mockedApplyImport).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([false, true])(
+    '077: an edited input discards an in-flight preview (return to original bytes: %s)',
+    async (returnToOriginal) => {
+      let release!: (value: ImportPreview) => void;
+      mockedPreviewImport.mockReturnValue(new Promise<ImportPreview>((resolve) => { release = resolve; }));
+      await renderScreen();
+      await typeImportJson();
+      await fireEvent.press(screen.getByTestId('data-preview-merge'));
+      await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
+      await typeImportJson('{"changedWhilePending":true}');
+      if (returnToOriginal) await typeImportJson();
+
+      await act(async () => { release(lossyPreview('merge')); });
+      await waitFor(() => expect(screen.getByTestId('data-preview-merge')).toBeEnabled());
+      expect(screen.queryByTestId('data-preview-output')).toBeNull();
+      expect(screen.queryByTestId('data-message')).toBeNull();
+      expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+      expect(screen.getByTestId('data-import-replace')).toBeDisabled();
+      expect(mockedApplyImport).not.toHaveBeenCalled();
+    },
+  );
+
+  it('077: an obsolete preview failure cannot overwrite the edited input state', async () => {
+    let reject!: (error: Error) => void;
+    mockedPreviewImport.mockReturnValue(new Promise<ImportPreview>((_resolve, rejectPreview) => { reject = rejectPreview; }));
+    await renderScreen();
+    await typeImportJson();
+    await fireEvent.press(screen.getByTestId('data-preview-replace'));
+    await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
+    await typeImportJson('{"changedWhilePending":true}');
+
+    await act(async () => { reject(new Error('old preview failed')); });
+    await waitFor(() => expect(screen.getByTestId('data-preview-replace')).toBeEnabled());
+    expect(screen.queryByTestId('data-preview-output')).toBeNull();
+    expect(screen.queryByTestId('data-message')).toBeNull();
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+  });
+
   it('062: refuses oversized pastes before preview parsing, capped natively too', async () => {
     await renderScreen();
     await typeImportJson('x'.repeat(MAX_BACKUP_TEXT_LENGTH + 1));
@@ -476,9 +769,8 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson('x'.repeat(MAX_BACKUP_TEXT_LENGTH + 1));
 
-    await fireEvent.press(await screen.findByTestId('data-import-merge'));
-    const message = await screen.findByTestId('data-message');
-    await waitFor(() => expect(message).toHaveTextContent(/too large/));
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('data-import-merge'));
     expect(mockedPreviewImport).not.toHaveBeenCalled();
     expect(mockedApplyImport).not.toHaveBeenCalled();
   });
@@ -499,6 +791,8 @@ describe('data-management UX contract', () => {
 
     const message = await screen.findByTestId('data-message');
     await waitFor(() => expect(message).toHaveTextContent(/checksum mismatch/));
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    expect(screen.getByTestId('data-import-replace')).toBeDisabled();
     expect(mockedApplyImport).not.toHaveBeenCalled();
   });
 
@@ -664,6 +958,7 @@ describe('data-management UX contract', () => {
       mockedPreviewImport.mockResolvedValue(validPreview('merge'));
       await renderScreen();
       await typeImportJson();
+      await showPreview('merge');
 
       await fireEvent.press(await screen.findByTestId('data-import-merge'));
       await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledTimes(1));
@@ -671,6 +966,7 @@ describe('data-management UX contract', () => {
 
       // Replace (two-tap destructive confirm) emits again.
       mockedPreviewImport.mockResolvedValue(validPreview('replace'));
+      await showPreview('replace');
       await fireEvent.press(screen.getByTestId('data-import-replace'));
       await screen.findByText(/Tap again to erase and restore/);
       await fireEvent.press(screen.getByTestId('data-import-replace'));

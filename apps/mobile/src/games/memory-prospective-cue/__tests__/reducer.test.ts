@@ -16,7 +16,7 @@ import {
 import type { DifficultyLevel } from "@/sdk";
 import { generateRound } from "../generator";
 import { perfectSessionScore } from "../scoring";
-import { GAME_ID, INITIAL_STATS, createInitialProspectiveCueState } from "../types";
+import { continuationStamp, GAME_ID, INITIAL_STATS, createInitialProspectiveCueState } from '../types';
 import type {
   ItemResponse,
   ProspectiveCueAction,
@@ -120,7 +120,7 @@ describe("per-round tally pass rule (wave-1 regression pin)", () => {
     expect(state.stats.falseAlarms).toBeGreaterThan(0);
 
     // Round 2 must be judged on ITS OWN tallies alone.
-    state = reducer(state, { type: "next-round" });
+    state = reducer(state, { stamp: continuationStamp(state), type: "next-round" });
     expect(state.phase).toBe("briefing");
     expect(state.roundSignalTotal).toBe(0);
     expect(state.roundSignalHits).toBe(0);
@@ -138,7 +138,7 @@ describe("per-round tally pass rule (wave-1 regression pin)", () => {
     state = playRoundToEnd(state); // round 1 perfect → passed
     expect(state.roundOutcome).toBe("passed");
 
-    state = reducer(state, { type: "next-round" });
+    state = reducer(state, { stamp: continuationStamp(state), type: "next-round" });
     state = inStream(state);
     let missed = false;
     state = playRoundToEnd(state, (isSignal) => {
@@ -463,7 +463,7 @@ describe("QA force paths", () => {
     // In-flight (stream): +1 roundsPlayed, streak reset.
     let state = inStream(startedState("normal", "w04-fl-stream"));
     state = playRoundToEnd(state); // pass round 1 → streak 1
-    state = reducer(state, { type: "next-round" });
+    state = reducer(state, { stamp: continuationStamp(state), type: "next-round" });
     state = inStream(state);
     state = reducer(state, { type: "qa/force-lose" });
     expect(state.phase).toBe("results");
@@ -518,7 +518,7 @@ describe("session end-to-end invariant", () => {
         ? undefined
         : (isSignal) => (isSignal ? "go" : undefined));
       expect(state.roundOutcome).toBe(pass ? "passed" : "failed");
-      state = reducer(state, { type: "next-round" });
+      state = reducer(state, { stamp: continuationStamp(state), type: "next-round" });
       count = nextSignalCount(count, pass, level, params);
       expect(state.signalCount).toBe(count);
     }

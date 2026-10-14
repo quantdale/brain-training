@@ -200,25 +200,35 @@ describe('tap-color', () => {
     expect(late.phase).toBe('trial');
     expect(late.stats.trialsPlayed).toBe(0);
 
-    // Exactly at the deadline still counts (timer/dispatch boundary).
+    // The window is half-open: exactly at expiry belongs to the timer.
     const atDeadline = speedColorMatchReducer(state, {
       type: 'tap-color',
       color: trial.swatchColor,
       tappedAtMs: 1000 + timeoutMs,
     });
-    expect(atDeadline.phase).toBe('roundResult');
-    expect(atDeadline.currentTrialOutcome).toBe('correct');
+    expect(atDeadline).toBe(state);
+    const justInside = speedColorMatchReducer(state, {
+      type: 'tap-color', color: trial.swatchColor, tappedAtMs: 1000 + timeoutMs - 1,
+    });
+    expect(justInside.currentTrialOutcome).toBe('correct');
   });
 });
 
 describe('trial-timeout', () => {
   it('marks the trial as timed out', () => {
-    const state = startSession('timeout');
+    const state = speedColorMatchReducer(startSession('timeout'), { type: 'trial-shown', shownAtMs: 1000 });
     const updated = speedColorMatchReducer(state, { type: 'trial-timeout', timedOutAtMs: 5000 });
     expect(updated.phase).toBe('roundResult');
     expect(updated.currentTrialOutcome).toBe('timeout');
     expect(updated.stats.trialsPlayed).toBe(1);
     expect(updated.stats.streak).toBe(0);
+  });
+
+  it('ignores an early timeout and cannot time out a stimulus before its onset', () => {
+    const waiting = startSession('timeout-onset');
+    expect(speedColorMatchReducer(waiting, { type: 'trial-timeout', timedOutAtMs: 5000 })).toBe(waiting);
+    const shown = speedColorMatchReducer(waiting, { type: 'trial-shown', shownAtMs: 1000 });
+    expect(speedColorMatchReducer(shown, { type: 'trial-timeout', timedOutAtMs: 4999 })).toBe(shown);
   });
 });
 

@@ -31,7 +31,7 @@ import {
 } from './difficulty';
 import { EMPTY, generateRound } from './generator';
 import { perfectSessionScore, referenceMaxRecall, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialSymbolTrackerState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialSymbolTrackerState } from './types';
 import type {
   SymbolTrackerAction,
   SymbolTrackerDifficultyParams,
@@ -113,6 +113,7 @@ export function symbolTrackerGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'observe',
         paused: false,
         profile,
@@ -195,6 +196,9 @@ export function symbolTrackerGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (
         state.phase !== 'roundResult' ||
         state.profile === null ||
@@ -250,11 +254,11 @@ export function symbolTrackerGameReducer(
       ) {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

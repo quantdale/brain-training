@@ -28,6 +28,7 @@ import {
 import {
   INITIAL_STATS,
   createInitialPairRecallState,
+  isCurrentInput,
 } from "./types";
 import type {
   PairRecallAction,
@@ -42,6 +43,7 @@ function openRound(
   state: PairRecallGameState,
   roundIndex: number,
   pairCount: number,
+  nowMs: number,
 ): PairRecallGameState {
   const rng = createRng(state.seed);
   const round = generateRound({
@@ -64,6 +66,8 @@ function openRound(
     lastCue: null,
     roundScored: false,
     roundOutcome: null,
+    studyDeadlineMs: nowMs + pairRecallParamsFromProfile(state.profile!).studyMs,
+    studyRemainingMs: pairRecallParamsFromProfile(state.profile!).studyMs,
   };
 }
 
@@ -90,6 +94,7 @@ export function pairRecallGameReducer(
         {
           ...state,
           profile,
+          inputEpoch: state.inputEpoch + 1,
           seed: action.seed,
           sessionId: action.sessionId,
           startedAtMs: action.startedAtMs,
@@ -112,12 +117,14 @@ export function pairRecallGameReducer(
         },
         0,
         params.initialPairCount,
+        action.nowMs,
       );
     }
 
     case "study-tick": {
       // The study timer expired: hide the pairs and move to cued recall.
-      if (state.phase !== "study" || state.paused) {
+      if (state.phase !== "study" || state.paused || !isCurrentInput(state, action.stamp) ||
+          !Number.isFinite(action.nowMs) || action.nowMs < state.studyDeadlineMs) {
         return state;
       }
       return {
@@ -135,7 +142,8 @@ export function pairRecallGameReducer(
         state.phase !== "recall" ||
         state.paused ||
         state.roundScored ||
-        state.round === null
+        state.round === null ||
+        !isCurrentInput(state, action.stamp)
       ) {
         return state;
       }
@@ -200,7 +208,8 @@ export function pairRecallGameReducer(
       if (
         state.phase !== "roundResult" ||
         state.profile === null ||
-        state.difficulty === null
+        state.difficulty === null || state.paused ||
+        !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs)
       ) {
         return state;
       }
@@ -216,22 +225,37 @@ export function pairRecallGameReducer(
         state.difficulty,
         params,
       );
-      return openRound(state, nextIndex, pairCount);
+      return openRound(state, nextIndex, pairCount, action.nowMs);
     }
 
     case "pause": {
       if (
         state.paused ||
+        !Number.isFinite(action.nowMs) ||
         state.phase === "results" ||
         state.phase === "intro"
       ) {
         return state;
       }
-      return { ...state, paused: true };
+      return {
+        ...state,
+        paused: true,
+        inputEpoch: state.inputEpoch + 1,
+        studyRemainingMs: state.phase === 'study'
+          ? Math.max(0, state.studyDeadlineMs - action.nowMs)
+          : state.studyRemainingMs,
+      };
     }
 
     case "resume": {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused || !Number.isFinite(action.nowMs)) return state;
+      return {
+        ...state,
+        paused: false,
+        studyDeadlineMs: state.phase === 'study'
+          ? action.nowMs + state.studyRemainingMs
+          : state.studyDeadlineMs,
+      };
     }
 
     case "tutorial-open": {

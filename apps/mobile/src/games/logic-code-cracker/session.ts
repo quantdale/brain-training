@@ -59,8 +59,12 @@ export interface BuildRawResultInput {
  * per the SDK generator rule and constitution §21.
  */
 export function buildCodeCrackerRawResult(input: BuildRawResultInput): CodeCrackerRawResult {
+  const initialCodeLength = input.params.initialCodeLength ?? input.params.codeLength;
   const generatorInfo = {
-    codeLength: input.params.codeLength,
+    // `codeLength` keeps its historical meaning as the starting generator
+    // parameter; the current profile can now carry a different Adaptive length.
+    codeLength: initialCodeLength,
+    finalCodeLength: input.params.codeLength,
     colorCount: input.params.colorCount,
     guessBudget: input.params.guessBudget,
     rounds: input.params.rounds,
@@ -93,7 +97,7 @@ export function buildCodeCrackerRawResult(input: BuildRawResultInput): CodeCrack
     bestSolveGuesses: Number.isFinite(input.stats.bestSolveGuesses)
       ? input.stats.bestSolveGuesses
       : null,
-    codeLength: input.params.codeLength,
+    codeLength: initialCodeLength,
     colorCount: input.params.colorCount,
     guessBudget: input.params.guessBudget,
     challengeRating: input.challengeRating,

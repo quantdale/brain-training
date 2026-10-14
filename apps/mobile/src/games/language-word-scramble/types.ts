@@ -124,7 +124,7 @@ export type WordScrambleAction =
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
   | { type: 'select-option'; index: number }
   | { type: 'submit-answer' }
-  | { type: 'next-round' }
+  | { type: 'next-round' ; stamp: ResultContinuationStamp }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
@@ -155,6 +155,8 @@ export interface WordScrambleGameState {
   phase: WordScramblePhase;
   /** True while the SDK lifecycle is paused (timers frozen). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -198,6 +200,7 @@ export interface WordScrambleGameState {
 
 export function createInitialWordScrambleState(): WordScrambleGameState {
   return {
+    continuationEpoch: 0,
     phase: 'intro',
     paused: false,
     difficulty: 'normal',
@@ -226,4 +229,31 @@ export function createInitialWordScrambleState(): WordScrambleGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: WordScrambleGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: WordScrambleGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: WordScrambleGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

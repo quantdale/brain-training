@@ -1,0 +1,679 @@
+{
+  "retrievedAt": "2026-10-13T18:38:56.766Z",
+  "tool": "mcp__refero__refero_get_style",
+  "requestedIds": [
+    "d6523b05-a53f-4a2a-8829-d65a5c3724e9",
+    "c73224da-e583-4833-bf39-3f414c317474",
+    "4b3c372c-aff6-4608-bafb-1dde853c4805"
+  ],
+  "data": {
+    "records": [
+      {
+        "dos": [
+          "Use 'Page Background' (`#f6f7fb`) as the foundational canvas for all pages.",
+          "Apply 'Quizlet Violet' (`#4255ff`) exclusively for primary call-to-action buttons and key interactive elements to maintain focus.",
+          "Utilize `hurme_no2-webfont` weight 700 for headlines and primary CTA button text to ensure clear hierarchy and impact.",
+          "Maintain `8px` border-radius for all content cards and larger container elements, and `4px` for input fields and smaller interactive items.",
+          "Employ the `Stormcloud Ink` shadow (`rgba(40, 46, 62, 0.1) 0px 4px 16px 0px`) for elevated components like cards and navigation to create subtle depth.",
+          "Employ `16px` padding for internal spacing within content blocks and `48px` for vertical separation between major sections.",
+          "Use `Stormcloud Ink` (`#282e3e`) for main body text and prominent informational text, and `Slate Text` (`#586380`) for secondary text details."
+        ],
+        "donts": [
+          "Do not introduce new highly saturated colors outside of the defined accent palette, as they will clash with the established brand hues.",
+          "Avoid using `200px` border-radius on any element other than primary buttons to preserve their distinctive pill shape.",
+          "Do not use generic system fonts; only `hurme_no2-webfont` should be used for all text content.",
+          "Refrain from heavy, dark shadows; the subtle `Stormcloud Ink` shadow is sufficient for elevation.",
+          "Do not use `0px` border-radius on any visible component unless it's a specific, text-only navigation link, to preserve a soft, approachable aesthetic.",
+          "Do not cluster too much vibrant imagery; allow the core UI colors and clean layout to guide user attention.",
+          "Avoid using `Pure White` (#ffffff) for any primary text color; it's reserved for backgrounds and text on dark buttons."
+        ],
+        "theme": "light",
+        "colors": [
+          {
+            "hex": "#282e3",
+            "name": "Stormcloud Ink",
+            "role": "Primary text, deep context elements, input text, prominent icons.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#4255ff",
+            "name": "Quizlet Violet",
+            "role": "Primary interactive elements, main CTA buttons, active links, important icons, defining Quizlet's brand identity.",
+            "group": "brand"
+          },
+          {
+            "hex": "#98e3ff",
+            "name": "Sky Study",
+            "role": "Decorative background for 'Learn' card, adding a moderate, fresh accent.",
+            "group": "accent"
+          },
+          {
+            "hex": "#eeaaff",
+            "name": "Flashcard Pink",
+            "role": "Decorative background for 'Study Guides' card, adding a playful, vivid accent.",
+            "group": "accent"
+          },
+          {
+            "hex": "#423ed8",
+            "name": "Night Violet",
+            "role": "Decorative background for 'Flashcards' card, a darker, more intense variant of the brand violet.",
+            "group": "accent"
+          },
+          {
+            "hex": "#ffc38c",
+            "name": "Practice Orange",
+            "role": "Decorative background for 'Practice Tests' card, a moderate, warm accent.",
+            "group": "accent"
+          },
+          {
+            "hex": "#586380",
+            "name": "Slate Text",
+            "role": "Secondary text, less prominent icons, button outlines, subtle informational text.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#939bb4",
+            "name": "Light Slate",
+            "role": "Subtle borders, inactive states, lighter text elements for hierarchical distinction.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#2e3856",
+            "name": "Deep Slate",
+            "role": "Detailed body text, specific informational blocks, providing a muted contrast.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#f6f7fb",
+            "name": "Page Background",
+            "role": "Dominant background color for the entire application, serving as a bright, clean foundation.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#ffffff",
+            "name": "Pure White",
+            "role": "Card backgrounds, section separators, text on dark buttons, establishing a crisp, elevated surface.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#d9dde8",
+            "name": "Ash Border",
+            "role": "Dividers, subtle input borders, defining content boundaries without harshness.",
+            "group": "neutral"
+          }
+        ],
+        "layout": "The page primarily uses a max-width contained layout, approximately 1200px wide, centered within the browser. The hero section features a centered headline and subtext over a `Page Background` (`#f6f7fb`), followed by a row of distinct, accent-colored category cards. Sections generally follow a consistent `48px` vertical spacing. Content is often arranged in alternate text-left/image-right compositions for features, and a flexible grid for content cards (visible as a 3-column grid in some sections). The navigation is a fixed top bar (`64px` height) with a clear search input and primary CTA button. The footer is dense with links, organized into column lists.",
+        "imagery": "Imagery features a mix of product screenshots demonstrating the app's interface (contained in stylized device mockups), flat, geometric illustrations that are brand-colored and serve as decorative accents on cards, and abstract graphics. Photography is largely absent. The icons are minimalistic, usually filled, with a medium stroke weight where outlines are present, consistent with the brand colors. Imagery plays a role in both explanatory content (product screenshots) and decorative atmosphere (card illustrations), balancing visual interest with clean UI. Density shows imagery playing a significant role in breaking up text and making sections more engaging, especially in the hero area and feature descriptions.",
+        "spacing": {
+          "radius": {
+            "cards": "8px",
+            "inputs": "4px",
+            "buttons": "200px",
+            "general": "4px"
+          },
+          "density": "compact",
+          "baseUnit": 8,
+          "elementGap": "8px",
+          "sectionGap": "48px",
+          "cardPadding": "",
+          "pageMaxWidth": null
+        },
+        "elevation": [
+          {
+            "style": "rgba(40, 46, 62, 0.1) 0px 4px 16px 0px",
+            "element": "Card / Elevated Panel"
+          },
+          {
+            "style": "rgba(40, 46, 62, 0.1) 0px 2px 4px 0px",
+            "element": "Button Focus"
+          },
+          {
+            "style": "rgba(0, 0, 0, 0.3) 0px 0px 1px 0px inset",
+            "element": "Icon Outline / Inner Shadow"
+          }
+        ],
+        "northStar": "Academic Playground on Soft Gray. Like a well-organized desk scattered with colorful learning tools.",
+        "typeScale": [
+          {
+            "role": "caption",
+            "size": 12,
+            "lineHeight": 1.5
+          },
+          {
+            "role": "body-sm",
+            "size": 14,
+            "lineHeight": 1.43
+          },
+          {
+            "role": "body",
+            "size": 16,
+            "lineHeight": 1.5
+          },
+          {
+            "role": "subheading",
+            "size": 20,
+            "lineHeight": 1.25
+          },
+          {
+            "role": "heading",
+            "size": 24,
+            "lineHeight": 1.33
+          },
+          {
+            "role": "heading-lg",
+            "size": 32,
+            "lineHeight": 1.27
+          },
+          {
+            "role": "display",
+            "size": 44,
+            "lineHeight": 1.25
+          }
+        ],
+        "components": [
+          {
+            "html": "<div style=\"--color-stormcloud-ink:#282e3e;--color-quizlet-violet:#4255ff;--color-sky-study:#98e3ff;--color-flashcard-pink:#eeaaff;--color-night-violet:#423ed8;--color-practice-orange:#ffc38c;--color-slate-text:#586380;--color-light-slate:#939bb4;--color-deep-slate:#2e3856;--color-page-background:#f6f7fb;--color-pure-white:#ffffff;--color-ash-border:#d9dde8;--shadow-md:rgba(40,46,62,0.1) 0px 4px 16px 0px;--font-hurmeno2-webfont:system-ui,sans-serif;background:var(--color-page-background);padding:32px 24px;box-sizing:border-box;width:600px;\"><p style=\"font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:700;color:var(--color-light-slate);letter-spacing:0.08em;text-transform:uppercase;margin:0 0 16px 0;\">HOW DO YOU WANT TO STUDY?</p><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\"><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;\"><div style=\"background:var(--color-sky-study);padding:20px 16px 0 16px;height:100px;display:flex;align-items:flex-end;justify-content:center;\"><div style=\"background:var(--color-pure-white);border-radius:6px 6px 0 0;width:90%;padding:8px 12px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:13px;color:var(--color-deep-slate);font-weight:400;\">la pintura</div><div style=\"height:1px;background:var(--color-ash-border);margin-top:6px;\"></div></div></div><div style=\"padding:12px 16px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);\">Learn</div></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;\"><div style=\"background:var(--color-flashcard-pink);padding:20px 16px 0 16px;height:100px;display:flex;align-items:flex-end;justify-content:center;\"><div style=\"background:var(--color-pure-white);border-radius:6px 6px 0 0;width:90%;padding:8px 12px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:11px;font-weight:700;color:var(--color-stormcloud-ink);\">Greek art</div><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:10px;color:var(--color-slate-text);margin-top:2px;\">Key dates</div><div style=\"height:1px;background:var(--color-ash-border);margin-top:4px;\"></div></div></div><div style=\"padding:12px 16px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);\">Study Guides</div></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;\"><div style=\"background:var(--color-night-violet);padding:20px 16px 0 16px;height:100px;display:flex;align-items:center;justify-content:center;\"><div style=\"background:var(--color-pure-white);border-radius:6px;width:80%;padding:10px 14px;box-shadow:var(--shadow-md);\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:12px;color:var(--color-deep-slate);font-weight:400;\">superior vena cava</div></div></div><div style=\"padding:12px 16px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-pure-white);background:var(--color-night-violet);margin:-12px -16px 0 -16px;padding:12px 16px;\">Flashcards</div></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;\"><div style=\"background:var(--color-practice-orange);padding:12px 16px 0 16px;height:100px;\"><div style=\"display:flex;justify-content:space-between;font-family:var(--font-hurmeno2-webfont);font-size:10px;color:var(--color-deep-slate);font-weight:600;\"><span>Score<br/><span style=\"font-size:16px;font-weight:700;\">84%</span></span><span>Results<br/><span style=\"font-size:16px;font-weight:700;\">76/90</span></span><span>Time<br/><span style=\"font-size:16px;font-weight:700;\">70m</span></span></div></div><div style=\"padding:12px 16px;\"><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);\">Practice Tests</div></div></div></div></div>",
+            "name": "Study Mode Cards",
+            "role": "",
+            "description": ""
+          },
+          {
+            "html": "<div style=\"--color-stormcloud-ink:#282e3e;--color-quizlet-violet:#4255ff;--color-slate-text:#586380;--color-light-slate:#939bb4;--color-page-background:#f6f7fb;--color-pure-white:#ffffff;--color-ash-border:#d9dde8;--shadow-md:rgba(40,46,62,0.1) 0px 4px 16px 0px;--shadow-sm:rgba(40,46,62,0.1) 0px 2px 4px 0px;--font-hurmeno2-webfont:system-ui,sans-serif;background:var(--color-page-background);padding:32px 24px;box-sizing:border-box;width:600px;\"><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\"><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:120px;\"><div><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);line-height:1.33;margin-bottom:10px;\">Lección 11 Problemas con la computadora</div><span style=\"display:inline-block;font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:600;color:var(--color-slate-text);background:var(--color-page-background);border-radius:4px;padding:2px 8px;\">6 terms</span></div><div style=\"display:flex;align-items:center;gap:8px;margin-top:12px;\"><div style=\"width:28px;height:28px;border-radius:50%;background:#c0c8e0;flex-shrink:0;\"></div><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:13px;color:var(--color-slate-text);\">chassitinw</span></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:120px;\"><div><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);line-height:1.33;margin-bottom:10px;\">Academic Vocabulary, ELA, 4th Grade 2026</div><span style=\"display:inline-block;font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:600;color:var(--color-slate-text);background:var(--color-page-background);border-radius:4px;padding:2px 8px;\">44 terms</span></div><div style=\"display:flex;align-items:center;gap:8px;margin-top:12px;\"><div style=\"width:28px;height:28px;border-radius:50%;background:#98bcf0;flex-shrink:0;\"></div><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:13px;color:var(--color-slate-text);\">dolanrt</span></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:120px;\"><div><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);line-height:1.33;margin-bottom:10px;\">8th Grade Review of Poetry Literary Terms</div><span style=\"display:inline-block;font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:600;color:var(--color-slate-text);background:var(--color-page-background);border-radius:4px;padding:2px 8px;\">28 terms</span></div><div style=\"display:flex;align-items:center;gap:8px;margin-top:12px;\"><div style=\"width:28px;height:28px;border-radius:50%;background:#f0a0c8;flex-shrink:0;\"></div><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:13px;color:var(--color-slate-text);\">hartmanjeff</span></div></div><div style=\"background:var(--color-pure-white);border-radius:8px;box-shadow:var(--shadow-sm);padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:120px;\"><div><div style=\"font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:700;color:var(--color-stormcloud-ink);line-height:1.33;margin-bottom:10px;\">Greek / Roman Gods and Goddesses</div><span style=\"display:inline-block;font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:600;color:var(--color-slate-text);background:var(--color-page-background);border-radius:4px;padding:2px 8px;\">17 terms</span></div><div style=\"display:flex;align-items:center;gap:8px;margin-top:12px;\"><div style=\"width:28px;height:28px;border-radius:50%;background:#4255ff;flex-shrink:0;display:flex;align-items:center;justify-content:center;\"><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:12px;font-weight:700;color:#fff;\">M</span></div><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:13px;color:var(--color-slate-text);\">shellzerinpa</span></div></div></div><div style=\"display:flex;align-items:center;justify-content:center;gap:24px;margin-top:20px;\"><button style=\"background:none;border:none;cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center;\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\"><circle cx=\"10\" cy=\"10\" r=\"9\" stroke=\"#d9dde8\" stroke-width=\"1.5\"/><path d=\"M12 6l-4 4 4 4\" stroke=\"#586380\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button><span style=\"font-family:var(--font-hurmeno2-webfont);font-size:16px;font-weight:700;color:var(--color-stormcloud-ink);\">1/5</span><button style=\"background:none;border:none;cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center;\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\"><circle cx=\"10\" cy=\"10\" r=\"9\" stroke=\"#d9dde8\" stroke-width=\"1.5\"/><path d=\"M8 6l4 4-4 4\" stroke=\"#586380\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button></div></div>",
+            "name": "Flashcard Set Cards Grid",
+            "role": "",
+            "description": ""
+          },
+          {
+            "html": "<div style=\"--color-stormcloud-ink:#282e3e;--color-quizlet-violet:#4255ff;--color-slate-text:#586380;--color-light-slate:#939bb4;--color-page-background:#f6f7fb;--color-pure-white:#ffffff;--color-ash-border:#d9dde8;--shadow-md:rgba(40,46,62,0.1) 0px 4px 16px 0px;--font-hurmeno2-webfont:system-ui,sans-serif;background:var(--color-page-background);padding:48px 24px;box-sizing:border-box;width:600px;text-align:center;\"><h1 style=\"font-family:var(--font-hurmeno2-webfont);font-size:36px;font-weight:700;color:var(--color-stormcloud-ink);line-height:1.25;margin:0 0 16px 0;\">How do you want to study?</h1><p style=\"font-family:var(--font-hurmeno2-webfont);font-size:16px;color:var(--color-slate-text);line-height:1.5;margin:0 auto 32px auto;max-width:420px;\">Master whatever you're learning with Quizlet's interactive flashcards, practice tests, and study activities.</p><div style=\"display:flex;align-items:center;background:var(--color-pure-white);border-radius:200px;padding:0 20px;box-shadow:var(--shadow-md);max-width:420px;margin:0 auto 24px auto;height:48px;\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\" style=\"flex-shrink:0;margin-right:10px;\"><circle cx=\"7.5\" cy=\"7.5\" r=\"5.5\" stroke=\"#939bb4\" stroke-width=\"1.6\"/><path d=\"M12 12l3.5 3.5\" stroke=\"#939bb4\" stroke-width=\"1.6\" stroke-linecap=\"round\"/></svg><input type=\"text\" placeholder=\"Search for study guides\" style=\"border:none;outline:none;background:transparent;font-family:var(--font-hurmeno2-webfont);font-size:15px;color:var(--color-stormcloud-ink);flex:1;\" /></div><div style=\"display:flex;flex-direction:column;align-items:center;gap:16px;\"><a href=\"#\" style=\"display:inline-block;background:var(--color-quizlet-violet);color:var(--color-pure-white);font-family:var(--font-hurmeno2-webfont);font-size:16px;font-weight:700;padding:14px 40px;border-radius:200px;text-decoration:none;box-shadow:rgba(40,46,62,0.1) 0px 2px 4px 0px;\">Sign up for free</a><a href=\"#\" style=\"display:inline-block;background:transparent;color:var(--color-quizlet-violet);font-family:var(--font-hurmeno2-webfont);font-size:15px;font-weight:600;text-decoration:none;padding:4px 0;\">I'm a teacher</a></div></div>",
+            "name": "CTA Button Group with Search Bar",
+            "role": "",
+            "description": ""
+          },
+          {
+            "name": "Secondary Button (Ghost)",
+            "role": "Action",
+            "description": "Transparent background (`rgba(0, 0, 0, 0)`), text 'Quizlet Violet' (`#4255ff`), `hurme_no2-webfont` weight 400 at 16px, padding `0px`, `4px` border-radius."
+          },
+          {
+            "name": "Icon Button (Circular)",
+            "role": "Navigation/Action",
+            "description": "Transparent background (`rgba(0, 0, 0, 0)`), text 'Ash Border' (`#d9dde8`) (likely for inactive state), `50%` border-radius resulting in a circle, `0px` padding."
+          },
+          {
+            "name": "Navigation Link Button",
+            "role": "Navigation",
+            "description": "Transparent background (`rgba(0, 0, 0, 0)`), text 'Stormcloud Ink' (`#282e3e`), `0px` border-radius, `0px` padding, typically for internal navigation."
+          },
+          {
+            "name": "Category Card (Learn)",
+            "role": "Content Display",
+            "description": "Background 'Pure White' (`#ffffff`), `8px` border-radius, `Stormcloud Ink` (`rgba(40, 46, 62, 0.1) 0px 4px 16px 0px`) shadow, `Sky Study` (`#98e3ff`) background accent for content block."
+          },
+          {
+            "name": "Category Card (Flashcards)",
+            "role": "Content Display",
+            "description": "Background 'Pure White' (`#ffffff`), `8px` border-radius, `Stormcloud Ink` (`rgba(40, 46, 62, 0.1) 0px 4px 16px 0px`) shadow, `Night Violet` (`#423ed8`) background accent for content block."
+          },
+          {
+            "name": "Category Card (Practice Tests)",
+            "role": "Content Display",
+            "description": "Background 'Pure White' (`#ffffff`), `8px` border-radius, `Stormcloud Ink` (`rgba(40, 46, 62, 0.1) 0px 4px 16px 0px`) shadow, `Practice Orange` (`#ffc38c`) background accent for content block."
+          }
+        ],
+        "typography": [
+          {
+            "role": "Primary typeface for all textual content from headlines to body text, buttons, and navigation. Its consistent application across all sizes and weights establishes a direct, legible tone.",
+            "sizes": "12px, 14px, 16px, 20px, 21px, 24px, 32px, 44px",
+            "family": "hurme_no2-webfont",
+            "source": "custom",
+            "weight": "400, 600, 700",
+            "lineHeight": "1.25, 1.27, 1.33, 1.40, 1.43, 1.50, 1.63",
+            "substitute": "system-ui, sans-serif",
+            "letterSpacing": "normal"
+          }
+        ],
+        "description": "This design system feels like a friendly, structured learning environment, prioritizing clarity and interactive engagement. The dominant near-gray background (#F6F7FB) provides a clean canvas, while a palette of vivid and moderate hues—primarily a bold violet (#4255FF) and accent colors like light blue (#98E3FF) and vibrant pink (#EEAAFF)—define interactive elements and illustrate content categories. The consistent use of `hurme_no2-webfont` with varying weights creates a cohesive textual experience, balancing readability with a distinctive, approachable character.",
+        "customSections": [
+          {
+            "title": "Agent Prompt Guide",
+            "content": "### Quick Color Reference\n- Text: `#282e3e` (Stormcloud Ink)\n- Page Background: `#f6f7fb` (Page Background)\n- CTA Button: `#4255ff` (Quizlet Violet)\n- Border/Divider: `#d9dde8` (Ash Border)\n- Accent (Learn Card): `#98e3ff` (Sky Study)\n\n### 3-5 Example Component Prompts\n1. **Create a hero section:** Background `Page Background` (`#f6f7fb`). Headline 'How do you want to study?' `hurme_no2-webfont` weight 700 at 44px, color `Stormcloud Ink` (`#282e3e`). Subtext 'Master whatever you're learning with Quizlet’s interactive flashcards, practice tests, and study activities.' `hurme_no2-webfont` weight 400 at 20px, color `Stormcloud Ink` (`#282e3e`). Primary CTA button 'Sign up for free' with background `Quizlet Violet` (`#4255ff`), text `Pure White` (`#ffffff`), `hurme_no2-webfont` weight 700 at 16px, `10px 16px` padding, and `200px` border-radius.\n2. **Create a card for 'Flashcards':** Background `Pure White` (`#ffffff`), `8px` border-radius, `rgba(40, 46, 62, 0.1) 0px 4px 16px 0px` shadow. Inside the card, display an accent content block with background `Night Violet` (`#423ed8`) and a headline 'Flashcards' `hurme_no2-webfont` weight 700 at 24px, color `Pure White` (`#ffffff`).\n3. **Create a secondary ghost button:** Text 'I’m a teacher' `hurme_no2-webfont` weight 400 at 16px, color `Quizlet Violet` (`#4255ff`), transparent background (`rgba(0, 0, 0, 0)`), and `0px` padding with `4px` border-radius.\n4. **Generate a search input field:** Color `Stormcloud Ink` (`#282e3e`), transparent background (`rgba(0, 0, 0, 0)`), placeholder text `Stormcloud Ink` (`#282e3e`) (e.g., 'Search for study guides'), `4px` border-radius, with an implied `Ash Border` (`#d9dde8`) border on focus."
+          }
+        ],
+        "title": "Quizlet"
+      },
+      {
+        "dos": [
+          "Prioritize 'Sky Connect' (#0061ef) for all primary call-to-action buttons and active navigation states.",
+          "Apply 'Cloud Whisper' (#f9f4f2) for most large section backgrounds to maintain a soft, inviting atmosphere.",
+          "Use border-radius `24px` for general buttons and `32px` for prominent CTA buttons to reinforce the soft, friendly aesthetic.",
+          "Utilize 'Inkwell Gray' (#4b4c4d) as the primary text color for body copy and headings for optimal readability on light backgrounds.",
+          "Ensure headings and body text use the Headspace Apercu font with careful application of letter-spacing adjustments: -0.0300em, -0.0250em, -0.0100em at larger sizes.",
+          "Incorporate the subtle `rgba(65, 61, 69, 0.2) 0px 2px 0px 0px` shadow on buttons and cards to provide soft visual lift without heavy contrast.",
+          "Use `8px` and `16px` as primary `elementGap` values for consistent spacing between UI elements."
+        ],
+        "donts": [
+          "Avoid harsh, high-contrast shadows or sharp corners, as they contradict the brand's soft and approachable aesthetic.",
+          "Do not use highly saturated colors for large text blocks; reserve them for accents, illustrations, and interactive elements.",
+          "Refrain from using excessively small or tight letter-spacing for body text; the system clearly favors open and legible typography.",
+          "Do not introduce new typefaces; stick to Headspace Apercu and its defined weights.",
+          "Avoid full-bleed imagery without defined edges or masking; prefer contained, rounded elements or abstract backgrounds.",
+          "Do not use dark backgrounds for entire sections, except where explicitly indicated for specific brand moments (e.g., hero, unless data suggests otherwise).",
+          "Limit the use of 'True Black' (#000000) to critical input text or select emphasis, defaulting to 'Inkwell Gray' (#4b4c4d) for most text."
+        ],
+        "theme": "light",
+        "colors": [
+          {
+            "hex": "#0061ef",
+            "name": "Sky Connect",
+            "role": "Primary interactive elements (buttons, links, active states) — a bold commitment to guidance and support amidst the softer palette.",
+            "group": "brand"
+          },
+          {
+            "hex": "#ffce00",
+            "name": "Sunshine Burst",
+            "role": "Accent for illustrations, banners, and hero backgrounds — injects energetic warmth and optimism.",
+            "group": "accent"
+          },
+          {
+            "hex": "#3b197f",
+            "name": "Deep Plum",
+            "role": "Accent for illustrations and thematic sections — provides a rich, grounding counterpoint to brighter accents.",
+            "group": "accent"
+          },
+          {
+            "hex": "#00a4ff",
+            "name": "Ocean Glimmer",
+            "role": "Accent for iconography and illustrations, suggesting clarity and serenity.",
+            "group": "accent"
+          },
+          {
+            "hex": "#ffa1cc",
+            "name": "Blush Petal",
+            "role": "Accent in illustrations, adding softness and a touch of playfulness.",
+            "group": "accent"
+          },
+          {
+            "hex": "#02873",
+            "name": "Forest Calm",
+            "role": "Accent in illustrations, symbolizing growth and tranquility.",
+            "group": "accent"
+          },
+          {
+            "hex": "#4b4c4d",
+            "name": "Inkwell Gray",
+            "role": "Dominant body text, strong headings, button text — balances the soft background with clear readability.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#000000",
+            "name": "True Black",
+            "role": "Highest contrast text, input text — used sparingly for emphasis.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#2d2c2b",
+            "name": "Charcoal Tone",
+            "role": "Darker button backgrounds, secondary text, accents in illustrations — creates depth without harshness.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#f9f4f2",
+            "name": "Cloud Whisper",
+            "role": "Light background surfaces, subtle button backgrounds — a warm, inviting default for section backgrounds and off-white elements.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#44423f",
+            "name": "Stone Slate",
+            "role": "Text on lighter backgrounds for softer contrast, icon fills.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#ffffff",
+            "name": "Pure White",
+            "role": "Card backgrounds, selected elements, high-contrast text on dark backgrounds.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#e2ded9",
+            "name": "Pale Ash",
+            "role": "Subtle borders, button outlines, subtle shadows — defines soft separation.",
+            "group": "neutral"
+          },
+          {
+            "hex": "#d0d0d0",
+            "name": "Light Stone",
+            "role": "Input borders, light outlines on cards.",
+            "group": "neutral"
+          }
+        ],
+        "layout": "The site employs a max-width centered layout for most content, providing generous white space around elements, contributing to a calm and focused experience. The hero section often features a centered headline over a 'Cloud Whisper' background, sometimes with a full-width accent banner at the very top. Content sections predominantly alternate light backgrounds with white card elements, or feature large content blocks with a `Cloud Whisper` or `Pure White` background. A distinct pattern of 2-column text+image sections is observed, with some feature sections using a loose grid of tab-like buttons. Navigation is a consistent sticky top-bar, and the footer is information-rich with a multi-column layout.",
+        "imagery": "Imagery primarily consists of flat, geometric illustrations and product screenshots of the app. Illustrations are often brand-colored, utilizing a palette of 'Sunshine Burst', 'Deep Plum', 'Ocean Glimmer', and 'Blush Petal' to create a whimsical, abstract, and calming feeling. They are typically contained within rounded shapes or serve as background elements. Product screenshots are shown as device mockups, presented cleanly with rounded corners on 'Pure White' or subtly-shaded backgrounds, emphasizing the app's interface. Icons are filled, monoline, and often use accent colors, appearing friendly and guidance-oriented. The visual density is balanced, with imagery generally supporting text content rather than dominating it, creating an approachable and informative experience.",
+        "spacing": {
+          "radius": {
+            "cards": "16px",
+            "pills": "800px",
+            "buttons": "24px",
+            "default": "8px",
+            "largeButtons": "32px"
+          },
+          "density": "comfortable",
+          "baseUnit": 4,
+          "elementGap": "",
+          "sectionGap": "",
+          "cardPadding": "",
+          "pageMaxWidth": null
+        },
+        "elevation": [
+          {
+            "style": "rgba(65, 61, 69, 0.2) 0px 2px 0px 0px",
+            "element": "Primary Action Button"
+          },
+          {
+            "style": "rgba(65, 61, 69, 0.2) 0px 2px 0px 0px",
+            "element": "Content Card"
+          }
+        ],
+        "northStar": "Warm Modern Playfulness — like a friendly, brightly lit studio full of soft shapes and uplifting colors.",
+        "typeScale": [
+          {
+            "role": "caption",
+            "size": 12,
+            "lineHeight": 1.5
+          },
+          {
+            "role": "body-sm",
+            "size": 14,
+            "lineHeight": 1.44
+          },
+          {
+            "role": "body",
+            "size": 16,
+            "lineHeight": 1.38
+          },
+          {
+            "role": "subheading",
+            "size": 18,
+            "lineHeight": 1.33
+          },
+          {
+            "role": "heading-sm",
+            "size": 24,
+            "lineHeight": 1.32,
+            "letterSpacing": -0.48
+          },
+          {
+            "role": "heading",
+            "size": 32,
+            "lineHeight": 1.29,
+            "letterSpacing": -0.8
+          },
+          {
+            "role": "heading-lg",
+            "size": 40,
+            "lineHeight": 1.2,
+            "letterSpacing": -1
+          },
+          {
+            "role": "display",
+            "size": 48,
+            "lineHeight": 1.15,
+            "letterSpacing": -1.2
+          }
+        ],
+        "components": [
+          {
+            "html": "<div style=\"--color-sky-connect:#0061ef;--color-sunshine-burst:#ffce00;--color-deep-plum:#3b197f;--color-ocean-glimmer:#00a4ff;--color-blush-petal:#ffa1cc;--color-inkwell-gray:#4b4c4d;--color-true-black:#000000;--color-charcoal-tone:#2d2c2b;--color-cloud-whisper:#f9f4f2;--color-stone-slate:#44423f;--color-pure-white:#ffffff;--color-pale-ash:#e2ded9;--color-light-stone:#d0d0d0;--font-headspace-apercu:system-ui,sans-serif;box-sizing:border-box;font-family:var(--font-headspace-apercu);background:var(--color-pure-white);padding:24px;width:600px;\"><style scoped>.fcat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}.fcat-item{display:flex;align-items:center;justify-content:space-between;padding:18px 16px;border:1px solid var(--color-pale-ash);border-radius:12px;background:var(--color-pure-white);cursor:pointer;transition:box-shadow 0.15s;}.fcat-item:hover{box-shadow:0 2px 8px rgba(65,61,69,0.12);}.fcat-label{font-family:var(--font-headspace-apercu);font-size:16px;font-weight:500;color:var(--color-charcoal-tone);letter-spacing:-0.01em;}.fcat-right{display:flex;align-items:center;gap:10px;}.fcat-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;}.fcat-chevron{color:var(--color-inkwell-gray);font-size:16px;font-weight:400;}</style><div class=\"fcat-grid\"><div class=\"fcat-item\"><span class=\"fcat-label\">Stress less</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#fff7e0;\">⚡</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div><div class=\"fcat-item\"><span class=\"fcat-label\">Sleep soundly</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#ede8ff;\">🌙</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div><div class=\"fcat-item\"><span class=\"fcat-label\">Manage anxiety</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#e0f4ff;\">🌀</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div><div class=\"fcat-item\"><span class=\"fcat-label\">Process thoughts</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#ffe8f0;\">😊</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div><div class=\"fcat-item\"><span class=\"fcat-label\">Practice meditation</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#fff3e0;\">🟠</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div><div class=\"fcat-item\"><span class=\"fcat-label\">Start therapy</span><div class=\"fcat-right\"><div class=\"fcat-icon\" style=\"background:#e8f0ff;\">💬</div><svg width=\"8\" height=\"14\" viewBox=\"0 0 8 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1l6 6-6 6\" stroke=\"#4b4c4d\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div></div></div></div>",
+            "name": "Feature Category Grid",
+            "role": "",
+            "description": ""
+          },
+          {
+            "html": "<div style=\"--color-sky-connect:#0061ef;--color-sunshine-burst:#ffce00;--color-deep-plum:#3b197f;--color-ocean-glimmer:#00a4ff;--color-blush-petal:#ffa1cc;--color-inkwell-gray:#4b4c4d;--color-true-black:#000000;--color-charcoal-tone:#2d2c2b;--color-cloud-whisper:#f9f4f2;--color-stone-slate:#44423f;--color-pure-white:#ffffff;--color-pale-ash:#e2ded9;--color-light-stone:#d0d0d0;--font-headspace-apercu:system-ui,sans-serif;box-sizing:border-box;font-family:var(--font-headspace-apercu);background:var(--color-pure-white);padding:40px 24px;width:600px;text-align:center;\"><h2 style=\"font-family:var(--font-headspace-apercu);font-size:36px;font-weight:700;color:var(--color-charcoal-tone);letter-spacing:-0.03em;line-height:1.15;margin:0 0 32px 0;\">The mental health app for<br>every moment</h2><div style=\"display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px;\"><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:500;background:var(--color-charcoal-tone);color:var(--color-pure-white);border:none;border-radius:800px;padding:10px 20px;cursor:pointer;display:flex;align-items:center;gap:8px;\"><span style=\"width:8px;height:8px;border-radius:50%;background:var(--color-pure-white);display:inline-block;\"></span>AI guidance</button><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:500;background:var(--color-pure-white);color:var(--color-charcoal-tone);border:1px solid var(--color-pale-ash);border-radius:800px;padding:10px 20px;cursor:pointer;\">Guided meditations</button><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:500;background:var(--color-pure-white);color:var(--color-charcoal-tone);border:1px solid var(--color-pale-ash);border-radius:800px;padding:10px 20px;cursor:pointer;\">Sleep resources</button><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:500;background:var(--color-pure-white);color:var(--color-charcoal-tone);border:1px solid var(--color-pale-ash);border-radius:800px;padding:10px 20px;cursor:pointer;\">Expert-led programs</button><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:500;background:var(--color-pure-white);color:var(--color-charcoal-tone);border:1px solid var(--color-pale-ash);border-radius:800px;padding:10px 20px;cursor:pointer;\">Online therapy</button></div><div style=\"background:var(--color-sunshine-burst);border-radius:20px;padding:32px;text-align:left;display:flex;align-items:flex-start;gap:24px;\"><div style=\"flex:1;\"><div style=\"background:var(--color-pure-white);border-radius:16px;padding:20px;box-shadow:rgba(65,61,69,0.2) 0px 2px 0px 0px;\"><div style=\"display:flex;align-items:center;gap:8px;margin-bottom:10px;\"><div style=\"width:10px;height:10px;border-radius:50%;background:var(--color-sky-connect);\"></div><span style=\"font-family:var(--font-headspace-apercu);font-size:14px;font-weight:600;color:var(--color-charcoal-tone);\">You</span></div><p style=\"font-family:var(--font-headspace-apercu);font-size:14px;color:var(--color-inkwell-gray);margin:0;line-height:1.5;\">I get so stressed talking to my mom.<br>It always ends with us arguing.</p></div></div><div style=\"flex:1;display:flex;flex-direction:column;justify-content:center;\"><h3 style=\"font-family:var(--font-headspace-apercu);font-size:28px;font-weight:700;color:var(--color-charcoal-tone);letter-spacing:-0.025em;margin:0 0 8px 0;\">Always-there</h3><p style=\"font-family:var(--font-headspace-apercu);font-size:15px;color:var(--color-charcoal-tone);margin:0;line-height:1.4;\">AI guidance whenever you need it, day or night.</p></div></div></div>",
+            "name": "Feature Tab Pill Selector",
+            "role": "",
+            "description": ""
+          },
+          {
+            "html": "<div style=\"--color-sky-connect:#0061ef;--color-sunshine-burst:#ffce00;--color-deep-plum:#3b197f;--color-ocean-glimmer:#00a4ff;--color-blush-petal:#ffa1cc;--color-inkwell-gray:#4b4c4d;--color-true-black:#000000;--color-charcoal-tone:#2d2c2b;--color-cloud-whisper:#f9f4f2;--color-stone-slate:#44423f;--color-pure-white:#ffffff;--color-pale-ash:#e2ded9;--color-light-stone:#d0d0d0;--font-headspace-apercu:system-ui,sans-serif;box-sizing:border-box;font-family:var(--font-headspace-apercu);background:var(--color-cloud-whisper);padding:40px 32px;width:600px;\"><div style=\"display:flex;align-items:flex-start;gap:32px;\"><div style=\"flex-shrink:0;width:80px;height:80px;display:flex;align-items:center;justify-content:center;\"><svg width=\"72\" height=\"60\" viewBox=\"0 0 72 60\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10 50 Q20 20 40 30 Q55 38 65 10\" stroke=\"#2d2c2b\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M8 48 Q18 18 38 28 Q53 36 63 8\" stroke=\"#2d2c2b\" stroke-width=\"2.5\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.4\"/></svg></div><div style=\"flex:1;\"><h3 style=\"font-family:var(--font-headspace-apercu);font-size:22px;font-weight:700;color:var(--color-charcoal-tone);margin:0 0 10px 0;letter-spacing:-0.025em;\">Stay in the loop</h3><p style=\"font-family:var(--font-headspace-apercu);font-size:15px;color:var(--color-inkwell-gray);margin:0 0 8px 0;line-height:1.5;\">Be the first to get updates on our latest content, special offers, and new features.</p><p style=\"font-family:var(--font-headspace-apercu);font-size:13px;color:var(--color-inkwell-gray);margin:0;line-height:1.5;opacity:0.85;\">By signing up, you're agreeing to receive marketing emails from Headspace. You can unsubscribe at any time. For more details, check out our <a href=\"#\" style=\"color:var(--color-charcoal-tone);text-decoration:underline;\">Privacy Policy.</a></p></div></div><div style=\"display:flex;gap:12px;margin-top:24px;align-items:stretch;\"><input type=\"email\" placeholder=\"Email address\" style=\"font-family:var(--font-headspace-apercu);font-size:15px;color:var(--color-true-black);background:var(--color-pure-white);border:1px solid var(--color-light-stone);border-radius:8px;padding:14px 16px;flex:1;outline:none;min-width:0;\"/><button style=\"font-family:var(--font-headspace-apercu);font-size:15px;font-weight:600;background:var(--color-charcoal-tone);color:var(--color-pure-white);border:none;border-radius:32px;padding:14px 24px;cursor:pointer;white-space:nowrap;box-shadow:rgba(65,61,69,0.2) 0px 2px 0px 0px;flex-shrink:0;\">Subscribe</button></div></div>",
+            "name": "Email Newsletter Subscribe Banner",
+            "role": "",
+            "description": ""
+          },
+          {
+            "name": "Primary Action Button",
+            "role": "CTA",
+            "description": "Filled button with 'Sky Connect' background (#0061ef), 'Pure White' text, and a `32px` border-radius. Padding 14px vertical, 20px horizontal. Features a subtle `rgba(65, 61, 69, 0.2) 0px 2px 0px 0px` shadow for soft depth."
+          },
+          {
+            "name": "Ghost Button",
+            "role": "Secondary Action",
+            "description": "Outlined button with 'Cloud Whisper' background (#f9f4f2), 'Charcoal Tone' text (#2d2c2b), and a `24px` border-radius. Padding 0px vertical, 24px horizontal. Border `1px solid Charcoal Tone`."
+          },
+          {
+            "name": "Tab Button",
+            "role": "Navigation/Filter",
+            "description": "Button with 'Pure White' background (#ffffff), 'Inkwell Gray' text (#4b4c4d), and an `8px` border-radius. Padding 8px vertical, 16px-24px horizontal. Border `1px solid Pale Ash` (#e2ded9)."
+          },
+          {
+            "name": "Dark Square Button",
+            "role": "Iconic/Informative",
+            "description": "Square-shaped button with 'Charcoal Tone' background (#2d2c2b) and 'Pure White' text, likely for icons. Features a large `50%` (`800px` equivalent) border-radius making it circular, and 0px padding. Used for distinctive, usually smaller, interactive elements."
+          },
+          {
+            "name": "Email Subscription Input",
+            "role": "Form Entry",
+            "description": "Input field with 'Pure White' background (#ffffff), 'True Black' text (#000000), and an `8px` border-radius. Padding 24px top, 8px bottom, 16px horizontal. Border `1px solid Light Stone` (#d0d0d0)."
+          },
+          {
+            "name": "Content Card",
+            "role": "Information display",
+            "description": "Container with 'Pure White' background (#ffffff), `28px` border-radius, `rgba(65, 61, 69, 0.2) 0px 2px 0px 0px` shadow, and `16px-24px` padding. Used for grouping related content, like the 'Mental health app' or 'Online therapy' blocks."
+          },
+          {
+            "name": "Accent Banner",
+            "role": "Promotional strip",
+            "description": "Full-width bar with a 'Sunshine Burst' (#ffce00) background, containing a 'Charcoal Tone' text link `HSA/FSA eligible: save with pre-tax dollars`. Used at the very top of the page for prominent announcements."
+          },
+          {
+            "name": "Feature Pill Button",
+            "role": "Categorization/Navigation",
+            "description": "Pill-shaped button with 'Charcoal Tone' background (#44423f) for icons/text like 'AI guidance', with 'Pure White' text. Has `50%` border-radius (800px equivalent) giving it a pill shape, and specific padding varying by content."
+          }
+        ],
+        "typography": [
+          {
+            "role": "The primary typeface for all text content. Its clean, humanist sans-serif forms contribute to the approachable and friendly tone. Weight 700 is reserved for main headings, 500 for subheadings and important labels, and 400 for body text; specific letter-spacing adjustments at larger sizes create an open, legible feel.",
+            "sizes": "12px, 14px, 16px, 18px, 20px, 24px, 29px, 32px, 40px, 48px, 52px, 56px, 64px, 72px",
+            "family": "Headspace Apercu",
+            "source": "custom",
+            "weight": "400, 500, 700",
+            "lineHeight": "1.00, 1.10, 1.13, 1.15, 1.20, 1.29, 1.30, 1.32, 1.33, 1.38, 1.44, 1.50",
+            "substitute": "system-ui, sans-serif",
+            "letterSpacing": "-0.0300em, -0.0250em, -0.0100em"
+          }
+        ],
+        "description": "Headspace's design system radiates a calm, approachable, and playfully optimistic mood, achieved through a vibrant primary blue, a warm, soft neutral palette, and abundant negative space. Rounded forms and a clean sans-serif typeface contribute to a friendly and user-centric feel. The frequent use of accent colors, especially yellow and various purples, in illustrations and iconography creates visual interest and distinguishes different content areas.",
+        "customSections": [
+          {
+            "title": "Agent Prompt Guide",
+            "content": "### Quick Color Reference\n- **Text (Inkwell Gray):** #4b4c4d\n- **Background (Cloud Whisper):** #f9f4f2\n- **CTA (Sky Connect):** #0061ef\n- **Border (Pale Ash):** #e2ded9\n- **Accent (Sunshine Burst):** #ffce00\n\n### 3-5 Example Component Prompts\n1. **Create a hero section:** 'Cloud Whisper' background. Headline 'Sleep better all with Headspace' (font Headspace Apercu, 56px, weight 700, Inkwell Gray #4b4c4d, letter-spacing -1.4px). Subtext '1,000+ meditations...' (font Headspace Apercu, 18px, weight 400, Inkwell Gray #4b4c4d). Primary button 'Try for free' centered below (Sky Connect #0061ef background, Pure White #ffffff text, 32px radius, 14px 20px padding, shadow rgba(65, 61, 69, 0.2) 0px 2px 0px 0px).\n2. **Generate a content card:** 'Pure White' #ffffff background, 16px border-radius, padding 20px all around, shadow rgba(65, 61, 69, 0.2) 0px 2px 0px 0px. Title 'Mental health app with expert-led meditations and tools' (Headspace Apercu, 29px, weight 700, Inkwell Gray #4b4c4d). Contains an illustration using Sunshine Burst #ffce00 and Deep Plum #3b197f.\n3. **Design a secondary action button:** 'Cloud Whisper' #f9f4f2 background, Charcoal Tone #2d2c2b text, 24px border-radius, 1px solid Charcoal Tone border. Padding 0px vertical, 24px horizontal. Text 'Try for $0'.\n4. **Create an input field for email signup:** 'Pure White' #ffffff background, 8px border-radius, 1px solid Light Stone #d0d0d0 border. Placeholder text (Headspace Apercu, 16px, weight 400, Inkwell Gray #4b4c4d). Padding 24px top, 8px bottom, 16px left/right. Alongside a Primary Action Button 'Subscribe' (Sky Connect #0061ef, Pure White #ffffff text, 32px radius).\n5. **Render a feature pill button:** 'Charcoal Tone' #44423f background, 'Pure White' #ffffff text, 800px border-radius (for pill shape). Text 'AI guidance' (Headspace Apercu, 14px, weight 500)."
+          }
+        ],
+        "title": "Headspace"
+      },
+      {
+        "dos": [
+          "Maintain a clear, high-contrast between Ink Black (#292929) text/lines and Canvas White (#ffffff) backgrounds.",
+          "Utilize 0px border-radius for all interactive elements and containers to maintain the precise, angular aesthetic.",
+          "Apply positive letter-spacing (0.1em or 0.2em) from S-Condensed for navigation, tags, and small labels to distinguish them from body text.",
+          "Use thin (1px) Ink Black (#292929) borders as the primary visual cue for interactive elements and content divisions.",
+          "Structure layouts using visible grid lines or strong horizontal/vertical divisions rather than relying on card elevation or soft shadows.",
+          "Emphasize content hierarchy through variations in font-family, weight, and letter-spacing rather than relying on color or large size differences.",
+          "For buttons, use transparent backgrounds with Ink Black (#292929) text and borders, with 0px vertical padding and 20px horizontal padding."
+        ],
+        "donts": [
+          "Avoid using any color other than Ink Black (#292929), Deep Black (#000000), or Canvas White (#ffffff) for primary UI elements.",
+          "Do not introduce rounded corners or soft shadows; all elements should adhere to a sharp, planar aesthetic.",
+          "Do not use generic system fonts for headings or key interface elements; always select from the specified custom typography. ",
+          "Avoid large and complex hero components; opt for minimal, high-contrast textual statements or product visuals on a Canvas White (#ffffff) background.",
+          "Do not use subtle gray text for functional elements; all text, save for contextual accents, should be Ink Black for maximum impact.",
+          "Do not use excessive padding or element gaps; maintain an efficient information density with 8px as a common element gap and 20px for card padding.",
+          "Do not design buttons with solid background fills; all buttons should be ghosted or outlined."
+        ],
+        "theme": "light",
+        "colors": [
+          {
+            "hex": "#ffffff",
+            "name": "Canvas White",
+            "role": "Page backgrounds, card surfaces, form input fields — a stark, pure white for a clean, expansive feel",
+            "group": "neutral"
+          },
+          {
+            "hex": "#292929",
+            "name": "Ink Black",
+            "role": "Primary text, headings, button borders, icons, dividing lines — provides sharp definition against Canvas White. Acts as the primary border and text color for interactive elements",
+            "group": "neutral"
+          },
+          {
+            "hex": "#000000",
+            "name": "Deep Black",
+            "role": "Decorative fills (SVGs), input text, and borders — used sparingly for maximum contrast in specific UI elements",
+            "group": "neutral"
+          }
+        ],
+        "layout": "The page uses a full-bleed layout, particularly for the main canvas, but frequently employs strong vertical and horizontal dividers to create distinct, modular content blocks. The hero section often features a large, singular product image or graphic, sometimes with overlay text, defining a clear focal point. Content progresses with a mix of stacked, centered headlines and text blocks, alongside two-column layouts where text and visuals alternate. A strong underlying grid is evident, with elements often snapping to these implicit lines. Vertical rhythm is established through consistent spacing, and sections can alternate between pure white and light gray backgrounds for differentiation. Navigation is minimalist, adhering to a fixed top bar on larger screens with simple text links.",
+        "imagery": "Imagery primarily consists of product photography, abstract graphics, and occasional textual illustrations. Product photos are tight crops, often showcasing the hardware in an abstract or deconstructed manner, with a heavy emphasis on geometric patterns and technical diagrams. Illustrations are abstract, using a monochromatic palette to match the UI, with strong geometric shapes, dots, and lines (e.g., printed circuit board patterns). Icons are minimalist, outlined, and monochromatic, with a fine stroke weight. The role of imagery is primarily decorative atmosphere and product showcase, with a relatively low density compared to text-heavy sections. Images are typically contained within defined areas, often bordered by the same thin black lines as other UI elements.",
+        "spacing": {
+          "radius": {
+            "none": "0px"
+          },
+          "density": "comfortable",
+          "baseUnit": 4,
+          "elementGap": "8px",
+          "sectionGap": "40px",
+          "cardPadding": "20px",
+          "pageMaxWidth": null
+        },
+        "industry": "design",
+        "northStar": "Architectural grid on white",
+        "typeScale": [
+          {
+            "role": "caption",
+            "size": 12,
+            "lineHeight": 1.18,
+            "letterSpacing": 1.2
+          },
+          {
+            "role": "body",
+            "size": 16,
+            "lineHeight": 1.5,
+            "letterSpacing": -0.32
+          },
+          {
+            "role": "subheading",
+            "size": 18,
+            "lineHeight": 1.25,
+            "letterSpacing": -0.36
+          },
+          {
+            "role": "heading",
+            "size": 25,
+            "lineHeight": 1.27,
+            "letterSpacing": -0.5
+          },
+          {
+            "role": "heading-lg",
+            "size": 32,
+            "lineHeight": 1.2,
+            "letterSpacing": -0.64
+          },
+          {
+            "role": "display-sm",
+            "size": 40,
+            "lineHeight": 1.34,
+            "letterSpacing": -0.8
+          },
+          {
+            "role": "display",
+            "size": 43,
+            "lineHeight": 1.34,
+            "letterSpacing": -0.86
+          }
+        ],
+        "components": [
+          {
+            "name": "Outline Button",
+            "role": "Primary and secondary actions with minimal visual weight.",
+            "description": "Text in Ink Black (#292929) on a transparent background, with a 1px solid Ink Black border and 0px radius. Padding is 0px top/bottom, 20px left/right, giving a wide, flat appearance."
+          },
+          {
+            "name": "Minimal Input Field",
+            "role": "Standard text input fields.",
+            "description": "Background is Canvas White (#ffffff), text is Deep Black (#000000), with a 1px solid Deep Black border. No border-radius. Padding is 8px top/bottom, 0px left/right, emphasizing vertical alignment."
+          },
+          {
+            "name": "Navigation Link",
+            "role": "Top-level navigation items and language selectors.",
+            "description": "Utilizes S-Condensed, with specific letter-spacing. Colors are Ink Black (#292929) for text. Often appears with a thin Ink Black border on hover or active state to denote selection."
+          },
+          {
+            "name": "Section Heading",
+            "role": "Major content section titles.",
+            "description": "Typography from NH family, often at 43px or 40px, with specific letter-spacing -0.0200em. Uses Ink Black (#292929) color. Frequently bordered by Ink Black lines to separate content areas."
+          }
+        ],
+        "typography": [
+          {
+            "role": "Primary headings and body text. Its subtle negative letter-spacing contributes to the precise, condensed feel.",
+            "sizes": "16px, 18px, 25px, 32px, 40px, 43px",
+            "family": "NH",
+            "source": "custom",
+            "weight": "100, 300, 400",
+            "lineHeight": "1.20, 1.25, 1.27, 1.34, 1.50",
+            "substitute": "Helvetica Neue",
+            "letterSpacing": "-0.0200em"
+          },
+          {
+            "role": "Navigation links, metadata, and labels. The pronounced positive letter-spacing creates a distinctive, airy appearance for functional text.",
+            "sizes": "12px, 14px, 40px",
+            "family": "S-Condensed",
+            "source": "custom",
+            "weight": "300, 400, 500",
+            "lineHeight": "0.90, 1.18, 1.20, 1.34",
+            "substitute": "Impact",
+            "letterSpacing": "0.1000em, 0.2000em"
+          },
+          {
+            "role": "Specialized, extremely light headlines. Its very tight tracking and light weight make it feel almost etched.",
+            "sizes": "28px",
+            "family": "EV",
+            "source": "custom",
+            "weight": "100",
+            "lineHeight": "0.90",
+            "substitute": "Roboto Thin",
+            "letterSpacing": "-0.0500em"
+          },
+          {
+            "role": "Unique, expressive headlines. The moderate weight and normal letter-spacing allow it to stand out against more tracked and condensed fonts.",
+            "sizes": "40px",
+            "family": "S-Works",
+            "source": "custom",
+            "weight": "350",
+            "lineHeight": "1.34",
+            "substitute": "Bebas Neue Pro",
+            "letterSpacing": "normal"
+          }
+        ],
+        "description": "MONO X7 employs a stark, almost architectural aesthetic, reminiscent of an artist's canvas or technical drawing. The visual system is dominated by high contrast black text and lines on a pristine white background, often utilizing a grid-like structure. Typography is precise and highly customized, with distinct weight and letter-spacing variations that dictate hierarchy through subtle means. Interactions are signaled not with color, but by the presence or absence of thin, sharp borders, giving components a planar rather than volumetric feel.",
+        "customSections": [
+          {
+            "title": "Agent Prompt Guide",
+            "content": "Quick Color Reference: \ntext: #292929\nbackground: #ffffff\nborder: #292929\naccent: no distinct accent color\nprimary action: no distinct CTA color\n\nExample Component Prompts:\n1. Create a primary navigation item: 'PRE-ORDER' text using S-Condensed, weight 400, size 14px, letter-spacing 0.1em, color Ink Black (#292929). When active, add a 1px solid Ink Black (#292929) border around it. \n2. Design a product feature headline: 'Digital canvas that elevates a space' using NH, weight 300, size 43px, line-height 1.34, letter-spacing -0.0200em, color Ink Black (#292929). Place it centered within a Canvas White (#ffffff) section, with 43px padding-top.\n3. Implement a text input field: background Canvas White (#ffffff), text Deep Black (#000000), 1px solid Deep Black (#000000) border, 0px border-radius, 8px padding-top/bottom, 0px padding-left/right.\nNo distinct primary action color was observed; use the extracted neutral button treatments instead of inventing a filled CTA color."
+          }
+        ],
+        "title": "mono"
+      }
+    ]
+  }
+}

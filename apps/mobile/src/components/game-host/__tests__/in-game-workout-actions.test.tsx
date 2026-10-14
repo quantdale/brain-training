@@ -129,6 +129,22 @@ describe('GameResults workout continuation', () => {
     expect(mockedReplace).toHaveBeenCalledWith('/');
   });
 
+  it('distinguishes saved games from a skipped leg in the completed durable plan', async () => {
+    mockedAdvance.mockResolvedValue({
+      ...result({ completed: true }),
+      instance: {
+        date: PROVENANCE.instanceKey,
+        gameIds: ['memory', 'speed-tap-rush', 'logic-rule-grid', 'memory'],
+        currentIndex: 4, status: 'completed', skippedIndices: [1],
+        rerollAttempt: 0, seedVersion: 1, createdAt: 0, updatedAt: 100,
+      },
+    });
+    await renderResults();
+    expect(await screen.findByTestId('memory.workout-progress')).toHaveTextContent('3 games played · 1 skipped');
+    expect(screen.getByTestId('memory.workout-progress')).not.toHaveTextContent('4/4');
+    expect(mockedAdvance).toHaveBeenCalledTimes(1);
+  });
+
   it('discloses a failed advance instead of silently dropping the leg', async () => {
     mockedAdvance.mockRejectedValue(new Error('advance boom'));
 
@@ -142,6 +158,21 @@ describe('GameResults workout continuation', () => {
       /Workout progress could not be saved/,
     );
     expect(screen.queryByTestId('memory.next-game')).toBeNull();
+  });
+
+  it('retries a failed advance through the same durable operation without replaying the session', async () => {
+    mockedAdvance.mockRejectedValueOnce(new Error('temporary write failure'))
+      .mockResolvedValueOnce(result({ nextGameId: 'speed-tap-rush' }));
+    await expectConsoleNoise(/\[game-results\] workout advance failed/, async () => {
+      await renderResults();
+      await screen.findByTestId('memory.workout-advance-error');
+    });
+    expect(mockedAdvance).toHaveBeenCalledTimes(1);
+    await fireEvent.press(screen.getByTestId('memory.workout-advance-retry'));
+    expect(await screen.findByTestId('memory.next-game')).toBeOnTheScreen();
+    expect(screen.queryByTestId('memory.workout-advance-error')).toBeNull();
+    expect(mockedAdvance).toHaveBeenCalledTimes(2);
+    expect(mockedAdvance.mock.calls[1]).toEqual(mockedAdvance.mock.calls[0]);
   });
 
   it('leaves standalone sessions untouched (no advance, no Next Game)', async () => {

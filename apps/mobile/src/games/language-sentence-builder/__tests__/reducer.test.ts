@@ -24,7 +24,9 @@ function solveRound(state: SentenceBuilderState): SentenceBuilderState {
   // Tap words in the correct order (original order).
   for (let i = 0; i < state.scrambled.original.length; i += 1) {
     const targetWord = state.scrambled.original[i];
-    const scrambledIdx = state.scrambled.scrambled.indexOf(targetWord);
+    const scrambledIdx = state.scrambled.scrambled.findIndex((word, index) =>
+      word === targetWord && !current.taps.includes(index),
+    );
     current = sentenceBuilderReducer(current, { type: 'tap-word', index: scrambledIdx });
   }
   return current;
@@ -138,7 +140,7 @@ describe('tap-word with alternative word orders', () => {
     for (const word of sentence.split(' ')) {
       if (current.phase !== 'puzzle') break;
       const idx = current.scrambled!.scrambled.findIndex(
-        (w) => w.toLowerCase() === word.toLowerCase(),
+        (w, index) => w.toLowerCase() === word.toLowerCase() && !current.taps.includes(index),
       );
       current = sentenceBuilderReducer(current, { type: 'tap-word', index: idx });
     }
@@ -400,11 +402,12 @@ describe('word stats accounting (audit regression)', () => {
     expect(solved.stats.correctTaps).toBe(wordCount);
   });
 
-  it('records the sentence words but zero correct words for a timeout with zero taps', () => {
+  it('records the offered sentence length separately from zero timeout taps', () => {
     let state = startSession('stats-timeout');
     const wordCount = state.scrambled!.original.length;
     state = sentenceBuilderReducer(state, { type: 'timer-expired' });
-    expect(state.stats.totalTaps).toBe(wordCount);
+    expect(state.stats.totalWords).toBe(wordCount);
+    expect(state.stats.totalTaps).toBe(0);
     expect(state.stats.correctTaps).toBe(0);
   });
 });

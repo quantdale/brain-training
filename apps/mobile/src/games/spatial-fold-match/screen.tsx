@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -36,6 +37,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameInterval,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -49,7 +51,6 @@ import {
 } from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
-  createSpatialFoldMatchQaForceStateHooks,
   createSpatialFoldMatchTutorialLifecycle,
 } from './hooks';
 import { gameReducer } from './reducer';
@@ -62,6 +63,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialSpatialFoldMatchState } from './types';
+import type { SpatialFoldMatchAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface SpatialFoldMatchScreenProps {
@@ -77,7 +79,7 @@ export interface SpatialFoldMatchScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Pacing step (ms): active reveal/answer time accrues in these increments. */
+/** Source polling paces rendering; the lifecycle measures all active time. */
 const PACING_STEP_MS = 100;
 
 export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProps = {}) {
@@ -89,22 +91,26 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialSpatialFoldMatchState,
   );
 
   const stateRef = useRef(state);
-  // Per-round reveal timer baseline: tracks elapsed ACTIVE (non-paused) reveal
-  // time so pausing freezes and resuming resumes the remaining window (not a
-  // restart).
-  const revealElapsedRef = useRef(0);
-  const revealRoundRef = useRef(-1);
-  // Per-round answer timer: accumulates ACTIVE time spent in the choice phase
-  // so paused time never counts against the player's speed bonus.
-  const choiceElapsedRef = useRef(0);
-  const choiceRoundRef = useRef(-1);
+  // Claim a cue's accepted transition before React commits, including pause
+  // and source expiry, so stale/batched callbacks cannot create extra feedback.
+  const dispatch = useCallback((action: SpatialFoldMatchAction) => {
+    const current = stateRef.current;
+    const next = gameReducer(current, action);
+    if (next === current) return false;
+    stateRef.current = next;
+    reactDispatch(action);
+    return true;
+  }, []);
+  const inputEpoch = state.inputEpoch;
+  const revealStartedAtRef = useRef(0);
+  const choiceStartedAtRef = useRef(0);
 
   useEffect(() => {
     stateRef.current = state;
@@ -124,15 +130,15 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
     },
     onPause: () => dispatch({ type: 'pause' }),
   });
+  const readActiveTime = session.elapsedMs;
+  const activeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
 
   const tutorial = useMemo(
     () => createSpatialFoldMatchTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createSpatialFoldMatchQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null ? spatialFoldMatchParamsFromProfile(state.profile) : null;
@@ -144,51 +150,55 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
     state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-round reveal timer baseline when a new source round begins.
+  // Active anchors reset for each displayed phase and session, never merely
+  // because the player resumed. Lifecycle elapsed time already excludes pause.
   useEffect(() => {
-    if (state.phase === 'source' && revealRoundRef.current !== state.roundIndex) {
-      revealRoundRef.current = state.roundIndex;
-      revealElapsedRef.current = 0;
+    if (state.phase === 'source') {
+      revealStartedAtRef.current = readActiveTime();
     }
-  }, [state.phase, state.roundIndex]);
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // Source pacing with freeze-and-continue: a window of `revealMs` of ACTIVE
-  // (non-paused) time, accumulated in PACING_STEP_MS steps. While paused, the
-  // interval is cleared so no time accrues; on resume it continues from where it
-  // left off, so the pattern stays up for exactly the time not yet studied.
+  // (non-paused) time. A JS stall or a fractional pause cannot buy extra study.
   useGameInterval(
     state.phase === 'source' && !state.paused,
     () => {
-      revealElapsedRef.current = Math.min(revealMs, revealElapsedRef.current + PACING_STEP_MS);
-      if (revealElapsedRef.current >= revealMs) {
+      const current = stateRef.current;
+      if (current.phase !== 'source' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      if (session.elapsedMs() - revealStartedAtRef.current >= revealMs) {
         dispatch({ type: 'source-tick' });
       }
     },
     PACING_STEP_MS,
   );
 
-  // Choice-phase answer timer (same freeze semantics as the reveal window).
-  useEffect(() => {
-    if (state.phase === 'choice' && choiceRoundRef.current !== state.roundIndex) {
-      choiceRoundRef.current = state.roundIndex;
-      choiceElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex]);
-
-  useGameInterval(
-    state.phase === 'choice' && !state.paused,
+  // Preserve the precise remaining reveal duration after a fractional pause;
+  // the poll still handles an overdue observation after a stalled JS thread.
+  useGameDeadlineTimeout(
+    state.phase === 'source' && !state.paused,
     () => {
-      choiceElapsedRef.current += PACING_STEP_MS;
+      const current = stateRef.current;
+      if (current.phase !== 'source' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      if (session.elapsedMs() - revealStartedAtRef.current >= revealMs) dispatch({ type: 'source-tick' });
     },
-    PACING_STEP_MS,
+    revealMs,
+    activeClock,
+    `${state.sessionId ?? 'idle'}:source:${state.roundIndex}`,
   );
+
+  // Read the answer instant directly, including time between polling callbacks.
+  useEffect(() => {
+    if (state.phase === 'choice') {
+      choiceStartedAtRef.current = readActiveTime();
+    }
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -293,6 +303,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -314,22 +325,29 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
   const handleSelectOption = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'choice' || current.paused) {
+      if (current.phase !== 'choice' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch || !Number.isInteger(index) || index < 0 || index >= current.options.length) {
         return;
       }
       const correct = index === current.correctOptionIndex;
-      liveAudioHaptics.feedback(correct ? 'correct' : 'wrong');
-      dispatch({
+      const accepted = dispatch({
         type: 'select-option',
         index,
-        answerMs: choiceElapsedRef.current,
+        answerMs: Math.max(0, session.elapsedMs() - choiceStartedAtRef.current),
       });
+      if (accepted) liveAudioHaptics.feedback(correct ? 'correct' : 'wrong');
     },
-    [dispatch],
+    [session, inputEpoch, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    const current = stateRef.current;
+    if (current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+    dispatch({ type: 'next-round' });
+  }, [session, inputEpoch, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -403,9 +421,9 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
-      score={String(state.stats.score)}
+      score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
@@ -492,7 +510,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

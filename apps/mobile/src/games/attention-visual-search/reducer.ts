@@ -33,7 +33,7 @@ import {
 } from './difficulty';
 import { generateRoundTarget } from './generator';
 import { clamp01, perfectSessionScore, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialVisualSearchState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialVisualSearchState } from './types';
 import type { VisualSearchAction, VisualSearchGameState, VisualSearchStats } from './types';
 
 export { createInitialVisualSearchState };
@@ -76,6 +76,7 @@ export function visualSearchGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'playing',
         paused: false,
         pausedAtMs: null,
@@ -225,6 +226,9 @@ export function visualSearchGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
         return state;
       }
@@ -269,7 +273,7 @@ export function visualSearchGameReducer(
       if (state.paused || (state.phase !== 'playing' && state.phase !== 'roundResult')) {
         return state;
       }
-      return { ...state, paused: true, pausedAtMs: action.nowMs, nowMs: action.nowMs };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true, pausedAtMs: action.nowMs, nowMs: action.nowMs };
     }
 
     case 'resume': {
@@ -281,6 +285,7 @@ export function visualSearchGameReducer(
       const shift = Math.max(0, action.nowMs - state.pausedAtMs);
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         paused: false,
         pausedAtMs: null,
         nowMs: action.nowMs,

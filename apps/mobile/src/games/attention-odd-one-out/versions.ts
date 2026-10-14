@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.1.0';
+// 1.2: solve ratios exclude pause spans and the exact deadline closes input.
+// Historical raw results retain the timing/scoring version they were played on.
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

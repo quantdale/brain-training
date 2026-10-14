@@ -61,6 +61,19 @@ describe('seedToNumber', () => {
 });
 
 describe('buildMathEquationBuilderRawResult', () => {
+  it('adds the new rule envelope only to version 2 records and preserves legacy scores/versions', () => {
+    const legacy = buildRaw();
+    const current = buildRaw({ gameVersion: '2.0.0', generatorVersion: '2.0.0', scoringVersion: '2.0.0' });
+    expect(legacy.gameVersion).toBe('1.0.0');
+    expect(legacy.scoringVersion).toBe('1.0.0');
+    expect(legacy.generatorInfo.evaluationRules).toBeUndefined();
+    expect(legacy.generatorInfo.timingModel).toBeUndefined();
+    expect(current.score).toBe(legacy.score);
+    expect(current.generatorInfo).toEqual(expect.objectContaining({
+      evaluationRules: 'standard-precedence-exact-division-v2', timingModel: 'active-monotonic-ms-v2',
+    }));
+  });
+
   it('carries the full reproducibility envelope', () => {
     const raw = buildRaw();
     expect(raw.seed).toBe('42');

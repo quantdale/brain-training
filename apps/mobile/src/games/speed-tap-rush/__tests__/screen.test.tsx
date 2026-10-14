@@ -224,7 +224,8 @@ describe('TapRushScreen', () => {
     expect(input.session.normalizedResult).toBe(1); // all hits at reaction 0
     const raw = input.session.rawResult as TapRushRawResult;
     expect(raw.score).toBe(8000); // 40 targets × 200
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

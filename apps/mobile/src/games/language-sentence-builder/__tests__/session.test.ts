@@ -22,6 +22,7 @@ const STATS: SentenceBuilderStats = {
   bestStreak: 2,
   streak: 0,
   longestSentence: 7,
+  totalWords: 24,
   totalTaps: 24,
   correctTaps: 20,
   accuracySum: 3.0,

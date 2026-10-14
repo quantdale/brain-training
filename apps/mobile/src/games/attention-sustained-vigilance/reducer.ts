@@ -21,9 +21,9 @@
  * - If no tap arrives by the response window, the tick resolves the trial as
  *   `omission` (go) or `correct-hold` (target).
  * - After resolution the trial's remaining slot plays out as inline feedback;
- *   at slot end the next trial starts at its scheduled onset
- *   (`prevStart + slot`, clamped to now so heavy lag catches up), which keeps
- *   the stream cadence drift-free under timer jitter.
+ *   at slot end the next trial awaits a display commit. Its measured onset
+ *   starts a fresh exposure; missed timer delivery never backdates a digit
+ *   the player has not seen. The fixed number of generated trials is retained.
  *
  * Correctness guards: one response per trial (`outcome === null`); taps at or
  * past the response window are ignored (the window has already decided);
@@ -57,6 +57,7 @@ import type {
   VigilanceAction,
   VigilanceGameState,
   VigilanceStats,
+  VigilanceTrialStamp,
 } from './types';
 
 export { createInitialVigilanceState };
@@ -64,6 +65,19 @@ export { createInitialVigilanceState };
 /** Total active-ms occupied by one trial slot (stimulus + blank ISI). */
 export function trialSlotMs(stimulusOnMs: number, isiMs: number): number {
   return stimulusOnMs + isiMs;
+}
+
+function isCurrentTrial(state: VigilanceGameState, trial?: VigilanceTrialStamp): boolean {
+  return trial === undefined || (
+    trial.sessionId === state.sessionId &&
+    trial.trialIndex === state.trialIndex &&
+    trial.inputEpoch === state.inputEpoch
+  );
+}
+
+function isCurrentTime(state: VigilanceGameState, atActiveMs: number): boolean {
+  return Number.isFinite(atActiveMs) &&
+    atActiveMs >= state.trialStartActiveMs + state.trialElapsedMs;
 }
 
 /** True when the verdict kept the streak alive (a correct trial). */
@@ -181,6 +195,8 @@ export function vigilanceGameReducer(
         stream: generated.trials,
         stopDigit: generated.stopDigit,
         trialIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
+        trialPresented: false,
         responseWindowMs: params.responseWindowMs,
         trialStartActiveMs: 0,
         trialElapsedMs: 0,
@@ -199,13 +215,27 @@ export function vigilanceGameReducer(
       };
     }
 
+    case 'trial-presented': {
+      if (
+        state.phase !== 'stream' || state.paused || state.trialPresented ||
+        !isCurrentTrial(state, action.trial) || !isCurrentTime(state, action.atActiveMs)
+      ) {
+        return state;
+      }
+      return { ...state, trialPresented: true, trialStartActiveMs: action.atActiveMs };
+    }
+
     case 'trial-tick': {
-      if (state.phase !== 'stream' || state.paused || state.profile === null) {
+      if (
+        state.phase !== 'stream' || state.paused || state.profile === null ||
+        !state.trialPresented || !isCurrentTrial(state, action.trial) ||
+        !isCurrentTime(state, action.atActiveMs)
+      ) {
         return state;
       }
       const params = vigilanceParamsFromProfile(state.profile);
       const slotMsValue = trialSlotMs(params.stimulusOnMs, params.isiMs);
-      const elapsed = Math.max(0, action.atActiveMs - state.trialStartActiveMs);
+      const elapsed = action.atActiveMs - state.trialStartActiveMs;
 
       // 1. Window end without a response resolves the trial.
       if (state.outcome === null && elapsed >= state.responseWindowMs) {
@@ -228,9 +258,11 @@ export function vigilanceGameReducer(
         return {
           ...state,
           trialIndex: nextIndex,
-          // Scheduled onset keeps cadence drift-free; clamp to now so a long
-          // stall (e.g. debugger pause with timers suspended) catches up.
-          trialStartActiveMs: Math.min(action.atActiveMs, state.trialStartActiveMs + slotMsValue),
+          inputEpoch: state.inputEpoch + 1,
+          trialPresented: false,
+          // This is only a lower bound. The screen records the actual display
+          // commit before any timer/input may act on this newly drawn cue.
+          trialStartActiveMs: action.atActiveMs,
           responseWindowMs,
           trialElapsedMs: 0,
           responded: false,
@@ -239,7 +271,7 @@ export function vigilanceGameReducer(
         };
       }
 
-      return { ...state, trialElapsedMs: elapsed };
+      return elapsed === state.trialElapsedMs ? state : { ...state, trialElapsedMs: elapsed };
     }
 
     case 'respond': {
@@ -247,13 +279,16 @@ export function vigilanceGameReducer(
         state.phase !== 'stream' ||
         state.paused ||
         state.profile === null ||
-        state.outcome !== null
+        state.outcome !== null ||
+        !state.trialPresented ||
+        !isCurrentTrial(state, action.trial) ||
+        !isCurrentTime(state, action.atActiveMs)
       ) {
         return state;
       }
       const params = vigilanceParamsFromProfile(state.profile);
       const slotMsValue = trialSlotMs(params.stimulusOnMs, params.isiMs);
-      const elapsed = Math.max(0, action.atActiveMs - state.trialStartActiveMs);
+      const elapsed = action.atActiveMs - state.trialStartActiveMs;
       // At/after the window the trial has already been decided; late taps are
       // ignored rather than stolen from the next trial.
       if (elapsed >= state.responseWindowMs) {
@@ -266,7 +301,7 @@ export function vigilanceGameReducer(
       if (state.paused || state.phase !== 'stream') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {

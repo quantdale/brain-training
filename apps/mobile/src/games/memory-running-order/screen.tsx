@@ -51,8 +51,9 @@ import {
 import type { SessionPersistence } from './session';
 import { streamTarget } from './generator';
 import { RUNNING_ORDER_SYMBOLS } from './symbols';
-import { GAME_ID, createInitialRunningOrderState } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, createInitialRunningOrderState } from './types';
+import type { RunningOrderAction } from './types';
 
 export interface RunningOrderScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -80,6 +81,12 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
   const [state, dispatch] = useReducer(runningOrderGameReducer, undefined, createInitialRunningOrderState);
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: RunningOrderAction) => {
+    stateRef.current = runningOrderGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
 
   useEffect(() => {
     stateRef.current = state;
@@ -95,8 +102,23 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatchContinuation({ type: 'pause' }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: RunningOrderAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = runningOrderGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(() => createRunningOrderTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createRunningOrderQaForceStateHooks(dispatch), [dispatch]);
@@ -227,9 +249,9 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -470,7 +492,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

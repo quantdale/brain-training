@@ -6,7 +6,8 @@
  *
  * Scoring rule (per packet):
  *   100 points per correct sentence + 10 × wordCount bonus.
- *   Partial credit: 50 points if 80%+ words are in the correct position.
+ *   Partial credit: 50 points if 80%+ words are in the correct position;
+ *   only a complete matching sentence counts as a passed round.
  *   "Correct position" is measured against the best-matching accepted word
  *   order (canonical or curated clause-swap alternative).
  *
@@ -69,14 +70,13 @@ export function computeRoundScore(
   playerOrder: readonly string[],
 ): { points: number; passed: boolean } {
   const accuracy = positionAccuracy(original, playerOrder);
-  const perfect = accuracy >= 1.0;
-  const passed = accuracy >= 0.8;
+  const perfect = accuracy >= 1.0 && playerOrder.length === original.length;
 
   if (perfect) {
     return { points: perfectRoundScore(original.length), passed: true };
   }
-  if (passed) {
-    return { points: partialRoundScore(), passed: true };
+  if (accuracy >= 0.8) {
+    return { points: partialRoundScore(), passed: false };
   }
   return { points: 0, passed: false };
 }
@@ -106,14 +106,15 @@ export function computeRoundScoreForOrders(
   playerOrder: readonly string[],
 ): { points: number; passed: boolean } {
   const accuracy = bestPositionAccuracy(acceptedOrders, playerOrder);
-  const perfect = accuracy >= 1.0;
-  const passed = accuracy >= 0.8;
+  const perfect = acceptedOrders.some((order) =>
+    order.length === playerOrder.length && positionAccuracy(order, playerOrder) >= 1.0,
+  );
 
   if (perfect) {
     return { points: perfectRoundScore(playerOrder.length), passed: true };
   }
-  if (passed) {
-    return { points: partialRoundScore(), passed: true };
+  if (accuracy >= 0.8) {
+    return { points: partialRoundScore(), passed: false };
   }
   return { points: 0, passed: false };
 }

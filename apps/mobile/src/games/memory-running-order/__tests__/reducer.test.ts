@@ -4,7 +4,7 @@ import { createRng } from "@/sdk";
 import type { DifficultyLevel } from "@/sdk";
 
 import { runningOrderGameReducer } from "../reducer";
-import { createInitialRunningOrderState } from "../types";
+import { continuationStamp, createInitialRunningOrderState } from '../types';
 import type {
   QaForceStatePatch,
   RunningOrderGameState,
@@ -243,7 +243,7 @@ describe("next-round", () => {
     let state = toInput("esc");
     const prevTarget = targetOf(state);
     state = submitAnswer(state, prevTarget);
-    state = runningOrderGameReducer(state, { type: "next-round" });
+    state = runningOrderGameReducer(state, { stamp: continuationStamp(state), type: "next-round" });
     expect(state.phase).toBe("reveal");
     expect(state.roundIndex).toBe(1);
     expect(state.recallLength).toBe(4); // escalated, capped at streamLen
@@ -260,7 +260,7 @@ describe("next-round", () => {
     const wrong = target.map((id) => (id + 1) % SYMBOL_COUNT);
     state = submitAnswer(state, wrong);
     expect(state.roundOutcome).toBe("failed");
-    state = runningOrderGameReducer(state, { type: "next-round" });
+    state = runningOrderGameReducer(state, { stamp: continuationStamp(state), type: "next-round" });
     expect(state.roundIndex).toBe(1);
     expect(state.recallLength).toBe(3); // held
   });
@@ -272,7 +272,7 @@ describe("next-round", () => {
         state = runningOrderGameReducer(state, { type: "reveal-tick" });
       }
       state = submitAnswer(state, targetOf(state));
-      state = runningOrderGameReducer(state, { type: "next-round" });
+      state = runningOrderGameReducer(state, { stamp: continuationStamp(state), type: "next-round" });
     }
     expect(state.phase).toBe("results");
     expect(state.stats.roundsPlayed).toBe(4);

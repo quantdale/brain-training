@@ -1,0 +1,8 @@
+{
+  "tool": "image_gen__imagegen",
+  "transparent_background": true,
+  "source": "docs/redesign/artwork/campaign077/sources/logic-v1.png",
+  "output": "docs/redesign/artwork/campaign077/sources/logic-v2.png",
+  "prompt": "Edit this original Play Lab illustration into a corrected production cutout. Preserve the exact seafoam/mint matte material, soft upper-left lighting, restrained sculptural depth, three-quarter viewpoint, transparent background and clean 3 by 3 grid geometry. The existing dark-green path already connects its endpoints without the loose tile, so REMOVE the dark L-shaped groove from the loose floating tile. Make the loose tile a plain pale-mint square, matching the plain blank recess at the board's upper-right. Keep every other tile and the current complete right-angle route intact; no extra path, symbols, labels or numbers. This is an illustrative learning object, not a functional puzzle UI. Improve clean alpha edges. Center the entire board and loose tile with at least15percent clear transparent padding on every side, cropped nowhere. No new objects, no background/checkerboard/rectangle, no glossy plastic or candy, no text/logos/watermark. Output one square transparent asset.",
+  "decision": "Accept corrected plain loose tile matching blank recess, pending small composite and native review"
+}

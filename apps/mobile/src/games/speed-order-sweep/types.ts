@@ -166,6 +166,12 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+export interface OrderSweepCueStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type OrderSweepAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | {
@@ -178,6 +184,7 @@ export type OrderSweepAction =
     }
   | {
       type: 'tap';
+      cue?: OrderSweepCueStamp;
       /** Grid cell id of the tapped token. */
       tokenId: number;
       /** Monotonic clock value at tap time. */
@@ -185,10 +192,11 @@ export type OrderSweepAction =
     }
   | {
       type: 'round-expired';
+      cue?: OrderSweepCueStamp;
       /** Monotonic clock value when the window closed. */
       nowMs: number;
     }
-  | { type: 'next-round'; roundStartedAtMs: number }
+  | { type: 'next-round'; roundStartedAtMs: number; cue?: OrderSweepCueStamp }
   | { type: 'pause' }
   | {
       type: 'resume';
@@ -222,6 +230,8 @@ export type OrderSweepAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface OrderSweepGameState {
+  /** Displayed board/pause generation; partial sweeps keep the same board. */
+  inputEpoch: number;
   phase: OrderSweepPhase;
   /** True while the SDK lifecycle is paused (timer frozen, board obscured). */
   paused: boolean;
@@ -276,6 +286,7 @@ export interface OrderSweepGameState {
 export function createInitialOrderSweepState(): OrderSweepGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

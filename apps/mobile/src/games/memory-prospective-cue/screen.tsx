@@ -63,8 +63,9 @@ import {
   persistProspectiveCueSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { GAME_ID, createInitialProspectiveCueState } from "./types";
 import { SCORING_VERSION } from "./versions";
+import { continuationStamp, GAME_ID, createInitialProspectiveCueState } from './types';
+import type { ProspectiveCueAction } from './types';
 
 export interface ProspectiveCueScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -101,6 +102,12 @@ export default function SignalWatchScreen(
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: ProspectiveCueAction) => {
+    stateRef.current = prospectiveCueGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   /**
    * Per-item response-window elapsed ms as pure RENDER STATE, driving both
    * the urgency bar and the press-path elapsedFraction. Written ONLY by the
@@ -162,8 +169,23 @@ export default function SignalWatchScreen(
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: "pause" }),
+    onPause: () => dispatchContinuation({ type: "pause" }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: ProspectiveCueAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = prospectiveCueGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createProspectiveCueTutorialLifecycle(tutorialStore),
@@ -389,9 +411,9 @@ export default function SignalWatchScreen(
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: "resume" });
+      dispatchContinuation({ type: "resume" });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -641,7 +663,7 @@ export default function SignalWatchScreen(
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next round"}
-                onPress={() => dispatch({ type: "next-round" })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

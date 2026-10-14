@@ -14,11 +14,11 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
+import { AppIcon, type AppIconName } from './ui/app-icon';
 
 import { TAB_DEFINITIONS } from '@/constants/tabs';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
@@ -33,7 +33,7 @@ export default function AppTabs() {
         <CustomTabList>
           {TAB_DEFINITIONS.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-              <TabButton testID={tab.testID} label={tab.label} sf={tab.sf} symbol={tab.web} />
+              <TabButton testID={tab.testID} label={tab.label} icon={tab.icon} />
             </TabTrigger>
           ))}
         </CustomTabList>
@@ -45,16 +45,14 @@ export default function AppTabs() {
 type TabButtonProps = TabTriggerSlotProps & {
   testID: string;
   label: string;
-  sf: (typeof TAB_DEFINITIONS)[number]['sf'];
-  symbol: (typeof TAB_DEFINITIONS)[number]['web'];
+  icon: AppIconName;
 };
 
 export function TabButton({
   children,
   testID,
   label,
-  sf,
-  symbol,
+  icon,
   isFocused,
   ...props
 }: TabButtonProps) {
@@ -70,9 +68,9 @@ export function TabButton({
       <ThemedView
         type={isFocused ? 'accent' : 'background'}
         style={[styles.tabButtonView, !isFocused && styles.inactiveTab]}>
-        <SymbolView
-          tintColor={isFocused ? theme.accentOn : theme.textSecondary}
-          name={{ ios: sf, web: symbol }}
+        <AppIcon
+          color={isFocused ? theme.accentOn : theme.textSecondary}
+          name={icon}
           size={18}
         />
         <ThemedText
@@ -92,7 +90,7 @@ export function CustomTabList(props: TabListProps) {
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={[styles.innerContainer, { borderColor: theme.borderStrong }]}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          Signal Arcade
+          Brain Training
         </ThemedText>
 
         {props.children}

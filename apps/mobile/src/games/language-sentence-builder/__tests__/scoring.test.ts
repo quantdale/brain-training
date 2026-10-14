@@ -58,7 +58,7 @@ describe('computeRoundScore', () => {
 
     // 5 words, 4 correct = 80%, partial.
     const result4 = computeRoundScore(['a', 'b', 'c', 'd', 'e'], ['a', 'b', 'c', 'd', 'x']);
-    expect(result4.passed).toBe(true);
+    expect(result4.passed).toBe(false);
     expect(result4.points).toBe(partialRoundScore());
   });
 
@@ -98,7 +98,7 @@ describe('bestPositionAccuracy / computeRoundScoreForOrders', () => {
     // 7 of 8 positions match the alternative order (last word swapped).
     const player = ['she', 'might', 'join', 'us', 'if', 'she', 'finishes', 'earlyx'];
     const result = computeRoundScoreForOrders(orders, player);
-    expect(result.passed).toBe(true);
+    expect(result.passed).toBe(false);
     expect(result.points).toBe(partialRoundScore());
   });
 

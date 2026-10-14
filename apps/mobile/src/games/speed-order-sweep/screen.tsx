@@ -10,7 +10,7 @@
  *
  * Pause semantics: pausing freezes the lifecycle timer and cancels the expiry
  * timer; resuming re-schedules expiry with the exact remaining time
- * (`deadlineMs - clock.now()`). The board is covered by the opaque shared
+ * from the lifecycle's active clock. The board is covered by the opaque shared
  * `PauseOverlay` and hidden from the accessibility tree while paused, so the
  * board cannot be studied during a pause.
  */
@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -41,7 +42,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -57,7 +57,6 @@ import {
 } from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
-  createOrderSweepQaForceStateHooks,
   createOrderSweepTutorialLifecycle,
 } from './hooks';
 import { orderSweepGameReducer } from './reducer';
@@ -70,6 +69,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialOrderSweepState } from './types';
+import type { OrderSweepAction, OrderSweepCueStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Verdict kinds for the tap/round cue. */
@@ -227,15 +227,24 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     orderSweepGameReducer,
     undefined,
     createInitialOrderSweepState,
   );
 
   const stateRef = useRef(state);
-  /** Window time left when pausing; the resume action re-anchors from it. */
-  const pauseRemainingRef = useRef(0);
+  // Every number is visible: distinct rapid clears are valid, while accepted
+  // transitions are claimed before React commits and cleared repeats ignored.
+  const dispatch = useCallback((action: OrderSweepAction) => {
+    const current = stateRef.current;
+    const next = orderSweepGameReducer(current, action);
+    if (next === current) return null;
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, []);
+  const cue = useMemo<OrderSweepCueStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch }), [state.sessionId, state.roundIndex, state.inputEpoch]);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -254,26 +263,18 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
         !current.paused
       );
     },
-    onPause: () => {
-      // Freeze the round's window: the remaining time is what resume
-      // re-anchors the deadline from, so pausing never buys or loses time.
-      const current = stateRef.current;
-      pauseRemainingRef.current =
-        current.deadlineMs !== null
-          ? Math.max(0, current.deadlineMs - clock.now())
-          : 0;
-      dispatch({ type: 'pause' });
-    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
+  const readActiveTime = session.elapsedMs;
+  const readStatus = session.status;
+  const activeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
 
   const tutorial = useMemo(
     () => createOrderSweepTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createOrderSweepQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null ? orderSweepParamsFromProfile(state.profile) : null;
@@ -286,18 +287,29 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
   // remaining time (deadline - now), so pausing never buys extra time. A
   // 0 ms remainder fires on the next timer advance instead of synchronously
   // during render/effect scheduling.
-  useGameTimeout(
-    state.phase === 'active' && !state.paused && state.deadlineMs !== null,
-    () => dispatch({ type: 'round-expired', nowMs: clock.now() }),
-    Math.max(0, state.deadlineMs !== null ? state.deadlineMs - clock.now() : 0),
-  );
+  useEffect(() => {
+    if (state.phase !== 'active' || state.paused || state.deadlineMs === null) return;
+    const deadlineMs = state.deadlineMs;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      const current = stateRef.current;
+      if (stopped || readStatus() !== 'active' || current.paused || current.sessionId !== cue.sessionId || current.roundIndex !== cue.roundIndex || current.inputEpoch !== cue.inputEpoch) return;
+      const nowMs = readActiveTime();
+      const remainingMs = deadlineMs - nowMs;
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else dispatch({ type: 'round-expired', nowMs, cue });
+    };
+    timer = setTimeout(expire, Math.max(0, deadlineMs - readActiveTime()));
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.deadlineMs, cue, readActiveTime, readStatus, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Round outcome feedback (canonical feedback events only). Keyed by
   // roundIndex too, so consecutive rounds with the same outcome still sting.
@@ -401,6 +413,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -409,14 +422,16 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
+    const nowMs = readActiveTime();
+    const remainingMs = Math.max(0, (stateRef.current.deadlineMs ?? nowMs) - nowMs);
     if (session.resumeIfPaused()) {
       dispatch({
         type: 'resume',
-        nowMs: clock.now(),
-        remainingMs: pauseRemainingRef.current,
+        nowMs,
+        remainingMs,
       });
     }
-  }, [session, clock, dispatch]);
+  }, [session, readActiveTime, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -426,29 +441,31 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
   const handleTokenTap = useCallback(
     (tokenId: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'active' || current.paused) {
+      if (current.phase !== 'active' || current.paused || readStatus() !== 'active' || current.inputEpoch !== cue.inputEpoch) {
         return;
       }
-      if (current.deadlineMs !== null && clock.now() > current.deadlineMs) {
-        return; // window already closed; the expiry timer owns the resolution
+      const nowMs = readActiveTime();
+      if (current.deadlineMs !== null && nowMs > current.deadlineMs) {
+        dispatch({ type: 'round-expired', nowMs, cue });
+        return;
       }
       // Per-tap feedback matches the answer actually given; the round-level
       // success/failure sting plays via the roundOutcome effect.
-      const round = current.round;
-      const token = round?.tokens.find((candidate) => candidate.id === tokenId);
-      const required = round !== null && round !== undefined ? round.order[current.clearedCount] : undefined;
-      if (token !== undefined && token.value === required) {
-        liveAudioHaptics.feedback('correct');
-      } else if (token !== undefined) {
-        liveAudioHaptics.feedback('wrong');
-      }
-      dispatch({ type: 'tap', tokenId, nowMs: clock.now() });
+      const next = dispatch({ type: 'tap', tokenId, nowMs, cue });
+      if (next !== null && next.lastVerdict !== null) liveAudioHaptics.feedback(next.lastVerdict);
     },
-    [clock, dispatch],
+    [readActiveTime, readStatus, cue, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    if (readStatus() !== 'active') return;
+    dispatch({ type: 'next-round', roundStartedAtMs: readActiveTime(), cue });
+  }, [readActiveTime, readStatus, cue, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    const status = readStatus();
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.inputEpoch !== cue.inputEpoch || (status !== null && status !== 'completed' && status !== 'abandoned')) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -456,9 +473,9 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
-      roundStartedAtMs: clock.now(),
+      roundStartedAtMs: readActiveTime(),
     });
-  }, [session, sessionSeed, clock, dispatch]);
+  }, [session, sessionSeed, readActiveTime, readStatus, cue, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -524,7 +541,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
@@ -572,9 +589,9 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
           </View>
           {state.phase === 'active' ? (
             <RoundWindow
-              deadlineMs={state.deadlineMs ?? clock.now()}
+              deadlineMs={state.deadlineMs ?? 0}
               windowMs={state.windowMs}
-              clock={clock}
+              clock={activeClock}
               testID={testId(GAME_ID, 'window')}
             />
           ) : null}
@@ -625,7 +642,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round', roundStartedAtMs: clock.now() })}
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

@@ -248,9 +248,9 @@ describe('LanguageWordMatchScreen', () => {
     expect(raw.score).toBe(882); // 6 × roundScore(500, 8000)
     expect(raw.roundsCorrect).toBe(6);
     expect(raw.contentPackId).toBe('language-word-match-core-v1');
-    expect(raw.contentPackVersion).toBe('2.0.0');
+    expect(raw.contentPackVersion).toBe('2.1.0');
     expect(raw.roundOutcomes).toEqual(['correct', 'correct', 'correct', 'correct', 'correct', 'correct']);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

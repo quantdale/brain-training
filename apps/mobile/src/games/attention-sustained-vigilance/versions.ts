@@ -8,7 +8,8 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.0.0';
+// Measured display exposure replaces backdated catch-up; stale input is rejected.
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

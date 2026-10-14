@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -37,7 +38,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -53,7 +53,6 @@ import {
 } from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
-  createWordChainQaForceStateHooks,
   createWordChainTutorialLifecycle,
 } from './hooks';
 import { wordChainReducer } from './reducer';
@@ -66,6 +65,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialLanguageWordChainState } from './types';
+import type { LanguageWordChainAction, WordChainCueStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface WordChainScreenProps {
@@ -91,13 +91,24 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     wordChainReducer,
     undefined,
     createInitialLanguageWordChainState,
   );
 
   const stateRef = useRef(state);
+  // A new link is unseen until the next render. Claim the transition now and
+  // require the displayed step's stamp, instead of accepting queued old options.
+  const dispatch = useCallback((action: LanguageWordChainAction) => {
+    const current = stateRef.current;
+    const next = wordChainReducer(current, action);
+    if (next === current) return null;
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, []);
+  const cue = useMemo<WordChainCueStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch }), [state.sessionId, state.roundIndex, state.inputEpoch]);
 
   useEffect(() => {
     stateRef.current = state;
@@ -111,17 +122,18 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       const current = stateRef.current;
       return current.phase === 'question' && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause', nowMs: clock.now() }),
+    onPause: () => dispatch({ type: 'pause', nowMs: session.elapsedMs() }),
   });
+  const readActiveTime = session.elapsedMs;
+  const readStatus = session.status;
 
   const tutorial = useMemo(
     () => createWordChainTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createWordChainQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
+  const forceTimeout = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-timeout' }); }, [dispatch]);
 
   const rounds = state.params?.rounds ?? 6;
   const budgetSeconds = Math.max(1, Math.round(state.roundBudgetMs / 1000));
@@ -136,21 +148,29 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
 
   // ---- Chain expiry: one timer per question phase; paused deactivates it
   // (the reducer nulls the deadline) and resume re-arms it for the remainder.
-  useGameTimeout(
-    state.phase === 'question' && !state.paused && state.roundDeadlineMs !== null,
-    () => {
-      liveAudioHaptics.feedback('failure');
-      dispatch({ type: 'expire-round', nowMs: clock.now() });
-    },
-    Math.max(0, state.roundDeadlineMs !== null ? state.roundDeadlineMs - clock.now() : 0),
-  );
+  useEffect(() => {
+    if (state.phase !== 'question' || state.paused || state.roundDeadlineMs === null) return;
+    const deadlineMs = state.roundDeadlineMs;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      const current = stateRef.current;
+      if (stopped || readStatus() !== 'active' || current.paused || current.sessionId !== cue.sessionId || current.roundIndex !== cue.roundIndex || current.inputEpoch !== cue.inputEpoch) return;
+      const nowMs = readActiveTime();
+      const remainingMs = deadlineMs - nowMs;
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else if (dispatch({ type: 'expire-round', nowMs, cue }) !== null) liveAudioHaptics.feedback('failure');
+    };
+    timer = setTimeout(expire, Math.max(0, deadlineMs - readActiveTime()));
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.roundDeadlineMs, cue, readActiveTime, readStatus, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -263,6 +283,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -271,10 +292,11 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
+    const nowMs = readActiveTime();
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume', nowMs: clock.now() });
+      dispatch({ type: 'resume', nowMs });
     }
-  }, [session, clock, dispatch]);
+  }, [session, readActiveTime, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -287,29 +309,39 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       if (
         current.phase !== 'question' ||
         current.paused ||
+        readStatus() !== 'active' ||
+        current.inputEpoch !== cue.inputEpoch ||
         current.currentRound === null ||
         current.roundDeadlineMs === null
       ) {
         return;
       }
-      const nowMs = clock.now();
+      const nowMs = readActiveTime();
       if (nowMs > current.roundDeadlineMs) {
-        // Expired — a late tap changes nothing; the expiry timer fires the
-        // timeout transition instead.
+        // A stalled expiry callback must not leave an expired chain playable.
+        if (dispatch({ type: 'expire-round', nowMs, cue }) !== null) liveAudioHaptics.feedback('failure');
         return;
       }
       const step =
         current.currentRound.steps[current.currentStepIndex];
+      if (!Number.isInteger(index) || index < 0 || index >= step.options.length) return;
+      if (dispatch({ type: 'answer-step', index, nowMs, cue }) === null) return;
       liveAudioHaptics.feedback(
         index === step.correctIndex ? 'correct' : 'wrong',
       );
-      dispatch({ type: 'answer-step', index, nowMs });
     },
-    [clock, dispatch],
+    [readActiveTime, readStatus, cue, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    if (readStatus() !== 'active') return;
+    dispatch({ type: 'next-round', nowMs: readActiveTime(), cue });
+  }, [readActiveTime, readStatus, cue, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    const status = readStatus();
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.inputEpoch !== cue.inputEpoch || (status !== null && status !== 'completed' && status !== 'abandoned')) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -317,9 +349,9 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
-      nowMs: clock.now(),
+      nowMs: readActiveTime(),
     });
-  }, [session, sessionSeed, clock, dispatch]);
+  }, [session, sessionSeed, readActiveTime, readStatus, cue, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -409,9 +441,9 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
-          onForceTimeout={qaHooks.forceTimeout}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
+          onForceTimeout={forceTimeout}
         />
       }
       tutorialOpen={state.tutorialOpen}
@@ -583,9 +615,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() =>
-                  dispatch({ type: 'next-round', nowMs: clock.now() })
-                }
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

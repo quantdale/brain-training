@@ -177,6 +177,8 @@ function fallbackSnapshot(): DiscoverySnapshot {
 
 export interface DiscoveryData extends DiscoverySnapshot {
   loaded: boolean;
+  error: unknown;
+  retry: () => void;
 }
 
 /**
@@ -210,7 +212,8 @@ export function useDiscoveryData(): DiscoveryData {
   // elsewhere; the throw-safe hook degrades to the fallback without storage.
   const [token, setToken] = useState(0);
   useFocusEffect(useCallback(() => setToken((t) => t + 1), []));
-  const { data, loaded } = useDbData(loadDiscovery, [token], fallbackSnapshot());
+  const { data, loaded, error } = useDbData(loadDiscovery, [token], fallbackSnapshot(), { label: 'game activity' });
+  const retry = useCallback(() => setToken((t) => t + 1), []);
   // 061: stabilize per-game mastery identity across reloads. Fresh loads
   // rebuild every summary object, defeating tile memoization (42 tiles
   // re-render per focus). Reuse the previous object when its content is
@@ -233,7 +236,7 @@ export function useDiscoveryData(): DiscoveryData {
     prevRef.current = next;
     return next;
   }, [data]);
-  return { ...stable, loaded };
+  return { ...stable, loaded, error, retry };
 }
 
 function sameMembers(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {

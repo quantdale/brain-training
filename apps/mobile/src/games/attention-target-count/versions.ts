@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.0.0';
+// 1.1: precise active clock time replaces polled elapsed time, and a late
+// answer is recorded as a full-window timeout. Existing records are unchanged.
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

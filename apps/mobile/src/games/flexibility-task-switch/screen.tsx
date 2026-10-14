@@ -69,8 +69,9 @@ import {
   persistFlexibilityTaskSwitchSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { GAME_ID, TASK_CUE_WORDS, createInitialFlexibilityTaskSwitchState, switchCostMsOf } from "./types";
 import { SCORING_VERSION } from "./versions";
+import { continuationStamp, GAME_ID, TASK_CUE_WORDS, createInitialFlexibilityTaskSwitchState, switchCostMsOf } from './types';
+import type { FlexibilityTaskSwitchAction } from './types';
 
 export interface FlexibilityTaskSwitchScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -103,6 +104,12 @@ export default function TaskSwitchScreen(
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: FlexibilityTaskSwitchAction) => {
+    stateRef.current = flexibilityTaskSwitchReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   /** Monotonic-clock time the current trial became active (response origin). */
   const trialStartRef = useRef(0);
   /** Clock time a pause began inside the current trial, or null. */
@@ -128,9 +135,24 @@ export default function TaskSwitchScreen(
       if (current.phase === "trialActive") {
         pauseStartRef.current = clock.now();
       }
-      dispatch({ type: "pause" });
+      dispatchContinuation({ type: "pause" });
     },
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: FlexibilityTaskSwitchAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = flexibilityTaskSwitchReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createFlexibilityTaskSwitchTutorialLifecycle(tutorialStore),
@@ -307,9 +329,9 @@ export default function TaskSwitchScreen(
       pauseStartRef.current = null;
     }
     if (session.resumeIfPaused()) {
-      dispatch({ type: "resume" });
+      dispatchContinuation({ type: "resume" });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -580,7 +602,7 @@ export default function TaskSwitchScreen(
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next trial"}
-                onPress={() => dispatch({ type: "next-round" })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

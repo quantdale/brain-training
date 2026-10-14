@@ -266,7 +266,7 @@ describe('CardSortScreen', () => {
     expect(raw.score).toBe(8 * 150); // 100 + full speed bonus per round
     expect(raw.postSwitchPlayed).toBe(1);
     expect(raw.postSwitchCorrect).toBe(1);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('easy');
     expect(raw.forced).toBe(false);

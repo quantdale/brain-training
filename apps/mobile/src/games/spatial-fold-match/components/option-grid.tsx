@@ -23,7 +23,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 import type { ReadonlyGrid } from '../generator';
-import { GridView } from './grid-view';
+import { describeGrid, GridView } from './grid-view';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export interface OptionGridProps {
@@ -66,11 +66,12 @@ export const OptionGrid = memo(function OptionGrid({
     : isWrongPick
       ? theme.danger
       : theme.border;
-  const accessibilityLabel = correct
+  const verdictLabel = correct
     ? `Option ${index + 1}, correct`
     : isWrongPick
       ? `Option ${index + 1}, wrong pick`
       : `Option ${index + 1}`;
+  const accessibilityLabel = `${verdictLabel}. ${describeGrid(grid)}`;
 
   return (
     <Pressable
@@ -89,8 +90,8 @@ export const OptionGrid = memo(function OptionGrid({
           opacity: pressed || disabled ? 0.8 : 1,
         },
       ]}>
-      {/* The result grid is purely decorative: the outer button already
-       * announces "Option N". A labeled a11y container nested inside an
+      {/* The outer button describes the actual cells and any resolved verdict.
+       * A labeled a11y container nested inside an
        * accessibility button collapses the Android a11y tree on Fabric
        * (campaign 011 device finding: the session PauseOverlay subtree
        * vanished from uiautomator/TalkBack entirely), so hide the whole

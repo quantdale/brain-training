@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = "1.0.0";
+// 1.1: scoring accepts each displayed cue once; queued input cannot consume
+// the unseen next cue. Previously persisted versions keep their own metadata.
+export const SCORING_VERSION = "1.1.0";
 
 /**
  * Pack a semantic version string into the integer recorded in the db

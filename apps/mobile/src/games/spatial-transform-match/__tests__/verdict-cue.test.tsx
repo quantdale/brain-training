@@ -111,9 +111,9 @@ describe('SpatialTransformMatchScreen verdict cues', () => {
     const wrongOption = screen.getByTestId(optionId(wrongIndex));
     const correctOption = screen.getByTestId(optionId(roundData.correctOptionIndex));
 
-    expect(wrongOption.props.accessibilityLabel).toBe(`Option ${wrongIndex + 1}, wrong pick`);
-    expect(correctOption.props.accessibilityLabel).toBe(
-      `Option ${roundData.correctOptionIndex + 1}, correct`,
+    expect(wrongOption.props.accessibilityLabel).toContain(`Option ${wrongIndex + 1}, wrong pick.`);
+    expect(correctOption.props.accessibilityLabel).toContain(
+      `Option ${roundData.correctOptionIndex + 1}, correct.`,
     );
     expect(verdictBadge(wrongIndex)).toHaveTextContent('✕');
     expect(verdictBadge(roundData.correctOptionIndex)).toHaveTextContent('✓');
@@ -130,8 +130,8 @@ describe('SpatialTransformMatchScreen verdict cues', () => {
 
     expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
     const correctOption = screen.getByTestId(optionId(roundData.correctOptionIndex));
-    expect(correctOption.props.accessibilityLabel).toBe(
-      `Option ${roundData.correctOptionIndex + 1}, correct`,
+    expect(correctOption.props.accessibilityLabel).toContain(
+      `Option ${roundData.correctOptionIndex + 1}, correct.`,
     );
     expect(verdictBadge(roundData.correctOptionIndex)).toHaveTextContent('✓');
   });

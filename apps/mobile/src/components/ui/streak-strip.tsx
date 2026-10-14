@@ -9,6 +9,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from './app-icon';
 import { Radii, Spacing } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -54,8 +55,9 @@ export function StreakStrip({ count, days = 7, todayIndex, testID }: StreakStrip
       <View
         style={[styles.pill, { backgroundColor: theme.streakSoft, borderColor: theme.streak }]}
         importantForAccessibility="no-hide-descendants">
+        <AppIcon name="streak" size={16} color={theme.streakSoftText} />
         <ThemedText type="label" style={{ color: theme.streakSoftText }}>
-          {'\u26A1'} {count}
+          {count}
         </ThemedText>
       </View>
     </View>
@@ -65,11 +67,14 @@ export function StreakStrip({ count, days = 7, todayIndex, testID }: StreakStrip
 const styles = StyleSheet.create({
   root: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.two,
   },
   strip: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    flexShrink: 1,
     gap: Spacing.one,
   },
   dot: {
@@ -78,6 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: Radii.pill,
   },
   pill: {
+    flexDirection: 'row',
+    gap: Spacing.half,
     minHeight: 28,
     minWidth: 48,
     paddingHorizontal: Spacing.two,

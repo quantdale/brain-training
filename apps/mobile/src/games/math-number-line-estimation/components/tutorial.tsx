@@ -1,14 +1,14 @@
 /**
  * Tutorial — first-play tutorial for the Number Line Estimation game.
  *
- * Two steps: a short explanation of the estimate-the-flag mechanic, then a
+ * Two steps: a short explanation of numeric spatial estimation, then a
  * completion screen. Completion marks the tutorial done via the tutorial
  * lifecycle; a dev-only skip button (rendered by the parent only in dev
  * builds) uses the QA skip path.
  *
- * The tutorial intentionally shows no live board (the flag position would leak
- * nothing, but a static explanation keeps it deterministic and dependency-
- * free). Replaying simply remounts the body via a `key`.
+ * The explanation introduces the numeric target, adjustable draft position
+ * and explicit submission. The playfield owns the actual spatial interaction.
+ * Replaying simply remounts the body via a `key`.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -37,11 +37,11 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body} key="intro">
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Each round shows a number line with a flag between the two end
-            labels. Tap the spot on the line where you think the flag&apos;s
-            value sits — no calculating needed, just a feel for scale. The
-            closer your tap lands to the flag&apos;s true value, the more you
-            score. Beat the clock per round!
+            Each round shows a target number and a line with labeled endpoints.
+            Tap where you think that number belongs. Move your position left or
+            right if needed, then choose Submit estimate. Screen readers can
+            adjust the position with swipe actions. The correct position appears
+            after submission. Closer estimates score more. Beat the clock!
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}

@@ -9,7 +9,7 @@ import {
 } from '../difficulty';
 import { generateEquation } from '../generator';
 import { mathMissingOperatorGameReducer } from '../reducer';
-import { createInitialMathMissingOperatorState } from '../types';
+import { continuationStamp, createInitialMathMissingOperatorState } from '../types';
 import type { MathMissingOperatorAction, MathMissingOperatorGameState } from '../types';
 
 const SEED = 'reducer-seed';
@@ -76,7 +76,7 @@ describe('mathMissingOperatorGameReducer', () => {
           responseMs: 500,
         });
         trail.push(state);
-        state = mathMissingOperatorGameReducer(state, { type: 'next-round', roundStartedAtMs: 500 });
+        state = mathMissingOperatorGameReducer(state, { stamp: continuationStamp(state), type: 'next-round', roundStartedAtMs: 500 });
         trail.push(state);
       }
       return trail;
@@ -176,7 +176,7 @@ describe('mathMissingOperatorGameReducer', () => {
         operator: state.equation!.answerOperator,
         responseMs: 100,
       });
-      const next = mathMissingOperatorGameReducer(state, { type: 'next-round', roundStartedAtMs: 100 });
+      const next = mathMissingOperatorGameReducer(state, { stamp: continuationStamp(state), type: 'next-round', roundStartedAtMs: 100 });
       if (round < PARAMS.rounds - 1) {
         expect(next.phase).toBe('answer');
         expect(next.roundIndex).toBe(round + 1);
@@ -220,7 +220,7 @@ describe('mathMissingOperatorGameReducer', () => {
     });
     expect(state.adaptiveRating).toBeCloseTo(0.6);
     // Timeout: −0.12.
-    state = mathMissingOperatorGameReducer(state, { type: 'next-round', roundStartedAtMs: 0 });
+    state = mathMissingOperatorGameReducer(state, { stamp: continuationStamp(state), type: 'next-round', roundStartedAtMs: 0 });
     state = mathMissingOperatorGameReducer(state, { type: 'round-timeout' });
     expect(state.adaptiveRating).toBeCloseTo(0.48);
   });

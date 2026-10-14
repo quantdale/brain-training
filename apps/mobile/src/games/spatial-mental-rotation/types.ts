@@ -165,7 +165,7 @@ export type SpatialAction =
    * active (non-paused) elapsed time; `<= 0` ends the round as a timeout.
    */
   | { type: 'clock-tick'; remainingMs: number }
-  | { type: 'answer'; answer: RoundKind }
+  | { type: 'answer'; answer: RoundKind; remainingMs?: number }
   /**
    * Advance to the next round. `roundStartedElapsedMs` is the lifecycle
    * active-elapsed value at which the new round begins (the screen reads it
@@ -200,6 +200,8 @@ export type SpatialAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface SpatialGameState {
+  /** Changes when a displayed cue or pause window changes; queued input must match. */
+  inputEpoch: number;
   phase: SpatialPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
@@ -262,6 +264,7 @@ export interface SpatialGameState {
 export function createInitialSpatialState(): SpatialGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

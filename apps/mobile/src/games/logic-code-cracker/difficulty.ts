@@ -62,11 +62,13 @@ export function codeCrackerParamsFromProfile(profile: DifficultyProfile): CodeCr
   };
   const minLength = p.minLength === undefined ? undefined : requireNumber('minLength');
   const maxLength = p.maxLength === undefined ? undefined : requireNumber('maxLength');
+  const initialCodeLength = p.initialCodeLength === undefined ? undefined : requireNumber('initialCodeLength');
   return {
     codeLength: requireNumber('codeLength'),
     colorCount: requireNumber('colorCount'),
     guessBudget: requireNumber('guessBudget'),
     rounds: requireNumber('rounds'),
+    ...(initialCodeLength !== undefined ? { initialCodeLength } : {}),
     ...(minLength !== undefined ? { minLength } : {}),
     ...(maxLength !== undefined ? { maxLength } : {}),
   };

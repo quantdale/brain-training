@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 
 import { RULE_GRID_DIFFICULTY_PARAMS } from '../difficulty';
 import { blanksForSize, generateRound, generateSquare, minDepthForSize, validateGeneratedRound } from '../generator';
-import { buildVisibleBoard, computePropagationDepth, countSolutions } from '../solver';
+import { buildVisibleBoard, candidatesForCell, computePropagationDepth, countSolutions } from '../solver';
 import type { RuleGridRound } from '../types';
 
 function paramsForSize(size: number) {
@@ -12,6 +12,50 @@ function paramsForSize(size: number) {
 }
 
 describe('Rule Grid depth convergence — property sweeps', () => {
+  it('keeps at least two initially viable answer choices for a chained target', () => {
+    const choiceShortcuts: string[] = [];
+    for (const size of [5, 6]) {
+      for (let index = 0; index < 30; index += 1) {
+        const seed = `asked-options-${size}-${index}`;
+        const round = generateRound({ rng: createRng(seed), roundIndex: 0, params: paramsForSize(size), prevRound: null });
+        const visible = buildVisibleBoard(round.square, round.blanks, size);
+        const candidates = candidatesForCell(visible, size, round.blankRow, round.blankCol);
+        if (round.options.filter((value) => candidates.has(value)).length < 2) choiceShortcuts.push(seed);
+      }
+    }
+    expect(choiceShortcuts).toEqual([]);
+  });
+
+  it('rejects a deep board when its asked cell is changed to a direct blank', () => {
+    const round = generateRound({ rng: createRng('direct-asked-validator'), roundIndex: 0, params: paramsForSize(5), prevRound: null });
+    const visible = buildVisibleBoard(round.square, round.blanks, round.size);
+    const direct = computePropagationDepth(visible, round.blanks, round.size).trace[0].cells[0];
+    expect(validateGeneratedRound({
+      ...round,
+      blankIndex: direct.r * round.size + direct.c,
+      blankRow: direct.r,
+      blankCol: direct.c,
+      answer: direct.val,
+    })).toBe(false);
+  });
+
+  it('requires the asked Hard and Expert cells themselves to need a deduction chain', () => {
+    const directTargets: string[] = [];
+    for (const size of [5, 6]) {
+      for (let index = 0; index < 30; index += 1) {
+        const seed = `asked-depth-${size}-${index}`;
+        const round = generateRound({ rng: createRng(seed), roundIndex: 0, params: paramsForSize(size), prevRound: null });
+        const visible = buildVisibleBoard(round.square, round.blanks, size);
+        const propagation = computePropagationDepth(visible, round.blanks, size);
+        const askedStep = propagation.trace.find((step) => step.cells.some(
+          (cell) => cell.r === round.blankRow && cell.c === round.blankCol,
+        ));
+        if ((askedStep?.depth ?? 0) < 2) directTargets.push(seed);
+      }
+    }
+    expect(directTargets).toEqual([]);
+  });
+
   const sizes = [3, 4, 5, 6] as const;
   const sizeToLevel: Record<number, string> = { 3: 'easy', 4: 'normal', 5: 'hard', 6: 'expert' };
 

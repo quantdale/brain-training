@@ -235,6 +235,8 @@ export type SpatialGridNavAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface SpatialGridNavGameState {
+  /** Changes when a displayed cue or pause window changes; queued input must match. */
+  inputEpoch: number;
   phase: SpatialGridNavPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
@@ -282,6 +284,7 @@ export interface SpatialGridNavGameState {
 export function createInitialState(): SpatialGridNavGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

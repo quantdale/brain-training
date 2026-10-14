@@ -97,6 +97,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
   );
 
   const stateRef = useRef(state);
+  const roundKey = `${state.sessionId ?? 'idle'}:${state.roundIndex}`;
 
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
@@ -259,13 +260,19 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
       const current = stateRef.current;
       // Double-tap protection: only one estimate per round can ever reach the
       // reducer (the phase flips to `feedback` on the first).
-      if (current.phase !== 'estimating' || current.paused || current.round === null) {
+      if (
+        current.phase !== 'estimating' || current.paused || current.round === null ||
+        `${current.sessionId ?? 'idle'}:${current.roundIndex}` !== roundKey
+      ) {
         return;
       }
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'estimate', value, atActiveMs: session.elapsedMs() });
+      const action = { type: 'estimate' as const, value, atActiveMs: session.elapsedMs() };
+      const next = numberLineGameReducer(current, action);
+      stateRef.current = next;
+      if (next.phase === 'feedback' && next.outcome !== 'timeout') liveAudioHaptics.feedback('tap');
+      dispatch(action);
     },
-    [session, dispatch],
+    [roundKey, session, dispatch],
   );
 
   // ---- Sensory outcome feedback via canonical events (correct/wrong). The
@@ -409,7 +416,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
                 type="bodyLarge"
                 themeColor="text"
                 testID={testId(GAME_ID, 'prompt')}>
-                Where does the flag sit?
+                Where does this number belong? Choose a position, adjust it, then submit.
               </ThemedText>
               <ThemedText
                 type="caption"
@@ -418,6 +425,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
                 {secondsLeft}s left
               </ThemedText>
               <NumberLine
+                key={roundKey}
                 lineMin={round.lineMin}
                 lineMax={round.lineMax}
                 target={round.target}
@@ -448,7 +456,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
               {/* The prompt stays mounted while feedback shows; the resolved
               line below keeps the target (flag) visible next to the guess. */}
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'prompt')}>
-                Where does the flag sit?
+                Compare your estimate with the correct position.
               </ThemedText>
               <NumberLine
                 lineMin={round.lineMin}
@@ -461,8 +469,8 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
                 width={numberLineWidth}
               />
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
-                The flag was at {round.target}.
-                {state.estimateValue !== null ? ` You tapped ${state.estimateValue}.` : ''}
+                The target was {round.target}.
+                {state.estimateValue !== null ? ` You estimated ${state.estimateValue}.` : ''}
               </ThemedText>
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}

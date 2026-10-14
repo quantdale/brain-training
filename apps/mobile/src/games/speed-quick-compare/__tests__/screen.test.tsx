@@ -238,7 +238,7 @@ describe('QuickCompareScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Correct!');
   });
 
-  it('an answer strictly AFTER the deadline is ignored and expiry resolves the miss', async () => {
+  it('an answer strictly AFTER the deadline resolves the miss even while the expiry callback is stalled', async () => {
     const { clock } = await renderScreen();
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -248,10 +248,10 @@ describe('QuickCompareScreen', () => {
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, 'option', String(correctIndex(0)))),
     );
-    // Late tap rejected — no verdict yet.
-    expect(screen.queryByTestId(testId(GAME_ID, 'verdict'))).toBeNull();
+    // The answer is rejected and the overdue window closes immediately.
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
 
-    // The expiry then owns the resolution.
+    // The pending expiry cannot resolve the same round twice.
     await act(async () => {
       jest.advanceTimersByTime(PARAMS.windowMs + 10);
     });
@@ -276,10 +276,11 @@ describe('QuickCompareScreen', () => {
     // Frozen: paused wall-time must not expire or resolve the round.
     expect(screen.queryByTestId(testId(GAME_ID, 'verdict'))).toBeNull();
 
-    // Resume re-anchors deadline = now + 1ms; the rescheduled 0-ish timeout
-    // must still fire (the W18 "0 ms-remaining" edge) instead of being lost.
+    // The active clock still has 1ms left; advancing both clocks closes the
+    // window while all 60s of background time remain excluded.
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
     await act(async () => {
+      clock.advance(1);
       jest.advanceTimersByTime(1);
     });
     expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');

@@ -34,6 +34,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from 
 import { join, relative, resolve } from 'node:path';
 
 import { captureIssues, contentColorCount, inspectPng, routeArrived } from './capture-validation.mjs';
+import { resolvedThemeWitness } from './resolved-theme-witness.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
@@ -141,9 +142,15 @@ const SURFACES = [
 const PROFILES = {
   default: {},
   compact: { size: '720x1600', density: 320 },
+  // On the dedicated 1080px AVD, density-only profiles exercise 320dp and
+  // 720dp widths without resizing its framebuffer. Keep historical profiles
+  // intact; verify actual Activity dimensions in each capture witness.
+  'compact-320': { density: 540 },
+  'expanded-native': { density: 240 },
   expanded: { size: '1600x2560', density: 320 },
   landscape: { size: '2400x1080', density: 420, orientation: 'landscape' },
   'font-scale-2': { fontScale: '2.0' },
+  'reduced-motion': { reduceMotion: true },
 };
 
 function parseArgs(argv) {
@@ -157,6 +164,7 @@ function parseArgs(argv) {
     pkg: process.env.QA_PKG ?? 'com.braintraining.app',
     settleMs: Number(process.env.QA_CAPTURE_SETTLE_MS ?? 0),
     list: false,
+    themeWitness: null,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -168,6 +176,7 @@ function parseArgs(argv) {
     else if (arg === '--theme') options.themes = next().split(',').map((t) => t.trim()).filter(Boolean);
     else if (arg === '--scheme') options.scheme = next();
     else if (arg === '--pkg') options.pkg = next();
+    else if (arg === '--theme-witness') options.themeWitness = next();
     else if (arg === '--settle-ms') options.settleMs = Number(next());
     else if (arg === '--list') options.list = true;
     else if (arg === '--help' || arg === '-h') {
@@ -219,7 +228,7 @@ function sleep(ms) {
 }
 
 /** Apply a display profile, returning the profile actually in effect. */
-function applyProfile(device, name) {
+function applyProfile(device, name, originalMotion = '1') {
   const profile = PROFILES[name];
   if (!profile) throw new Error(`Unknown profile: ${name}`);
   adb(device, ['shell', 'wm', 'reset']);
@@ -230,6 +239,10 @@ function applyProfile(device, name) {
   // `compact` after `font-scale-2` is genuinely compact/default text rather
   // than a mislabeled 2x capture.
   adb(device, ['shell', 'settings', 'put', 'system', 'font_scale', profile.fontScale ?? '1.0']);
+  // RN's AccessibilityInfo reads this exact setting. Preserve the owner's
+  // starting value and restore it between profiles and at run exit.
+  adb(device, ['shell', 'settings', 'put', 'global', 'transition_animation_scale',
+    profile.reduceMotion ? '0' : originalMotion]);
   adb(device, [
     'shell',
     'settings',
@@ -281,10 +294,11 @@ function relaunchApp(device, pkg) {
   }
 }
 
-function resetProfile(device) {
+function resetProfile(device, originalMotion = '1') {
   adb(device, ['shell', 'wm', 'reset']);
   adb(device, ['shell', 'settings', 'put', 'system', 'font_scale', '1.0']);
   adb(device, ['shell', 'settings', 'put', 'system', 'accelerometer_rotation', '1']);
+  adb(device, ['shell', 'settings', 'put', 'global', 'transition_animation_scale', originalMotion]);
 }
 
 /** Switch the OS night mode (the app's default theme follows the system). */
@@ -446,14 +460,22 @@ async function main() {
     surfaces: [],
     skipped: [],
   };
+  const themeWitness = options.themeWitness
+    ? JSON.parse(readFileSync(resolve(ROOT, options.themeWitness), 'utf8')) : null;
+  manifest.themeWitness = options.themeWitness ? {
+    file: options.themeWitness,
+    sha256: fileSha256(resolve(ROOT, options.themeWitness)),
+  } : null;
 
   let abortReason = null;
+  const originalMotion = adb(device, ['shell', 'settings', 'get', 'global', 'transition_animation_scale']).trim();
+  manifest.originalTransitionAnimationScale = originalMotion;
   try {
   wake(device);
   for (const theme of options.themes) {
     applyTheme(device, theme);
     for (const profileName of options.profiles) {
-      applyProfile(device, profileName);
+      applyProfile(device, profileName, originalMotion);
       relaunchApp(device, options.pkg);
       await sleep(4000);
       const warmed = await waitForWarm(device, options.pkg);
@@ -566,6 +588,10 @@ async function main() {
           expectAll: surface.expectAll ?? false,
           profile: profileName,
           theme,
+          requestedTheme: theme,
+          observedTransitionAnimationScale: adb(device, ['shell', 'settings', 'get', 'global', 'transition_animation_scale']).trim(),
+          ...resolvedThemeWitness(themeWitness, manifest.build.apkSha256,
+            adb(device, ['shell', 'dumpsys', 'activity', options.pkg])),
           png: relative(ROOT, pngPath).replace(/\\/g, '/'),
           xml: xmlBytes > 0 ? relative(ROOT, xmlPath).replace(/\\/g, '/') : null,
           pngBytes: bytes,
@@ -603,7 +629,7 @@ async function main() {
     if (abortReason) break;
   }
   } finally {
-    try { resetProfile(device); } catch (error) {
+    try { resetProfile(device, originalMotion); } catch (error) {
       abortReason = `${abortReason ?? 'capture interrupted'}; display reset failed: ${error.message}`;
     }
   }

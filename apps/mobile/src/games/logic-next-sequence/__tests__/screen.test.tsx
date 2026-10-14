@@ -227,6 +227,7 @@ describe('LogicScreen', () => {
     expect(persister.completeSession).toHaveBeenCalledTimes(1);
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe('logic-next-sequence');
+    expect(input.session.generatorVersion).toBe(1_001_000);
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(5 * 4000); // active play time only
     expect(input.session.xp).toBe(computeXp(1, 'normal')); // pipeline: 10 + 40×1 = 50
@@ -236,7 +237,9 @@ describe('LogicScreen', () => {
     expect(raw.totalMs).toBe(20_000);
     expect(raw.targetMs).toBe(40_000);
     expect(raw.finalTier).toBe(1);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.generatorVersion).toBe('1.1.0');
+    expect(raw.diagnosticMetadata.generatorVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

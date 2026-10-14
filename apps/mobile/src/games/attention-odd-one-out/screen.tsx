@@ -57,11 +57,11 @@ import {
   persistOddOneOutSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialOddOneOutState } from './types';
+import { GAME_ID, createInitialOddOneOutState, inputStamp } from './types';
 import type { OddOneOutAction } from './types';
 import { SCORING_VERSION } from './versions';
 
-/** Countdown refresh cadence (ms); also bounds the pause-freeze drift. */
+/** Countdown display refresh cadence; scoring reads the precise clock. */
 const TICK_MS = 250;
 
 export interface OddOneOutScreenProps {
@@ -94,6 +94,16 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
     stateRef.current = state;
   });
 
+  const applyGameplayAction = useCallback((action: Parameters<typeof oddOneOutReducer>[1]) => {
+    const current = stateRef.current;
+    const next = oddOneOutReducer(current, action);
+    // Claim the transition before React commits; old callbacks stay silent.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+  const stamp = useMemo(() => inputStamp(state), [state]);
+
   const session = useGameSession({
     gameId: GAME_ID,
     clock,
@@ -105,11 +115,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
     },
     onPause: () => {
       // Freeze the exact remainder so resume cannot stretch the window.
-      const current = stateRef.current;
-      dispatch({
-        type: 'pause',
-        remainingMs: Math.max(0, current.deadlineMs - clock.now()),
-      });
+      applyGameplayAction({ type: 'pause', nowMs: clock.now() });
     },
   });
 
@@ -132,11 +138,12 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
       if (current.phase !== 'playing' || current.paused) {
         return;
       }
+      if (session.status() !== 'active') return;
       const remaining = Math.max(0, current.deadlineMs - clock.now());
       if (remaining <= 0) {
-        dispatch({ type: 'round-timeout' });
+        applyGameplayAction({ type: 'round-timeout', nowMs: clock.now(), stamp });
       } else {
-        dispatch({ type: 'tick', remainingMs: remaining });
+        applyGameplayAction({ type: 'tick', nowMs: clock.now(), stamp });
       }
     },
     TICK_MS,
@@ -257,9 +264,9 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume', nowMs: clock.now() });
+      applyGameplayAction({ type: 'resume', nowMs: clock.now() });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -272,6 +279,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
       if (current.phase !== 'playing' || current.paused) {
         return;
       }
+      if (session.status() !== 'active') return;
       const nowMs = clock.now();
       // Feedback follows the authoritative round outcome, not the tap's
       // optimism: the reducer owns the post-deadline guard, so resolve the
@@ -280,10 +288,9 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
       // sounding "correct" for a round that scores a timeout is the Campaign
       // 023 late-tap mismatch. No timing logic is duplicated: this is the
       // same pure transition the dispatch below commits.
-      const action: OddOneOutAction = { type: 'tap-tile', index, nowMs };
-      const next = oddOneOutReducer(current, action);
-      dispatch(action);
-      if (next === current) {
+      const action: OddOneOutAction = { type: 'tap-tile', index, nowMs, stamp };
+      const next = applyGameplayAction(action);
+      if (next === null) {
         return;
       }
       if (next.phase === 'roundResult' && next.roundOutcome === 'passed') {
@@ -294,21 +301,22 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
         liveAudioHaptics.haptic('warning');
       }
     },
-    [clock, dispatch],
+    [clock, applyGameplayAction, stamp, session],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== "intro" && current.phase !== "results") return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
+      nowMs: clock.now(),
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
-      nowMs: clock.now(),
     });
-  }, [clock, session, sessionSeed, dispatch]);
+  }, [clock, session, sessionSeed, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -440,7 +448,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round', nowMs: clock.now() })}
+                onPress={() => applyGameplayAction({ type: 'next-round', nowMs: clock.now(), stamp })}
               />
             </View>
           ) : null}

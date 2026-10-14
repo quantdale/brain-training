@@ -5,8 +5,8 @@
   "secondaryDomains": ["Attention"],
   "description": "A Latin grid: every row and column contains each symbol exactly once. Several cells are hidden — deduce the asked cell by chaining constraints. Hard and Expert require dependent deduction, not just independent lookups.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.1.0",
-  "generatorVersion": "2.0.0",
+  "gameVersion": "1.2.0",
+  "generatorVersion": "2.1.0",
   "contentVersion": null,
   "hasTutorial": true
 }

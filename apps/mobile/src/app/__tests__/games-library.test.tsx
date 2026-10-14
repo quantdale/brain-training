@@ -14,6 +14,7 @@ import { fireEvent, renderRouter, screen, within } from 'expo-router/testing-lib
 import GamesScreen from '@/app/(tabs)/games';
 import type { AppDatabase } from '@/db';
 import { registerGameDefinitions, type GameDefinition } from '@/registry/registry';
+import { expectConsoleNoise } from '@/test-utils';
 
 const mockDbState: { db: AppDatabase | null } = { db: null };
 
@@ -98,9 +99,8 @@ describe('games library', () => {
     expect(screen.getByTestId('games-filter-memory')).toBeOnTheScreen();
     expect(screen.getByTestId('games-filter-favorites')).toBeOnTheScreen();
 
-    // 076 review round-2: the catalog grid leads (action-led navigation);
-    // the Suggested Next recommendation follows the library. The suggestion
-    // renders once, after the grid.
+    // The recommendation precedes the full library; search and filters remain
+    // available for an intentional lookup. Each surface renders once.
     expect(screen.getByTestId('games-browse-all')).toBeOnTheScreen();
 
     // Grid carries one card per game under the stable card testIDs.
@@ -191,6 +191,25 @@ describe('games library', () => {
     expect(screen.getByText('No favorites yet')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('games-favorites-empty-action'));
     expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
+  });
+
+  it('discloses a failed favorites read and retries without presenting empty data as fact', async () => {
+    const broken = makeFakeDb();
+    broken.favorites.listFavoriteGameIds = async () => { throw new Error('favorite read unavailable'); };
+    mockDbState.db = broken;
+    await expectConsoleNoise(/\[useDbData\] game activity load failed/, async () => {
+      await renderLibrary();
+    }, { max: 2 });
+    expect(screen.getByTestId('games-data-error')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-grid')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('games-filter-favorites'));
+    expect(screen.queryByTestId('games-favorites-empty')).toBeNull();
+    expect(screen.getByTestId('games-count')).toHaveTextContent('Favorites unavailable');
+    mockDbState.db = makeFakeDb(['speed-sprint']);
+    await fireEvent.press(screen.getByTestId('games-data-error-action'));
+    expect(await screen.findByTestId('game-card-speed-sprint')).toBeOnTheScreen();
+    expect(screen.queryByTestId('games-data-error')).toBeNull();
+    expect(screen.getByTestId('games-count')).toHaveTextContent('Showing 1 of 6 games');
   });
 
   it('recovers from no-results with Clear filters', async () => {

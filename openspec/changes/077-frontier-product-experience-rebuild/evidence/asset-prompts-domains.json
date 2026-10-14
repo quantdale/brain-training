@@ -1,0 +1,21 @@
+{
+  "tool": "image_gen__imagegen",
+  "artDirection": "Play Lab",
+  "transparent_background": true,
+  "subjects": [
+    {
+      "key": "math",
+      "prompt": "Use case: stylized-concept. One original premium brain-training Math domain illustration cutout for the Play Lab family, not a UI screenshot, icon or logo. A compact deep-blue and sky-blue counting sculpture: three parallel rounded rails in a sturdy small pale-blue frame, each rail holding a different small count of smooth spherical beads, with one navy geometric counting block beside it. Precisely aligned simple rails, plausible fixed beads, one clear silhouette that suggests numerical relationships. No equation symbols, text, digits, labels, marks or letters. Sculptural matte learning tools with precise softly rounded geometry, restrained detail and soft localized ambient occlusion, gentle upper-left studio lighting, three-quarter view. Similar material to a tactile learning object, not glossy candy or toy plastic. A controlled blue palette with navy accents and clean pale highlights. All objects centered and isolated, at least15percent clear transparent padding on every side. Readable at96–180dp on cool near-white or deep navy backgrounds. Genuine transparent background, no rectangle/checkerboard/colored ground, no large cast shadow. No faces, characters, brain anatomy, logos, trophy, glitter, photorealistic texture or unrelated props. High quality square image.",
+      "output": "docs/redesign/artwork/campaign077/sources/math-v1.png",
+      "purpose": "math domain cover/introduction",
+      "acceptance": "Source reviewed; small composite and native review pending"
+    },
+    {
+      "key": "language",
+      "prompt": "Use case: stylized-concept. One original premium brain-training Language domain illustration cutout in the Play Lab family, not an icon, logo or UI screenshot. A compact sculptural pair of softly rounded cyan and pale-aqua booklets, one slightly open with a clean fan of exactly four blank thick pages and one closed behind it with a dark teal spine. A single small teal rounded speech-bubble shape with a short integrated tail sits beside the books, completely blank inside. A distinct compact silhouette suggesting words and understanding, no text, letters, punctuation, numbers, labels or paper marks. Sculptural matte learning tools, precise stable softly rounded geometry, restrained detail, gentle upper-left studio light and soft localized ambient occlusion. Three-quarter view. Controlled cyan/teal palette with pale highlights; no glossy candy, photorealistic texture, glitter or cartoon face. Center all objects within a square with at least15percent clear transparent padding on every side. Designed to remain readable at96–180dp on cool nearwhite and deep navy backgrounds. Genuine transparent background, no rectangle, ground, checkerboard or large cast shadow. No characters, brain anatomy, trophy, logos, watermark or unrelated props.",
+      "output": "docs/redesign/artwork/campaign077/sources/language-v1.png",
+      "purpose": "language domain cover/introduction",
+      "acceptance": "Source reviewed; small composite and native review pending"
+    }
+  ]
+}

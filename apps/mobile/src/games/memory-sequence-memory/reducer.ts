@@ -47,6 +47,12 @@ export function sequenceMemoryGameReducer(
   state: SequenceMemoryGameState,
   action: SequenceMemoryAction,
 ): SequenceMemoryGameState {
+  if ('stamp' in action && action.stamp !== undefined && (
+    action.stamp.sessionId !== state.sessionId ||
+    action.stamp.roundIndex !== state.roundIndex ||
+    action.stamp.inputEpoch !== state.inputEpoch
+  )) return state;
+
   switch (action.type) {
     case 'select-difficulty': {
       if (state.phase !== 'intro') {
@@ -81,6 +87,7 @@ export function sequenceMemoryGameReducer(
         activeDurationMs: 0,
         pausedDurationMs: 0,
         roundIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
         length: params.baseLength,
         sequence,
         revealedIndex: 0,
@@ -109,9 +116,12 @@ export function sequenceMemoryGameReducer(
       if (state.phase !== 'reveal' || state.paused) {
         return state;
       }
+      if (action.revealedIndex !== undefined && action.revealedIndex !== state.revealedIndex) return state;
       const next = state.revealedIndex + 1;
       if (next >= state.length) {
-        return { ...state, phase: 'input', revealedIndex: -1 };
+        // Inputs captured from the disabled reveal pad cannot claim a step
+        // after the sequence becomes playable.
+        return { ...state, phase: 'input', revealedIndex: -1, inputEpoch: state.inputEpoch + 1 };
       }
       return { ...state, revealedIndex: next };
     }
@@ -120,6 +130,7 @@ export function sequenceMemoryGameReducer(
       if (state.phase !== 'input' || state.paused || state.profile === null) {
         return state;
       }
+      if (action.elapsedMs !== undefined && action.elapsedMs >= sequenceMemoryParamsFromProfile(state.profile).sessionSeconds * 1000) return state;
       const expected = state.sequence[state.inputIndex];
       const correct = action.index === expected;
       const totalTaps = state.stats.totalTaps + 1;
@@ -180,12 +191,14 @@ export function sequenceMemoryGameReducer(
     case 'next-round': {
       if (
         state.phase !== 'roundResult' ||
+        state.paused ||
         state.profile === null ||
         state.difficulty === null
       ) {
         return state;
       }
       const params = sequenceMemoryParamsFromProfile(state.profile);
+      if (action.elapsedMs !== undefined && action.elapsedMs >= params.sessionSeconds * 1000) return state;
       const nextIndex = state.roundIndex + 1;
       const passed = state.roundOutcome === 'passed';
       const length = nextSequenceLength(state.length, passed, state.difficulty, params);
@@ -201,6 +214,7 @@ export function sequenceMemoryGameReducer(
         ...state,
         phase: 'reveal',
         roundIndex: nextIndex,
+        inputEpoch: state.inputEpoch + 1,
         length,
         sequence,
         revealedIndex: 0,
@@ -212,6 +226,8 @@ export function sequenceMemoryGameReducer(
     }
 
     case 'time-up': {
+      if (state.paused || (action.elapsedMs !== undefined && state.profile !== null &&
+        action.elapsedMs < sequenceMemoryParamsFromProfile(state.profile).sessionSeconds * 1000)) return state;
       if (
         state.phase !== 'reveal' &&
         state.phase !== 'input' &&
@@ -242,7 +258,7 @@ export function sequenceMemoryGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {

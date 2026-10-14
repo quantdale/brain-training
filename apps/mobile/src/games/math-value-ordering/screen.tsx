@@ -61,9 +61,9 @@ import {
   persistValueOrderingSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialValueOrderingState } from './types';
-import type { ValueTile } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, createInitialValueOrderingState } from './types';
+import type { ValueOrderingAction, ValueTile } from './types';
 
 /** Budget ticker cadence (ms of wall time between active-ms samples). */
 const TIMER_TICK_MS = 250;
@@ -129,6 +129,12 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: ValueOrderingAction) => {
+    stateRef.current = valueOrderingGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
 
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
@@ -147,8 +153,23 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatchContinuation({ type: 'pause' }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: ValueOrderingAction = {
+      type: 'next-round', stamp: renderedContinuation, startActiveMs: session.elapsedMs(),
+    };
+    const next = valueOrderingGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createValueOrderingTutorialLifecycle(tutorialStore),
@@ -291,9 +312,9 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     // `resumeIfPaused()` consults lifecycle status rather than the possibly
     // stale reducer ref and drops no-op resumes instead of throwing.
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -329,9 +350,7 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     }
   }, [state.phase, state.outcome]);
 
-  const handleNext = useCallback(() => {
-    dispatch({ type: 'next-round', startActiveMs: session.elapsedMs() });
-  }, [session, dispatch]);
+
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
@@ -534,7 +553,7 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
                 <GameButton
                   testID={testId(GAME_ID, 'next-round')}
                   label={isLastRound ? 'See results' : 'Next round'}
-                  onPress={handleNext}
+                  onPress={handleContinue}
                 />
               </View>
             </>

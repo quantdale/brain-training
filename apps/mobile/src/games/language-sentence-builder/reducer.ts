@@ -38,6 +38,7 @@ function advanceStats(
   points: number,
   passed: boolean,
   wordCount: number,
+  tapCount: number,
   positionAccuracy: number,
 ): SentenceBuilderStats {
   const streak = passed ? prev.streak + 1 : 0;
@@ -48,7 +49,8 @@ function advanceStats(
     bestStreak: Math.max(prev.bestStreak, streak),
     streak,
     longestSentence: Math.max(prev.longestSentence, wordCount),
-    totalTaps: prev.totalTaps + wordCount,
+    totalWords: prev.totalWords + wordCount,
+    totalTaps: prev.totalTaps + tapCount,
     correctTaps: prev.correctTaps + Math.round(positionAccuracy * wordCount),
     accuracySum: prev.accuracySum + positionAccuracy,
   };
@@ -99,6 +101,7 @@ export function sentenceBuilderReducer(
         taps: [],
         inputIndex: 0,
         roundOutcome: null,
+        roundPoints: 0,
         prevCategory: sentence.category,
         usedSentenceTexts: [sentence.text],
         stats: { ...INITIAL_STATS },
@@ -131,6 +134,14 @@ export function sentenceBuilderReducer(
 
       // Check if the tapped scrambled index matches the expected original word.
       const tappedScrambledIndex = action.index;
+      if (
+        !Number.isInteger(tappedScrambledIndex) ||
+        tappedScrambledIndex < 0 ||
+        tappedScrambledIndex >= scrambled.scrambled.length ||
+        state.taps.includes(tappedScrambledIndex)
+      ) {
+        return state;
+      }
       const tappedWord = scrambled.scrambled[tappedScrambledIndex];
 
       // Surviving candidates: accepted orders (canonical + curated clause-swap
@@ -149,7 +160,7 @@ export function sentenceBuilderReducer(
 
       if (correct && nextInputIndex < scrambled.original.length) {
         // Correct tap, still more words to place. Round stats are credited
-        // once by `advanceStats` (wordCount), so per-tap increments here would
+        // once by `advanceStats`, so per-tap increments here would
         // double-count every completed round.
         return {
           ...state,
@@ -171,13 +182,15 @@ export function sentenceBuilderReducer(
         points,
         passed,
         wordCount,
+        newTaps.length,
         accuracy,
       );
 
       return {
         ...state,
         phase: "roundResult",
-        roundOutcome: passed ? "passed" : "failed",
+        roundOutcome: passed ? "passed" : points > 0 ? "partial" : "failed",
+        roundPoints: points,
         taps: newTaps,
         inputIndex: nextInputIndex,
         stats,
@@ -190,11 +203,14 @@ export function sentenceBuilderReducer(
       }
       // Timer expired: round fails.
       const wordCount = state.scrambled.original.length;
-      const stats = advanceStats(state.stats, 0, false, wordCount, 0);
+      const playerOrder = state.taps.map((index) => state.scrambled!.scrambled[index]);
+      const accuracy = bestPositionAccuracy(state.scrambled.acceptedOrders, playerOrder);
+      const stats = advanceStats(state.stats, 0, false, wordCount, state.taps.length, accuracy);
       return {
         ...state,
         phase: "roundResult",
         roundOutcome: "failed",
+        roundPoints: 0,
         stats,
       };
     }
@@ -246,6 +262,7 @@ export function sentenceBuilderReducer(
         taps: [],
         inputIndex: 0,
         roundOutcome: null,
+        roundPoints: 0,
         prevCategory: newSentence.category,
         usedSentenceTexts: [...state.usedSentenceTexts, newSentence.text],
         // Persist the escalated range on the profile so the session's raw

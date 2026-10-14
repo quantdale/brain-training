@@ -15,6 +15,7 @@ import { createRng, isDifficultyLevel, assertExhaustive } from '@/sdk';
 
 import {
   adaptiveGridSize,
+  confirmsEachTap,
   nextSequenceLength,
   paramsFromProfile,
   resolvePatternTapBackDifficulty,
@@ -22,9 +23,14 @@ import {
 import { generateRoundSequence } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialState } from './types';
-import type { PatternTapBackAction, PatternTapBackState, PatternTapBackStats } from './types';
+import type { PatternRoundStamp, PatternTapBackAction, PatternTapBackState, PatternTapBackStats } from './types';
 
 export { createInitialState };
+
+function isCurrentRound(state: PatternTapBackState, stamp: PatternRoundStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.inputEpoch === state.inputEpoch;
+}
 
 export function gameReducer(
   state: PatternTapBackState,
@@ -69,6 +75,7 @@ export function gameReducer(
         sequence,
         observeIndex: 0,
         inputIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
         recallHighlight: false,
         taps: [],
         roundOutcome: null,
@@ -91,7 +98,8 @@ export function gameReducer(
     }
 
     case 'observe-tick': {
-      if (state.phase !== 'observe' || state.paused) {
+      if (state.phase !== 'observe' || state.paused || !isCurrentRound(state, action.stamp) ||
+          action.stamp.observeIndex !== state.observeIndex) {
         return state;
       }
       const next = state.observeIndex + 1;
@@ -102,7 +110,8 @@ export function gameReducer(
     }
 
     case 'tap-tile': {
-      if (state.phase !== 'recall' || state.paused || state.profile === null || state.recallHighlight) {
+      if (state.phase !== 'recall' || state.paused || state.profile === null ||
+          !isCurrentRound(state, action.stamp) || action.stamp.inputIndex !== state.inputIndex) {
         return state;
       }
       const expected = state.sequence[state.inputIndex];
@@ -116,7 +125,7 @@ export function gameReducer(
             ...state,
             taps: [...state.taps, action.index],
             inputIndex,
-            recallHighlight: true,
+            recallHighlight: confirmsEachTap(state.difficulty),
             stats: {
               ...state.stats,
               totalTaps,
@@ -167,7 +176,8 @@ export function gameReducer(
     }
 
     case 'recall-tick': {
-      if (state.phase !== 'recall' || state.paused || !state.recallHighlight) {
+      if (state.phase !== 'recall' || state.paused || !state.recallHighlight ||
+          !isCurrentRound(state, action.stamp) || action.stamp.inputIndex !== state.inputIndex) {
         return state;
       }
       return { ...state, recallHighlight: false };
@@ -212,7 +222,7 @@ export function gameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {

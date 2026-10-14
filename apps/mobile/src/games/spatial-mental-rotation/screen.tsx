@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
+import { assertDevOnly, isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
@@ -41,7 +41,7 @@ import { TimerBar } from './components/timer-bar';
 import { Tutorial } from './components/tutorial';
 import { sessionChallengeRating, spatialParamsFromProfile } from './difficulty';
 import { gameDefinition } from './game-definition';
-import { createSpatialQaForceStateHooks, createSpatialTutorialLifecycle } from './hooks';
+import { createSpatialTutorialLifecycle } from './hooks';
 import { spatialGameReducer } from './reducer';
 import { normalizeSpatialResult, speedOf } from './scoring';
 import {
@@ -52,7 +52,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialSpatialState } from './types';
-import type { RoundKind } from './types';
+import type { RoundKind, SpatialAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface SpatialScreenProps {
@@ -80,9 +80,20 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(spatialGameReducer, undefined, createInitialSpatialState);
+  const [state, reactDispatch] = useReducer(spatialGameReducer, undefined, createInitialSpatialState);
 
   const stateRef = useRef(state);
+  // Claim each accepted transition before the next React commit. The rendered
+  // caller's epoch also rejects presses queued before a round change or pause.
+  const dispatch = useCallback((action: SpatialAction) => {
+    const current = stateRef.current;
+    const next = spatialGameReducer(current, action);
+    if (next === current) return false;
+    stateRef.current = next;
+    reactDispatch(action);
+    return true;
+  }, []);
+  const inputEpoch = state.inputEpoch;
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -100,7 +111,9 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
   });
 
   const tutorial = useMemo(() => createSpatialTutorialLifecycle(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createSpatialQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
+  const forceTimeout = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-timeout' }); }, [dispatch]);
 
   const inSession = state.phase === 'play' || state.phase === 'roundResult';
 
@@ -111,11 +124,11 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
     state.phase === 'play' && !state.paused,
     () => {
       const current = stateRef.current;
-      if (current.phase !== 'play') {
+      if (current.phase !== 'play' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) {
         return;
       }
       const spent = session.elapsedMs() - current.roundStartedElapsedMs;
-      const remaining = Math.max(0, Math.floor(current.timeBudgetMs - spent));
+      const remaining = Math.max(0, current.timeBudgetMs - spent);
       dispatch({ type: 'clock-tick', remainingMs: remaining });
     },
     CLOCK_TICK_MS,
@@ -126,7 +139,7 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -225,6 +238,7 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -246,9 +260,14 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
   const handleAnswer = useCallback(
     (answer: RoundKind) => {
       const current = stateRef.current;
-      if (current.phase !== 'play' || current.paused) {
+      if (current.phase !== 'play' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) {
         return;
       }
+      const spent = Math.max(0, session.elapsedMs() - current.roundStartedElapsedMs);
+      // Preserve fractional milliseconds: flooring a still-positive budget
+      // would expire a valid answer just before the actual deadline.
+      const remainingMs = Math.max(0, current.timeBudgetMs - spent);
+      if (!dispatch({ type: 'answer', answer, remainingMs }) || stateRef.current.roundOutcome === 'timeout') return;
       if (answer === current.kind) {
         liveAudioHaptics.playSfx('spatial-answer-correct');
         liveAudioHaptics.haptic('success');
@@ -256,20 +275,22 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
         liveAudioHaptics.playSfx('spatial-answer-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'answer', answer });
     },
-    [dispatch],
+    [session, inputEpoch, dispatch],
   );
 
   const handleNextRound = useCallback(() => {
+    const current = stateRef.current;
+    if (current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
     dispatch({
       type: 'next-round',
       roundStartedElapsedMs: session.elapsedMs(),
     });
-  }, [session, dispatch]);
+  }, [session, inputEpoch, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -340,13 +361,13 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
           Round {state.roundIndex + 1}/{state.rounds}
         </ThemedText>
       }
-      score={String(state.stats.score)}
+      score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: state.rounds }}
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
-          onForceTimeout={qaHooks.forceTimeout}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
+          onForceTimeout={forceTimeout}
         />
       }
       // Dev-only QA controls anchored ABOVE the tall board content so they

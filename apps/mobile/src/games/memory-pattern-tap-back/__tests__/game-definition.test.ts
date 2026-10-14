@@ -16,7 +16,7 @@ describe('game.json', () => {
     expect(gameDefinition.sdkVersion).toBe(SDK_VERSION);
     // generatorVersion 1.1.0: campaign-014 memory-depth wave — sequences are
     // now adjacency-constrained king-graph paths, so same-seed draws changed.
-    expect(gameDefinition.gameVersion).toBe('1.0.0');
+    expect(gameDefinition.gameVersion).toBe('1.1.0');
     expect(gameDefinition.generatorVersion).toBe('1.1.0');
     expect(gameDefinition.hasTutorial).toBe(true);
     expect(gameDefinition.description).toBeTruthy();

@@ -147,7 +147,7 @@ export type MathMissingOperatorAction =
     }
   | { type: 'answer-round'; operator: Operator; responseMs: number }
   | { type: 'round-timeout' }
-  | { type: 'next-round'; roundStartedAtMs: number }
+  | { type: 'next-round'; roundStartedAtMs: number; stamp: ResultContinuationStamp }
   | { type: 'pause'; pausedAtMs: number }
   | { type: 'resume'; resumedAtMs: number }
   | { type: 'tutorial-open' }
@@ -178,6 +178,8 @@ export interface MathMissingOperatorGameState {
   phase: MathMissingOperatorPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -227,6 +229,7 @@ export interface MathMissingOperatorGameState {
 
 export function createInitialMathMissingOperatorState(): MathMissingOperatorGameState {
   return {
+    continuationEpoch: 0,
     phase: 'intro',
     paused: false,
     difficulty: 'normal',
@@ -256,4 +259,31 @@ export function createInitialMathMissingOperatorState(): MathMissingOperatorGame
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: MathMissingOperatorGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: MathMissingOperatorGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: MathMissingOperatorGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

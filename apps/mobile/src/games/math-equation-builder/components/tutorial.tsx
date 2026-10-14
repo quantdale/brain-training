@@ -59,7 +59,8 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <ThemedText type="small" themeColor="textSecondary">
             A target number is shown at the top. Tap the available numbers to build your
             equation — you must use ALL of them. Add operators (+, −, ×, ÷) between
-            numbers, and use the Group button for parentheses when needed. Submit when
+            numbers. Multiplication and division come before addition and subtraction;
+            use the Group button for parentheses when needed. Division must be exact. Submit when
             ready — faster solves earn more points!
           </ThemedText>
           <GameButton
@@ -144,7 +145,7 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
   };
 
   const handleSubmit = () => {
-    if (equationTokens.length === 0 || submitted) return;
+    if (usedNumberIndices.length !== puzzle.numbers.length || submitted) return;
 
     // Use the shared evaluator for consistent evaluation
     const result = evaluateEquation(equationTokens);
@@ -186,7 +187,7 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
       <GameButton
         testID={testId(GAME_ID, 'tutorial-submit')}
         label="Submit"
-        disabled={equationTokens.length === 0 || submitted}
+        disabled={usedNumberIndices.length !== puzzle.numbers.length || submitted}
         onPress={handleSubmit}
       />
       {submitted && !isCorrect ? (

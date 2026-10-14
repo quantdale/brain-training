@@ -50,8 +50,9 @@ import {
   persistWordScrambleSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialWordScrambleState } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, createInitialWordScrambleState } from './types';
+import type { WordScrambleAction } from './types';
 
 export interface WordScrambleScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -83,6 +84,12 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: WordScrambleAction) => {
+    stateRef.current = wordScrambleGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
     stateRef.current = state;
@@ -95,8 +102,23 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
       const current = stateRef.current;
       return (current.phase === 'play' || current.phase === 'roundResult') && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatchContinuation({ type: 'pause' }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: WordScrambleAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = wordScrambleGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(() => createWordScrambleTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createWordScrambleQaForceStateHooks(dispatch), [dispatch]);
@@ -215,9 +237,9 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -421,7 +443,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

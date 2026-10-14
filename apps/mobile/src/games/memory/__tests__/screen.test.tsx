@@ -103,7 +103,7 @@ describe('MemoryScreen', () => {
 
   it('opens the tutorial on first play, completes it, and does not reopen it', async () => {
     const store = createInMemoryTutorialStore();
-    const { result } = await renderScreen({ seed: 'tut', store });
+    const { result, clock } = await renderScreen({ seed: 'tut', store });
 
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-next')));
@@ -118,6 +118,7 @@ describe('MemoryScreen', () => {
     // One tick per advance: chained timers only schedule after each render flush.
     for (let tick = 0; tick < 3; tick += 1) {
       await act(async () => {
+        clock.advance(900);
         jest.advanceTimersByTime(900);
       });
     }
@@ -207,7 +208,8 @@ describe('MemoryScreen', () => {
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as MemoryRawResult;
     expect(raw.score).toBe(750); // 100+125+150+175+200
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

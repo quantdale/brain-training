@@ -10,7 +10,7 @@ describe('native tab label sizing', () => {
   });
 
   it('caps fixed four-item chrome at large system text', () => {
-    expect(nativeTabLabelFontSize(1.5)).toBe(9);
-    expect(nativeTabLabelFontSize(2)).toBe(9);
+    expect(nativeTabLabelFontSize(1.5)).toBe(11);
+    expect(nativeTabLabelFontSize(2)).toBe(11);
   });
 });

@@ -5,12 +5,10 @@
  * comes from this file. Screens and components must not hardcode magic colours
  * or sizes; add a token here instead of inventing a one-off value.
  *
- * Design language v5 (change 076) — "Training Studio" (REFERENCE_LOCK.md):
- *   studio paper + charcoal stage, one red primary action, white reading type,
- *   instrument-like metrics and mechanic-first play stages. Red is the CTA
- *   role ONLY; success/error always carry text+icon/shape beyond color. The
- *   palette is quiet where the product reports evidence and immersive where
- *   the player plays.
+ * Play Lab (change 077, evidence/ART_DIRECTION.md): a cool canvas, humanist
+ * bundled type and blue interaction emphasis. Domain/stimulus identities keep
+ * their semantic colors. Quiet navy game stages preserve readable task ink;
+ * original illustrations live outside the interactive cognitive task.
  *
  * Colour contract: every family exposes five slots so callers pick the right
  * one instead of guessing contrast:
@@ -75,8 +73,8 @@ export type DomainName =
  */
 export const Families = {
   light: {
-    // CTA red — the ONE primary action fill (REFERENCE_LOCK section 1); never error.
-    accent: { base: '#D6293A', text: '#B8202F', soft: '#FBE3E5', softText: '#8F1622', on: '#FFFFFF' },
+    // Blue belongs to interaction: primary action, active destination, selection.
+    accent: { base: '#0061EF', text: '#0054D0', soft: '#E7EFFF', softText: '#163F88', on: '#FFFFFF' },
     success: { base: '#157A46', text: '#116939', soft: '#DFF2E7', softText: '#0F5230', on: '#FFFFFF' },
     warning: { base: '#8C5A00', text: '#795000', soft: '#FFF0C8', softText: '#604000', on: '#FFFFFF' },
     danger: { base: '#A32014', text: '#931C11', soft: '#F9E2DE', softText: '#7C180E', on: '#FFFFFF' },
@@ -86,9 +84,8 @@ export const Families = {
     currency: { base: '#705900', text: '#624D00', soft: '#F8EEC7', softText: '#4E3D00', on: '#FFFFFF' },
   },
   dark: {
-    // Dark-mode fills are luminous with dark ink on them (`on`); the canvas is
-    // a near-black studio surface and the CTA red brightens for dark ground.
-    accent: { base: '#FF4A57', text: '#FF6E79', soft: '#3A1418', softText: '#FFB3BA', on: '#2B0508' },
+    // Luminous fills use dark `on` ink; never force white on a light fill.
+    accent: { base: '#8DBBFF', text: '#A9CCFF', soft: '#223753', softText: '#CFDFFF', on: '#0C2343' },
     success: { base: '#4CC98A', text: '#6FD8A4', soft: '#12301F', softText: '#9AE8C0', on: '#06281A' },
     warning: { base: '#FFD166', text: '#FFDB82', soft: '#3C321A', softText: '#FFE6A3', on: '#332400' },
     danger: { base: '#FF7B67', text: '#FF9A89', soft: '#3A1410', softText: '#FFC0B5', on: '#340B07' },
@@ -193,50 +190,50 @@ interface NeutralTheme {
 
 const NEUTRALS = {
   light: {
-    text: '#17181A',
-    textSecondary: '#4A4B4E',
-    textMuted: '#6E6E68',
-    background: '#F7F6F3',
-    backgroundElement: '#ECEAE5',
-    backgroundSelected: '#E2E0DA',
+    text: '#17243B',
+    textSecondary: '#45546B',
+    textMuted: '#5C6A80',
+    background: '#F6F7FB',
+    backgroundElement: '#EBEEF5',
+    backgroundSelected: '#DFE7F4',
     surface: '#FFFFFF',
     surfaceRaised: '#FFFFFF',
-    surfaceSunken: '#ECEAE5',
-    stage: '#1F2124',
+    surfaceSunken: '#EDF0F6',
+    stage: '#172132',
     stageInk: '#FFFFFF',
-    stageWarn: '#FFD166',
-    stageError: '#FF8179',
-    stageMuted: '#B9BABC',
+    stageWarn: '#FFDB82',
+    stageError: '#FF9A89',
+    stageMuted: '#B9C8DD',
     stageBorder: 'rgba(255, 255, 255, 0.28)',
     stageFill: 'rgba(255, 255, 255, 0.08)',
-    border: '#D8D5CE',
-    borderStrong: '#4A4B4E',
-    accentStrong: '#B01E2E',
+    border: '#DCE2EC',
+    borderStrong: '#61718B',
+    accentStrong: '#004FC7',
     scrim: 'rgba(12, 13, 15, 0.58)',
     overlaySurface: 'rgba(16, 17, 19, 0.94)',
     overlayText: '#FFFFFF',
     overlayTextMuted: '#D9D9D6',
   },
   dark: {
-    text: '#F2F2F0',
-    textSecondary: '#B9BABC',
-    textMuted: '#9A9A94',
-    background: '#101114',
-    backgroundElement: '#17181B',
-    backgroundSelected: '#26282C',
-    surface: '#1B1D21',
-    surfaceRaised: '#232629',
-    surfaceSunken: '#0C0D0F',
-    stage: '#1B1D21',
+    text: '#F3F6FC',
+    textSecondary: '#C1CCDC',
+    textMuted: '#A4B2C7',
+    background: '#0D1728',
+    backgroundElement: '#1D2C42',
+    backgroundSelected: '#293D59',
+    surface: '#172132',
+    surfaceRaised: '#203047',
+    surfaceSunken: '#09111F',
+    stage: '#172132',
     stageInk: '#FFFFFF',
-    stageWarn: '#FFD166',
-    stageError: '#FF8179',
-    stageMuted: '#B9BABC',
+    stageWarn: '#FFDB82',
+    stageError: '#FF9A89',
+    stageMuted: '#B9C8DD',
     stageBorder: 'rgba(255, 255, 255, 0.28)',
     stageFill: 'rgba(255, 255, 255, 0.08)',
-    border: '#34363B',
-    borderStrong: '#A2A3A6',
-    accentStrong: '#FF6E79',
+    border: '#34445D',
+    borderStrong: '#91A2BC',
+    accentStrong: '#B2D2FF',
     scrim: 'rgba(5, 6, 8, 0.72)',
     overlaySurface: 'rgba(10, 11, 13, 0.95)',
     overlayText: '#FFFFFF',
@@ -352,22 +349,20 @@ export const METRIC_COLOR_KEYS = {
 /** Metric identifier accepted by metric-aware components. */
 export type MetricName = keyof typeof METRIC_COLOR_KEYS;
 
-/** System font families per platform (web values are CSS vars from global.css). */
+/** Manrope is embedded at build time; text never waits on a remote font. */
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
+    sans: 'Manrope',
     /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
+    rounded: 'Manrope',
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
+    sans: 'Manrope',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'Manrope',
     mono: 'monospace',
   },
   web: {
@@ -409,9 +404,9 @@ export const Spacing = {
 export const Radii = {
   extraSmall: 4,
   small: 8,
-  medium: 12,
-  large: 16,
-  extraLarge: 22,
+  medium: 8,
+  large: 12,
+  extraLarge: 16,
   pill: 999,
 } as const;
 
@@ -450,15 +445,15 @@ export const Typography: Record<
   TypographyToken
 > = {
   /** Uppercase section eyebrow above a title. */
-  eyebrow: { size: 11.5, lineHeight: 14, weight: '800', tracking: 1.8 },
+  eyebrow: { size: 12, lineHeight: 16, weight: '600', tracking: 0.6 },
   /** Small labels, captions, metadata. */
-  caption: { size: 12, lineHeight: 16, weight: '500' },
+  caption: { size: 12, lineHeight: 17, weight: '400' },
   /** Form/detail labels that pair with a value. */
-  label: { size: 13, lineHeight: 18, weight: '700' },
+  label: { size: 13, lineHeight: 18, weight: '600' },
   /** Secondary body text. */
-  bodySmall: { size: 14, lineHeight: 20, weight: '500' },
+  bodySmall: { size: 14, lineHeight: 21, weight: '400' },
   /** Primary body text. */
-  body: { size: 16, lineHeight: 24, weight: '500' },
+  body: { size: 16, lineHeight: 24, weight: '400' },
   /**
    * Long-form reading copy: rules, tutorial concepts, progress narrative.
    * Lighter and roomier than `body` so explanation never shouts like a
@@ -468,25 +463,25 @@ export const Typography: Record<
   /** Emphasis within body copy. */
   bodyLarge: { size: 17, lineHeight: 24, weight: '600' },
   /** Section headers. */
-  headline: { size: 24, lineHeight: 30, weight: '800', tracking: -0.4 },
+  headline: { size: 22, lineHeight: 29, weight: '700', tracking: -0.3 },
   /** Screen titles. */
-  title: { size: 30, lineHeight: 34, weight: '800', tracking: -0.4 },
+  title: { size: 28, lineHeight: 36, weight: '700', tracking: -0.5 },
   /** Hero/dashboard display. */
-  display: { size: 40, lineHeight: 44, weight: '800', tracking: -1.0 },
+  display: { size: 36, lineHeight: 44, weight: '700', tracking: -0.8 },
   /** Game names on stages, panels, tiles and detail (campaign 055 voice). */
-  gameTitle: { size: 22, lineHeight: 26, weight: '800', tracking: -0.3 },
+  gameTitle: { size: 21, lineHeight: 28, weight: '700', tracking: -0.3 },
   /**
    * The single result band headline on Results. Deliberately heavier and
    * larger than `headline` so the emotional peak outranks surrounding
    * report copy (campaign 055).
    */
-  resultHeadline: { size: 30, lineHeight: 34, weight: '800', tracking: -0.6 },
+  resultHeadline: { size: 28, lineHeight: 36, weight: '700', tracking: -0.5 },
   /** Inline metric (rows, chips). */
-  numeral: { size: 20, lineHeight: 24, weight: '800', tabular: true },
+  numeral: { size: 20, lineHeight: 26, weight: '700', tabular: true },
   /** Card-level metric. */
-  numeralLg: { size: 30, lineHeight: 34, weight: '800', tabular: true, tracking: -0.6 },
+  numeralLg: { size: 28, lineHeight: 36, weight: '700', tabular: true, tracking: -0.5 },
   /** Hero metric (rings, results headline). */
-  numeralXl: { size: 54, lineHeight: 58, weight: '800', tabular: true, tracking: -1.5 },
+  numeralXl: { size: 48, lineHeight: 56, weight: '700', tabular: true, tracking: -1 },
 };
 
 /** Typography token name accepted by themed text. */

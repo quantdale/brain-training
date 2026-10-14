@@ -296,6 +296,8 @@ export type SpatialCoordinateTurnAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface SpatialCoordinateTurnGameState {
+  /** Changes when a displayed cue or pause window changes; queued input must match. */
+  inputEpoch: number;
   phase: SpatialCoordinateTurnPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
@@ -353,6 +355,7 @@ export interface SpatialCoordinateTurnGameState {
 export function createInitialSpatialCoordinateTurnState(): SpatialCoordinateTurnGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

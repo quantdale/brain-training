@@ -1,0 +1,12 @@
+{
+  "purpose": "Speed domain decoration",
+  "tool": "ChatGPT image_gen",
+  "version": 2,
+  "prompt": "Edit the FIRST reference, the Speed stopwatch illustration, for the established Play Lab brain-training asset family. Preserve its clear stopwatch silhouette, diagonal single hand, two small speed fins and centered composition, and preserve true transparent background. Replace its glossy metallic gold finish entirely with restrained MATTE molded polymer like the SECOND reference's pink memory cards. Warm ochre/yellow plastic, soft broad non-metallic highlights, calm cream dial, simple rounded geometry; no chrome rim, mirror reflections, glare, shiny gold, numbers, letters, ticks, logo, extra objects or shadow plane. The second image is a material/style reference only; do not add cards or pink. Make the chunky object light and friendly, with a clean crisp alpha edge and generous transparent padding so it remains readable at 96px on light and dark navy canvases. High quality original sculptural learning-tool illustration, three-quarter perspective, upper-left diffuse light, subtle self-shadow only. Output just one standalone yellow matte stopwatch icon.",
+  "references": [
+    "speed-v1.png",
+    "memory-v1.png"
+  ],
+  "transparentBackground": true,
+  "decision": "Accepted matte material refinement; prior metallic output rejected. Native rendering pending."
+}

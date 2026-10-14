@@ -235,7 +235,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
           minHeight: HEIGHT[size],
           backgroundColor: background,
           borderColor: inactive ? theme.border : colors.border,
-          borderRadius: Radii.medium,
+          borderRadius: Radii.pill,
         },
         variant === 'ghost' && styles.outlined,
         showLip && styles.lipInner,
@@ -249,14 +249,13 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
         <>
           {icon ? <View style={styles.icon}>{icon}</View> : null}
           <View style={styles.labels}>
-            <ThemedText type={LABEL_TYPE[size]} themeColor={labelColor} numberOfLines={2} style={styles.label}>
+            <ThemedText type={LABEL_TYPE[size]} themeColor={labelColor} style={styles.label}>
               {label}
             </ThemedText>
             {sublabel ? (
               <ThemedText
                 type="caption"
                 themeColor={labelColor}
-                numberOfLines={1}
                 style={styles.sublabel}>
                 {sublabel}
               </ThemedText>
@@ -295,7 +294,7 @@ const styles = StyleSheet.create({
   // Physical key: the wrapper's own translucent floor shows as a 4 dp shadow
   // edge under the raised face. Same shading language as the Spark node.
   lipOuter: {
-    borderRadius: Radii.medium,
+    borderRadius: Radii.pill,
     backgroundColor: Depth.lip,
   },
   lipInner: {
@@ -311,7 +310,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: Fonts.sans,
-    fontWeight: Typography.body.weight,
+    fontWeight: Typography.bodyLarge.weight,
   },
   sublabel: {
     opacity: 0.85,

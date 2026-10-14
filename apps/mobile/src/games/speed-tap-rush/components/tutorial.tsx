@@ -11,7 +11,7 @@
  * resets its internal index/expiry state without any setState-in-effect
  * cascades (same pattern as the memory game's tutorial).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -21,7 +21,8 @@ import { Spacing } from '@/constants/theme';
 
 import { generateRoundTargets } from '../generator';
 import { GAME_ID } from '../types';
-import type { TargetPosition } from '../types';
+import type { FieldGeometry, TargetPosition } from '../types';
+import { tapHitsTarget } from '../geometry';
 import { GameButton } from './button';
 import { Playfield } from './playfield';
 
@@ -116,6 +117,7 @@ function DemoField({ attempt, onWrong, onDone, onSkip }: DemoFieldProps) {
     }),
   );
   const [index, setIndex] = useState(0);
+  const resolvedIndex = useRef(0);
 
   const target = index < targets.length ? targets[index] : null;
   const completed = index >= targets.length;
@@ -129,13 +131,12 @@ function DemoField({ attempt, onWrong, onDone, onSkip }: DemoFieldProps) {
     return () => clearTimeout(timer);
   }, [index, completed, onWrong]);
 
-  const handleTap = (x: number, y: number) => {
-    if (completed || target === null) {
+  const handleTap = (x: number, y: number, geometry: FieldGeometry) => {
+    if (completed || target === null || resolvedIndex.current !== index) {
       return;
     }
-    const dx = x - target.x;
-    const dy = y - target.y;
-    const hit = dx * dx + dy * dy <= DEMO_RADIUS * DEMO_RADIUS;
+    const hit = tapHitsTarget(x, y, target, DEMO_RADIUS, geometry);
+    resolvedIndex.current = index + 1;
     if (hit) {
       const next = index + 1;
       setIndex(next);

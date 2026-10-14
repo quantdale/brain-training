@@ -201,7 +201,7 @@ describe('select-item', () => {
     expect(state.stats.totalElapsedMs).toBe(2_500);
   });
 
-  it('treats an already-placed item as a wrong pick', () => {
+  it('ignores an already-placed item', () => {
     let state = startSession('repeat');
     const round = state.currentRound!;
     state = orderPathGameReducer(state, {
@@ -214,8 +214,8 @@ describe('select-item', () => {
       item: round.solution[0],
       nowMs: 300,
     });
-    expect(state.phase).toBe('roundResult');
-    expect(state.roundOutcome).toBe('wrong');
+    expect(state.phase).toBe('round');
+    expect(state.roundOutcome).toBeNull();
   });
 
   it('ignores picks in the intro, while paused, past the deadline, or after the round ended', () => {

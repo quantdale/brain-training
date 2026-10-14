@@ -9,6 +9,7 @@
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -27,7 +28,7 @@ export interface TileProps {
   visual: TileVisualState;
   disabled?: boolean;
   /** Stable tap handler supplied by the grid (avoids per-render closures). */
-  onPressTile?: (index: number) => void;
+  onPressTile?: (index: number, event: GestureResponderEvent) => void;
 }
 
 export const Tile = memo(function Tile({ index, visual, disabled = false, onPressTile }: TileProps) {
@@ -62,7 +63,7 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPressTile ? () => onPressTile(index) : undefined}
+      onPress={onPressTile ? (event) => onPressTile(index, event) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor: theme.border },

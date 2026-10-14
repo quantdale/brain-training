@@ -7,7 +7,7 @@
   ],
   "description": "Tap the values from smallest to largest before time runs out — some hide behind quick expressions.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.1.0",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

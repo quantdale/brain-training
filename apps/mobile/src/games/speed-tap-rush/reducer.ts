@@ -11,8 +11,8 @@
  * action with monotonic clock values (`spawnedAtMs`, `nowMs`); the reducer
  * derives deadlines (`deadlineMs = spawnedAtMs + windowMs`) and reaction
  * times (`nowMs - spawnedAtMs`). Pause freezes play by removing the expiry
- * timer from the UI; on resume the screen re-schedules with the remaining
- * time computed from the unchanged `deadlineMs`.
+ * timer from the UI; resume re-anchors the deadline and reaction timeline
+ * from the remaining budget captured in the pause handler.
  *
  * QA force actions (`qa/*`) only reshape state; the screen gates their entry
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
@@ -26,6 +26,7 @@ import {
   tapRushParamsFromProfile,
 } from './difficulty';
 import { generateRoundTargets } from './generator';
+import { tapHitsTarget, validFieldGeometry } from './geometry';
 import { hitPoints, perfectRoundBonus, perfectSessionScore, speedFactor } from './scoring';
 import { INITIAL_STATS, createInitialTapRushState } from './types';
 import type {
@@ -33,21 +34,15 @@ import type {
   TapRushDifficultyParams,
   TapRushGameState,
   TapRushStats,
-  TargetPosition,
+  TapRushTargetStamp,
 } from './types';
 
 export { createInitialTapRushState };
 
-/** True when the tap position is inside the current target's circle. */
-function tapHitsTarget(
-  tapX: number,
-  tapY: number,
-  target: TargetPosition,
-  radius: number,
-): boolean {
-  const dx = tapX - target.x;
-  const dy = tapY - target.y;
-  return dx * dx + dy * dy <= radius * radius;
+function isCurrentTarget(state: TapRushGameState, stamp: TapRushTargetStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.targetIndex === state.targetIndex &&
+    stamp.inputEpoch === state.inputEpoch;
 }
 
 /**
@@ -146,6 +141,7 @@ export function tapRushGameReducer(
         windowMs: params.initialWindowMs,
         targets,
         targetIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
         spawnedAtMs: action.spawnedAtMs,
         deadlineMs: action.spawnedAtMs + params.initialWindowMs,
         lastVerdict: null,
@@ -166,12 +162,16 @@ export function tapRushGameReducer(
     }
 
     case 'tap': {
-      if (state.phase !== 'active' || state.paused || state.profile === null) {
+      if (state.phase !== 'active' || state.paused || state.profile === null ||
+          !isCurrentTarget(state, action.stamp)) {
         return state;
       }
       // Post-deadline taps are ignored — the window already closed and the
       // expiry timer owns the resolution. Guards against timer/dispatch races.
-      if (state.deadlineMs !== null && action.nowMs > state.deadlineMs) {
+      if (!Number.isFinite(action.nowMs) || state.spawnedAtMs === null ||
+          state.deadlineMs === null || action.nowMs < state.spawnedAtMs ||
+          action.nowMs >= state.deadlineMs || !validFieldGeometry(action.geometry) ||
+          !Number.isFinite(action.x) || !Number.isFinite(action.y)) {
         return state;
       }
       const target = state.targets[state.targetIndex];
@@ -180,7 +180,7 @@ export function tapRushGameReducer(
       }
       const params = tapRushParamsFromProfile(state.profile);
       const reactionMs = Math.max(0, action.nowMs - state.spawnedAtMs);
-      const hit = tapHitsTarget(action.x, action.y, target, params.targetRadius);
+      const hit = tapHitsTarget(action.x, action.y, target, params.targetRadius, action.geometry);
 
       if (hit) {
         const factor = speedFactor(state.windowMs, reactionMs);
@@ -226,7 +226,9 @@ export function tapRushGameReducer(
     }
 
     case 'target-expired': {
-      if (state.phase !== 'active' || state.paused || state.profile === null) {
+      if (state.phase !== 'active' || state.paused || state.profile === null ||
+          !isCurrentTarget(state, action.stamp) || state.deadlineMs === null ||
+          !Number.isFinite(action.nowMs) || action.nowMs < state.deadlineMs) {
         return state;
       }
       const params = tapRushParamsFromProfile(state.profile);
@@ -287,7 +289,7 @@ export function tapRushGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {

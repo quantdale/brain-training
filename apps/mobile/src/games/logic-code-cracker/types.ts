@@ -20,6 +20,8 @@ export const GAME_ID = 'logic-code-cracker';
 export interface CodeCrackerDifficultyParams {
   /** Number of pegs in the code (4 for standard). */
   readonly codeLength: number;
+  /** Starting length, retained when Adaptive changes the current round length. */
+  readonly initialCodeLength?: number;
   /** Number of available colors (6 for standard). */
   readonly colorCount: number;
   /** Maximum guesses allowed per round. */

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "lifecycleStatus": "COMPLETED",
+  "change": "076-product-wide-ui-ux-reboot",
+  "description": "Campaign 076 product-wide UI/UX reboot (VALIDATED, verdict CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED). The orchestrator owned governance, device evidence, the reference lock, shared compositional surfaces and convergence; five route packets and the game-domain canary discipline were executed under the registered ownership. No active packets remain.",
+  "orchestratorOnlySurfaces": [
+    "openspec/**",
+    ".agent/**",
+    "scripts/**",
+    "docs/**",
+    ".github/**",
+    "README.md",
+    "AGENTS.md",
+    "ONBOARDING.md",
+    "package.json",
+    "package-lock.json",
+    "apps/mobile/package.json",
+    "apps/mobile/package-lock.json",
+    "apps/mobile/app.json",
+    "apps/mobile/src/sdk/**",
+    "apps/mobile/src/registry/**",
+    "apps/mobile/src/theme/**",
+    "apps/mobile/src/components/ui/**",
+    "apps/mobile/src/components/app-tabs.tsx",
+    "apps/mobile/src/components/app-tabs.web.tsx",
+    "apps/mobile/src/components/screen-shell.tsx",
+    "apps/mobile/src/components/game-host/**",
+    "apps/mobile/src/components/game-ui/**",
+    "apps/mobile/src/components/discovery/game-identity.tsx"
+  ],
+  "generatedFilePatterns": [
+    "**/*.generated.ts",
+    "**/registry.generated.ts",
+    "apps/mobile/src/registry/registry.generated.ts"
+  ],
+  "prohibitedSurfaces": [
+    "apps/mobile/src/db/schema.ts",
+    "apps/mobile/src/db/migrate.ts",
+    "apps/mobile/src/data-portability/types.ts",
+    "apps/mobile/src/rating/**",
+    "apps/mobile/src/progression/sync.ts",
+    "apps/mobile/src/cosmetics/registry.ts",
+    "apps/mobile/src/rewards/inbox.ts"
+  ],
+  "parallelPackets": []
+}

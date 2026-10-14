@@ -58,7 +58,7 @@ export interface BuildRawResultInput {
 export function buildMathEquationBuilderRawResult(
   input: BuildRawResultInput,
 ): MathEquationBuilderRawResult {
-  const generatorInfo = {
+  const generatorInfo: Record<string, string | number | boolean> = {
     numbersCount: input.params.numbersCount,
     targetMin: input.params.targetMin,
     targetMax: input.params.targetMax,
@@ -67,6 +67,12 @@ export function buildMathEquationBuilderRawResult(
     timeBudgetMs: input.params.timeBudgetMs,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
+  // New records describe the changed rules; rebuilding a legacy envelope
+  // must not relabel its already-recorded score as standard-precedence play.
+  if (versionToNumber(input.gameVersion) >= versionToNumber('2.0.0')) {
+    generatorInfo.evaluationRules = 'standard-precedence-exact-division-v2';
+    generatorInfo.timingModel = 'active-monotonic-ms-v2';
+  }
   const diagnosticMetadata: DiagnosticMetadata = createDiagnosticMetadata({
     gameId: GAME_ID,
     gameVersion: input.gameVersion,

@@ -19,7 +19,7 @@ import {
 } from './difficulty';
 import { generateRoundSequence } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialMemoryState } from './types';
+import { INITIAL_STATS, createInitialMemoryState, isCurrentWindow } from './types';
 import type { MemoryAction, MemoryGameState, MemoryStats } from './types';
 
 export { createInitialMemoryState };
@@ -55,6 +55,7 @@ export function memoryGameReducer(
         phase: 'reveal',
         paused: false,
         profile,
+        inputEpoch: state.inputEpoch + 1,
         seed: action.seed,
         sessionId: action.sessionId,
         startedAtMs: action.startedAtMs,
@@ -65,6 +66,8 @@ export function memoryGameReducer(
         length: params.initialSequenceLength,
         sequence,
         revealedIndex: 0,
+        revealDeadlineMs: action.nowMs + params.revealMs,
+        revealRemainingMs: params.revealMs,
         inputIndex: 0,
         taps: [],
         roundOutcome: null,
@@ -86,18 +89,24 @@ export function memoryGameReducer(
     }
 
     case 'reveal-tick': {
-      if (state.phase !== 'reveal' || state.paused) {
+      if (state.phase !== 'reveal' || state.paused || state.profile === null ||
+          !isCurrentWindow(state, action.stamp) || action.stamp.revealedIndex !== state.revealedIndex ||
+          !Number.isFinite(action.nowMs) || action.nowMs < state.revealDeadlineMs) {
         return state;
       }
       const next = state.revealedIndex + 1;
       if (next >= state.length) {
         return { ...state, phase: 'input', revealedIndex: -1 };
       }
-      return { ...state, revealedIndex: next };
+      // Start the next tile's full exposure when it can actually be shown;
+      // a delayed wakeup must not skip or shorten unseen sequence positions.
+      const revealMs = memoryParamsFromProfile(state.profile).revealMs;
+      return { ...state, revealedIndex: next, revealDeadlineMs: action.nowMs + revealMs, revealRemainingMs: revealMs };
     }
 
     case 'tap-tile': {
-      if (state.phase !== 'input' || state.paused || state.profile === null) {
+      if (state.phase !== 'input' || state.paused || state.profile === null ||
+          !isCurrentWindow(state, action.stamp) || action.stamp.inputIndex !== state.inputIndex) {
         return state;
       }
       const expected = state.sequence[state.inputIndex];
@@ -158,7 +167,8 @@ export function memoryGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null ||
+          !isCurrentWindow(state, action.stamp) || !Number.isFinite(action.nowMs)) {
         return state;
       }
       const params = memoryParamsFromProfile(state.profile);
@@ -185,6 +195,8 @@ export function memoryGameReducer(
         length,
         sequence,
         revealedIndex: 0,
+        revealDeadlineMs: action.nowMs + params.revealMs,
+        revealRemainingMs: params.revealMs,
         inputIndex: 0,
         taps: [],
         roundOutcome: null,
@@ -193,14 +205,29 @@ export function memoryGameReducer(
     }
 
     case 'pause': {
-      if (state.paused || state.phase === 'results' || state.phase === 'intro') {
+      if (state.paused || state.phase === 'results' || state.phase === 'intro' || !Number.isFinite(action.nowMs)) {
         return state;
       }
-      return { ...state, paused: true };
+      return {
+        ...state,
+        paused: true,
+        inputEpoch: state.inputEpoch + 1,
+        revealRemainingMs: state.phase === 'reveal'
+          ? Math.max(0, state.revealDeadlineMs - action.nowMs)
+          : state.revealRemainingMs,
+      };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused || !Number.isFinite(action.nowMs)) return state;
+      return {
+        ...state,
+        paused: false,
+        inputEpoch: state.inputEpoch + 1,
+        revealDeadlineMs: state.phase === 'reveal'
+          ? action.nowMs + state.revealRemainingMs
+          : state.revealDeadlineMs,
+      };
     }
 
     case 'tutorial-open': {

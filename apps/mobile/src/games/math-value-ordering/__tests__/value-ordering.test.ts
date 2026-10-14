@@ -27,7 +27,7 @@ import {
   speedFactorOf,
 } from '../scoring';
 import { valueOrderingGameReducer } from '../reducer';
-import { createInitialValueOrderingState } from '../types';
+import { continuationStamp, createInitialValueOrderingState } from '../types';
 import type {
   ValueOrderingAction,
   ValueOrderingRawResult,
@@ -200,7 +200,7 @@ describe('reducer core', () => {
     expect(state.stats.score).toBeGreaterThan(100);
 
     // Next round: one wrong tap (not the minimum remaining) resolves instantly.
-    state = valueOrderingGameReducer(state, { type: 'next-round', startActiveMs: 5000 });
+    state = valueOrderingGameReducer(state, { stamp: continuationStamp(state), type: 'next-round', startActiveMs: 5000 });
     expect(state.phase).toBe('ordering');
     const minimumId = [...state.round!.tiles].sort((a, b) => a.value - b.value)[0].id;
     const wrongTile = state.round!.tiles.find((tile) => tile.id !== minimumId)!;

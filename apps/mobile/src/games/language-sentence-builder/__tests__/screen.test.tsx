@@ -116,9 +116,13 @@ async function solveRoundBySentence(scrambled: {
   scrambled: readonly string[];
 }) {
   const gridTestId = testId(GAME_ID, 'word-grid');
+  const usedIndices = new Set<number>();
   for (let i = 0; i < scrambled.original.length; i += 1) {
     const targetWord = scrambled.original[i];
-    const scrambledIdx = scrambled.scrambled.indexOf(targetWord);
+    const scrambledIdx = scrambled.scrambled.findIndex((word, index) =>
+      word.toLowerCase() === targetWord.toLowerCase() && !usedIndices.has(index),
+    );
+    usedIndices.add(scrambledIdx);
     await fireEvent.press(
       screen.getByTestId(`${gridTestId}.word.${scrambledIdx}`),
     );
@@ -200,6 +204,9 @@ describe('SentenceBuilderScreen', () => {
       await solveRoundBySentence(sentences[round]);
 
       expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
+      expect(screen.getByTestId(testId(GAME_ID, 'round-points'))).toHaveTextContent(
+        `+${100 + 10 * sentences[round].original.length} points`,
+      );
       await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     }
 
@@ -219,7 +226,9 @@ describe('SentenceBuilderScreen', () => {
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SentenceBuilderRawResult;
     expect(raw.score).toBeGreaterThan(0);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
+    expect(input.session.scoringVersion).toBe(1_002_000);
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

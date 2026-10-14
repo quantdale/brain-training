@@ -135,6 +135,15 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Identity of the displayed cue/window; queued callbacks must keep this stamp. */
+export interface PairRecallInputStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly cueIndex: number;
+  readonly inputEpoch: number;
+  readonly phase: PairRecallPhase;
+}
+
 export type PairRecallAction =
   | { type: "select-difficulty"; level: DifficultyLevel }
   | {
@@ -142,12 +151,13 @@ export type PairRecallAction =
       seed: string;
       sessionId: string;
       startedAtMs: number;
+      nowMs: number;
     }
-  | { type: "study-tick" }
-  | { type: "respond"; responseId: number }
-  | { type: "next-round" }
-  | { type: "pause" }
-  | { type: "resume" }
+  | { type: "study-tick"; nowMs: number; stamp: PairRecallInputStamp }
+  | { type: "respond"; responseId: number; stamp: PairRecallInputStamp }
+  | { type: "next-round"; nowMs: number; stamp: PairRecallInputStamp }
+  | { type: "pause"; nowMs: number }
+  | { type: "resume"; nowMs: number }
   | { type: "tutorial-open" }
   | { type: "tutorial-close" }
   | {
@@ -182,6 +192,8 @@ export interface LastCueOutcome {
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface PairRecallGameState {
   phase: PairRecallPhase;
+  /** Changes at a new session or pause, invalidating previously rendered input. */
+  inputEpoch: number;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
   /** Selected difficulty (preselected 'normal' in the intro). */
@@ -199,6 +211,9 @@ export interface PairRecallGameState {
   pausedDurationMs: number;
   /** 0-based index of the current round. */
   roundIndex: number;
+  /** Monotonic study deadline; resume rebuilds it from the frozen remainder. */
+  studyDeadlineMs: number;
+  studyRemainingMs: number;
   /** Pair count of the current round. */
   pairCount: number;
   /** The current round's generated content (pairs + orders). */
@@ -239,6 +254,7 @@ export interface PairRecallGameState {
 export function createInitialPairRecallState(): PairRecallGameState {
   return {
     phase: "intro",
+    inputEpoch: 0,
     paused: false,
     difficulty: "normal",
     profile: null,
@@ -250,6 +266,8 @@ export function createInitialPairRecallState(): PairRecallGameState {
     activeDurationMs: 0,
     pausedDurationMs: 0,
     roundIndex: 0,
+    studyDeadlineMs: 0,
+    studyRemainingMs: 0,
     pairCount: 0,
     round: null,
     prevRound: null,
@@ -270,4 +288,22 @@ export function createInitialPairRecallState(): PairRecallGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+export function inputStamp(state: PairRecallGameState): PairRecallInputStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    cueIndex: state.cueIndex,
+    inputEpoch: state.inputEpoch,
+    phase: state.phase,
+  };
+}
+
+export function isCurrentInput(state: PairRecallGameState, stamp: PairRecallInputStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex &&
+    stamp.cueIndex === state.cueIndex &&
+    stamp.inputEpoch === state.inputEpoch &&
+    stamp.phase === state.phase;
 }

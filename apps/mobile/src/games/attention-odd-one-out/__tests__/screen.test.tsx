@@ -230,7 +230,8 @@ describe('OddOneOutScreen', () => {
     expect(input.session.normalizedResult).toBeCloseTo(0.8962, 3);
     const raw = input.session.rawResult as OddOneOutRawResult;
     expect(raw.score).toBe(750);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

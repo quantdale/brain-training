@@ -162,6 +162,17 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Identity of the displayed trial/phase; queued callbacks keep their original stamp. */
+export interface ColorStroopInputStamp {
+  readonly sessionId: string | null;
+  readonly trialIndex: number;
+  readonly inputEpoch: number;
+  readonly phase: ColorStroopPhase;
+}
+
+/** Full active duration of the rule-change banner before the next stimulus. */
+export const FLIP_CUE_MS = 1500;
+
 export type ColorStroopAction =
   | { type: "select-difficulty"; level: DifficultyLevel }
   | {
@@ -169,17 +180,19 @@ export type ColorStroopAction =
       seed: string;
       sessionId: string;
       startedAtMs: number;
+      nowMs: number;
     }
-  | { type: "submit-answer"; answer: StroopColor; responseTimeMs: number }
-  | { type: "dismiss-flip-cue" }
-  | { type: "next-trial" }
+  | { type: "submit-answer"; answer: StroopColor; nowMs: number; stamp: ColorStroopInputStamp }
+  | { type: "dismiss-flip-cue"; nowMs: number; stamp: ColorStroopInputStamp }
+  | { type: "next-trial"; nowMs: number; stamp: ColorStroopInputStamp }
   | {
       /** Per-trial stimulus timeout: the trial counts as wrong, the session continues. */
       type: "trial-timeout";
-      responseTimeMs: number;
+      nowMs: number;
+      stamp: ColorStroopInputStamp;
     }
-  | { type: "pause" }
-  | { type: "resume" }
+  | { type: "pause"; nowMs: number }
+  | { type: "resume"; nowMs: number }
   | { type: "tutorial-open" }
   | { type: "tutorial-close" }
   | {
@@ -206,6 +219,8 @@ export type ColorStroopAction =
 /** Complete game state. */
 export interface ColorStroopGameState {
   phase: ColorStroopPhase;
+  /** Changes at a new session or pause, invalidating previously rendered input. */
+  inputEpoch: number;
   paused: boolean;
   difficulty: DifficultyLevel | null;
   profile: DifficultyProfile | null;
@@ -216,6 +231,10 @@ export interface ColorStroopGameState {
   completedAtMs: number | null;
   activeDurationMs: number;
   pausedDurationMs: number;
+  /** Active-clock baseline and deadline for the stimulus or rule-change cue. */
+  roundStartedAtMs: number;
+  deadlineMs: number;
+  remainingMs: number;
   /** 0-based index of the current trial. */
   trialIndex: number;
   /** The generated trial sequence. */
@@ -256,6 +275,7 @@ export interface ColorStroopGameState {
 export function createInitialColorStroopState(): ColorStroopGameState {
   return {
     phase: "intro",
+    inputEpoch: 0,
     paused: false,
     difficulty: "normal",
     profile: null,
@@ -266,6 +286,9 @@ export function createInitialColorStroopState(): ColorStroopGameState {
     completedAtMs: null,
     activeDurationMs: 0,
     pausedDurationMs: 0,
+    roundStartedAtMs: 0,
+    deadlineMs: 0,
+    remainingMs: 0,
     trialIndex: 0,
     trials: [],
     currentRule: "ink",
@@ -286,4 +309,20 @@ export function createInitialColorStroopState(): ColorStroopGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+export function inputStamp(state: ColorStroopGameState): ColorStroopInputStamp {
+  return {
+    sessionId: state.sessionId,
+    trialIndex: state.trialIndex,
+    inputEpoch: state.inputEpoch,
+    phase: state.phase,
+  };
+}
+
+export function isCurrentInput(state: ColorStroopGameState, stamp: ColorStroopInputStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.trialIndex === state.trialIndex &&
+    stamp.inputEpoch === state.inputEpoch &&
+    stamp.phase === state.phase;
 }

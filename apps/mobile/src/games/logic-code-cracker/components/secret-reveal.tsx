@@ -11,6 +11,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { COLOR_PALETTE } from './color-picker';
+import { useCodePegSize } from './use-code-peg-size';
 
 export interface SecretRevealProps {
   /** The secret code to reveal. */
@@ -19,19 +20,20 @@ export interface SecretRevealProps {
 
 export function SecretReveal({ secretCode }: SecretRevealProps) {
   const theme = useTheme();
+  const { pegSize, onLayout } = useCodePegSize(secretCode.length);
   return (
     <View style={styles.container} testID={testId('logic-code-cracker', 'secret-reveal')}>
       <ThemedText type="caption" themeColor="textSecondary">
         The code was:
       </ThemedText>
-      <View style={styles.pegs}>
+      <View style={styles.pegs} onLayout={onLayout} testID={testId('logic-code-cracker', 'secret-pegs')}>
         {secretCode.map((colorIndex, i) => (
           <View
             key={i}
             testID={testId('logic-code-cracker', 'secret-peg', String(i))}
             style={[
               styles.peg,
-              { backgroundColor: COLOR_PALETTE[colorIndex], borderColor: theme.border },
+              { width: pegSize, height: pegSize, backgroundColor: COLOR_PALETTE[colorIndex], borderColor: theme.border },
             ]}
           />
         ))}
@@ -44,14 +46,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     gap: Spacing.two,
+    width: '100%',
   },
   pegs: {
     flexDirection: 'row',
     gap: Spacing.two,
+    width: '100%',
+    justifyContent: 'center',
   },
   peg: {
-    width: 44,
-    height: 44,
+    flexShrink: 0,
     borderRadius: 22,
     borderWidth: 2,
   },

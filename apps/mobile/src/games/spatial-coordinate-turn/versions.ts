@@ -9,7 +9,8 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.0.0';
+// 1.1 records all active thinking across pauses instead of only the last segment.
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

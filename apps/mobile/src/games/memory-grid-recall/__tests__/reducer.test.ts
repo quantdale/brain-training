@@ -4,7 +4,7 @@ import { createRng } from "@/sdk";
 import type { DifficultyLevel } from "@/sdk";
 
 import { gridRecallGameReducer } from "../reducer";
-import { createInitialGridRecallState } from "../types";
+import { continuationStamp, createInitialGridRecallState } from '../types';
 import type { GridRecallGameState } from "../types";
 import { generateTargetCells } from "../generator";
 import { perfectSessionScore, referenceMaxTargets as refMax } from "../scoring";
@@ -91,7 +91,7 @@ describe("start-session", () => {
     const r1 = gridRecallGameReducer(r0, { type: "study-tick" });
     // force pass to advance
     const passed = gridRecallGameReducer(r1, { type: "submit" });
-    const next = gridRecallGameReducer(passed, { type: "next-round" });
+    const next = gridRecallGameReducer(passed, { stamp: continuationStamp(passed), type: "next-round" });
     expect(next.targets).not.toEqual(r0.targets);
   });
 });
@@ -198,7 +198,7 @@ describe("next-round", () => {
     }
     state = gridRecallGameReducer(state, { type: "submit" });
     const prevTargets = state.targets;
-    state = gridRecallGameReducer(state, { type: "next-round" });
+    state = gridRecallGameReducer(state, { stamp: continuationStamp(state), type: "next-round" });
     expect(state.phase).toBe("study");
     expect(state.roundIndex).toBe(1);
     expect(state.targetCount).toBe(6);
@@ -213,7 +213,7 @@ describe("next-round", () => {
         state = gridRecallGameReducer(state, { type: "tap-cell", index: t });
       }
       state = gridRecallGameReducer(state, { type: "submit" });
-      state = gridRecallGameReducer(state, { type: "next-round" });
+      state = gridRecallGameReducer(state, { stamp: continuationStamp(state), type: "next-round" });
     }
     expect(state.phase).toBe("results");
     expect(state.stats.roundsPlayed).toBe(4);

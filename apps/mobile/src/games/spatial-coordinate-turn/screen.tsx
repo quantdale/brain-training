@@ -35,6 +35,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameInterval,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -48,7 +49,7 @@ import {
   spatialCoordinateTurnParamsFromProfile,
 } from './difficulty';
 import { gameDefinition } from './game-definition';
-import { createSpatialCoordinateTurnQaForceStateHooks, createSpatialCoordinateTurnTutorialLifecycle } from './hooks';
+import { createSpatialCoordinateTurnTutorialLifecycle } from './hooks';
 import { gameReducer } from './reducer';
 import { normalizeSpatialCoordinateTurnResult } from './scoring';
 import {
@@ -59,7 +60,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialSpatialCoordinateTurnState } from './types';
-import type { Dir, SpatialCoordinateTurnRound } from './types';
+import type { Dir, SpatialCoordinateTurnAction, SpatialCoordinateTurnRound } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface SpatialCoordinateTurnScreenProps {
@@ -75,7 +76,7 @@ export interface SpatialCoordinateTurnScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Pacing step (ms): active brief-phase study time accrues in these increments. */
+/** Polling only paces the UI; the lifecycle measures active study time. */
 const PACING_STEP_MS = 100;
 
 export default function SpatialCoordinateTurnScreen(
@@ -89,18 +90,30 @@ export default function SpatialCoordinateTurnScreen(
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialSpatialCoordinateTurnState);
+  const [state, reactDispatch] = useReducer(gameReducer, undefined, createInitialSpatialCoordinateTurnState);
 
   const stateRef = useRef(state);
-  /** Monotonic timestamp (clock.now()) of when the choice became active. */
+  // Claim accepted transitions before React commits: queued presses must not
+  // produce duplicate feedback or carry an old cue into the next round.
+  const dispatch = useCallback((action: SpatialCoordinateTurnAction) => {
+    const current = stateRef.current;
+    const next = gameReducer(current, action);
+    if (next === current) return false;
+    stateRef.current = next;
+    reactDispatch(action);
+    return true;
+  }, []);
+  const inputEpoch = state.inputEpoch;
+  /** Lifecycle active elapsed time when the choice became visible. */
   const choiceStartedAtRef = useRef(0);
-  // Per-round brief timer baseline: tracks elapsed ACTIVE study time so pause
-  // freezes and resume continues the remaining window (fold-match convention).
-  const briefElapsedRef = useRef(0);
-  const briefRoundRef = useRef(-1);
-  // Mirrored into state so the visible countdown re-renders; null until the
-  // round's budget is initialized (avoids flashing a stale value).
-  const [briefRemainingMs, setBriefRemainingMs] = useState<number | null>(null);
+  const briefStartedAtRef = useRef(0);
+  // A poll snapshot belongs to one displayed round; a new round derives its
+  // initial countdown from its budget without an effect-driven state reset.
+  const [briefCountdown, setBriefCountdown] = useState<{
+    sessionId: string | null;
+    roundIndex: number;
+    remainingMs: number;
+  } | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -121,42 +134,46 @@ export default function SpatialCoordinateTurnScreen(
     },
     onPause: () => dispatch({ type: 'pause' }),
   });
+  const readActiveTime = session.elapsedMs;
+  const activeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
 
   const tutorial = useMemo(() => createSpatialCoordinateTurnTutorialLifecycle(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createSpatialCoordinateTurnQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params = state.profile !== null ? spatialCoordinateTurnParamsFromProfile(state.profile) : null;
   const rounds = params?.rounds ?? 0;
   const briefBudgetMs = params?.briefBudgetMs ?? DEFAULT_BRIEF_BUDGET_MS;
+  const briefRemainingMs = briefCountdown?.sessionId === state.sessionId && briefCountdown?.roundIndex === state.roundIndex
+    ? briefCountdown.remainingMs
+    : briefBudgetMs;
   const inSession = state.phase === 'brief' || state.phase === 'choice' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Record the monotonic time when the choice becomes active (answer timing).
+  // The same active anchor survives pauses; starting a new session at round 0
+  // resets it too. Paused time is excluded by the shared lifecycle itself.
   useEffect(() => {
-    if (state.phase === 'choice' && !state.paused) {
-      choiceStartedAtRef.current = clock.now();
+    if (state.phase === 'choice') {
+      choiceStartedAtRef.current = readActiveTime();
     }
-  }, [state.phase, state.paused, clock]);
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // Reset the per-round brief budget when a new brief phase begins.
   useEffect(() => {
-    if (state.phase === 'brief' && briefRoundRef.current !== state.roundIndex) {
-      briefRoundRef.current = state.roundIndex;
-      briefElapsedRef.current = 0;
-      setBriefRemainingMs(briefBudgetMs);
+    if (state.phase === 'brief') {
+      briefStartedAtRef.current = readActiveTime();
     }
-  }, [state.phase, state.roundIndex, briefBudgetMs]);
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // Brief-phase study window: a generous per-tier budget of ACTIVE (non-paused)
-  // time accumulated in PACING_STEP_MS steps; while paused the interval is
-  // cleared so no budget is consumed, and on resume the remaining window is
-  // preserved. Expiry auto-transitions to the answer options ('brief-tick').
+  // time. Dropped/late polls and fractional pauses do not alter the budget.
   useGameInterval(
     state.phase === 'brief' && !state.paused,
     () => {
-      briefElapsedRef.current += PACING_STEP_MS;
-      const remaining = Math.max(0, briefBudgetMs - briefElapsedRef.current);
-      setBriefRemainingMs(remaining);
+      const current = stateRef.current;
+      if (current.phase !== 'brief' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      const remaining = Math.max(0, briefBudgetMs - (session.elapsedMs() - briefStartedAtRef.current));
+      setBriefCountdown({ sessionId: current.sessionId, roundIndex: current.roundIndex, remainingMs: remaining });
       if (remaining <= 0) {
         dispatch({ type: 'brief-tick' });
       }
@@ -164,12 +181,29 @@ export default function SpatialCoordinateTurnScreen(
     PACING_STEP_MS,
   );
 
+  // Polling updates the countdown; this deadline closes the fractional gap
+  // between polls after a pause. Both read the same active lifecycle clock.
+  useGameDeadlineTimeout(
+    state.phase === 'brief' && !state.paused,
+    () => {
+      const current = stateRef.current;
+      if (current.phase !== 'brief' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      if (session.elapsedMs() - briefStartedAtRef.current >= briefBudgetMs) {
+        setBriefCountdown({ sessionId: current.sessionId, roundIndex: current.roundIndex, remainingMs: 0 });
+        dispatch({ type: 'brief-tick' });
+      }
+    },
+    briefBudgetMs,
+    activeClock,
+    `${state.sessionId ?? 'idle'}:brief:${state.roundIndex}`,
+  );
+
   // First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -267,6 +301,7 @@ export default function SpatialCoordinateTurnScreen(
     session,
     xpHook,
     persisterProp,
+    dispatch,
   ]);
 
   // Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -288,10 +323,11 @@ export default function SpatialCoordinateTurnScreen(
   const handleSelectAnswer = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'choice' || current.paused) {
+      if (current.phase !== 'choice' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch || !Number.isInteger(index) || current.round === null || index < 0 || index >= current.round.options.length) {
         return;
       }
-      const answerMs = clock.now() - choiceStartedAtRef.current;
+      const answerMs = Math.max(0, session.elapsedMs() - choiceStartedAtRef.current);
+      if (!dispatch({ type: 'select-answer', index, answerMs })) return;
       if (index === current.round?.correctIndex) {
         liveAudioHaptics.playSfx('spatial-answer-correct');
         liveAudioHaptics.haptic('light');
@@ -299,13 +335,19 @@ export default function SpatialCoordinateTurnScreen(
         liveAudioHaptics.playSfx('spatial-answer-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'select-answer', index, answerMs });
     },
-    [clock, dispatch],
+    [session, inputEpoch, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    const current = stateRef.current;
+    if (current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+    dispatch({ type: 'next-round' });
+  }, [session, inputEpoch, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -401,11 +443,11 @@ export default function SpatialCoordinateTurnScreen(
         </ThemedText>
       }
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
-      score={String(state.stats.score)}
+      score={String(Math.round(state.stats.score))}
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
           onForceTimeout={forceTimeout}
         />
       }
@@ -425,6 +467,7 @@ export default function SpatialCoordinateTurnScreen(
           />
           <CommandList
             commands={state.round.commands}
+            directions={state.round.directions}
             testID={testId(GAME_ID, 'command-list')}
           />
 
@@ -441,7 +484,7 @@ export default function SpatialCoordinateTurnScreen(
               <GameButton
                 testID={testId(GAME_ID, 'choice-begin')}
                 label="Show answers"
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleNextRound}
               />
             </>
           ) : null}
@@ -475,7 +518,7 @@ export default function SpatialCoordinateTurnScreen(
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

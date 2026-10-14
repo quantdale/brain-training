@@ -324,7 +324,7 @@ describe("WordChainScreen", () => {
     expect(raw.contentPackId).toBe(CONTENT_PACK_ID);
     expect(raw.contentPackVersion).toBe(CONTENT_PACK_VERSION);
     expect(raw.roundOutcomes).toHaveLength(NORMAL_PARAMS.rounds);
-    expect(raw.diagnosticMetadata.gameVersion).toBe("1.0.0");
+    expect(raw.diagnosticMetadata.gameVersion).toBe("1.1.0");
     expect(input.session.difficulty).toEqual(
       expect.objectContaining({ level: "normal", challengeRating: 0.5 }),
     );

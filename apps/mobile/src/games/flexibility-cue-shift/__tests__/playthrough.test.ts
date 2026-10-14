@@ -2,7 +2,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { flexibilityCueReducer } from '../reducer';
-import { createInitialFlexibilityCueState } from '../types';
+import { continuationStamp, createInitialFlexibilityCueState } from '../types';
 import type { FlexibilityCueGameState } from '../types';
 import { buildFlexibilityCueRawResult } from '../session';
 import { normalizeFlexibilityCueResult } from '../scoring';
@@ -20,7 +20,7 @@ function playAllCorrect(seed: string): FlexibilityCueGameState {
     if (s.phase === 'trialActive' && s.round !== null) {
       s = flexibilityCueReducer(s, { type: 'pick-card', index: s.round.correctIndex, responseMs: 0 });
     } else if (s.phase === 'trialResult') {
-      s = flexibilityCueReducer(s, { type: 'next-round' });
+      s = flexibilityCueReducer(s, { stamp: continuationStamp(s), type: 'next-round' });
     } else {
       break;
     }
@@ -84,7 +84,7 @@ describe('full playthrough determinism', () => {
         const wrong = (s.round.correctIndex + 1) % s.round.candidates.length;
         s = flexibilityCueReducer(s, { type: 'pick-card', index: wrong, responseMs: 1000 });
       } else if (s.phase === 'trialResult') {
-        s = flexibilityCueReducer(s, { type: 'next-round' });
+        s = flexibilityCueReducer(s, { stamp: continuationStamp(s), type: 'next-round' });
       } else {
         break;
       }

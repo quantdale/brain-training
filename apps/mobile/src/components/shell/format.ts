@@ -8,6 +8,15 @@ import { formatDayLabel } from '@/analytics/format';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Goal readouts format stored evidence without changing its precision. */
+export function formatGoalProgress(progress: number, goal: number, unit: 'count' | 'percent' = 'count'): string {
+  if (!Number.isFinite(progress) || !Number.isFinite(goal) || goal <= 0) return '—';
+  const shown = Math.min(Math.max(progress, 0), goal);
+  if (unit === 'percent') return `${Math.round(shown * 100)}% / ${Math.round(goal * 100)}%`;
+  const rounded = (value: number) => String(Math.round(value * 100) / 100);
+  return `${rounded(shown)} / ${rounded(goal)}`;
+}
+
 /**
  * Human label for a timestamp relative to `now`, by local calendar day:
  * "Today", "Yesterday", "N days ago" (2–6), otherwise a locale date string.
@@ -74,6 +83,7 @@ export function playerFacingReason(detail: string): string {
   const notPlayed = /not played for ~(\d+)d/.exec(detail);
   const cleaned = detail
     .replace(/\s*\(rating[^)]*\)?/g, '')
+    .replace(/^weak (.+?) domain\b/i, 'Practice your $1 skills')
     .replace(/\s{2,}/g, ' ')
     .trim();
   return notPlayed ? `${cleaned} · not played for ~${notPlayed[1]}d` : cleaned;

@@ -114,18 +114,22 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
-export type MathEquationBuilderAction =
-  | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
+/** Player input belongs to one round and carries the active monotonic sample. */
+export type MathEquationBuilderInputAction =
   | { type: 'add-number'; numberIndex: number }
   | { type: 'add-operator'; operator: Operator }
   | { type: 'group' }
   | { type: 'undo' }
   | { type: 'clear' }
-  | { type: 'submit' }
-  | { type: 'next-round' }
-  | { type: 'tick-timer' }
-  | { type: 'pause' }
+  | { type: 'submit' };
+
+export type MathEquationBuilderAction =
+  | { type: 'select-difficulty'; level: DifficultyLevel }
+  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
+  | (MathEquationBuilderInputAction & { atActiveMs: number; roundKey?: string })
+  | { type: 'next-round'; atActiveMs: number }
+  | { type: 'tick-timer'; atActiveMs: number; roundKey?: string }
+  | { type: 'pause'; atActiveMs: number }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
   | { type: 'tutorial-close' }
@@ -190,6 +194,10 @@ export interface MathEquationBuilderGameState {
   timeRemainingMs: number;
   /** Time budget for the current puzzle in ms. */
   timeBudgetMs: number;
+  /** Session active-clock anchor for this round; feedback time is excluded. */
+  roundStartActiveMs: number;
+  /** Monotonic elapsed sample, retained across fractional pause segments. */
+  roundElapsedMs: number;
   /** Previous round's target (near-duplicate avoidance). */
   prevTarget: number | null;
   stats: MathEquationBuilderStats;
@@ -232,6 +240,8 @@ export function createInitialMathEquationBuilderState(): MathEquationBuilderGame
     roundResult: null,
     timeRemainingMs: 0,
     timeBudgetMs: 0,
+    roundStartActiveMs: 0,
+    roundElapsedMs: 0,
     prevTarget: null,
     stats: { ...INITIAL_STATS },
     forced: false,

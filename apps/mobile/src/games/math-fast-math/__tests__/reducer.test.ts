@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { mathGameReducer } from '../reducer';
-import { createInitialMathState , OPERATORS } from '../types';
+import { continuationStamp, createInitialMathState, OPERATORS } from '../types';
 import type { MathGameState } from '../types';
 import { generateProblem, generateSessionProblems } from '../generator';
 import { perfectSessionScore, problemScore } from '../scoring';
@@ -181,7 +181,7 @@ describe('submit-answer', () => {
 
   it('tracks the fastest correct answer', () => {
     let state = answerCorrectly(startSession('q5'), 1_000);
-    state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 1_000 });
+    state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 1_000 });
     // Second answer is slower (elapsed 2000ms vs 1000ms): fastest stays 1000.
     state = answerCorrectly(state, 3_000);
     expect(state.stats.fastestMs).toBe(1_000);
@@ -221,7 +221,7 @@ describe('problem-tick', () => {
 describe('next-problem', () => {
   it('advances to the next generated problem with the previous as context', () => {
     let state = answerCorrectly(startSession('escalate'), 1_000);
-    state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 1_000 });
+    state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 1_000 });
     expect(state.phase).toBe('problem');
     expect(state.problemIndex).toBe(1);
     expect(state.prevProblem).toEqual(startSession('escalate').problem);
@@ -245,7 +245,7 @@ describe('next-problem', () => {
       // Each round is answered with exactly 1000ms of active time.
       const atMs = 1_000 * (round + 1);
       state = answerCorrectly(state, atMs);
-      state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: atMs });
+      state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: atMs });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.problemsPlayed).toBe(4);
@@ -261,7 +261,7 @@ describe('adaptive difficulty stepping', () => {
     expect(state.problemBudgetMs).toBe(8_000);
     expect(['+', '−']).toContain(state.problem?.operator);
     state = answerCorrectly(state, 500);
-    state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 500 });
+    state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 500 });
     expect(state.difficultyStep).toBe(1);
     expect(state.problemBudgetMs).toBe(7_000); // 8000 − 1000·step
     expect(['+', '−']).toContain(state.problem?.operator);
@@ -271,7 +271,7 @@ describe('adaptive difficulty stepping', () => {
     let state = startSession('ad2', 'adaptive');
     state = mathGameReducer(state, { type: 'digit', digit: 0 });
     state = mathGameReducer(state, { type: 'submit-answer', atActiveMs: 500 });
-    state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 500 });
+    state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 500 });
     expect(state.difficultyStep).toBe(0);
   });
 
@@ -279,7 +279,7 @@ describe('adaptive difficulty stepping', () => {
     let state = startSession('ad3', 'adaptive');
     for (let step = 0; step < 4; step += 1) {
       state = answerCorrectly(state, 500);
-      state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 500 });
+      state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 500 });
     }
     expect(state.difficultyStep).toBe(4);
     expect(state.problemBudgetMs).toBe(4_000);
@@ -419,7 +419,7 @@ describe('generated sessions are reproducible from the seed', () => {
     expect(state.problem).toEqual(expected[0]);
     for (let index = 1; index < expected.length; index += 1) {
       state = answerCorrectly(state, 1_000);
-      state = mathGameReducer(state, { type: 'next-problem', startedAtActiveMs: 1_000 });
+      state = mathGameReducer(state, { stamp: continuationStamp(state), type: 'next-problem', startedAtActiveMs: 1_000 });
       expect(state.problem).toEqual(expected[index]);
     }
   });

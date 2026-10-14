@@ -26,7 +26,7 @@ import {
 } from './difficulty';
 import { generateSession } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialFlexibilityCueState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialFlexibilityCueState } from './types';
 import type {
   FlexibilityCueAction,
   FlexibilityCueGameState,
@@ -60,6 +60,7 @@ export function flexibilityCueReducer(
       const first = plan[0];
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'trialActive',
         paused: false,
         profile,
@@ -129,6 +130,9 @@ export function flexibilityCueReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (
         state.phase !== 'trialResult' ||
         state.profile === null ||
@@ -160,11 +164,11 @@ export function flexibilityCueReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

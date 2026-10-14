@@ -203,6 +203,50 @@ describe('submit-guess', () => {
 });
 
 describe('next-round', () => {
+  it('plays every adaptive round naturally through the maximum length', () => {
+    let state = startSession('adaptive-complete', 'adaptive');
+    const playedLengths: number[] = [];
+    for (let round = 0; round < 5; round += 1) {
+      playedLengths.push(state.secretCode.length);
+      state = submitCorrectGuess(state);
+      expect(state.roundOutcome).toBe('solved');
+      state = codeCrackerGameReducer(state, { type: 'next-round' });
+    }
+    expect(playedLengths).toEqual([4, 5, 6, 6, 6]);
+    expect(state.phase).toBe('results');
+    expect(state.stats.roundsSolved).toBe(5);
+  });
+
+  it.each(['solved', 'budget-exhausted'] as const)(
+    'allows a natural second-round submission after adaptive %s',
+    (outcome) => {
+      let state = startInput(startSession(`adaptive-${outcome}`, 'adaptive'));
+      if (outcome === 'solved') {
+        state = submitCorrectGuess(state);
+      } else {
+        const wrongColor = (state.secretCode[0] + 1) % 6;
+        for (let guess = 0; guess < 10; guess += 1) {
+          for (let peg = 0; peg < state.secretCode.length; peg += 1) {
+            state = codeCrackerGameReducer(state, { type: 'select-color', colorIndex: wrongColor });
+          }
+          state = codeCrackerGameReducer(state, { type: 'submit-guess' });
+        }
+      }
+      expect(state.roundOutcome).toBe(outcome);
+      state = codeCrackerGameReducer(state, { type: 'next-round' });
+      const expectedLength = outcome === 'solved' ? 5 : 3;
+      expect(state.secretCode).toHaveLength(expectedLength);
+
+      // Exercise the actual selection cap and submit guard, with no state patch.
+      state = submitCorrectGuess(state);
+      expect(state.profile?.parameters.codeLength).toBe(expectedLength);
+      expect(state.roundOutcome).toBe('solved');
+      expect(state.roundGuesses[0].guess).toHaveLength(expectedLength);
+      expect(state.roundGuesses[0].feedback.exact).toBe(expectedLength);
+      expect(state.stats.roundsPlayed).toBe(2);
+    },
+  );
+
   it('advances to the next round after solving', () => {
     let state = startSession('next-solve');
     state = submitCorrectGuess(state);

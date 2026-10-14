@@ -39,7 +39,15 @@ import type {
 
 export { createInitialSpatialCoordinateTurnState };
 
-export function gameReducer(
+export function gameReducer(state: SpatialCoordinateTurnGameState, action: SpatialCoordinateTurnAction): SpatialCoordinateTurnGameState {
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) {
+    return { ...next, inputEpoch: state.inputEpoch + 1 };
+  }
+  return next;
+}
+
+function reduceGameState(
   state: SpatialCoordinateTurnGameState,
   action: SpatialCoordinateTurnAction,
 ): SpatialCoordinateTurnGameState {
@@ -162,6 +170,7 @@ export function gameReducer(
     }
 
     case 'next-round': {
+      if (state.paused) return state;
       if (state.phase === 'brief') {
         // Reveal the answer options for the current round.
         return { ...state, phase: 'choice' };

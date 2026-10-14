@@ -28,7 +28,7 @@ import {
 } from './difficulty';
 import { generateProblem } from './generator';
 import { perfectSessionScore, problemScore } from './scoring';
-import { INITIAL_STATS, createInitialMathState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialMathState } from './types';
 import type { MathAction, MathGameState, MathStats } from './types';
 
 export { createInitialMathState };
@@ -80,6 +80,7 @@ export function mathGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'problem',
         paused: false,
         profile,
@@ -233,6 +234,9 @@ export function mathGameReducer(
     }
 
     case 'next-problem': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'feedback' || state.profile === null || state.difficulty === null) {
         return state;
       }
@@ -285,11 +289,11 @@ export function mathGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

@@ -32,7 +32,7 @@ describe("bundled content pack", () => {
   it("validates and is the expected curated pack", () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe("language-context-fit-core-v1");
-    expect(pack.packVersion).toBe("2.0.0");
+    expect(pack.packVersion).toBe("2.1.0");
     expect(pack.itemCount).toBe(pack.items.length);
   });
 

@@ -157,11 +157,11 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.stats.longestSentence);
 
     // Average sentence length across the played rounds (words per round),
-    // normalized by the shared scoring helper. `totalTaps` accumulates one
+    // normalized by the shared scoring helper. `totalWords` accumulates one
     // wordCount per played round, so the factor is stable regardless of how
     // many rounds the session contained.
     const avgWordsPerRound =
-      state.stats.roundsPlayed > 0 ? state.stats.totalTaps / state.stats.roundsPlayed : 0;
+      state.stats.roundsPlayed > 0 ? state.stats.totalWords / state.stats.roundsPlayed : 0;
     const awlf = avgWordLengthFactor(avgWordsPerRound);
 
     const raw = buildRawResult({
@@ -301,6 +301,8 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     if (state.scrambled === null) return [];
     return state.taps.map((i) => state.scrambled!.scrambled[i]);
   }, [state.taps, state.scrambled]);
+  const verdictColor = state.roundOutcome === 'passed'
+    ? 'success' : state.roundOutcome === 'partial' ? 'warning' : 'danger';
 
   return (
     <GameHost
@@ -360,8 +362,8 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
               state.phase === 'roundResult'
                 ? {
                     backgroundColor:
-                      state.roundOutcome === 'passed' ? theme.successSoft : theme.dangerSoft,
-                    borderColor: state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                      theme[`${verdictColor}Soft`],
+                    borderColor: theme[verdictColor],
                   }
                 : { borderColor: theme.border },
             ]}
@@ -400,17 +402,17 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
               <ThemedText
                 type="headline"
-                themeColor={state.roundOutcome === 'passed' ? 'success' : 'danger'}
-                testID={testId(GAME_ID, state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed')}>
-                {state.roundOutcome === 'passed' ? 'Round passed!' : 'Round failed'}
+                themeColor={`${verdictColor}Text`}
+                testID={testId(GAME_ID, `round-${state.roundOutcome}`)}>
+                {state.roundOutcome === 'passed' ? 'Round passed!' : state.roundOutcome === 'partial' ? 'Partial credit' : 'Round failed'}
               </ThemedText>
               <View
                 style={[
                   styles.feedback,
                   {
                     backgroundColor:
-                      state.roundOutcome === 'passed' ? theme.successSoft : theme.dangerSoft,
-                    borderColor: state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                      theme[`${verdictColor}Soft`],
+                    borderColor: theme[verdictColor],
                   },
                 ]}
                 testID={testId(GAME_ID, 'round-feedback')}>
@@ -419,38 +421,39 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
                     styles.badge,
                     {
                       backgroundColor:
-                        state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                        theme[verdictColor],
                     },
                   ]}
                   importantForAccessibility="no-hide-descendants">
                   <ThemedText
                     type="headline"
                     style={{
-                      color: state.roundOutcome === 'passed' ? theme.successOn : theme.dangerOn,
+                      color: theme[`${verdictColor}On`],
                     }}
                     allowFontScaling={false}>
-                    {state.roundOutcome === 'passed' ? '✓' : '✕'}
+                    {state.roundOutcome === 'passed' ? '✓' : state.roundOutcome === 'partial' ? '…' : '✕'}
                   </ThemedText>
                 </View>
-                {state.roundOutcome === 'failed' ? (
+                {state.roundOutcome !== 'passed' ? (
                   <ThemedText
                     type="small"
                     themeColor="textSecondary"
                     testID={testId(GAME_ID, 'round-answer-reveal')}>
                     {`Correct order: ${state.scrambled.original.join(' ')}`}
                   </ThemedText>
-                ) : (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {`+${state.stats.score} points`}
-                  </ThemedText>
-                )}
+                ) : null}
+                <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'round-points')}>
+                  {`+${state.roundPoints} points`}
+                </ThemedText>
                 <ThemedText
                   type="small"
                   themeColor="textSecondary"
                   testID={testId(GAME_ID, 'round-why')}>
                   {state.roundOutcome === 'passed'
-                    ? `"${state.scrambled.original.join(' ')}" in ${playerWords.length} taps`
-                    : 'Tap the words in the order they read.'}
+                    ? `"${playerWords.join(' ')}" in ${playerWords.length} taps`
+                    : state.roundOutcome === 'partial'
+                      ? 'Incomplete order. Partial points do not count as a completed sentence.'
+                      : 'Tap the words in the order they read.'}
                 </ThemedText>
               </View>
               <GameButton

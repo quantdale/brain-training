@@ -17,6 +17,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
@@ -52,7 +53,7 @@ import {
   persistMemorySession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialMemoryState } from './types';
+import { GAME_ID, createInitialMemoryState, isCurrentWindow, revealStamp, windowStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface MemoryScreenProps {
@@ -81,10 +82,23 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
   const [state, dispatch] = useReducer(memoryGameReducer, undefined, createInitialMemoryState);
 
   const stateRef = useRef(state);
+  const deliveredPresses = useRef(new WeakSet<object>());
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
   });
+
+  const applyGameplayAction = useCallback((action: Parameters<typeof memoryGameReducer>[1]) => {
+    const current = stateRef.current;
+    const next = memoryGameReducer(current, action);
+    // Claim accepted input before React commits, so rapid distinct presses
+    // read the next known slot and duplicate delivery cannot double score.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+  const renderedWindow = useMemo(() => windowStamp(state), [state]);
+  const renderedReveal = useMemo(() => revealStamp(state), [state]);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -98,28 +112,28 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => applyGameplayAction({ type: 'pause', nowMs: clock.now() }),
   });
 
   const tutorial = useMemo(() => createMemoryTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createMemoryQaForceStateHooks(dispatch), [dispatch]);
 
   const params = state.profile !== null ? memoryParamsFromProfile(state.profile) : null;
-  const revealMs = params?.revealMs ?? 900;
   const gridSize = params?.gridSize ?? 9;
   const rounds = params?.rounds ?? 5;
   const inSession =
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Reveal pacing: one tick per revealMs. The deadline preserves the
-  // current tile's remaining exposure across pause/resume.
+  // Wakeups follow the same absolute exposure deadline that the reducer
+  // checks. A queued or cancelled timer cannot advance a new tile early.
+  const revealRemainingMs = Math.ceil(Math.max(0, state.revealDeadlineMs - clock.now()));
   useGameDeadlineTimeout(
     state.phase === 'reveal' && !state.paused,
-    () => dispatch({ type: 'reveal-tick' }),
-    revealMs,
+    () => applyGameplayAction({ type: 'reveal-tick', nowMs: clock.now(), stamp: renderedReveal }),
+    revealRemainingMs,
     clock,
-    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
+    `reveal:${state.sessionId}:${state.roundIndex}:${state.revealedIndex}:${state.revealDeadlineMs}:${revealRemainingMs}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -231,9 +245,9 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      applyGameplayAction({ type: 'resume', nowMs: clock.now() });
     }
-  }, [session, dispatch]);
+  }, [session, clock, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -241,34 +255,43 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
   }, [session, goBack]);
 
   const handleTapTile = useCallback(
-    (index: number) => {
+    (index: number, event: GestureResponderEvent) => {
       const current = stateRef.current;
-      if (current.phase !== 'input' || current.paused) {
+      if (current.phase !== 'input' || current.paused || session.status() !== 'active' ||
+          !isCurrentWindow(current, renderedWindow)) {
         return;
       }
-      if (index === current.sequence[current.inputIndex]) {
+      // Native payload identity, rather than elapsed time or tile identity,
+      // separates duplicate delivery from a genuinely new physical press.
+      const nativePress = event?.nativeEvent;
+      if (nativePress == null || deliveredPresses.current.has(nativePress)) return;
+      deliveredPresses.current.add(nativePress);
+      const next = applyGameplayAction({ type: 'tap-tile', index, stamp: { ...renderedWindow, inputIndex: current.inputIndex } });
+      if (next === null) return;
+      if (next.stats.correctTaps > current.stats.correctTaps) {
         liveAudioHaptics.playSfx('memory-tile-correct');
         liveAudioHaptics.haptic('light');
       } else {
         liveAudioHaptics.playSfx('memory-tile-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-tile', index });
     },
-    [dispatch],
+    [applyGameplayAction, renderedWindow, session],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
+      nowMs: clock.now(),
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, clock, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -298,7 +321,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
   const visualFor = useCallback(
     (index: number): TileVisualState => {
       if (state.phase === 'reveal') {
-        return index === state.revealedIndex ? 'revealed' : 'idle';
+        return index === state.sequence[state.revealedIndex] ? 'revealed' : 'idle';
       }
       if (state.phase === 'input' || state.phase === 'roundResult') {
         if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
@@ -345,7 +368,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
-        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+        <Tutorial clock={clock} onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
       {inSession ? (
         <>
@@ -437,7 +460,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => applyGameplayAction({ type: 'next-round', nowMs: clock.now(), stamp: renderedWindow })}
               />
             </View>
           ) : null}

@@ -218,7 +218,7 @@ describe('SpatialScreen', () => {
     const raw = input.session.rawResult as SpatialRawResult;
     expect(raw.score).toBe(735);
     expect(raw.accuracy).toBe(1);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

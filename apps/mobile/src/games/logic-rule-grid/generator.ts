@@ -6,8 +6,8 @@
  *
  * Puzzle model: an n×n Latin square (each row/col a permutation of 0..n-1) with
  * `B` hidden cells. The player answers one primary blank, but the puzzle
- * requires deducing interacting unknowns. Hard/Expert puzzles MUST have a
- * dependent chain (depth ≥2) — not merely multiple independent one-step blanks.
+ * requires deducing interacting unknowns. The asked Hard/Expert cell MUST need
+ * a dependent chain (depth ≥2), even when other blanks are directly deducible.
  *
  * Solver provenance: every returned puzzle is proved to have exactly one Latin
  * completion (exhaustive enumeration, limit 2) and its dependency depth is
@@ -23,6 +23,7 @@ import type { Rng } from '@/sdk';
 import type { RuleGridDifficultyParams, RuleGridRound } from './types';
 import {
   buildVisibleBoard,
+  candidatesForCell,
   computePropagationDepth,
   countSolutions,
 } from './solver';
@@ -113,13 +114,14 @@ export function isUniquelySolvable(
 
 /**
  * Build the answer candidate list: always includes the correct `answer`, then
- * fills with distinct decoys from 0..n-1 until `target` symbols are present.
- * `target` is `min(n, 5)` (so at least 4 when n allows). The list is shuffled
+ * retains every initially viable target candidate, then fills with distinct
+ * decoys from 0..n-1. Omitting a viable candidate from Expert's five choices
+ * could reveal the answer before any chained deduction. The list is shuffled
  * with the round fork so the correct answer is not always first.
  */
-export function buildSymbolOptions(fork: Rng, answer: number, n: number): number[] {
-  const target = Math.min(n, 5);
-  const options = new Set<number>([answer]);
+export function buildSymbolOptions(fork: Rng, answer: number, n: number, requiredSymbols: readonly number[] = []): number[] {
+  const options = new Set<number>([answer, ...requiredSymbols]);
+  const target = Math.max(Math.min(n, 5), options.size);
   const decoys = fork.shuffle(range(n).filter((v) => v !== answer));
   for (const d of decoys) {
     if (options.size >= target) break;
@@ -175,16 +177,8 @@ export function generateRound(input: GenerateRoundInput): RuleGridRound {
     const shuffled = fork.shuffle(range(cellCount));
     const blanks = shuffled.slice(0, desiredBlanks).sort((a, b) => a - b);
 
-    // Primary asked cell: random among blanks (so answer varies).
-    const blankIndex = fork.pick(blanks);
-    const blankRow = Math.floor(blankIndex / n);
-    const blankCol = blankIndex % n;
-    const answer = square[blankRow][blankCol];
-
-    // Near-duplicate avoidance: don't repeat the same primary cell consecutively,
-    // and avoid identical blank sets back-to-back.
+    // Avoid identical blank sets back-to-back.
     if (prevRound !== null) {
-      if (prevRound.blankIndex === blankIndex) continue;
       if (
         prevRound.blanks.length === blanks.length &&
         prevRound.blanks.every((v, i) => v === blanks[i])
@@ -203,12 +197,21 @@ export function generateRound(input: GenerateRoundInput): RuleGridRound {
     if (!prop.fullyPropagated) continue;
     if (prop.depth < minDepth) continue;
 
-    // Explicitly reject Hard/Expert puzzles where every blank is independent.
-    // For n>=5, minDepth>=2 already rejects depth==1, but add defensive check:
-    // if all blanks were singleton on first layer, depth would be 1, so rejected.
-    // No extra condition needed beyond depth check.
+    // Choose from the cells that actually need the required depth. Checking
+    // only whole-board depth allowed Hard/Expert to ask a depth-1 blank while
+    // leaving the chained deduction in an unasked part of the board.
+    const eligibleTargets = prop.trace
+      .filter((step) => step.depth >= minDepth)
+      .flatMap((step) => step.cells.map((cell) => cell.r * n + cell.c));
+    if (eligibleTargets.length === 0) continue;
+    const blankIndex = fork.pick(eligibleTargets);
+    if (prevRound?.blankIndex === blankIndex) continue;
+    const blankRow = Math.floor(blankIndex / n);
+    const blankCol = blankIndex % n;
+    const answer = square[blankRow][blankCol];
 
-    const options = buildSymbolOptions(fork, answer, n);
+    const initialCandidates = candidatesForCell(visible, n, blankRow, blankCol);
+    const options = buildSymbolOptions(fork, answer, n, [...initialCandidates]);
     return {
       size: n,
       square: square.map((row) => [...row]),
@@ -230,15 +233,23 @@ export function generateRound(input: GenerateRoundInput): RuleGridRound {
 
 /** Validate a generated round: options include answer, uniqueness holds, and depth meets contract. */
 export function validateGeneratedRound(round: RuleGridRound): boolean {
+  if (round.blankRow !== Math.floor(round.blankIndex / round.size) || round.blankCol !== round.blankIndex % round.size) return false;
+  if (round.square[round.blankRow]?.[round.blankCol] !== round.answer) return false;
   if (!round.options.includes(round.answer)) return false;
   if (!round.blanks.includes(round.blankIndex)) return false;
   const visible = buildVisibleBoard(round.square, round.blanks, round.size);
+  const initialCandidates = candidatesForCell(visible, round.size, round.blankRow, round.blankCol);
+  if ([...initialCandidates].some((value) => !round.options.includes(value))) return false;
   if (countSolutions(visible, round.size, 2) !== 1) return false;
   const prop = computePropagationDepth(visible, round.blanks, round.size);
   if (!prop.fullyPropagated) return false;
   if (prop.depth !== round.depth) return false;
   if (prop.depth < minDepthForSize(round.size)) return false;
   if (round.depth < minDepthForSize(round.size)) return false;
+  const askedStep = prop.trace.find((step) => step.cells.some(
+    (cell) => cell.r === round.blankRow && cell.c === round.blankCol,
+  ));
+  if ((askedStep?.depth ?? 0) < minDepthForSize(round.size)) return false;
   return true;
 }
 

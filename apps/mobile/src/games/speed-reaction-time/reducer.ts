@@ -41,6 +41,12 @@ export function speedGameReducer(
   state: SpeedGameState,
   action: SpeedAction,
 ): SpeedGameState {
+  if ('stamp' in action && action.stamp !== undefined && (
+    action.stamp.sessionId !== state.sessionId ||
+    action.stamp.roundIndex !== state.roundIndex ||
+    action.stamp.inputEpoch !== state.inputEpoch
+  )) return state;
+
   switch (action.type) {
     case 'select-difficulty': {
       if (state.phase !== 'intro') {
@@ -80,6 +86,8 @@ export function speedGameReducer(
         activeDurationMs: 0,
         pausedDurationMs: 0,
         roundIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
+        waitAtMs: action.nowMs ?? null,
         delayMinMs,
         delayMs,
         isNoGoRound: isNoGo,
@@ -98,17 +106,17 @@ export function speedGameReducer(
     }
 
     case 'go': {
-      // Normal path: wait → go. Resume path: go → go (the screen refreshes
-      // `goAtMs` after a pause so the measured reaction window restarts at the
-      // moment the GO signal is displayed again).
-      if (state.phase !== 'wait' && state.phase !== 'go') {
+      if (state.paused || state.phase !== 'wait') {
         return state;
       }
-      return { ...state, phase: 'go', goAtMs: action.goAtMs };
+      if (state.waitAtMs !== null && action.goAtMs < state.waitAtMs + state.delayMs) return state;
+      // The waiting trigger's queued press must not become a reaction to a
+      // signal the player had not seen when that handler was rendered.
+      return { ...state, phase: 'go', goAtMs: action.goAtMs, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'tap': {
-      if (state.phase !== 'go' || state.profile === null || state.goAtMs === null) {
+      if (state.paused || state.phase !== 'go' || state.profile === null || state.goAtMs === null) {
         return state;
       }
       const params = speedParamsFromProfile(state.profile);
@@ -117,7 +125,7 @@ export function speedGameReducer(
       // a NO-GO round). Mirrors the deadline guard in the other timed games
       // (tap-rush/order-sweep/quick-compare) so an overdue timer callback can
       // never let a late tap corrupt the reaction statistics.
-      if (action.rtMs > params.timeoutMs) {
+      if (action.rtMs < 0 || action.rtMs >= params.timeoutMs || !Number.isFinite(action.rtMs)) {
         return state;
       }
       // NO-GO stimulus displayed: tapping it is a false-start-class penalty.
@@ -150,11 +158,6 @@ export function speedGameReducer(
           stats: baseStats,
         };
       }
-      // Monotonic-clock invariant: a reaction can never be negative in
-      // practice; reject such readings instead of corrupting the stats.
-      if (action.rtMs < 0) {
-        return state;
-      }
       const reactions = [...state.stats.reactions, action.rtMs];
       const passed = action.rtMs <= params.passMs;
       const stats: SpeedStats = {
@@ -179,7 +182,7 @@ export function speedGameReducer(
     }
 
     case 'false-start': {
-      if (state.phase !== 'wait' || state.profile === null) {
+      if (state.paused || state.phase !== 'wait' || state.profile === null) {
         return state;
       }
       const params = speedParamsFromProfile(state.profile);
@@ -212,9 +215,11 @@ export function speedGameReducer(
     }
 
     case 'round-timeout': {
-      if (state.phase !== 'go') {
+      if (state.paused || state.phase !== 'go') {
         return state;
       }
+      if (action.nowMs !== undefined && (state.goAtMs === null || state.profile === null ||
+        action.nowMs < state.goAtMs + speedParamsFromProfile(state.profile).timeoutMs)) return state;
       // On a NO-GO round the withhold window expiring without a tap is
       // SUCCESS: score it like a passed round (no reaction sample).
       if (state.isNoGoRound) {
@@ -245,7 +250,7 @@ export function speedGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.paused || state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = speedParamsFromProfile(state.profile);
@@ -267,6 +272,8 @@ export function speedGameReducer(
         ...state,
         phase: 'wait',
         roundIndex: nextIndex,
+        inputEpoch: state.inputEpoch + 1,
+        waitAtMs: action.nowMs ?? null,
         delayMinMs,
         delayMs,
         isNoGoRound: isNoGoRound({
@@ -283,7 +290,7 @@ export function speedGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {
@@ -296,6 +303,7 @@ export function speedGameReducer(
         // the response measurement excludes background/overlay time while
         // preserving the remaining reaction budget.
         goAtMs: state.goAtMs === null ? null : state.goAtMs + pausedMs,
+        waitAtMs: state.waitAtMs === null ? null : state.waitAtMs + pausedMs,
       };
     }
 

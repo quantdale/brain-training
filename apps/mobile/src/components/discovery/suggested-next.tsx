@@ -11,7 +11,7 @@
  */
 
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { masteryTierLabel, useDomainHue } from '@/components/discovery/game-card';
 import { GamePosterTile } from '@/components/discovery/game-poster-tile';
@@ -19,7 +19,7 @@ import { GameWorldArt, getGameIdentity, IdentityMark } from '@/components/discov
 import { playerFacingReason } from '@/components/shell/format';
 import { SectionHeader } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { Button } from '@/components/ui';
+import { AppIcon, Button } from '@/components/ui';
 import { HAIRLINE } from '@/components/ui/radius';
 import { useTheme } from '@/hooks/use-theme';
 import type { GameDefinition } from '@/registry/registry';
@@ -48,6 +48,8 @@ function uniqueGames(data: DiscoverySnapshot): GameDefinition[] {
 
 export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
   const theme = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const singleColumn = width < 360 || fontScale >= 1.5;
   const top = data.recommended[0];
   const alternatives = uniqueGames(data);
   const reason = top?.components[0]?.reason;
@@ -71,10 +73,10 @@ export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
               styles.featured,
               { backgroundColor: theme.surface, borderColor: theme.border },
             ]}>
-            <View style={styles.row}>
-              <View style={styles.thumb}>
+            <View style={[styles.row, singleColumn && styles.column]}>
+              {!singleColumn ? <View style={styles.thumb}>
                 <GameWorldArt game={top.game} size="card" testID="games-featured-world" />
-              </View>
+              </View> : null}
               <View style={styles.info}>
                 <View style={styles.kickerRow}>
                   <IdentityMark
@@ -86,22 +88,19 @@ export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
                   <ThemedText
                     type="eyebrow"
                     themeColor="textSecondary"
-                    numberOfLines={1}
                     style={styles.kicker}>
                     {`${identity.verb} · ${top.game.primaryCategory}`}
                   </ThemedText>
                   {summary ? (
-                    <ThemedText type="caption" themeColor="textMuted" numberOfLines={1}>
+                    <ThemedText type="caption" themeColor="textMuted">
                       {masteryTierLabel(summary.tier)}
                     </ThemedText>
                   ) : null}
                   {favorite ? (
-                    <ThemedText type="caption" themeColor="warning" allowFontScaling={false} aria-hidden>
-                      ★
-                    </ThemedText>
+                    <AppIcon name="favorite" size={16} tone="warningText" />
                   ) : null}
                 </View>
-                <ThemedText type="bodyLarge" testID="games-suggested-title" numberOfLines={2} style={styles.name}>
+                <ThemedText type="bodyLarge" testID="games-suggested-title" style={styles.name}>
                   {top.game.name}
                 </ThemedText>
               </View>
@@ -136,7 +135,7 @@ export function SuggestedNext({ data }: { data: DiscoverySnapshot }) {
           <ThemedText type="caption" themeColor="textMuted">
             More good fits
           </ThemedText>
-          <View style={styles.alternativeRow}>
+          <View style={[styles.alternativeRow, singleColumn && styles.column]} testID="games-suggested-alternative-layout">
             {alternatives.map((game) => (
               <GamePosterTile
                 key={game.id}
@@ -170,6 +169,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.three,
   },
+  column: {
+    flexDirection: 'column',
+  },
   thumb: {
     width: 104,
   },
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontWeight: '800',
+    fontWeight: '700',
   },
   factRow: {
     flexDirection: 'row',

@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.0.0';
+// 1.1.0: answers at/after the active deadline resolve to timeout and cannot
+// earn points; delayed callbacks no longer grant an extra response window.
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

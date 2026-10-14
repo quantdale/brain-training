@@ -1,0 +1,17 @@
+{
+  "id": "077-frontier-product-experience-rebuild",
+  "status": "ACTIVE",
+  "predecessor": "076-product-wide-ui-ux-reboot",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["frontier-product-experience", "gameplay-correctness-recovery", "frontier-experience-certification"],
+  "activationRule": "Owner explicitly authorizes the full Campaign 077 brief supplied in D:/Downloads/brain training overhaul frontier.txt, including implementation, game correctness, hardening and visible emulator handoff.",
+  "baselineAuditCommit": "c7bbf0ddfa184204027d8b6df14deab5abf87a6e",
+  "productBaselineCommit": "d5787ec2857b0fd856d2e04ad346316d70951f6c",
+  "baselineArtifact": {"releaseApkSha256": "c8c3d46c2dbfe51e7a5c32bd0cf13d015c7bc5c6b04836229e7b104243b504f6", "apkBytes": 48888528, "device": "braintraining-ui35 / emulator-5570", "abi": "x86_64"},
+  "fullHardening": true,
+  "verdict": "CAMPAIGN_077_IN_PROGRESS"
+}

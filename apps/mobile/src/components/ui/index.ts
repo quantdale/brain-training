@@ -13,6 +13,7 @@
 export { Tappable, pressStyles, type TappableProps } from './tappable';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './button';
 export { IconButton, type IconButtonProps } from './icon-button';
+export { AppIcon, type AppIconName, type AppIconProps } from './app-icon';
 export { Card, type CardPadding, type CardProps, type CardShape, type CardVariant } from './card';
 export { ArcadePanel, type ArcadePanelProps, type PanelPadding } from './arcade-panel';
 export { Report, ReportRow, type ReportProps, type ReportRowProps } from './report';

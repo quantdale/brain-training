@@ -1,0 +1,26 @@
+{
+  "tool": "ChatGPT image_gen",
+  "transparentBackground": true,
+  "records": [
+    {
+      "name": "app-mark-v1",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "prompt": "Create an original wordless app mark for an offline Brain Training app, in the Play Lab matte sculptural learning-tool family. One compact tactile puzzle object, formed by TWO precisely interlocking chunky rounded pieces: a cobalt blue angular piece at left and a coral-pink rounded piece at right, with a tiny warm yellow square inset as a playful detail. A simple recognizable clean silhouette with no more than three colors and strong negative space; physically plausible joints, no impossible geometry. Restrained MATTE molded polymer, diffuse upper-left light, subtly rounded edges, no gloss/chrome, no texture clutter. Frontal three-quarter view with small depth, no huge perspective distortion. Design must remain distinguishable at 32px as a launcher icon. Center complete object with generous transparent padding, isolated on true alpha background, no ground plane/cast shadow. No lettering, numbers, mascot, brain anatomy, medical symbols, logo copied from any brand, UI frame or outer rounded icon background. This is one ORIGINAL asset used for a launcher, splash and local app identity; color and shape communicate enjoyable practice without medical claims. Output only one polished mark on transparent background.",
+      "decision": "Accepted source and224px light/dark review; original interlocking geometry, no public product rename. Native launcher/splash verification pending."
+    },
+    {
+      "name": "flexibility-v2",
+      "source": "docs/redesign/artwork/campaign077/sources/flexibility-v2.png",
+      "reference": "docs/redesign/artwork/campaign077/sources/flexibility-v1.png",
+      "prompt": "Edit this Flexibility switching-toy illustration to correct ONLY its category palette while preserving the entire exact two-square/circle/triangle/switching-loop composition, matte sculptural polymer finish, controlled upper-left lighting, geometry, crisp edges and transparent background. The app's canonical Flexibility category is PURPLE: change the turquoise left tile to rich medium lavender-purple, the teal right tile to a slightly deeper violet, both embossed circle/triangle to pale lilac, and the connecting curved arrows to light lavender. Use calm purple tones around #A57AE6 and #C3A9FF with darker violet depth, no turquoise/green/blue remains. Keep the two tile shapes discernible at96px on white and navy. No new shapes, text, letters, numbers, objects or background. Output one complete purple switching-toy cutout on true alpha.",
+      "decision": "Accepted purple domain mapping and224px composites. Native review pending. The initial teal draft was rejected against existing domain semantics."
+    },
+    {
+      "name": "spatial-v2",
+      "source": "docs/redesign/artwork/campaign077/sources/spatial-v2.png",
+      "reference": "docs/redesign/artwork/campaign077/sources/spatial-v1.png",
+      "prompt": "Edit this Spatial block-construction illustration to correct ONLY its category palette. Preserve the exact four-cube physically plausible construction, placement/seams, rounded geometric edges, view, matte molded-polymer material, diffuse upper-left light, crop-safe composition and true transparent background. The app's canonical Spatial category is GREEN: change every lavender-purple face to fresh restrained leaf/spring green, with slightly deeper green shadow faces and pale mint highlights, around #62CA8B/#91EEB3. No purple/lilac/blue remains. Keep each block face/seam distinguishable; no text, numbers, arrows, labels, new blocks or extra objects. Subtle self-shadows only, no ground plane/shadow, no glossy reflection. Output one complete green spatial learning-tool icon on true alpha.",
+      "decision": "Accepted green domain mapping and224px composites. Shape is decorative; no essential answer uses raster geometry. Native review pending."
+    }
+  ]
+}

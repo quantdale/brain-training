@@ -6,7 +6,7 @@ import { flexibilityTaskSwitchParamsFromProfile, resolveFlexibilityTaskSwitchDif
 import { generateSession } from '../generator';
 import { perfectSessionScore, roundScore } from '../scoring';
 import { flexibilityTaskSwitchReducer, createInitialFlexibilityTaskSwitchState } from '../reducer';
-import { INITIAL_STATS } from '../types';
+import { continuationStamp, INITIAL_STATS } from '../types';
 import type { FlexibilityTaskSwitchGameState, QaForceStatePatch } from '../types';
 
 const NORMAL = flexibilityTaskSwitchParamsFromProfile(
@@ -43,7 +43,7 @@ function playPerfectly(
         responseMs,
       });
     }
-    current = flexibilityTaskSwitchReducer(current, { type: 'next-round' });
+    current = flexibilityTaskSwitchReducer(current, { stamp: continuationStamp(current), type: 'next-round' });
   }
   return current;
 }
@@ -139,7 +139,7 @@ describe('answer', () => {
     expect(state.stats.score).toBe(0);
 
     // Recover on the next trial to prove the streak restarts.
-    state = flexibilityTaskSwitchReducer(state, { type: 'next-round' });
+    state = flexibilityTaskSwitchReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     state = flexibilityTaskSwitchReducer(state, {
       type: 'answer',
       index: state.round!.correctIndex,
@@ -207,7 +207,7 @@ describe('next-round', () => {
       index: started.round!.correctIndex,
       responseMs: 0,
     });
-    state = flexibilityTaskSwitchReducer(state, { type: 'next-round' });
+    state = flexibilityTaskSwitchReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(state.phase).toBe('trialActive');
     expect(state.roundIndex).toBe(1);
     expect(state.round).toEqual(started.plan[1]);
@@ -226,7 +226,7 @@ describe('next-round', () => {
 
   it('is ignored outside trialResult', () => {
     const started = startSession('nr-guard');
-    expect(flexibilityTaskSwitchReducer(started, { type: 'next-round' }).roundIndex).toBe(0);
+    expect(flexibilityTaskSwitchReducer(started, { stamp: continuationStamp(started), type: 'next-round' }).roundIndex).toBe(0);
   });
 });
 

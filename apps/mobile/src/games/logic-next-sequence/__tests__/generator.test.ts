@@ -400,7 +400,7 @@ describe('describePattern', () => {
     );
     expect(describePattern('cubes', { base: 2, offset: 0 })).toBe('Terms are consecutive cubes.');
     expect(describePattern('alternating', { stepA: 2, stepB: 3 })).toBe(
-      'The steps alternate between +2 and +3.',
+      'Two sequences interleave: positions 1, 3, 5… add 2; positions 2, 4, 6… add 3.',
     );
     expect(describePattern('fibonacci', { first: 1, second: 1 })).toBe(
       'Each term is the sum of the two previous terms.',

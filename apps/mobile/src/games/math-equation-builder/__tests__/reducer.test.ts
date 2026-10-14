@@ -120,28 +120,28 @@ describe('isValidEquationStructure', () => {
 describe('add-number / add-operator', () => {
   it('adds numbers and operators in alternating order', () => {
     let state = startSession('build');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     expect(state.equationTokens).toHaveLength(1);
     expect(state.usedNumberIndices).toEqual([0]);
     expect(state.expectOperator).toBe(true);
 
     state = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
     expect(state.equationTokens).toHaveLength(2);
     expect(state.expectOperator).toBe(false);
 
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 1 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 1 });
     expect(state.equationTokens).toHaveLength(3);
     expect(state.usedNumberIndices).toEqual([0, 1]);
   });
 
   it('prevents duplicate number usage', () => {
     let state = startSession('dup');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     const before = state.equationTokens.length;
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     expect(state.equationTokens.length).toBe(before); // no change
   });
 
@@ -149,7 +149,7 @@ describe('add-number / add-operator', () => {
     const state = startSession('op-first');
     const before = state.equationTokens.length;
     const after = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
     expect(after.equationTokens.length).toBe(before); // no change
@@ -157,9 +157,9 @@ describe('add-number / add-operator', () => {
 
   it('ignores actions during pause', () => {
     let state = startSession('paused');
-    state = mathEquationBuilderGameReducer(state, { type: 'pause' });
+    state = mathEquationBuilderGameReducer(state, { type: 'pause', atActiveMs: 0 });
     const before = state.equationTokens.length;
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     expect(state.equationTokens.length).toBe(before);
   });
 });
@@ -167,13 +167,13 @@ describe('add-number / add-operator', () => {
 describe('undo / clear', () => {
   it('undo removes the last token', () => {
     let state = startSession('undo-test');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     state = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
     expect(state.equationTokens).toHaveLength(2);
-    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo', atActiveMs: 0 });
     expect(state.equationTokens).toHaveLength(1);
     // The equation ends with a number again, so an operator comes next.
     expect(state.expectOperator).toBe(true);
@@ -181,21 +181,21 @@ describe('undo / clear', () => {
 
   it('undo of a trailing operator restores operator mode (regression)', () => {
     let state = startSession('undo-op');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     state = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
-    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo', atActiveMs: 0 });
 
     // The removed operator can be re-entered; a second number in a row cannot.
     const reAdded = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
     expect(reAdded.equationTokens).toHaveLength(2);
     const blockedNumber = mathEquationBuilderGameReducer(state, {
-      type: 'add-number',
+      type: 'add-number', atActiveMs: 0,
       numberIndex: 1,
     });
     expect(blockedNumber.equationTokens).toHaveLength(1);
@@ -204,22 +204,22 @@ describe('undo / clear', () => {
   it('undo of a closing paren expects an operator again', () => {
     let state = startSession('undo-paren');
     for (const i of [0, 1]) {
-      state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: i });
+      state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: i });
       if (i === 0) {
-        state = mathEquationBuilderGameReducer(state, { type: 'add-operator', operator: '+' });
+        state = mathEquationBuilderGameReducer(state, { type: 'add-operator', atActiveMs: 0, operator: '+' });
       }
     }
-    state = mathEquationBuilderGameReducer(state, { type: 'group' });
+    state = mathEquationBuilderGameReducer(state, { type: 'group', atActiveMs: 0 });
     expect(state.equationTokens).toContain(')');
-    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo', atActiveMs: 0 });
     expect(state.equationTokens).not.toContain(')');
     expect(state.expectOperator).toBe(true);
   });
 
   it('undo back to empty expects a number', () => {
     let state = startSession('undo-empty');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
-    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo', atActiveMs: 0 });
     expect(state.equationTokens).toHaveLength(0);
     expect(state.usedNumberIndices).toHaveLength(0);
     expect(state.expectOperator).toBe(false);
@@ -227,13 +227,13 @@ describe('undo / clear', () => {
 
   it('clear resets the equation', () => {
     let state = startSession('clear-test');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     state = mathEquationBuilderGameReducer(state, {
-      type: 'add-operator',
+      type: 'add-operator', atActiveMs: 0,
       operator: '+',
     });
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 1 });
-    state = mathEquationBuilderGameReducer(state, { type: 'clear' });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 1 });
+    state = mathEquationBuilderGameReducer(state, { type: 'clear', atActiveMs: 0 });
     expect(state.equationTokens).toHaveLength(0);
     expect(state.usedNumberIndices).toHaveLength(0);
     expect(state.expectOperator).toBe(false);
@@ -243,9 +243,9 @@ describe('undo / clear', () => {
 describe('submit', () => {
   it('requires all numbers to be used', () => {
     let state = startSession('submit-partial');
-    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', atActiveMs: 0, numberIndex: 0 });
     const before = state.phase;
-    state = mathEquationBuilderGameReducer(state, { type: 'submit' });
+    state = mathEquationBuilderGameReducer(state, { type: 'submit', atActiveMs: 0 });
     expect(state.phase).toBe(before); // no change
   });
 });
@@ -254,10 +254,10 @@ describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
     const inIntro = mathEquationBuilderGameReducer(
       createInitialMathEquationBuilderState(),
-      { type: 'pause' },
+      { type: 'pause', atActiveMs: 0 },
     );
     expect(inIntro.paused).toBe(false);
-    let state = mathEquationBuilderGameReducer(startSession('p'), { type: 'pause' });
+    let state = mathEquationBuilderGameReducer(startSession('p'), { type: 'pause', atActiveMs: 0 });
     expect(state.paused).toBe(true);
     state = mathEquationBuilderGameReducer(state, { type: 'resume' });
     expect(state.paused).toBe(false);
@@ -265,8 +265,8 @@ describe('pause / resume', () => {
   });
 
   it('cannot pause while paused or on results', () => {
-    let state = mathEquationBuilderGameReducer(startSession('p'), { type: 'pause' });
-    state = mathEquationBuilderGameReducer(state, { type: 'pause' });
+    let state = mathEquationBuilderGameReducer(startSession('p'), { type: 'pause', atActiveMs: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'pause', atActiveMs: 0 });
     expect(state.paused).toBe(true);
   });
 });
@@ -420,7 +420,7 @@ describe('tick-timer expiry (campaign 027)', () => {
     // reaches zero resolves the round (the old dead `puzzle-timeout` action
     // duplicated this branch and was removed in Campaign 027).
     for (let i = 0; i < budget / 1000; i += 1) {
-      state = mathEquationBuilderGameReducer(state, { type: 'tick-timer' });
+      state = mathEquationBuilderGameReducer(state, { type: 'tick-timer', atActiveMs: (i + 1) * 1000 });
     }
 
     expect(state.phase).toBe('roundResult');
@@ -433,13 +433,13 @@ describe('tick-timer expiry (campaign 027)', () => {
 
   it('does not tick while paused or outside the playing phase', () => {
     let state = startSession('timer-paused');
-    state = mathEquationBuilderGameReducer(state, { type: 'pause' });
+    state = mathEquationBuilderGameReducer(state, { type: 'pause', atActiveMs: 0 });
     const before = state.timeRemainingMs;
-    state = mathEquationBuilderGameReducer(state, { type: 'tick-timer' });
+    state = mathEquationBuilderGameReducer(state, { type: 'tick-timer', atActiveMs: 0 });
     expect(state.timeRemainingMs).toBe(before);
 
     const intro = mathEquationBuilderGameReducer(createInitialMathEquationBuilderState(), {
-      type: 'tick-timer',
+      type: 'tick-timer', atActiveMs: 0,
     });
     expect(intro.phase).toBe('intro');
   });

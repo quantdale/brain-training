@@ -163,10 +163,10 @@ describe('OrderSweepScreen verdict cue', () => {
       screen.getByTestId(testId(GAME_ID, 'token', String(round.order[0]))),
     );
 
-    // The overdue tap resolved nothing: no hit cue, no success.
-    expect(screen.queryByTestId(testId(GAME_ID, 'verdict'))).toBeNull();
+    // The overdue tap closes the window and immediately presents its miss.
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict')).props.accessibilityLabel).toBe('Last round: missed');
 
-    // The expiry owns the resolution and presents the miss.
+    // A later expiry callback leaves the resolved miss unchanged.
     await act(async () => {
       jest.advanceTimersByTime(NORMAL.initialWindowMs);
     });

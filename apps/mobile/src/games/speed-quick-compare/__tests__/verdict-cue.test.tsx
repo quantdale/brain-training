@@ -163,12 +163,12 @@ describe('QuickCompareScreen verdict cue', () => {
     const haptic = jest.spyOn(liveAudioHaptics, 'haptic');
     await fireEvent.press(option(round.correctIndex));
 
-    // The tap resolved nothing: no verdict cue and no success feedback.
+    // The late answer closes the overdue window without success feedback.
     expect(playSfx).not.toHaveBeenCalled();
     expect(haptic).not.toHaveBeenCalled();
-    expect(screen.queryByTestId(testId(GAME_ID, 'verdict-cue'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict-cue')).props.accessibilityLabel).toBe('Last pick: timed out');
 
-    // The expiry timer owns the resolution: a miss, not the late pick.
+    // The pending expiry cannot change the resolved miss into another verdict.
     await act(async () => {
       jest.advanceTimersByTime(PARAMS.windowMs + 10);
     });

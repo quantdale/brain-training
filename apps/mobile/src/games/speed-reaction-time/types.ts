@@ -173,18 +173,25 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Transient identity of the rendered round; never persisted. */
+export interface SpeedRoundStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type SpeedAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
+  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number; nowMs?: number }
   /** GO signal displayed; `goAtMs` is the monotonic clock reading at display time. */
-  | { type: 'go'; goAtMs: number }
+  | { type: 'go'; goAtMs: number; stamp?: SpeedRoundStamp }
   /** Valid reaction: `rtMs` was measured with the monotonic clock. */
-  | { type: 'tap'; rtMs: number }
+  | { type: 'tap'; rtMs: number; stamp?: SpeedRoundStamp }
   /** Tap before the GO signal. */
-  | { type: 'false-start' }
+  | { type: 'false-start'; stamp?: SpeedRoundStamp }
   /** No tap within `timeoutMs` of the GO signal. */
-  | { type: 'round-timeout' }
-  | { type: 'next-round' }
+  | { type: 'round-timeout'; nowMs?: number; stamp?: SpeedRoundStamp }
+  | { type: 'next-round'; nowMs?: number; stamp?: SpeedRoundStamp }
   | { type: 'pause' }
   | { type: 'resume'; pausedMs?: number }
   | { type: 'tutorial-open' }
@@ -231,6 +238,9 @@ export interface SpeedGameState {
   pausedDurationMs: number;
   /** 0-based index of the current round. */
   roundIndex: number;
+  inputEpoch: number;
+  /** Monotonic wait onset, shifted by paused spans. */
+  waitAtMs: number | null;
   /** Minimum delay bound used to draw the current round's delay (adaptive adjusts it). */
   delayMinMs: number;
   /** Generated wait before the GO signal for the current round, in ms. */
@@ -270,6 +280,8 @@ export function createInitialSpeedState(): SpeedGameState {
     activeDurationMs: 0,
     pausedDurationMs: 0,
     roundIndex: 0,
+    inputEpoch: 0,
+    waitAtMs: null,
     delayMinMs: 0,
     delayMs: 0,
     isNoGoRound: false,

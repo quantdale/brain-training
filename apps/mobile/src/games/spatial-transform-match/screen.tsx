@@ -29,6 +29,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -49,6 +50,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
+  useGameInterval,
   useGameDeadlineTimeout,
 } from "@/components/game-host";
 import type { GameHostView } from "@/components/game-host";
@@ -60,7 +62,6 @@ import { Tutorial } from "./components/tutorial";
 import { paramsFromProfile, sessionChallengeRating } from "./difficulty";
 import { gameDefinition } from "./game-definition";
 import {
-  createQaForceStateHooks,
   createSpatialTransformMatchTutorialLifecycle,
 } from "./hooks";
 import { gameReducer } from "./reducer";
@@ -73,6 +74,7 @@ import {
 } from "./session";
 import type { SessionPersistence } from "./session";
 import { GAME_ID, createInitialState } from "./types";
+import type { SpatialTransformMatchAction } from './types';
 import { SCORING_VERSION } from "./versions";
 
 export interface SpatialTransformMatchScreenProps {
@@ -99,16 +101,27 @@ export default function SpatialTransformMatchScreen(
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialState,
   );
 
   const stateRef = useRef(state);
-  /** Monotonic timestamp (clock.now()) of when the choice phase started. */
+  // Claim transitions before the React commit so stale cue/pause callbacks
+  // and repeated taps cannot score or emit feedback against another window.
+  const dispatch = useCallback((action: SpatialTransformMatchAction) => {
+    const current = stateRef.current;
+    const next = gameReducer(current, action);
+    if (next === current) return false;
+    stateRef.current = next;
+    reactDispatch(action);
+    return true;
+  }, []);
+  const inputEpoch = state.inputEpoch;
+  /** Lifecycle active elapsed time when the choice phase became visible. */
   const choiceStartedAtRef = useRef(0);
-  const pauseStartedAtRef = useRef<number | null>(null);
+  const sourceStartedAtRef = useRef(0);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -127,17 +140,17 @@ export default function SpatialTransformMatchScreen(
         !current.paused
       );
     },
-    onPause: () => {
-      pauseStartedAtRef.current = clock.now();
-      dispatch({ type: "pause" });
-    },
+    onPause: () => dispatch({ type: "pause" }),
   });
+  const readActiveTime = session.elapsedMs;
+  const activeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
 
   const tutorial = useMemo(
     () => createSpatialTransformMatchTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(() => createQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null ? paramsFromProfile(state.profile) : null;
@@ -149,29 +162,47 @@ export default function SpatialTransformMatchScreen(
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Source reveal pacing: single tick after sourceRevealMs. Pause
-  // deactivates the timer; resume continues its remaining active budget.
-  useGameDeadlineTimeout(
+  // The active clock, rather than callback count or effect cleanup time, owns
+  // the reveal deadline and automatically freezes during pause.
+  useEffect(() => {
+    if (state.phase === 'source') sourceStartedAtRef.current = readActiveTime();
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
+
+  useGameInterval(
     state.phase === "source" && !state.paused,
-    () => dispatch({ type: "source-tick" }),
-    sourceRevealMs,
-    clock,
-    `source:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+    () => {
+      const current = stateRef.current;
+      if (current.phase !== 'source' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      if (session.elapsedMs() - sourceStartedAtRef.current >= sourceRevealMs) dispatch({ type: 'source-tick' });
+    },
+    100,
   );
 
-  // ---- Record the monotonic time when the choice phase begins.
+  useGameDeadlineTimeout(
+    state.phase === 'source' && !state.paused,
+    () => {
+      const current = stateRef.current;
+      if (current.phase !== 'source' || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+      if (session.elapsedMs() - sourceStartedAtRef.current >= sourceRevealMs) dispatch({ type: 'source-tick' });
+    },
+    sourceRevealMs,
+    activeClock,
+    `${state.sessionId ?? 'idle'}:source:${state.roundIndex}`,
+  );
+
+  // Keep the active anchor across pauses; reset it for a new session too.
   useEffect(() => {
     if (state.phase === "choice") {
-      choiceStartedAtRef.current = clock.now();
+      choiceStartedAtRef.current = readActiveTime();
     }
-  }, [state.phase, state.roundIndex, clock]);
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: "tutorial-open" });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -276,6 +307,7 @@ export default function SpatialTransformMatchScreen(
     session,
     xpHook,
     persisterProp,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -285,13 +317,9 @@ export default function SpatialTransformMatchScreen(
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      if (pauseStartedAtRef.current !== null) {
-        choiceStartedAtRef.current += Math.max(0, clock.now() - pauseStartedAtRef.current);
-        pauseStartedAtRef.current = null;
-      }
       dispatch({ type: "resume" });
     }
-  }, [clock, session, dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -301,10 +329,11 @@ export default function SpatialTransformMatchScreen(
   const handleSelectOption = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== "choice" || current.paused) {
+      if (current.phase !== "choice" || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch || !Number.isInteger(index) || index < 0 || index >= current.options.length) {
         return;
       }
-      const answerMs = clock.now() - choiceStartedAtRef.current;
+      const answerMs = Math.max(0, session.elapsedMs() - choiceStartedAtRef.current);
+      if (!dispatch({ type: "select-option", index, answerMs })) return;
       if (index === current.correctOptionIndex) {
         liveAudioHaptics.playSfx("memory-tile-correct");
         liveAudioHaptics.haptic("light");
@@ -312,13 +341,19 @@ export default function SpatialTransformMatchScreen(
         liveAudioHaptics.playSfx("memory-tile-wrong");
         liveAudioHaptics.haptic("warning");
       }
-      dispatch({ type: "select-option", index, answerMs });
     },
-    [clock, dispatch],
+    [session, inputEpoch, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    const current = stateRef.current;
+    if (current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+    dispatch({ type: 'next-round' });
+  }, [session, inputEpoch, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -378,12 +413,12 @@ export default function SpatialTransformMatchScreen(
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
-      score={String(state.stats.score)}
+      score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
         />
       }
       qaPanelPosition="above"
@@ -522,7 +557,7 @@ export default function SpatialTransformMatchScreen(
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next round"}
-                onPress={() => dispatch({ type: "next-round" })}
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

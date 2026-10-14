@@ -161,26 +161,7 @@ export const MAX_PUZZLE_ATTEMPTS = 50;
  * Apply a single operator to two operands.
  * Returns null for invalid operations (division by zero, non-integer division).
  */
-export function applyOperator(
-  left: number,
-  op: Operator,
-  right: number,
-): number | null {
-  switch (op) {
-    case '+':
-      return left + right;
-    case '-':
-      return left - right;
-    case '×':
-      return left * right;
-    case '÷':
-      if (right === 0) return null;
-      if (left % right !== 0) return null;
-      return left / right;
-    default:
-      return null;
-  }
-}
+export { applyOperator } from './evaluator';
 
 /**
  * Evaluate all possible results from combining numbers with operators.

@@ -113,12 +113,26 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+export interface PatternRoundStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+}
+
+export interface PatternObservationStamp extends PatternRoundStamp {
+  readonly observeIndex: number;
+}
+
+export interface PatternRecallStamp extends PatternRoundStamp {
+  readonly inputIndex: number;
+}
+
 export type PatternTapBackAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'observe-tick' }
-  | { type: 'tap-tile'; index: number }
-  | { type: 'recall-tick' }
+  | { type: 'observe-tick'; stamp: PatternObservationStamp }
+  | { type: 'tap-tile'; index: number; stamp: PatternRecallStamp }
+  | { type: 'recall-tick'; stamp: PatternRecallStamp }
   | { type: 'next-round' }
   | { type: 'pause' }
   | { type: 'resume' }
@@ -169,11 +183,13 @@ export interface PatternTapBackState {
   length: number;
   /** Tile indices of the current round's sequence. */
   sequence: readonly number[];
-  /** Tile currently flashing during observe; -1 when not observing. */
+  /** Position in `sequence` currently flashing; -1 when not observing. */
   observeIndex: number;
   /** Next expected position during recall. */
   inputIndex: number;
-  /** Whether the auto-highlight timer is active after a correct tap. */
+  /** Invalidates callbacks that were queued before a pause or session start. */
+  inputEpoch: number;
+  /** Cosmetic feedback only; this never locks recall input. */
   recallHighlight: boolean;
   /** Taps recorded this round (in order). */
   taps: readonly number[];
@@ -216,6 +232,7 @@ export function createInitialState(): PatternTapBackState {
     sequence: [],
     observeIndex: -1,
     inputIndex: 0,
+    inputEpoch: 0,
     recallHighlight: false,
     taps: [],
     roundOutcome: null,
@@ -231,5 +248,23 @@ export function createInitialState(): PatternTapBackState {
     authoritativeCurrency: null,
     authoritativeDeltas: [],
     tutorialOpen: false,
+  };
+}
+
+export function observationStamp(state: PatternTapBackState): PatternObservationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    observeIndex: state.observeIndex,
+  };
+}
+
+export function recallStamp(state: PatternTapBackState): PatternRecallStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    inputIndex: state.inputIndex,
   };
 }

@@ -17,6 +17,7 @@
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -44,7 +45,7 @@ export interface PadTileProps {
   visual: PadTileVisualState;
   disabled?: boolean;
   /** Stable tap handler supplied by the pad (avoids per-render closures). */
-  onPressTile?: (index: number) => void;
+  onPressTile?: (index: number, event?: GestureResponderEvent) => void;
 }
 
 export const PadTile = memo(function PadTile({ index, visual, disabled = false, onPressTile }: PadTileProps) {
@@ -78,7 +79,7 @@ export const PadTile = memo(function PadTile({ index, visual, disabled = false, 
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       disabled={disabled}
-      onPress={onPressTile ? () => onPressTile(index) : undefined}
+      onPress={onPressTile ? (event) => onPressTile(index, event) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor, borderWidth },

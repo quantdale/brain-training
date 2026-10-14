@@ -81,7 +81,15 @@ function buildRound(
     prevTarget,
   });
 }
-export function spatialGameReducer(
+export function spatialGameReducer(state: SpatialGameState, action: SpatialAction): SpatialGameState {
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) {
+    return { ...next, inputEpoch: state.inputEpoch + 1 };
+  }
+  return next;
+}
+
+function reduceGameState(
   state: SpatialGameState,
   action: SpatialAction,
 ): SpatialGameState {
@@ -165,7 +173,10 @@ export function spatialGameReducer(
         return state;
       }
       const correct = action.answer === state.kind;
-      const remaining = Math.max(0, state.timeRemainingMs);
+      // The live caller supplies the actual input instant, not the last UI
+      // poll. At the exact deadline a tap is a timeout with no scored answer.
+      const remaining = Math.min(state.timeBudgetMs, Math.max(0, action.remainingMs ?? state.timeRemainingMs));
+      if (remaining <= 0) return spatialGameReducer(state, { type: 'clock-tick', remainingMs: 0 });
       if (correct) {
         const streak = state.stats.streak + 1;
         const stats: SpatialStats = {
@@ -205,7 +216,7 @@ export function spatialGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null) {
         return state;
       }
       const nextIndex = state.roundIndex + 1;

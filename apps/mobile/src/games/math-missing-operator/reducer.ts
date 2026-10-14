@@ -27,7 +27,7 @@ import {
 } from './difficulty';
 import { generateEquation } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { INITIAL_STATS, createInitialMathMissingOperatorState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialMathMissingOperatorState } from './types';
 import type { MathMissingOperatorAction, MathMissingOperatorGameState } from './types';
 
 export { createInitialMathMissingOperatorState };
@@ -59,6 +59,7 @@ export function mathMissingOperatorGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'answer',
         paused: false,
         profile,
@@ -173,6 +174,9 @@ export function mathMissingOperatorGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
         return state;
       }
@@ -211,6 +215,7 @@ export function mathMissingOperatorGameReducer(
       const elapsed = Math.max(0, action.pausedAtMs - state.roundStartedAtMs);
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         paused: true,
         roundElapsedMs: state.roundElapsedMs + elapsed,
         roundStartedAtMs: action.pausedAtMs,
@@ -221,7 +226,7 @@ export function mathMissingOperatorGameReducer(
       if (!state.paused) {
         return state;
       }
-      return { ...state, paused: false, roundStartedAtMs: action.resumedAtMs };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false, roundStartedAtMs: action.resumedAtMs };
     }
 
     case 'tutorial-open': {

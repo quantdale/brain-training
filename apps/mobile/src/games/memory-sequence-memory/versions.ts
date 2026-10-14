@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.1.0';
+// 077: the presented sequence is the generated sequence, with one accepted
+// step per native event inside the active budget. Old results are unchanged.
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

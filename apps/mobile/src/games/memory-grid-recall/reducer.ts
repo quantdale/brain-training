@@ -25,9 +25,10 @@ import {
   roundScore,
 } from "./scoring";
 import {
+  ownsContinuation,
   INITIAL_STATS,
   createInitialGridRecallState,
-} from "./types";
+} from './types';
 import type {
   GridRecallAction,
   GridRecallGameState,
@@ -64,6 +65,7 @@ export function gridRecallGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: "study",
         paused: false,
         profile,
@@ -169,6 +171,9 @@ export function gridRecallGameReducer(
     }
 
     case "next-round": {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (
         state.phase !== "roundResult" ||
         state.profile === null ||
@@ -219,11 +224,11 @@ export function gridRecallGameReducer(
       ) {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case "resume": {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case "tutorial-open": {

@@ -60,8 +60,9 @@ import {
   persistFlexibilitySession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialFlexibilityState } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, createInitialFlexibilityState } from './types';
+import type { FlexibilityAction } from './types';
 
 export interface CardSortScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -88,6 +89,12 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
   const [state, dispatch] = useReducer(flexibilityGameReducer, undefined, createInitialFlexibilityState);
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: FlexibilityAction) => {
+    stateRef.current = flexibilityGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   /** Monotonic-clock time the current round became active (response origin). */
   const roundStartRef = useRef(0);
   /** Clock time a pause began inside the current round, or null. */
@@ -115,9 +122,24 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
       if (current.phase === 'roundActive') {
         pauseStartRef.current = clock.now();
       }
-      dispatch({ type: 'pause' });
+      dispatchContinuation({ type: 'pause' });
     },
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: FlexibilityAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = flexibilityGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createFlexibilityTutorialLifecycle(tutorialStore),
@@ -276,9 +298,9 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
       pauseStartRef.current = null;
     }
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -477,7 +499,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

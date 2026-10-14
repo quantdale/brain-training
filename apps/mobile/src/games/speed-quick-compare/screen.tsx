@@ -12,7 +12,7 @@
  *
  * Pause semantics: pausing freezes the lifecycle timer and cancels the expiry
  * timer; resuming re-schedules expiry from the exact remaining time captured
- * at pause (`deadlineMs - clock.now()`), so pausing never buys extra time.
+ * on the lifecycle's active clock, so pausing never buys extra time.
  * The board is covered by the opaque `PauseOverlay` and hidden from the
  * accessibility tree while paused.
  */
@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   systemClock,
@@ -36,7 +37,6 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameTimeout,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
 
@@ -46,7 +46,7 @@ import { Tutorial } from './components/tutorial';
 import { VerdictCue } from './components/verdict-cue';
 import { sessionChallengeRating, quickCompareParamsFromProfile } from './difficulty';
 import { gameDefinition } from './game-definition';
-import { createQuickCompareQaForceStateHooks, createQuickCompareTutorialLifecycle } from './hooks';
+import { createQuickCompareTutorialLifecycle } from './hooks';
 import { quickCompareGameReducer } from './reducer';
 import { bestOf, normalizeQuickCompareResult } from './scoring';
 import {
@@ -57,6 +57,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialQuickCompareState } from './types';
+import type { QuickCompareAction, QuickCompareCueStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface QuickCompareScreenProps {
@@ -81,19 +82,28 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     xpHook = pipelineXpRatingHook,
   } = props;
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     quickCompareGameReducer,
     undefined,
     createInitialQuickCompareState,
   );
 
   const stateRef = useRef(state);
+  // Accept each transition before React commits; queued taps must not emit
+  // duplicate verdicts or act against a newly displayed round.
+  const dispatch = useCallback((action: QuickCompareAction) => {
+    const current = stateRef.current;
+    const next = quickCompareGameReducer(current, action);
+    if (next === current) return null;
+    stateRef.current = next;
+    reactDispatch(action);
+    return next;
+  }, []);
+  const cue = useMemo<QuickCompareCueStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch }), [state.sessionId, state.roundIndex, state.inputEpoch]);
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
   });
-  /** Window time left when pausing; the resume action re-anchors from it. */
-  const pauseRemainingRef = useRef(0);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -104,22 +114,18 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
         (current.phase === 'active' || current.phase === 'feedback') && !current.paused
       );
     },
-    onPause: () => {
-      const current = stateRef.current;
-      pauseRemainingRef.current =
-        current.deadlineMs !== null ? Math.max(0, current.deadlineMs - clock.now()) : 0;
-      dispatch({ type: 'pause' });
-    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
+  const readActiveTime = session.elapsedMs;
+  const readStatus = session.status;
+  const activeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
 
   const tutorial = useMemo(
     () => createQuickCompareTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(
-    () => createQuickCompareQaForceStateHooks(dispatch),
-    [dispatch],
-  );
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params = state.profile !== null ? quickCompareParamsFromProfile(state.profile) : null;
   const rounds = params?.rounds ?? 10;
@@ -129,22 +135,31 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   // ---- Window expiry: one timer per live round, scheduled from the monotonic
   // deadline. Pause deactivates the timer; resume re-schedules it from the
   // remaining time the reducer re-anchored, so pausing never buys extra time.
-  const windowRemainingMs =
-    state.phase === 'active' && !state.paused && state.deadlineMs !== null
-      ? Math.max(0, state.deadlineMs - clock.now())
-      : 0;
-  useGameTimeout(
-    state.phase === 'active' && !state.paused && state.deadlineMs !== null,
-    () => dispatch({ type: 'answer-timeout', nowMs: clock.now() }),
-    windowRemainingMs,
-  );
+  useEffect(() => {
+    if (state.phase !== 'active' || state.paused || state.deadlineMs === null) return;
+    const deadlineMs = state.deadlineMs;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const expire = () => {
+      const current = stateRef.current;
+      if (stopped || readStatus() !== 'active' || current.paused || current.sessionId !== cue.sessionId || current.roundIndex !== cue.roundIndex || current.inputEpoch !== cue.inputEpoch) return;
+      const nowMs = readActiveTime();
+      const remainingMs = deadlineMs - nowMs;
+      // Scheduling may fire early; re-arm the same captured window until its
+      // actual active deadline, instead of relying on callback delivery time.
+      if (remainingMs > 0) timer = setTimeout(expire, remainingMs);
+      else dispatch({ type: 'answer-timeout', nowMs, cue });
+    };
+    timer = setTimeout(expire, Math.max(0, deadlineMs - readActiveTime()));
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.deadlineMs, cue, readActiveTime, readStatus, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: 'tutorial-open' });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -238,6 +253,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -246,14 +262,16 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   }, [session]);
 
   const resumeSession = useCallback(() => {
+    const nowMs = readActiveTime();
+    const remainingMs = Math.max(0, (stateRef.current.deadlineMs ?? nowMs) - nowMs);
     if (session.resumeIfPaused()) {
       dispatch({
         type: 'resume',
-        nowMs: clock.now(),
-        remainingMs: pauseRemainingRef.current,
+        nowMs,
+        remainingMs,
       });
     }
-  }, [clock, session, dispatch]);
+  }, [readActiveTime, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -263,21 +281,18 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   const handleAnswer = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'active' || current.paused || current.round === null) {
+      if (current.phase !== 'active' || current.paused || current.round === null || readStatus() !== 'active' || current.inputEpoch !== cue.inputEpoch || !Number.isInteger(index) || index < 0 || index >= current.round.optionLabels.length) {
         return;
       }
-      const nowMs = clock.now();
+      const nowMs = readActiveTime();
       if (current.deadlineMs !== null && nowMs > current.deadlineMs) {
+        dispatch({ type: 'answer-timeout', nowMs, cue });
         return;
       }
-      // Sensory feedback follows the authoritative verdict, not tap optimism:
-      // resolve through the same pure transition the dispatch below commits, so
-      // a tap the deadline guard rejects stays silent (R4). The visual cue
-      // always reads the reducer's `lastVerdict`, never the tap handler.
-      const action = { type: 'answer' as const, index, nowMs };
-      const next = quickCompareGameReducer(current, action);
-      dispatch(action);
-      if (next === current || next.lastVerdict === null) {
+      // Feedback follows the accepted transition; a stale, duplicate or expired
+      // answer never emits an optimistic correct sound.
+      const next = dispatch({ type: 'answer', index, nowMs, cue });
+      if (next === null || next.lastVerdict === null) {
         return;
       }
       if (next.lastVerdict === 'correct') {
@@ -288,15 +303,18 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
         liveAudioHaptics.haptic('warning');
       }
     },
-    [clock, dispatch],
+    [readActiveTime, readStatus, cue, dispatch],
   );
 
   const handleNext = useCallback(() => {
-    dispatch({ type: 'next-round', spawnedAtMs: clock.now() });
-  }, [clock, dispatch]);
+    if (readStatus() !== 'active') return;
+    dispatch({ type: 'next-round', spawnedAtMs: readActiveTime(), cue });
+  }, [readActiveTime, readStatus, cue, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    const status = readStatus();
+    if ((current.phase !== 'intro' && current.phase !== 'results') || current.inputEpoch !== cue.inputEpoch || (status !== null && status !== 'completed' && status !== 'abandoned')) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -304,9 +322,9 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
-      spawnedAtMs: clock.now(),
+      spawnedAtMs: readActiveTime(),
     });
-  }, [clock, session, sessionSeed, dispatch]);
+  }, [readActiveTime, readStatus, cue, session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -364,7 +382,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
         </>
       }
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
@@ -391,9 +409,9 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
 
           {state.phase === 'active' ? (
             <Countdown
-              deadlineMs={state.deadlineMs ?? clock.now()}
+              deadlineMs={state.deadlineMs ?? 0}
               windowMs={state.windowMs}
-              clock={clock}
+              clock={activeClock}
               testID={testId(GAME_ID, 'countdown')}
             />
           ) : null}

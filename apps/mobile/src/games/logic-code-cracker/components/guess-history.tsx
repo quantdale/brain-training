@@ -34,7 +34,7 @@ export function GuessHistory({ guesses, guessesUsed, guessBudget }: GuessHistory
       {guesses.map((entry, index) => (
         <View
           key={index}
-          style={[styles.row, { borderColor: theme.border }]}
+          style={[styles.row, { borderColor: theme.border, backgroundColor: theme.surface }]}
           testID={testId('logic-code-cracker', 'history-row', String(index))}>
           <View style={styles.guessPegs}>
             {entry.guess.map((colorIndex, pegIndex) => (
@@ -62,9 +62,8 @@ const styles = StyleSheet.create({
     gap: Spacing.oneHalf,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: Spacing.oneHalf,
     paddingVertical: Spacing.oneHalf,
     paddingHorizontal: Spacing.two,
     borderRadius: Radii.small,

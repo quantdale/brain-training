@@ -100,7 +100,7 @@ export function Card({
       shape === 'poster'
         ? Radii.small
         : shape === 'soft' || variant === 'hero'
-          ? Radii.extraLarge
+          ? Radii.large
           : Radii.medium,
     padding: PADDING[padding],
     ...Elevation[ELEVATION_BY_VARIANT[variant]],

@@ -1,6 +1,6 @@
 {
   "packId": "language-word-match-core-v1",
-  "packVersion": "2.0.0",
+  "packVersion": "2.1.0",
   "itemCount": 120,
   "families": {
     "happiness": [
@@ -81,7 +81,8 @@
       "unhurried",
       "poky",
       "dawdling",
-      "languid"
+      "languid",
+      "incremental"
     ],
     "smart": [
       "smart",
@@ -181,7 +182,8 @@
       "sweltering",
       "blazing",
       "sizzling",
-      "torrid"
+      "torrid",
+      "tepid"
     ],
     "say": [
       "say",
@@ -211,7 +213,8 @@
       "race",
       "bolt",
       "scamper",
-      "hurry"
+      "hurry",
+      "trot"
     ],
     "look": [
       "look",
@@ -710,7 +713,7 @@
       "options": [
         "affordable",
         "job",
-        "dawdling",
+        "incremental",
         "disheartened"
       ],
       "correctIndex": 2,
@@ -1085,7 +1088,7 @@
       "id": "wm-0053",
       "prompt": "warm",
       "options": [
-        "sizzling",
+        "tepid",
         "pricey",
         "halt",
         "gaze"
@@ -1176,7 +1179,7 @@
       "id": "wm-0060",
       "prompt": "stride",
       "options": [
-        "amble",
+        "march",
         "incorrect",
         "hurry",
         "despondent"
@@ -1217,7 +1220,7 @@
       "options": [
         "incorrect",
         "complete",
-        "sprint",
+        "trot",
         "clamorous"
       ],
       "correctIndex": 2,
@@ -1242,7 +1245,7 @@
       "prompt": "gaze",
       "options": [
         "unsightly",
-        "glance",
+        "stare",
         "unhappy",
         "powerless"
       ],
@@ -1257,7 +1260,7 @@
         "saunter",
         "ugly",
         "coin",
-        "glance"
+        "gaze"
       ],
       "correctIndex": 3,
       "tier": "t3",
@@ -1426,7 +1429,7 @@
         "elated",
         "astute",
         "muscular",
-        "delighted"
+        "dejected"
       ],
       "correctIndex": 0,
       "tier": "t1",
@@ -1437,7 +1440,7 @@
       "prompt": "gratified",
       "options": [
         "miserable",
-        "elated",
+        "satisfied",
         "legitimate",
         "capital"
       ],
@@ -1891,7 +1894,7 @@
       "id": "wm-0115",
       "prompt": "true",
       "options": [
-        "exact",
+        "factual",
         "happy",
         "stroll",
         "torrid"

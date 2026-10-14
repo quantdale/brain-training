@@ -481,12 +481,16 @@ export default function ResultsScreen() {
                   </ThemedText>
                   <ThemedText type="bodySmall" themeColor="successSoftText">
                     {workoutInstance?.gameIds.length
-                      ? `${workoutInstance.gameIds.length}/${workoutInstance.gameIds.length} games complete`
+                      ? (workoutInstance.skippedIndices?.length ?? 0) > 0
+                        ? `${workoutInstance.gameIds.length - workoutInstance.skippedIndices.length} games played · ${workoutInstance.skippedIndices.length} skipped`
+                        : `${workoutInstance.gameIds.length}/${workoutInstance.gameIds.length} games complete`
                       : "You finished today's workout. Nice work!"}
                   </ThemedText>
                   {workoutInstance?.gameIds.length ? (
                     <ThemedText type="caption" themeColor="successSoftText">
-                      {`You finished all ${workoutInstance.gameIds.length} games today. Nice work!`}
+                      {(workoutInstance.skippedIndices?.length ?? 0) > 0
+                        ? 'Your played games and workout progress are saved.'
+                        : `You finished all ${workoutInstance.gameIds.length} games today. Nice work!`}
                     </ThemedText>
                   ) : null}
                 </View>

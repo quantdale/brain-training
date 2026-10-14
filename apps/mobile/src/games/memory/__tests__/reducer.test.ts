@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { memoryGameReducer } from '../reducer';
-import { createInitialMemoryState } from '../types';
+import { createInitialMemoryState, recallStamp, revealStamp, windowStamp } from '../types';
 import type { MemoryGameState } from '../types';
 import { generateRoundSequence } from '../generator';
 import { perfectSessionScore } from '../scoring';
@@ -17,7 +17,7 @@ function startSession(
 ): MemoryGameState {
   let state = createInitialMemoryState();
   state = memoryGameReducer(state, { type: 'select-difficulty', level });
-  state = memoryGameReducer(state, { type: 'start-session', seed, sessionId, startedAtMs: 100 });
+  state = memoryGameReducer(state, { nowMs: 100, type: 'start-session', seed, sessionId, startedAtMs: 100 });
   return state;
 }
 
@@ -25,7 +25,7 @@ function startSession(
 function revealAll(state: MemoryGameState, times = state.length): MemoryGameState {
   let current = state;
   for (let i = 0; i < times; i += 1) {
-    current = memoryGameReducer(current, { type: 'reveal-tick' });
+    current = memoryGameReducer(current, { stamp: revealStamp(current), nowMs: current.revealDeadlineMs, type: 'reveal-tick' });
   }
   return current;
 }
@@ -90,22 +90,22 @@ describe('start-session', () => {
 describe('reveal-tick', () => {
   it('advances one tile at a time and hands over to input at the end', () => {
     let state = startSession('r');
-    state = memoryGameReducer(state, { type: 'reveal-tick' });
+    state = memoryGameReducer(state, { stamp: revealStamp(state), nowMs: state.revealDeadlineMs, type: 'reveal-tick' });
     expect(state.revealedIndex).toBe(1);
-    state = memoryGameReducer(state, { type: 'reveal-tick' });
+    state = memoryGameReducer(state, { stamp: revealStamp(state), nowMs: state.revealDeadlineMs, type: 'reveal-tick' });
     expect(state.revealedIndex).toBe(2);
-    state = memoryGameReducer(state, { type: 'reveal-tick' });
+    state = memoryGameReducer(state, { stamp: revealStamp(state), nowMs: state.revealDeadlineMs, type: 'reveal-tick' });
     expect(state.revealedIndex).toBe(3);
-    state = memoryGameReducer(state, { type: 'reveal-tick' });
+    state = memoryGameReducer(state, { stamp: revealStamp(state), nowMs: state.revealDeadlineMs, type: 'reveal-tick' });
     expect(state.phase).toBe('input');
     expect(state.revealedIndex).toBe(-1);
   });
 
   it('is ignored outside the reveal phase or while paused', () => {
     const inInput = revealAll(startSession('r'));
-    expect(memoryGameReducer(inInput, { type: 'reveal-tick' }).phase).toBe('input');
-    const paused = memoryGameReducer(startSession('r'), { type: 'pause' });
-    expect(memoryGameReducer(paused, { type: 'reveal-tick' }).revealedIndex).toBe(0);
+    expect(memoryGameReducer(inInput, { stamp: revealStamp(inInput), nowMs: inInput.revealDeadlineMs, type: 'reveal-tick' }).phase).toBe('input');
+    const paused = memoryGameReducer(startSession('r'), { nowMs: startSession('r').revealDeadlineMs - startSession('r').revealRemainingMs, type: 'pause' });
+    expect(memoryGameReducer(paused, { stamp: revealStamp(paused), nowMs: paused.revealDeadlineMs, type: 'reveal-tick' }).revealedIndex).toBe(0);
   });
 });
 
@@ -113,13 +113,13 @@ describe('tap-tile', () => {
   it('validates taps against the sequence and completes the round', () => {
     let state = revealAll(startSession('tap', 'easy')); // length 3
     const [t0, t1, t2] = state.sequence;
-    state = memoryGameReducer(state, { type: 'tap-tile', index: t0 });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: t0 });
     expect(state.phase).toBe('input');
     expect(state.inputIndex).toBe(1);
     expect(state.stats.correctTaps).toBe(1);
-    state = memoryGameReducer(state, { type: 'tap-tile', index: t1 });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: t1 });
     expect(state.inputIndex).toBe(2);
-    state = memoryGameReducer(state, { type: 'tap-tile', index: t2 });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: t2 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('passed');
     expect(state.stats.roundsPassed).toBe(1);
@@ -133,7 +133,7 @@ describe('tap-tile', () => {
   it('fails the round immediately on a wrong tap', () => {
     let state = revealAll(startSession('tap-wrong'));
     const wrong = (state.sequence[0] + 1) % 9;
-    state = memoryGameReducer(state, { type: 'tap-tile', index: wrong });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: wrong });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('failed');
     expect(state.stats.roundsPlayed).toBe(1);
@@ -144,14 +144,14 @@ describe('tap-tile', () => {
 
   it('is ignored during reveal / after the round ended', () => {
     let state = startSession('x');
-    state = memoryGameReducer(state, { type: 'tap-tile', index: 0 });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: 0 });
     expect(state.phase).toBe('reveal');
 
     // After the round result, further taps are ignored (no double counting).
     let ended = revealAll(startSession('x'));
-    ended = memoryGameReducer(ended, { type: 'tap-tile', index: -1 }); // wrong tap → failed
+    ended = memoryGameReducer(ended, { stamp: recallStamp(ended), type: 'tap-tile', index: -1 }); // wrong tap → failed
     expect(ended.phase).toBe('roundResult');
-    ended = memoryGameReducer(ended, { type: 'tap-tile', index: 0 });
+    ended = memoryGameReducer(ended, { stamp: recallStamp(ended), type: 'tap-tile', index: 0 });
     expect(ended.stats.roundsPlayed).toBe(1);
     expect(ended.stats.totalTaps).toBe(1);
   });
@@ -161,10 +161,10 @@ describe('next-round', () => {
   it('escalates the length after a pass and regenerates a distinct sequence', () => {
     let state = revealAll(startSession('escalate'));
     for (const tile of state.sequence) {
-      state = memoryGameReducer(state, { type: 'tap-tile', index: tile });
+      state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: tile });
     }
     expect(state.roundOutcome).toBe('passed');
-    state = memoryGameReducer(state, { type: 'next-round' });
+    state = memoryGameReducer(state, { stamp: windowStamp(state), nowMs: state.revealDeadlineMs, type: 'next-round' });
     expect(state.phase).toBe('reveal');
     expect(state.roundIndex).toBe(1);
     expect(state.length).toBe(5);
@@ -174,8 +174,8 @@ describe('next-round', () => {
 
   it('holds the length after a failure', () => {
     let state = revealAll(startSession('hold'));
-    state = memoryGameReducer(state, { type: 'tap-tile', index: (state.sequence[0] + 1) % 9 });
-    state = memoryGameReducer(state, { type: 'next-round' });
+    state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: (state.sequence[0] + 1) % 9 });
+    state = memoryGameReducer(state, { stamp: windowStamp(state), nowMs: state.revealDeadlineMs, type: 'next-round' });
     expect(state.length).toBe(4);
     expect(state.roundIndex).toBe(1);
   });
@@ -185,9 +185,9 @@ describe('next-round', () => {
     for (let round = 0; round < 4; round += 1) {
       state = revealAll(state);
       for (const tile of state.sequence) {
-        state = memoryGameReducer(state, { type: 'tap-tile', index: tile });
+        state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: tile });
       }
-      state = memoryGameReducer(state, { type: 'next-round' });
+      state = memoryGameReducer(state, { stamp: windowStamp(state), nowMs: state.revealDeadlineMs, type: 'next-round' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(4);
@@ -198,18 +198,18 @@ describe('next-round', () => {
 
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
-    const inIntro = memoryGameReducer(createInitialMemoryState(), { type: 'pause' });
+    const inIntro = memoryGameReducer(createInitialMemoryState(), { nowMs: createInitialMemoryState().revealDeadlineMs - createInitialMemoryState().revealRemainingMs, type: 'pause' });
     expect(inIntro.paused).toBe(false);
-    let state = memoryGameReducer(startSession('p'), { type: 'pause' });
+    let state = memoryGameReducer(startSession('p'), { nowMs: startSession('p').revealDeadlineMs - startSession('p').revealRemainingMs, type: 'pause' });
     expect(state.paused).toBe(true);
-    state = memoryGameReducer(state, { type: 'resume' });
+    state = memoryGameReducer(state, { nowMs: state.revealDeadlineMs - state.revealRemainingMs, type: 'resume' });
     expect(state.paused).toBe(false);
-    expect(memoryGameReducer(state, { type: 'resume' }).paused).toBe(false);
+    expect(memoryGameReducer(state, { nowMs: state.revealDeadlineMs - state.revealRemainingMs, type: 'resume' }).paused).toBe(false);
   });
 
   it('cannot pause while paused or on results', () => {
-    let state = memoryGameReducer(startSession('p'), { type: 'pause' });
-    state = memoryGameReducer(state, { type: 'pause' });
+    let state = memoryGameReducer(startSession('p'), { nowMs: startSession('p').revealDeadlineMs - startSession('p').revealRemainingMs, type: 'pause' });
+    state = memoryGameReducer(state, { nowMs: state.revealDeadlineMs - state.revealRemainingMs, type: 'pause' });
     expect(state.paused).toBe(true);
   });
 });
@@ -273,7 +273,7 @@ describe('QA force hooks (state shaping)', () => {
   it('force-lose from a scored round result keeps the recorded outcome', () => {
     let state = revealAll(startSession('qa-lose2'));
     for (const tile of state.sequence) {
-      state = memoryGameReducer(state, { type: 'tap-tile', index: tile });
+      state = memoryGameReducer(state, { stamp: recallStamp(state), type: 'tap-tile', index: tile });
     }
     expect(state.roundOutcome).toBe('passed');
     const result = memoryGameReducer(state, { type: 'qa/force-lose' });
@@ -333,6 +333,7 @@ describe('restart leak guards (campaign 023 audit)', () => {
     state = memoryGameReducer(state, { type: 'persistence-failed', message: 'boom' });
 
     const restarted = memoryGameReducer(state, {
+      nowMs: 200,
       type: 'start-session',
       seed: 'auth-bleed-2',
       sessionId: 's2',

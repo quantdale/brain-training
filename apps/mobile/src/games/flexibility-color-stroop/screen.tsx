@@ -65,6 +65,7 @@ import type { SessionPersistence } from "./session";
 import {
   GAME_ID,
   createInitialColorStroopState,
+  inputStamp,
 } from "./types";
 import type { StroopColor } from "./types";
 import { SCORING_VERSION } from "./versions";
@@ -82,9 +83,6 @@ export interface ColorStroopScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** How long the rule-flip banner stays up before the next stimulus appears. */
-const FLIP_CUE_MS = 1500;
-
 export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   const {
     clock = systemClock,
@@ -101,14 +99,19 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   );
 
   const stateRef = useRef(state);
-  /** Monotonic-clock time the current stimulus was shown (response origin). */
-  const trialStartRef = useRef(0);
-  /** Clock time a pause began inside the current trial, or null. */
-  const pauseStartRef = useRef<number | null>(null);
-
   useEffect(() => {
     stateRef.current = state;
   });
+
+  const applyGameplayAction = useCallback((action: Parameters<typeof colorStroopGameReducer>[1]) => {
+    const current = stateRef.current;
+    const next = colorStroopGameReducer(current, action);
+    // Claim the transition before React commits; old callbacks stay silent.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+  const stamp = useMemo(() => inputStamp(state), [state]);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -128,22 +131,9 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     },
     onPause: () => {
       // Freeze the response clock so paused time never counts against RT.
-      pauseStartRef.current = clock.now();
-      dispatch({ type: "pause" });
+      applyGameplayAction({ type: "pause", nowMs: clock.now() });
     },
   });
-
-  // Mark the response origin each time a fresh stimulus is shown.
-  useEffect(() => {
-    if (state.phase === "stimulus" && !state.paused) {
-      trialStartRef.current = clock.now();
-    }
-    // `state.paused` is deliberately excluded: this effect must fire only on
-    // stimulus ENTRY. Re-running on unpause would reset the response origin
-    // to resume time and erase the pre-pause span that resumeSession
-    // compensates for (campaign-009 RT invariant).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.trialIndex, clock]);
 
   const tutorial = useMemo(
     () => createColorStroopTutorialLifecycle(tutorialStore),
@@ -156,7 +146,6 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
 
   const params =
     state.profile !== null ? colorStroopParamsFromProfile(state.profile) : null;
-  const stimulusMs = params?.stimulusMs ?? 1500;
   const totalTrials = params?.trials ?? 15;
   const inSession =
     state.phase === "stimulus" ||
@@ -164,27 +153,20 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     state.phase === "flipCue" ||
     state.phase === "roundResult";
 
-  // ---- Stimulus auto-advance: an unanswered trial counts as wrong (with the
-  // full window recorded as its response time — never a fabricated fast RT),
-  // then the session continues with the next trial (a slow trial must never
-  // end the whole session).
+  const remainingWindowMs = Math.ceil(Math.max(0, state.deadlineMs - clock.now()));
   useGameDeadlineTimeout(
-    state.phase === "stimulus" && !state.paused,
-    () => dispatch({ type: "trial-timeout", responseTimeMs: stimulusMs }),
-    stimulusMs,
+    state.phase === 'stimulus' && !state.paused,
+    () => applyGameplayAction({ type: 'trial-timeout', nowMs: clock.now(), stamp }),
+    remainingWindowMs,
     clock,
-    `stimulus:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
+    `stimulus:${state.sessionId}:${state.trialIndex}:${state.deadlineMs}:${remainingWindowMs}`,
   );
-
-  // ---- Flip-cue auto-advance: the rule-change banner shows briefly, then the
-  // next stimulus appears. Without this the flipCue phase has no continue
-  // affordance and the session would dead-end mid-run.
   useGameDeadlineTimeout(
-    state.phase === "flipCue" && !state.paused,
-    () => dispatch({ type: "dismiss-flip-cue" }),
-    FLIP_CUE_MS,
+    state.phase === 'flipCue' && !state.paused,
+    () => applyGameplayAction({ type: 'dismiss-flip-cue', nowMs: clock.now(), stamp }),
+    remainingWindowMs,
     clock,
-    `flip:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
+    `flip:${state.sessionId}:${state.trialIndex}:${state.deadlineMs}:${remainingWindowMs}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -309,15 +291,10 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    // Compensate the response clock for the paused span.
-    if (pauseStartRef.current !== null) {
-      trialStartRef.current += clock.now() - pauseStartRef.current;
-      pauseStartRef.current = null;
-    }
     if (session.resumeIfPaused()) {
-      dispatch({ type: "resume" });
+      applyGameplayAction({ type: "resume", nowMs: clock.now() });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -330,38 +307,28 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       if (current.phase !== "stimulus" || current.paused) {
         return;
       }
-      // Real response time against the monotonic clock, measured from the
-      // moment the stimulus was shown (pause-compensated).
-      const responseTimeMs = Math.max(0, clock.now() - trialStartRef.current);
-
-      const trial = current.trials[current.trialIndex];
-      if (answer === trial.correctAnswer) {
-        liveAudioHaptics.playSfx("memory-tile-correct");
-        liveAudioHaptics.haptic("light");
-      } else {
-        liveAudioHaptics.playSfx("memory-tile-wrong");
-        liveAudioHaptics.haptic("warning");
-      }
-      dispatch({
-        type: "submit-answer",
-        answer,
-        responseTimeMs,
-      });
+      if (session.status() !== 'active') return;
+      const next = applyGameplayAction({ type: 'submit-answer', answer, nowMs: clock.now(), stamp });
+      if (next === null || next.currentAnswer === null) return;
+      liveAudioHaptics.playSfx(next.currentCorrect ? 'memory-tile-correct' : 'memory-tile-wrong');
+      liveAudioHaptics.haptic(next.currentCorrect ? 'light' : 'warning');
     },
-    [clock, dispatch],
+    [clock, applyGameplayAction, stamp, session],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== "intro" && current.phase !== "results") return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: "start-session",
+      nowMs: clock.now(),
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, clock, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -494,7 +461,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, "next-trial")}
                 label={isLastTrial ? "See results" : "Next trial"}
-                onPress={() => dispatch({ type: "next-trial" })}
+                onPress={() => applyGameplayAction({ type: "next-trial", nowMs: clock.now(), stamp })}
               />
             </>
           )}

@@ -122,7 +122,7 @@ export type RunningOrderAction =
   | { type: "tap-symbol"; id: number }
   | { type: "backspace" }
   | { type: "submit" }
-  | { type: "next-round" }
+  | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "tutorial-open" }
@@ -153,6 +153,8 @@ export interface RunningOrderGameState {
   phase: RunningOrderPhase;
   /** True while the SDK lifecycle is paused (timers frozen). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -205,6 +207,7 @@ export interface RunningOrderGameState {
 
 export function createInitialRunningOrderState(): RunningOrderGameState {
   return {
+    continuationEpoch: 0,
     phase: "intro",
     paused: false,
     difficulty: "normal",
@@ -236,4 +239,31 @@ export function createInitialRunningOrderState(): RunningOrderGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: RunningOrderGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: RunningOrderGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: RunningOrderGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

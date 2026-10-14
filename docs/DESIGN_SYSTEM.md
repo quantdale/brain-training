@@ -1,6 +1,7 @@
-# Design System — "Training Studio" (change 076)
+# Design System — "Play Lab" (change 077)
 
-This document describes the visual language the app **currently ships**. Its
+This document describes the visual language in the current app source. Campaign
+077 implementation and native acceptance remain in progress. Its
 concrete values — radii, motion durations, and the palette hexes — are not a
 prose summary: `apps/mobile/src/components/__tests__/design-system-doc.test.ts`
 asserts every value stated below against the token source, so a token change
@@ -9,22 +10,22 @@ number in `theme/tokens.ts` ever disagree, the tokens win and this file is
 stale.
 
 Lineage: Campaign 026 established the arcade direction; Campaigns 051-055
-shipped "Signal Arcade"; change 076 selected the "Training Studio" system from
-three on-device prototypes and re-authored the token values in place (same
-token shape, new values; see
-`openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md`).
+shipped "Signal Arcade"; change 076 introduced "Training Studio". Change 077
+selects "Play Lab" after actual Refero research, three generated directions and
+independent critique. The current lock is
+`openspec/changes/077-frontier-product-experience-rebuild/evidence/ART_DIRECTION.md`.
 Tokens live in `apps/mobile/src/theme/tokens.ts`; the palette is
 contrast-verified by `theme/__tests__/contrast.test.ts` and the lock values
 are pinned by `theme/__tests__/reference-lock.test.ts`.
 
 ## 1. Visual thesis
 
-**Quiet studio, immersive play.** A calm studio shell — warm paper in light
-mode, near-black in dark mode — wrapped around an immersive charcoal stage
-where the mechanic owns the screen. ONE red primary action per viewport;
-success/error always carry text + icon/shape beyond color; reports read as
-instruments, never dashboards. Celebration is staged and bounded, never
-decorative noise.
+**A clear learning space with playful objects.** Cool canvas, humanist Manrope
+type, blue actions and original matte learning-toy illustrations establish the
+shell. Quiet navy stages give each mechanic room. Artwork supports discovery
+and introductions; essential stimuli, rules and answers remain native text and
+geometry. One primary action leads each viewport. Success/error carry text and
+shape beyond color; celebration stays short and bounded.
 
 ## 2. Colour
 
@@ -40,18 +41,14 @@ identities are flattened into the theme key space (e.g. `theme.memory`,
 | `softText` | text drawn on `soft` | 4.5:1 |
 | `on` | text/glyph drawn on `base` | 4.5:1 |
 
-- **Light "studio paper":** warm paper background `#F7F6F3`, white card
-  surface `#FFFFFF`, warm-gray borders `#D8D5CE`, ink `#17181A`, secondary
-  ink `#4A4B4E`, muted `#6E6E68`.
-- **Dark "studio stage":** near-black background `#101114`, charcoal stage
-  surface `#1B1D21` (raised `#232629`), border `#34363B`, off-white text
-  `#F2F2F0`, secondary `#B9BABC`, luminous family fills with dark `on`
-  colours.
-- **Primary action:** CTA red (`#D6293A` light / `#FF4A57` dark) - the ONE
-  primary action fill per viewport. Pressed state uses `accentStrong`
-  (`#B01E2E` light / `#FF6E79` dark). Red is never the error family and
-  never a generic accent: success (`#157A46`/`#4CC98A`) and error
-  (`#A32014`/`#FF7B67`) carry text+icon/shape on their soft grounds.
+- **Light:** cool canvas `#F6F7FB`, white card surface `#FFFFFF`, borders
+  `#DCE2EC`, ink `#17243B`.
+- **Dark:** navy canvas `#0D1728`, card surface `#172132`, border `#34445D`,
+  off-white ink `#F3F6FC`. Luminous family fills use their dark `on` ink.
+- **Primary action:** blue (`#0061EF` light / `#8DBBFF` dark), paired with
+  `accentOn`. Pressed state uses `accentStrong` (`#004FC7` / `#B2D2FF`).
+  Success (`#157A46`/`#4CC98A`) and error (`#A32014`/`#FF7B67`) retain
+  separate semantics and carry text/shape on their soft grounds.
 - **Metric identities (fixed, never reassigned):** XP violet, streak orange,
   currency amber, time blue, accuracy green, score accent.
 - **Domain identities (8):** attention orange, flexibility violet, language
@@ -60,17 +57,19 @@ identities are flattened into the theme key space (e.g. `theme.memory`,
 
 ## 3. Typography
 
-System stack, hierarchy capped at weight 800, tabular numerals for every
-metric. Scale: eyebrow 11.5 (uppercase, tracking 1.8) - caption 12 - label
-13/700 - bodySmall 14 - body 16 - bodyLarge 17/600 - headline 24/800 - title
-30/800 - display 40/800 - numeral 20/800 - numeralLg 30/800 - numeralXl
-54/800 (result score). All numeral styles are tabular so counters never
-reflow.
+Bundled Manrope 400/600/700 works offline on native and web. Scale: eyebrow
+12/600 (tracking 0.6), caption 12/400, label 13/600, bodySmall 14/400, body
+16/400, bodyRead 16/26, bodyLarge 17/600, headline 22/700, title 28/700,
+display 36/700, gameTitle 21/700, resultHeadline 28/700, numeral 20/700,
+numeralLg 28/700 and numeralXl 48/700. Numerals use tabular advance. Essential
+copy may grow and wrap; decorative media yields space at compact/large-font
+breakpoints. Native font names and weights are embedded through Expo-font.
 
 ## 4. Geometry, elevation and the button lip
 
-Radii: extraSmall 4 · small 8 · medium 12 · large 16 · extraLarge 22 · pill 999.
-pill 999. Pills are reserved for chips. Cards carry a 1.5 px hairline border;
+Radii: extraSmall 4 · small 8 · medium 8 · large 12 · extraLarge 16 · pill 999.
+Pills mark actions and selected chips; content cards use quieter corners.
+Cards carry a 1.5 px hairline border;
 separation in dark
 mode comes from value, not shadow. Elevation is a quiet monotonic ramp
 (`flat - card - raised - hero - overlay`): cards are flat (border only),
@@ -85,8 +84,9 @@ confetti, which renders no pieces when motion is reduced.
 
 ## 6. Kit (`@/components/ui`)
 
-`Tappable`, `Button` (lip), `IconButton`, `Card` (plain/outlined/raised/hero,
-family `tone`), `SectionGrid`, `BackLink`, `Entrance`, `Chip`, `Badge`,
+`Tappable`, `Button` (lip), `IconButton`, `AppIcon` (Lucide public per-icon
+imports), `Card` (plain/outlined/raised/hero, family `tone`), `ArcadePanel`,
+`Report`, `ReportRow`, `SectionGrid`, `BackLink`, `Entrance`, `Chip`, `Badge`,
 `ListRow`, `EmptyState`, `Skeleton`, `TextField`, `ToastHost`, `ProgressBar`,
 `ProgressRing`, `AnimatedNumber`, `StatBlock`, `SegmentedControl`, plus
 identity primitives `Spark` (mark), `Confetti` (deterministic, margins-only,
@@ -121,11 +121,18 @@ and native capture profiles.
 
 Add tokens in `theme/tokens.ts` (both schemes), assert new pairings in the
 contrast test, and compose screens from kit primitives + tokens only —
-hardcoded colours or one-off controls are defects. Gameplay, scoring,
-generators, persistence and every existing testID are outside the design
-system's ownership: restyle the skin, never the mechanics.
+hardcoded colours or one-off controls are defects. Preserve existing testIDs
+and persistence contracts. Mechanics repairs belong to explicit game packets,
+with real caller regressions and versioned rules; a visual edit alone does not
+authorize scoring changes.
 
 ## 10. Changelog
+
+- **Change 077 (2026-10-14).** Replaced the shell palette/type/radius direction
+  in place, embedded offline Manrope, introduced one Lucide vector family and
+  integrated original local illustrations/branding. Actual native preview and
+  independent critique are recorded in the active change; full screen/game
+  convergence and certification remain open.
 
 - **Change 071 (2026-09-30).** Removed as unreachable: `Avatar`,
   `ScreenHeader`, `LevelCard`, `StreakCard` and `ResultRow` (the last superseded

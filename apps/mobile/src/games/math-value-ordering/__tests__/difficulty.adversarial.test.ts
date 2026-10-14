@@ -16,7 +16,7 @@ import { ADAPTIVE_PARAMS, VALUE_ORDERING_DIFFICULTY_PARAMS ,
 import type { DifficultyProfile } from '@/sdk';
 
 import { valueOrderingGameReducer } from '../reducer';
-import { createInitialValueOrderingState } from '../types';
+import { continuationStamp, createInitialValueOrderingState } from '../types';
 import type { ValueOrderingGameState } from '../types';
 
 const LEVELS = ['easy', 'normal', 'hard', 'expert'] as const;
@@ -246,7 +246,7 @@ describe('adaptive round-trip through the reducer', () => {
       if (round < ADAPTIVE_PARAMS.rounds - 1) {
         // The next round begins at a fresh round-start offset; its taps below
         // must land AFTER this (active-ms monotonicity) and inside the budget.
-        state = valueOrderingGameReducer(state, {
+        state = valueOrderingGameReducer(state, { stamp: continuationStamp(state),
           type: 'next-round',
           startActiveMs: (round + 1) * 100_000,
         });

@@ -53,6 +53,7 @@ function resolveToken(type: ThemedTextType): TypographyName {
 function styleForToken(tokenName: TypographyName): TextStyle {
   const token = Typography[tokenName];
   const style: TextStyle = {
+    fontFamily: Fonts.sans,
     fontSize: token.size,
     lineHeight: token.lineHeight,
     fontWeight: token.weight,

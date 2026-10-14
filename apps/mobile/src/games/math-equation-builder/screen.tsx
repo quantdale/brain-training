@@ -49,7 +49,7 @@ import {
   createMathEquationBuilderQaForceStateHooks,
   createMathEquationBuilderTutorialLifecycle,
 } from './hooks';
-import { mathEquationBuilderGameReducer } from './reducer';
+import { equationRoundKey, mathEquationBuilderGameReducer } from './reducer';
 import { normalizeMathEquationBuilderResult } from './scoring';
 import {
   buildMathEquationBuilderRawResult,
@@ -62,7 +62,7 @@ import {
   GAME_ID,
   createInitialMathEquationBuilderState,
 } from './types';
-import type { EquationToken, Operator } from './types';
+import type { EquationToken, MathEquationBuilderInputAction, Operator } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Render one equation token the same way the player's input is rendered. */
@@ -101,6 +101,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
   );
 
   const stateRef = useRef(state);
+  const roundKey = equationRoundKey(state);
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
@@ -116,7 +117,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatch({ type: 'pause', atActiveMs: session.elapsedMs() }),
   });
 
   const tutorial = useMemo(
@@ -133,12 +134,11 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
   const inSession = state.phase === 'playing' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Budget ticker: one second per tick while playing; pause deactivates
-  // the interval (timers frozen); resume continues the remaining budget. The
-  // reducer transitions the round when the budget reaches zero.
+  // Ticks only refresh presentation. Scoring, input and pause sample the same
+  // active clock, so dropped callbacks and fractional pauses cannot buy time.
   useGameInterval(
     state.phase === 'playing' && !state.paused && state.timeRemainingMs > 0,
-    () => dispatch({ type: 'tick-timer' }),
+    () => dispatch({ type: 'tick-timer', atActiveMs: session.elapsedMs(), roundKey }),
     1000,
   );
 
@@ -270,49 +270,51 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     session.abandonIfActive();
     goBack();
   }, [session, goBack]);
+
+  const dispatchInput = useCallback((input: MathEquationBuilderInputAction) => {
+    const current = stateRef.current;
+    // The callback belongs to the pad that rendered it. A queued old press
+    // must never become input for a new puzzle or a restarted session.
+    if (current.phase !== 'playing' || current.paused || equationRoundKey(current) !== roundKey) return;
+    const action = { ...input, atActiveMs: session.elapsedMs(), roundKey };
+    const next = mathEquationBuilderGameReducer(current, action);
+    stateRef.current = next;
+    if (
+      (input.type === 'add-number' || input.type === 'add-operator') &&
+      next.phase === 'playing' && next.equationTokens !== current.equationTokens
+    ) liveAudioHaptics.feedback('tap');
+    dispatch(action);
+  }, [roundKey, session]);
+
   const handleNumberPress = useCallback(
     (index: number) => {
-      const current = stateRef.current;
-      if (current.phase !== 'playing' || current.paused) return;
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'add-number', numberIndex: index });
+      dispatchInput({ type: 'add-number', numberIndex: index });
     },
-    [dispatch],
+    [dispatchInput],
   );
 
   const handleOperatorPress = useCallback(
     (operator: Operator) => {
-      const current = stateRef.current;
-      if (current.phase !== 'playing' || current.paused) return;
-      liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'add-operator', operator });
+      dispatchInput({ type: 'add-operator', operator });
     },
-    [dispatch],
+    [dispatchInput],
   );
 
   const handleGroup = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'playing' || current.paused) return;
-    dispatch({ type: 'group' });
-  }, [dispatch]);
+    dispatchInput({ type: 'group' });
+  }, [dispatchInput]);
 
   const handleUndo = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'playing' || current.paused) return;
-    dispatch({ type: 'undo' });
-  }, [dispatch]);
+    dispatchInput({ type: 'undo' });
+  }, [dispatchInput]);
 
   const handleClear = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'playing' || current.paused) return;
-    dispatch({ type: 'clear' });
-  }, [dispatch]);
+    dispatchInput({ type: 'clear' });
+  }, [dispatchInput]);
 
   const handleSubmit = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'playing' || current.paused) return;
-    dispatch({ type: 'submit' });
-  }, [dispatch]);
+    dispatchInput({ type: 'submit' });
+  }, [dispatchInput]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
@@ -502,7 +504,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => dispatch({ type: 'next-round', atActiveMs: session.elapsedMs() })}
               />
             </View>
           ) : null}

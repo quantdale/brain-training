@@ -30,6 +30,56 @@ describe('CodeCrackerScreen', () => {
     jest.useRealTimers();
   });
 
+  it.each(['solved', 'budget-exhausted'] as const)(
+    'renders and submits the resized adaptive second round after %s',
+    async (outcome) => {
+      const completeSession = jest.fn(async (input: CompleteSessionInput) => ({
+        session: input.session, ledgerEntry: null, balance: 0, rating: null, completionOutcome: null,
+      }));
+      const seed = `adaptive-screen-${outcome}`;
+      const firstSecret = generateSecretCode({
+        rng: createRng(seed), roundIndex: 0, codeLength: 4, colorCount: 6, prevSecretCode: null,
+      });
+      await render(<CodeCrackerScreen tutorialStore={completedStore()} sessionSeed={seed} persistSession={{ completeSession }} />);
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'reveal-start')));
+      const guesses = outcome === 'solved' ? 1 : 10;
+      const guess = outcome === 'solved'
+        ? firstSecret
+        : firstSecret.map(() => (firstSecret[0] + 1) % 6);
+      for (let index = 0; index < guesses; index += 1) {
+        for (const color of guess) {
+          await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'color', String(color))));
+        }
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-guess')));
+      }
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'reveal-start')));
+      const length = outcome === 'solved' ? 5 : 3;
+      expect(screen.getAllByTestId(new RegExp(`^${GAME_ID}\\.guess-peg\\.`))).toHaveLength(length);
+      const secondSecret = generateSecretCode({
+        rng: createRng(seed), roundIndex: 1, codeLength: length, colorCount: 6, prevSecretCode: firstSecret,
+      });
+      for (const color of secondSecret) {
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'color', String(color))));
+      }
+      expect(screen.getByTestId(testId(GAME_ID, 'submit-guess'))).toBeEnabled();
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-guess')));
+      expect(screen.getByTestId(testId(GAME_ID, 'round-solved'))).toBeTruthy();
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+      expect(completeSession).toHaveBeenCalledTimes(1);
+      const record = completeSession.mock.calls[0][0].session;
+      const raw = record.rawResult as CodeCrackerRawResult;
+      expect(raw.codeLength).toBe(4);
+      expect(raw.generatorInfo).toEqual(expect.objectContaining({ codeLength: 4, finalCodeLength: length }));
+      expect(record.difficulty).toEqual(expect.objectContaining({
+        parameters: expect.objectContaining({ initialCodeLength: 4, codeLength: length }),
+      }));
+    },
+  );
+
   it('renders the intro screen with difficulty buttons', async () => {
     await render(
       <CodeCrackerScreen

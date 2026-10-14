@@ -121,7 +121,7 @@ export type GridRecallAction =
   | { type: "study-tick" }
   | { type: "tap-cell"; index: number }
   | { type: "submit" }
-  | { type: "next-round" }
+  | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "tutorial-open" }
@@ -152,6 +152,8 @@ export interface GridRecallGameState {
   phase: GridRecallPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -204,6 +206,7 @@ export interface GridRecallGameState {
 
 export function createInitialGridRecallState(): GridRecallGameState {
   return {
+    continuationEpoch: 0,
     phase: "intro",
     paused: false,
     difficulty: "normal",
@@ -235,4 +238,31 @@ export function createInitialGridRecallState(): GridRecallGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: GridRecallGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: GridRecallGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: GridRecallGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

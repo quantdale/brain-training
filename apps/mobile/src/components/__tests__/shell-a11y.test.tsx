@@ -109,7 +109,7 @@ describe('ErrorBoundary accessibility', () => {
 describe('Web tab bar accessibility', () => {
   it('exposes tab role with a truthful selected state and a 44pt touch target', async () => {
     await render(
-      <TabButton testID="tab-games" label="Games" sf="square.grid.2x2" symbol="grid_view" isFocused />,
+      <TabButton testID="tab-games" label="Games" icon="games" isFocused />,
     );
     const focused = screen.getByTestId('tab-games');
     expect(focused.props.accessibilityRole).toBe('tab');
@@ -120,8 +120,7 @@ describe('Web tab bar accessibility', () => {
       <TabButton
         testID="tab-games-blurred"
         label="Games"
-        sf="square.grid.2x2"
-        symbol="grid_view"
+        icon="games"
         isFocused={false}
       />,
     );

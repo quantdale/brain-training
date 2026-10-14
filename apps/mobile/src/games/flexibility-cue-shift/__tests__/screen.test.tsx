@@ -227,7 +227,7 @@ describe('CueShiftScreen', () => {
     expect(raw.score).toBe(8 * 150); // 100 + full speed bonus per round
     expect(raw.forced).toBe(false);
     expect(raw.difficulty).toBe('easy');
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(input.session.difficulty).toEqual(
       expect.objectContaining({ level: 'easy', challengeRating: 0.2 }),

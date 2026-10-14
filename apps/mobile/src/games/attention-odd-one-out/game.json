@@ -7,7 +7,7 @@
   ],
   "description": "Every board hides exactly one odd item — find it and tap it before the timer runs out.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.1.0",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

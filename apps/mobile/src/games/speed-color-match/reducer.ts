@@ -35,6 +35,12 @@ export function speedColorMatchReducer(
   state: SpeedColorMatchGameState,
   action: SpeedColorMatchAction,
 ): SpeedColorMatchGameState {
+  if ('stamp' in action && action.stamp !== undefined && (
+    action.stamp.sessionId !== state.sessionId ||
+    action.stamp.trialIndex !== state.trialIndex ||
+    action.stamp.inputEpoch !== state.inputEpoch
+  )) return state;
+
   switch (action.type) {
     case 'select-difficulty': {
       if (state.phase !== 'intro') {
@@ -68,6 +74,7 @@ export function speedColorMatchReducer(
         activeDurationMs: 0,
         pausedDurationMs: 0,
         trialIndex: 0,
+        inputEpoch: state.inputEpoch + 1,
         trials,
         trialShownAtMs: null,
         currentTrialOutcome: null,
@@ -85,7 +92,7 @@ export function speedColorMatchReducer(
     }
 
     case 'trial-shown': {
-      if (state.phase !== 'trial' || state.paused) {
+      if (state.phase !== 'trial' || state.paused || state.trialShownAtMs !== null) {
         return state;
       }
       return {
@@ -109,7 +116,7 @@ export function speedColorMatchReducer(
       // Monotonic-clock invariant (mirrors speed-reaction-time): a negative
       // reading can only come from a clock contract violation — reject it
       // instead of corrupting score/average stats with a bogus reaction.
-      if (reactionMs < 0) {
+      if (reactionMs < 0 || !Number.isFinite(reactionMs)) {
         return state;
       }
 
@@ -118,7 +125,7 @@ export function speedColorMatchReducer(
       // expiry timer owns the resolution (trial-timeout). Mirrors the deadline
       // guard in the other timed games so an overdue timer callback can never
       // let a late tap score or corrupt the reaction statistics.
-      if (reactionMs > params.stimulusTimeoutMs) {
+      if (reactionMs >= params.stimulusTimeoutMs) {
         return state;
       }
 
@@ -130,8 +137,10 @@ export function speedColorMatchReducer(
         const trialsPlayed = state.stats.trialsPlayed + 1;
         const trialsCorrect = state.stats.trialsCorrect + 1;
         const totalReactionMs =
-          state.stats.avgReactionMs * state.stats.trialsPlayed + reactionMs;
-        const avgReactionMs = totalReactionMs / trialsPlayed;
+          state.stats.avgReactionMs * state.stats.trialsCorrect + reactionMs;
+        // Wrong and missed trials do not contribute reaction samples. Weight
+        // by correct responses so their placement cannot alter the speed term.
+        const avgReactionMs = totalReactionMs / trialsCorrect;
 
         const stats: SpeedColorMatchStats = {
           score: totalScore,
@@ -169,9 +178,11 @@ export function speedColorMatchReducer(
     }
 
     case 'trial-timeout': {
-      if (state.phase !== 'trial' || state.paused || state.profile === null) {
+      if (state.phase !== 'trial' || state.paused || state.profile === null || state.trialShownAtMs === null) {
         return state;
       }
+      const deadline = state.trialShownAtMs + speedColorMatchParamsFromProfile(state.profile).stimulusTimeoutMs;
+      if (!Number.isFinite(action.timedOutAtMs) || action.timedOutAtMs < deadline) return state;
       const trialsPlayed = state.stats.trialsPlayed + 1;
       return {
         ...state,
@@ -187,7 +198,7 @@ export function speedColorMatchReducer(
     }
 
     case 'next-trial': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = speedColorMatchParamsFromProfile(state.profile);
@@ -234,6 +245,7 @@ export function speedColorMatchReducer(
         profile,
         phase: 'trial',
         trialIndex: nextIndex,
+        inputEpoch: state.inputEpoch + 1,
         trials,
         trialShownAtMs: null,
         currentTrialOutcome: null,
@@ -245,7 +257,7 @@ export function speedColorMatchReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, paused: true, inputEpoch: state.inputEpoch + 1 };
     }
 
     case 'resume': {

@@ -10,7 +10,7 @@ import {
   SWITCH_CORRECT_BONUS,
   UNCUED_FIRST_PICK_BONUS,
 } from '../scoring';
-import { createInitialFlexibilityRuleFlipState } from '../types';
+import { continuationStamp, createInitialFlexibilityRuleFlipState } from '../types';
 import type { FlexibilityRuleFlipGameState } from '../types';
 import {
   FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS,
@@ -43,7 +43,7 @@ function playRound(
     index: pickIndex,
     responseMs,
   });
-  return flexibilityRuleFlipReducer(picked, { type: 'next-round' });
+  return flexibilityRuleFlipReducer(picked, { stamp: continuationStamp(picked), type: 'next-round' });
 }
 
 describe('select-difficulty', () => {
@@ -192,7 +192,7 @@ describe('next-round', () => {
       index: state.round!.correctIndex,
       responseMs: 0,
     });
-    state = flexibilityRuleFlipReducer(state, { type: 'next-round' });
+    state = flexibilityRuleFlipReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(state.phase).toBe('trialActive');
     expect(state.roundIndex).toBe(1);
     expect(state.round).toEqual(state.plan[1]);
@@ -216,7 +216,7 @@ describe('next-round', () => {
   });
 
   it('is ignored outside trialResult', () => {
-    const state = flexibilityRuleFlipReducer(startSession('nr'), { type: 'next-round' });
+    const state = flexibilityRuleFlipReducer(startSession('nr'), { stamp: continuationStamp(startSession('nr')), type: 'next-round' });
     expect(state.roundIndex).toBe(0);
   });
 });

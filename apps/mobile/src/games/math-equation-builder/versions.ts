@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.1.0';
+// Standard operator precedence and exact active-time deadline/bonus eligibility.
+// Historical 1.x results retain their recorded score and version envelope.
+export const SCORING_VERSION = '2.0.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

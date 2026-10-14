@@ -173,9 +173,9 @@ describe('generatePuzzle', () => {
 });
 
 describe('evaluateEquationTokens', () => {
-  it('evaluates a simple left-to-right expression', () => {
-    // 3 + 4 × 6 = (3+4)×6 = 42 (left-to-right, no precedence)
-    expect(evaluateEquationTokens([3, '+', 4, '×', 6])).toBe(42);
+  it('evaluates multiplication before addition', () => {
+    expect(evaluateEquationTokens([3, '+', 4, '×', 6])).toBe(27);
+    expect(evaluateEquationTokens(['(', 3, '+', 4, ')', '×', 6])).toBe(42);
   });
 
   it('handles parentheses for grouping', () => {
@@ -203,7 +203,7 @@ describe('evaluateEquationTokens', () => {
   });
 
   it('handles subtraction and division', () => {
-    // 10 - 6 ÷ 2 = (10-6)÷2 = 2 (left-to-right)
-    expect(evaluateEquationTokens([10, '-', 6, '÷', 2])).toBe(2);
+    expect(evaluateEquationTokens([10, '-', 6, '÷', 2])).toBe(7);
+    expect(evaluateEquationTokens(['(', 10, '-', 6, ')', '÷', 2])).toBe(2);
   });
 });

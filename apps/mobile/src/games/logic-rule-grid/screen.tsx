@@ -11,8 +11,7 @@
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer; resuming continues
- * from the same position (the per-round timeout re-arms with its full budget,
- * matching the pre-migration behavior). The board is covered by the opaque
+ * from the same position with the remaining active round budget. The board is covered by the opaque
  * shared `PauseOverlay` and hidden from the accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
@@ -111,6 +110,9 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   const rounds = params?.rounds ?? 7;
   const inSession = state.phase === 'showGrid' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
+  const rulePrompt = state.currentRound === null ? '' :
+    `Find the ? at row ${state.currentRound.blankRow + 1}, column ${state.currentRound.blankCol + 1}. ` +
+    'Each row and column contains each symbol once. Dots mark other hidden cells.';
 
   const renderSymbol = useCallback((v: number) => String(v + 1), []);
   // ---- Result verdicts, derived from the reducer's resolved outcome: the
@@ -372,9 +374,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       {state.phase === 'showGrid' && state.currentRound !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
-            {state.currentRound.blanks.length > 1
-              ? 'Several cells are hidden. Deduce the marked one (?) by chaining row and column constraints.'
-              : 'One symbol is missing. Which fits?'}
+            {rulePrompt}
           </ThemedText>
 
           <Grid
@@ -397,9 +397,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       {state.phase === 'roundResult' && state.currentRound !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
-            {state.currentRound.blanks.length > 1
-              ? 'Several cells are hidden. Deduce the marked one (?) by chaining row and column constraints.'
-              : 'One symbol is missing. Which fits?'}
+            {rulePrompt}
           </ThemedText>
 
           <Grid

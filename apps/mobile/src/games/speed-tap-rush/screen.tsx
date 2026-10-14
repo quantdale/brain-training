@@ -34,7 +34,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -53,7 +53,7 @@ import {
   persistTapRushSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialTapRushState, type TargetVerdict } from './types';
+import { GAME_ID, createInitialTapRushState, type TapRushAction, type FieldGeometry, type TargetVerdict } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface TapRushScreenProps {
@@ -153,6 +153,16 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     stateRef.current = state;
   });
 
+  const applyGameplayAction = useCallback((action: TapRushAction) => {
+    const current = stateRef.current;
+    const next = tapRushGameReducer(current, action);
+    // Claim the transition before React commits so replayed native callbacks
+    // cannot emit another verdict or consume the next unseen target.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+
   const session = useGameSession({
     gameId: GAME_ID,
     clock,
@@ -166,12 +176,17 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
       const current = stateRef.current;
       pauseRemainingRef.current =
         current.deadlineMs !== null ? Math.max(0, current.deadlineMs - clock.now()) : 0;
-      dispatch({ type: 'pause' });
+      applyGameplayAction({ type: 'pause' });
     },
   });
 
   const tutorial = useMemo(() => createTapRushTutorialLifecycle(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createTapRushQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => {
+    createTapRushQaForceStateHooks(applyGameplayAction).forceWin();
+  }, [applyGameplayAction]);
+  const forceLose = useCallback(() => {
+    createTapRushQaForceStateHooks(applyGameplayAction).forceLose();
+  }, [applyGameplayAction]);
 
   const params = state.profile !== null ? tapRushParamsFromProfile(state.profile) : null;
   const rounds = params?.rounds ?? 4;
@@ -179,13 +194,30 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
   const inSession = state.phase === 'active' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Window expiry: one timer per live target, scheduled from the
-  // monotonic deadline. Pause deactivates the timer; resume re-schedules with
-  // the remaining time (deadline - now), so pausing never buys extra time.
-  useGameTimeout(
+  // ---- The reducer owns the monotonic deadline, including its pause budget.
+  // Key resume to its re-anchored deadline: effect cleanup may run later than
+  // the pause handler, so the hook's own remaining budget can be shorter.
+  const liveStamp = useMemo(() => ({
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    targetIndex: state.targetIndex,
+    inputEpoch: state.inputEpoch,
+  }), [
+    state.sessionId, state.roundIndex, state.targetIndex, state.inputEpoch,
+  ]);
+  // Native timer delays are integer milliseconds. Round up, and refresh the
+  // absolute budget on rerender, so an early fractional wakeup cannot be the
+  // only expiry attempt for a still-live target.
+  const remainingWindowMs = Math.ceil(Math.max(
+    0,
+    state.deadlineMs !== null ? state.deadlineMs - clock.now() : 0,
+  ));
+  useGameDeadlineTimeout(
     state.phase === 'active' && !state.paused && state.deadlineMs !== null,
-    () => dispatch({ type: 'target-expired', nowMs: clock.now() }),
-    Math.max(0, state.deadlineMs !== null ? state.deadlineMs - clock.now() : 0),
+    () => applyGameplayAction({ type: 'target-expired', nowMs: clock.now(), stamp: liveStamp }),
+    remainingWindowMs,
+    clock,
+    `${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.targetIndex}:${state.deadlineMs ?? 'idle'}:${remainingWindowMs}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -296,13 +328,13 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({
+      applyGameplayAction({
         type: 'resume',
         nowMs: clock.now(),
         remainingMs: pauseRemainingRef.current,
       });
     }
-  }, [session, clock, dispatch]);
+  }, [session, clock, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -310,23 +342,18 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
   }, [session, goBack]);
 
   const handleFieldTap = useCallback(
-    (x: number, y: number) => {
+    (x: number, y: number, geometry: FieldGeometry) => {
       const current = stateRef.current;
-      if (current.phase !== 'active' || current.paused) {
+      if (current.phase !== 'active' || current.paused || session.status() !== 'active') {
         return;
-      }
-      if (current.deadlineMs !== null && clock.now() > current.deadlineMs) {
-        return; // window already closed; the expiry timer owns the resolution
       }
       const nowMs = clock.now();
       // Sensory feedback follows the authoritative verdict, not tap optimism:
       // resolve through the same pure transition the dispatch below commits,
       // so a raced (ignored) tap stays silent. Misses resolve on the expiry
       // timer and stay silent there — the timeout owns that verdict.
-      const action = { type: 'tap' as const, x, y, nowMs };
-      const next = tapRushGameReducer(current, action);
-      dispatch(action);
-      if (next === current || next.lastVerdict === null) {
+      const next = applyGameplayAction({ type: 'tap', x, y, nowMs, geometry, stamp: liveStamp });
+      if (next === null || next.lastVerdict === null) {
         return;
       }
       if (next.lastVerdict === 'hit') {
@@ -337,21 +364,21 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
         liveAudioHaptics.haptic('warning');
       }
     },
-    [clock, dispatch],
+    [clock, applyGameplayAction, liveStamp, session],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
       spawnedAtMs: clock.now(),
     });
-  }, [session, sessionSeed, clock, dispatch]);
+  }, [session, sessionSeed, clock, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -399,7 +426,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
       }
       score={String(state.stats.score)}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={<QaPanel onForceWin={forceWin} onForceLose={forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
@@ -447,6 +474,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
               <Playfield
                 target={liveTarget}
                 radius={radius}
+                disabled={state.paused}
                 targetTestID={testId(GAME_ID, 'target', String(state.targetIndex))}
                 testID={testId(GAME_ID, 'field')}
                 onTap={handleFieldTap}
@@ -477,7 +505,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round', spawnedAtMs: clock.now() })}
+                onPress={() => applyGameplayAction({ type: 'next-round', spawnedAtMs: clock.now() })}
               />
             </View>
           ) : null}

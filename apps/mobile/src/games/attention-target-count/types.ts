@@ -128,13 +128,22 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+
+/** Identity of the displayed grid/phase; queued callbacks keep their original stamp. */
+export interface TargetCountInputStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+  readonly phase: TargetCountPhase;
+}
+
 export type TargetCountAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'answer'; selectedCount: number | null; elapsedMs: number }
-  | { type: 'next-round' }
-  | { type: 'pause' }
-  | { type: 'resume' }
+  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number; nowMs: number }
+  | { type: 'answer'; selectedCount: number | null; nowMs: number; stamp: TargetCountInputStamp }
+  | { type: 'next-round'; nowMs: number; stamp: TargetCountInputStamp }
+  | { type: 'pause'; nowMs: number }
+  | { type: 'resume'; nowMs: number }
   | { type: 'tutorial-open' }
   | { type: 'tutorial-close' }
   | {
@@ -161,6 +170,8 @@ export type TargetCountAction =
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface TargetCountGameState {
   phase: TargetCountPhase;
+  /** Changes at a new session or pause, invalidating previously rendered input. */
+  inputEpoch: number;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
   /** Selected difficulty (preselected 'normal' in the intro). */
@@ -176,6 +187,10 @@ export interface TargetCountGameState {
   completedAtMs: number | null;
   activeDurationMs: number;
   pausedDurationMs: number;
+  /** Active-clock baseline and deadline, shifted together by each paused span. */
+  roundStartedAtMs: number;
+  deadlineMs: number;
+  remainingMs: number;
   /** 0-based index of the current round. */
   roundIndex: number;
   /** The current round's grid + answer metadata (null before start-session). */
@@ -207,6 +222,7 @@ export interface TargetCountGameState {
 export function createInitialTargetCountState(): TargetCountGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,
@@ -217,6 +233,9 @@ export function createInitialTargetCountState(): TargetCountGameState {
     completedAtMs: null,
     activeDurationMs: 0,
     pausedDurationMs: 0,
+    roundStartedAtMs: 0,
+    deadlineMs: 0,
+    remainingMs: 0,
     roundIndex: 0,
     currentRound: null,
     prevRound: null,
@@ -234,4 +253,20 @@ export function createInitialTargetCountState(): TargetCountGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+export function inputStamp(state: TargetCountGameState): TargetCountInputStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    phase: state.phase,
+  };
+}
+
+export function isCurrentInput(state: TargetCountGameState, stamp: TargetCountInputStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex &&
+    stamp.inputEpoch === state.inputEpoch &&
+    stamp.phase === state.phase;
 }

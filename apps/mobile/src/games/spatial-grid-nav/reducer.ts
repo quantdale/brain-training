@@ -35,7 +35,15 @@ function isHardRound(round: GeneratedRound, longThreshold: number): boolean {
   return round.commandCount >= longThreshold;
 }
 
-export function gameReducer(
+export function gameReducer(state: SpatialGridNavGameState, action: SpatialGridNavAction): SpatialGridNavGameState {
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) {
+    return { ...next, inputEpoch: state.inputEpoch + 1 };
+  }
+  return next;
+}
+
+function reduceGameState(
   state: SpatialGridNavGameState,
   action: SpatialGridNavAction,
 ): SpatialGridNavGameState {
@@ -134,7 +142,7 @@ export function gameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'trialResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'trialResult' || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const nextIndex = state.roundIndex + 1;

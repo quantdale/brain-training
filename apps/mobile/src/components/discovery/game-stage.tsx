@@ -80,13 +80,12 @@ export function GameStage({
           <ThemedText
             type="eyebrow"
             themeColor="textSecondary"
-            style={styles.kicker}
-            numberOfLines={1}>
+            style={styles.kicker}>
             {kickerText}
           </ThemedText>
           {meta}
         </View>
-        <ThemedText type={titleType} testID={titleTestID} numberOfLines={2}>
+        <ThemedText type={titleType} testID={titleTestID}>
           {game.name}
         </ThemedText>
         {showInteraction && identity.interaction ? (

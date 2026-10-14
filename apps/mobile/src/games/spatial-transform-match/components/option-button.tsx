@@ -15,7 +15,7 @@ import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from "@/hooks/use-theme";
 
 import { GAME_ID } from "../types";
-import { PatternGrid } from "./pattern-grid";
+import { describePattern, PatternGrid } from "./pattern-grid";
 
 export interface OptionButtonProps {
     /** 0-based option index; used for the testID. */
@@ -66,11 +66,12 @@ export const OptionButton = memo(function OptionButton({
         : isWrongPick
           ? theme.danger
           : theme.border;
-    const accessibilityLabel = correct
+    const verdictLabel = correct
         ? `Option ${index + 1}, correct`
         : isWrongPick
           ? `Option ${index + 1}, wrong pick`
           : `Option ${index + 1}`;
+    const accessibilityLabel = `${verdictLabel}. ${describePattern(gridSize, pattern)}`;
 
     return (
         <Pressable
@@ -90,8 +91,8 @@ export const OptionButton = memo(function OptionButton({
                 },
             ]}
         >
-            {/* The pattern grid is purely decorative: the outer button already
-             * announces "Option N". A labeled a11y container nested inside an
+            {/* The outer button describes the cells and any resolved verdict.
+             * A labeled a11y container nested inside an
              * accessibility button collapses the Android a11y tree on Fabric
              * (campaign 011 device finding: the session PauseOverlay subtree
              * vanished from uiautomator/TalkBack entirely), so hide the whole

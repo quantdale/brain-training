@@ -151,7 +151,7 @@ export type MathAction =
   | { type: 'clear-input' }
   | { type: 'submit-answer'; atActiveMs: number }
   | { type: 'problem-tick'; atActiveMs: number }
-  | { type: 'next-problem'; startedAtActiveMs: number }
+  | { type: 'next-problem'; startedAtActiveMs: number; stamp: ResultContinuationStamp }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
@@ -182,6 +182,8 @@ export interface MathGameState {
   phase: MathPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -233,6 +235,7 @@ export interface MathGameState {
 
 export function createInitialMathState(): MathGameState {
   return {
+    continuationEpoch: 0,
     phase: 'intro',
     paused: false,
     difficulty: 'normal',
@@ -265,4 +268,31 @@ export function createInitialMathState(): MathGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: MathGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: MathGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.problemIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: MathGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.problemIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

@@ -1,6 +1,6 @@
 {
   "packId": "language-context-fit-core-v1",
-  "packVersion": "2.0.0",
+  "packVersion": "2.1.0",
   "itemCount": 180,
   "items": [
     {
@@ -318,7 +318,7 @@
     {
       "id": "cf-t2-13",
       "tier": "t2",
-      "context": "The committee will ___ the proposal next week.",
+      "context": "The committee will ___ the proposal for errors before any vote.",
       "answer": "review",
       "distractors": [
         "shatter",
@@ -354,7 +354,7 @@
     {
       "id": "cf-t3-02",
       "tier": "t3",
-      "context": "His argument was compelling, but the evidence remained ___.",
+      "context": "His argument was compelling, but the evidence remained ___, based only on personal stories.",
       "answer": "anecdotal",
       "distractors": [
         "empirical",
@@ -366,7 +366,7 @@
     {
       "id": "cf-t3-03",
       "tier": "t3",
-      "context": "The novel's bleak ending felt ___ rather than tragic.",
+      "context": "The novel's ending followed no clear reason or pattern, so it felt ___ rather than tragic.",
       "answer": "arbitrary",
       "distractors": [
         "inevitable",
@@ -390,7 +390,7 @@
     {
       "id": "cf-t3-05",
       "tier": "t3",
-      "context": "The two theories are not contradictory but merely ___ in scope.",
+      "context": "The two theories are not contradictory but merely ___ in scope, sharing some of the same ideas.",
       "answer": "overlapping",
       "distractors": [
         "diverging",
@@ -426,7 +426,7 @@
     {
       "id": "cf-t3-08",
       "tier": "t3",
-      "context": "His tone was light, but the subtext was unmistakably ___.",
+      "context": "His tone was light, but the mocking subtext was unmistakably ___.",
       "answer": "sardonic",
       "distractors": [
         "serene",
@@ -1266,7 +1266,7 @@
     {
       "id": "cf-t2-26",
       "tier": "t2",
-      "context": "You must ___ the safety rules closely.",
+      "context": "The safety rules ___ every visitor to wear a helmet.",
       "answer": "require",
       "pos": "verb",
       "distractors": [
@@ -1770,7 +1770,7 @@
     {
       "id": "cf-t3-28",
       "tier": "t3",
-      "context": "The story hinges on a classic ___: saving one group means harming another.",
+      "context": "The claim “This statement is false” creates a classic ___.",
       "answer": "paradox",
       "pos": "noun",
       "distractors": [
@@ -2154,7 +2154,7 @@
     {
       "id": "cf-t3-60",
       "tier": "t3",
-      "context": "Despite setbacks she remained remarkably ___.",
+      "context": "Despite setbacks she recovered quickly and remained remarkably ___.",
       "answer": "resilient",
       "pos": "adj",
       "distractors": [

@@ -179,6 +179,9 @@ describe('SpeedColorMatchScreen', () => {
     expect(raw.trialsCorrect).toBe(15);
     expect(raw.difficulty).toBe('easy');
     expect(raw.forced).toBe(false);
+    expect(raw.gameVersion).toBe('1.1.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
+    expect(raw.generatorVersion).toBe('1.0.0');
   });
 
   it('fails the trial on a wrong tap and continues', async () => {
@@ -267,12 +270,14 @@ describe('SpeedColorMatchScreen', () => {
 
     // Just inside the restored window: still waiting for an answer.
     await act(async () => {
+      clock.advance(3_500);
       jest.advanceTimersByTime(3_500);
     });
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
 
     // Past the restored window: the trial times out.
     await act(async () => {
+      clock.advance(600);
       jest.advanceTimersByTime(600);
     });
     expect(screen.getByTestId(testId(GAME_ID, 'trial-wrong'))).toBeOnTheScreen();

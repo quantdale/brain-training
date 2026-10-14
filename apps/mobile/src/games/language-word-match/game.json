@@ -4,8 +4,8 @@
   "primaryCategory": "Language",
   "description": "Pick the word that means the same as the prompt — four options, one perfect match.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.1.0",
   "generatorVersion": "1.0.0",
-  "contentVersion": "2.0.0",
+  "contentVersion": "2.1.0",
   "hasTutorial": true
 }

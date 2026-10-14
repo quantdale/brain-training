@@ -47,8 +47,8 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             A secret code of colors is hidden. Tap colors to build a guess, then
-            submit it. You&apos;ll get feedback: black pegs mean correct color in the
-            right spot, white pegs mean correct color in the wrong spot. Use
+            submit it. You&apos;ll get feedback: filled pegs mean correct color in the
+            right spot, outline pegs mean correct color in the wrong spot. Use
             logic to crack the code!
           </ThemedText>
           <GameButton
@@ -125,10 +125,8 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
     setGuesses([...guesses, { guess: [...currentGuess], feedback }]);
     setCurrentGuess([]);
 
-    // Auto-complete after first guess in the demo.
-    if (guesses.length >= 0) {
-      onDone();
-    }
+    // Keep the scored guess mounted until the player has inspected its
+    // feedback. Completing here made the feedback branch unreachable.
   };
 
   const handleClear = () => {
@@ -175,6 +173,11 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
               <FeedbackPegs feedback={entry.feedback} />
             </View>
           ))}
+          <GameButton
+            testID={testId(GAME_ID, 'tutorial-feedback-next')}
+            label="Continue"
+            onPress={onDone}
+          />
         </>
       )}
 

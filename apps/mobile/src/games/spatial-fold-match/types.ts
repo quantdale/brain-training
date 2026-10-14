@@ -196,6 +196,8 @@ export type SpatialFoldMatchAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface SpatialFoldMatchGameState {
+  /** Changes when a displayed cue or pause window changes; queued input must match. */
+  inputEpoch: number;
   phase: SpatialFoldMatchPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
@@ -254,6 +256,7 @@ export interface SpatialFoldMatchGameState {
 export function createInitialSpatialFoldMatchState(): SpatialFoldMatchGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

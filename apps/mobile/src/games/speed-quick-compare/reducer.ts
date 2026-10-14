@@ -37,7 +37,16 @@ import type { CompareVerdict, QuickCompareAction, QuickCompareGameState, QuickCo
 
 export { createInitialQuickCompareState };
 
-export function quickCompareGameReducer(
+export function quickCompareGameReducer(state: QuickCompareGameState, action: QuickCompareAction): QuickCompareGameState {
+  // Every live caller stamps the cue it displayed. Unstamped pure actions
+  // remain usable for deterministic fixtures; stored results contain no cue.
+  if ('cue' in action && action.cue !== undefined && (action.cue.sessionId !== state.sessionId || action.cue.roundIndex !== state.roundIndex || action.cue.inputEpoch !== state.inputEpoch)) return state;
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) return { ...next, inputEpoch: state.inputEpoch + 1 };
+  return next;
+}
+
+function reduceGameState(
   state: QuickCompareGameState,
   action: QuickCompareAction,
 ): QuickCompareGameState {
@@ -112,6 +121,7 @@ export function quickCompareGameReducer(
       if (state.phase !== 'active' || state.paused || state.selectedIndex !== null || state.profile === null) {
         return state;
       }
+      if (state.deadlineMs === null || action.nowMs < state.deadlineMs) return state;
       const stats = applyRoundOutcome(state.stats, 'miss', state.windowMs, state.windowMs);
       return {
         ...state,
@@ -122,7 +132,7 @@ export function quickCompareGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'feedback' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'feedback' || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = quickCompareParamsFromProfile(state.profile);

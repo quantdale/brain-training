@@ -63,9 +63,9 @@ import {
   persistMathMissingOperatorSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, OPERATORS, OPERATOR_GLYPHS, createInitialMathMissingOperatorState } from './types';
-import type { Operator } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, OPERATORS, OPERATOR_GLYPHS, createInitialMathMissingOperatorState } from './types';
+import type { MathMissingOperatorAction, Operator } from './types';
 
 export interface MathMissingOperatorScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -96,6 +96,12 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: MathMissingOperatorAction) => {
+    stateRef.current = mathMissingOperatorGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
 
   // Keep a ref of the latest state for event handlers (AppState, timers).
   useEffect(() => {
@@ -112,8 +118,23 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause', pausedAtMs: clock.now() }),
+    onPause: () => dispatchContinuation({ type: 'pause', pausedAtMs: clock.now() }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: MathMissingOperatorAction = {
+      type: 'next-round', stamp: renderedContinuation, roundStartedAtMs: clock.now(),
+    };
+    const next = mathMissingOperatorGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createMathMissingOperatorTutorialLifecycle(tutorialStore),
@@ -272,9 +293,9 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume', resumedAtMs: clock.now() });
+      dispatchContinuation({ type: 'resume', resumedAtMs: clock.now() });
     }
-  }, [session, clock, dispatch]);
+  }, [session, clock, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -300,9 +321,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     [clock, dispatch],
   );
 
-  const handleNextRound = useCallback(() => {
-    dispatch({ type: 'next-round', roundStartedAtMs: clock.now() });
-  }, [clock, dispatch]);
+
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
@@ -459,7 +478,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={handleNextRound}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

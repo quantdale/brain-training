@@ -16,7 +16,7 @@
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -35,7 +35,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 
@@ -61,14 +60,27 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialVigilanceState } from './types';
-import type { VigilanceAction } from './types';
+import type { TrialVerdict, VigilanceAction } from './types';
 import { SCORING_VERSION } from './versions';
 
-/** Stream ticker cadence (ms of wall time between active-ms samples).
- * Aligned to 250ms (greatest common divisor of trial parameters: 750ms stimulus,
- * 500ms blank, 1000/1250ms slots). Avoids flooding the UI event queue with 10Hz
- * re-renders, enabling accessibility inspections and saving CPU/battery. */
+/** Rendering cadence only: measured active time owns all response/slot bounds.
+ * A modest ticker avoids flooding the UI; delayed delivery cannot shorten a
+ * new digit's exposure or reopen a response window that has already closed. */
 const TIMER_TICK_MS = 250;
+
+/** Sonify a claimed reducer outcome, including resolutions batched with advance. */
+function playTrialFeedback(outcome: TrialVerdict) {
+  if (outcome === 'hit') {
+    liveAudioHaptics.feedback('correct');
+  } else if (outcome === 'commission') {
+    liveAudioHaptics.feedback('wrong');
+  } else if (outcome === 'omission') {
+    liveAudioHaptics.feedback('failure');
+  } else {
+    liveAudioHaptics.feedback('success');
+  }
+}
+
 export interface VigilanceScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
   clock?: Clock;
@@ -99,10 +111,21 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
 
   const stateRef = useRef(state);
 
-  // Keep a ref of the latest state for event handlers.
-  useEffect(() => {
+  useLayoutEffect(() => {
     stateRef.current = state;
   });
+
+  // Native events and timer callbacks can share a React batch. Claim accepted
+  // actions synchronously, so the second delivery sees the first verdict and
+  // stale trial callbacks cannot consume a digit that has not rendered yet.
+  const applyGameplayAction = useCallback((action: VigilanceAction) => {
+    const current = stateRef.current;
+    const next = vigilanceGameReducer(current, action);
+    if (next === current) return null;
+    stateRef.current = next;
+    dispatch(action);
+    return next;
+  }, []);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -111,8 +134,10 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
       const current = stateRef.current;
       return current.phase === 'stream' && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => { applyGameplayAction({ type: 'pause' }); },
   });
+  const sessionElapsedMs = session.elapsedMs;
+  const sessionStatus = session.status;
 
   const tutorial = useMemo(() => createVigilanceTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createVigilanceQaForceStateHooks(dispatch), [dispatch]);
@@ -121,15 +146,34 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
   const trials = params?.trials ?? 30;
   const inStream = state.phase === 'stream';
 
-  // ---- Stream ticker: feeds the reducer with active-only elapsed ms; the
-  // reducer resolves window timeouts and advances trials at slot end.
-  // Pause deactivates the ticker (timers frozen); resume re-schedules from the
-  // current active elapsed (paused segments excluded by the lifecycle).
-  useGameInterval(
-    inStream && !state.paused,
-    () => dispatch({ type: 'trial-tick', atActiveMs: session.elapsedMs() }),
-    TIMER_TICK_MS,
-  );
+  // A queued timer is not proof that the next stimulus was visible. Record
+  // its onset at the display commit, even when rendering itself was delayed.
+  // A resume retains an already presented trial's original active-ms onset.
+  useLayoutEffect(() => {
+    if (!inStream || state.paused || state.trialPresented || sessionStatus() !== 'active') return;
+    applyGameplayAction({
+      type: 'trial-presented',
+      atActiveMs: sessionElapsedMs(),
+      trial: { sessionId: state.sessionId, trialIndex: state.trialIndex, inputEpoch: state.inputEpoch },
+    });
+  }, [inStream, state.paused, state.trialPresented, state.sessionId, state.trialIndex, state.inputEpoch, sessionStatus, sessionElapsedMs, applyGameplayAction]);
+
+  // Capture this trial and pause epoch instead of routing old timer delivery
+  // through a latest-callback ref. Cleanup also invalidates already queued work.
+  useEffect(() => {
+    if (!inStream || state.paused || !state.trialPresented) return;
+    const trial = { sessionId: state.sessionId, trialIndex: state.trialIndex, inputEpoch: state.inputEpoch };
+    let cancelled = false;
+    const timer = setInterval(() => {
+      if (cancelled || sessionStatus() !== 'active') return;
+      const unresolved = stateRef.current.outcome === null;
+      const next = applyGameplayAction({ type: 'trial-tick', atActiveMs: sessionElapsedMs(), trial });
+      if (unresolved && next !== null && next.outcome !== null) {
+        playTrialFeedback(next.outcome);
+      }
+    }, TIMER_TICK_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [inStream, state.paused, state.trialPresented, state.sessionId, state.trialIndex, state.inputEpoch, sessionStatus, sessionElapsedMs, applyGameplayAction]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -249,9 +293,9 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     // `resumeIfPaused()` only acts from 'paused', so a double-tapped Resume
     // (or resume after finish) is dropped instead of throwing.
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      applyGameplayAction({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -260,9 +304,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
 
   const handleGo = useCallback(() => {
     const current = stateRef.current;
-    // Double-tap protection: only one response per trial can ever reach the
-    // reducer (the outcome is set on the first accepted tap).
-    if (current.phase !== 'stream' || current.paused || current.outcome !== null) {
+    if (sessionStatus() !== 'active' || current.phase !== 'stream' || current.paused || current.outcome !== null) {
       return;
     }
     // Feedback follows the authoritative trial outcome, not the tap's
@@ -271,47 +313,32 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     // pending tick owns the miss resolution) and must stay silent — sounding
     // or showing success for a trial that scores a miss is the Campaign 023
     // late-tap mismatch. No timing logic is duplicated: this is the same
-    // pure transition the dispatch below commits. The verdict UI and the
-    // outcome sound (effect below) both read the resolved `outcome`.
-    const action: VigilanceAction = { type: 'respond', atActiveMs: session.elapsedMs() };
-    const next = vigilanceGameReducer(current, action);
-    dispatch(action);
-    if (next === current) {
+    // pure transition the dispatch below commits. Identity comes from the
+    // rendered control, so an old native callback cannot answer a newer digit.
+    const next = applyGameplayAction({
+      type: 'respond',
+      atActiveMs: sessionElapsedMs(),
+      trial: { sessionId: state.sessionId, trialIndex: state.trialIndex, inputEpoch: state.inputEpoch },
+    });
+    if (next === null || next.outcome === null) {
       return;
     }
     liveAudioHaptics.feedback('tap');
-  }, [session, dispatch]);
-
-  // ---- Sensory outcome feedback via canonical events. The resolution itself
-  // is pure reducer logic; this effect only sonifies it. Literal calls (catalog
-  // convention): the sensory scanner verifies literal sound names, so
-  // conditional expressions are not used here.
-  useEffect(() => {
-    if (state.outcome === null) {
-      return;
-    }
-    if (state.outcome === 'hit') {
-      liveAudioHaptics.feedback('correct');
-    } else if (state.outcome === 'commission') {
-      liveAudioHaptics.feedback('wrong');
-    } else if (state.outcome === 'omission') {
-      liveAudioHaptics.feedback('failure');
-    } else {
-      liveAudioHaptics.feedback('success');
-    }
-  }, [state.outcome]);
+    playTrialFeedback(next.outcome);
+  }, [sessionStatus, sessionElapsedMs, state.sessionId, state.trialIndex, state.inputEpoch, applyGameplayAction]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, applyGameplayAction]);
 
   const handleRestart = handleStart;
 

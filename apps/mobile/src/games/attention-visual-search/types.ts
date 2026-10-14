@@ -126,7 +126,7 @@ export type VisualSearchAction =
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number; nowMs: number }
   | { type: 'tick'; nowMs: number }
   | { type: 'tap-tile'; index: number; nowMs: number }
-  | { type: 'next-round' }
+  | { type: 'next-round' ; stamp: ResultContinuationStamp }
   | { type: 'pause'; nowMs: number }
   | { type: 'resume'; nowMs: number }
   | { type: 'tutorial-open' }
@@ -157,6 +157,8 @@ export interface VisualSearchGameState {
   phase: VisualSearchPhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Monotonic-clock value captured when the pause began (deadline shifting). */
   pausedAtMs: number | null;
   /** Selected difficulty (preselected 'normal' in the intro). */
@@ -213,6 +215,7 @@ export interface VisualSearchGameState {
 
 export function createInitialVisualSearchState(): VisualSearchGameState {
   return {
+    continuationEpoch: 0,
     phase: 'intro',
     paused: false,
     pausedAtMs: null,
@@ -248,4 +251,31 @@ export function createInitialVisualSearchState(): VisualSearchGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: VisualSearchGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: VisualSearchGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: VisualSearchGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

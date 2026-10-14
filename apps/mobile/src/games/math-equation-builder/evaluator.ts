@@ -5,8 +5,8 @@
  * All components — UI, solver, tutorial, and generator validation — must
  * use this evaluator to ensure consistency.
  *
- * Evaluation: left-to-right (no operator precedence).
- * Parentheses group sub-expressions.
+ * Evaluation: parentheses, then ×/÷, then +/−; equal-precedence operators
+ * associate left-to-right. Division must be exact (integer division).
  * Division by zero returns null (invalid). Non-integer division returns null.
  */
 import type { Operator, EquationToken } from './types';
@@ -32,7 +32,7 @@ export function evaluateEquation(tokens: readonly EquationToken[]): number | nul
 
     if (typeof token === 'number') {
       pos += 1;
-      return token;
+      return Number.isFinite(token) ? token : null;
     }
 
     if (token === '(') {
@@ -46,32 +46,33 @@ export function evaluateEquation(tokens: readonly EquationToken[]): number | nul
     return null;
   }
 
-  function parseExpr(): number | null {
+  function parseProduct(): number | null {
     let value = parseFactor();
     if (value === null) return null;
-
-    // Left-to-right evaluation (no operator precedence)
-    while (pos < tokens.length && typeof tokens[pos] === 'string' && tokens[pos] !== '(' && tokens[pos] !== ')') {
+    while (tokens[pos] === '×' || tokens[pos] === '÷') {
       const op = tokens[pos] as Operator;
       pos += 1;
       const right = parseFactor();
       if (right === null) return null;
-
-      if (op === '+') {
-        value = value + right;
-      } else if (op === '-') {
-        value = value - right;
-      } else if (op === '×') {
-        value = value * right;
-      } else if (op === '÷') {
-        if (right === 0) return null;
-        if (value % right !== 0) return null;
-        value = value / right;
-      } else {
-        return null;
-      }
+      const combined = applyOperator(value, op, right);
+      if (combined === null) return null;
+      value = combined;
     }
+    return value;
+  }
 
+  function parseExpr(): number | null {
+    let value = parseProduct();
+    if (value === null) return null;
+    while (tokens[pos] === '+' || tokens[pos] === '-') {
+      const op = tokens[pos] as Operator;
+      pos += 1;
+      const right = parseProduct();
+      if (right === null) return null;
+      const combined = applyOperator(value, op, right);
+      if (combined === null) return null;
+      value = combined;
+    }
     return value;
   }
 
@@ -92,44 +93,14 @@ export function canSolve(
   numbers: readonly number[],
   operators: readonly Operator[],
 ): boolean {
-  function combine(nums: readonly number[]): Set<number> {
-    if (nums.length === 1) {
-      return new Set([nums[0]]);
-    }
-
-    const result = new Set<number>();
-
-    for (let split = 1; split < nums.length; split++) {
-      const leftNums = nums.slice(0, split);
-      const rightNums = nums.slice(split);
-
-      const leftResults = combine(leftNums);
-      const rightResults = combine(rightNums);
-
-      for (const left of leftResults) {
-        for (const right of rightResults) {
-          for (const op of operators) {
-            const value = applyOperator(left, op, right);
-            if (value !== null) {
-              result.add(value);
-            }
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
-  const allResults = combine(numbers);
-  return allResults.has(target);
+  return getAchievableTargets(numbers, operators).has(target);
 }
 
 /**
  * Apply a single operator to two operands.
  * Returns null for invalid operations (division by zero, non-integer division).
  */
-function applyOperator(left: number, op: Operator, right: number): number | null {
+export function applyOperator(left: number, op: Operator, right: number): number | null {
   switch (op) {
     case '+':
       return left + right;
@@ -233,8 +204,8 @@ interface SolutionCandidate {
  * equation. Deterministic: subranges are enumerated split-ascending and
  * operators in list order; the first tree reaching the target wins.
  *
- * Composite children are wrapped in parentheses so the flat left-to-right
- * evaluation of `evaluateEquation` reproduces the tree's value exactly.
+ * Composite children are wrapped in parentheses so standard precedence
+ * reproduces the proof tree's value exactly.
  */
 export function findSolutionTokens(
   target: number,

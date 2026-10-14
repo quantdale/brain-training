@@ -58,16 +58,26 @@ export const BlockShape = memo(function BlockShape({ blocks, kind, size = SHAPE_
   const cell = Math.min(MAX_CELL, Math.floor((size - 2 * PAD) / Math.max(spanX, spanY)));
   const offsetX = (size - spanX * cell) / 2;
   const offsetY = (size - spanY * cell) / 2;
+  // Coordinates follow this rendered orientation. Color groups preserve the
+  // matching task without relying on a theme-specific color name or revealing
+  // whether the candidate is a rotation of the target.
+  const cells = [...blocks].sort((a, b) => a.y - b.y || a.x - b.x).map((block) =>
+    `row ${block.y - minY + 1} column ${block.x - minX + 1}, color group ${block.colorIndex + 1}`,
+  );
+  const description = `${kind === 'target' ? 'Target' : 'Candidate'} shape. ${spanY} rows by ${spanX} columns. Rows run top to bottom; columns run left to right. ${cells.length > 0 ? `Filled blocks: ${cells.join('; ')}. All other cells empty.` : 'All cells empty.'}`;
 
   return (
     <View
       style={[styles.canvas, { width: size, height: size, borderColor: theme.border }]}
       testID={testId(GAME_ID, kind, 'shape')}
-      accessibilityLabel={`${kind === 'target' ? 'Target' : 'Candidate'} shape`}>
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={description}>
       {blocks.map((block, index) => (
         <View
           key={index}
           testID={testId(GAME_ID, kind, 'block', String(index))}
+          importantForAccessibility="no"
           style={[
             styles.block,
             {

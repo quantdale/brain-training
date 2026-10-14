@@ -24,9 +24,9 @@ function box(styles: ViewStyle[], width: string): ViewStyle {
 }
 
 describe('device-scale discovery board still geometry', () => {
-  it('bounds percent-width board art to stage height on cards and details', async () => {
+  it('bounds native board art on cards and uses accepted local artwork for the introduction', async () => {
     const game = registry.find((item) => item.id === 'memory')!;
-    for (const [size, height] of [['card', 112], ['stage', 180]] as const) {
+    for (const [size, height] of [['card', 112]] as const) {
       const result = await render(<GameWorldArt game={game} size={size} />);
       const boardWidth = 150 * height / 112;
       const frames = result.container.queryAll((node) => {
@@ -36,6 +36,13 @@ describe('device-scale discovery board still geometry', () => {
       expect(frames).toHaveLength(1);
       await result.unmount();
     }
+    const detail = await render(<GameWorldArt game={game} size="stage" testID="memory-world" />);
+    const artwork = detail.getByTestId('memory-world-artwork', { includeHiddenElements: true });
+    expect(artwork.props.source).toBeDefined();
+    expect(artwork.props.resizeMode).toBe('contain');
+    expect(detail.getByTestId('memory-world-artwork-frame', { includeHiddenElements: true }).props.pointerEvents).toBe('none');
+    expect(StyleSheet.flatten(artwork.props.style)).toMatchObject({ width: 225, height: 225 });
+    await detail.unmount();
   });
   it('keeps the target and all four options inside the compact board frame', async () => {
     const styles = await stylesFor('attention-odd-one-out');

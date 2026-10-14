@@ -23,6 +23,7 @@ import { Fonts, Radii, Spacing, Typography } from '@/theme/tokens';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { HAIRLINE } from './radius';
 import { Tappable } from './tappable';
+import { AppIcon } from './app-icon';
 
 /** Props accepted by {@link TextField}. */
 export interface TextFieldProps {
@@ -103,9 +104,7 @@ export function TextField({
             onPress={onClear}
             feedback="tap"
             style={styles.clear}>
-            <ThemedText type="body" themeColor="textSecondary" allowFontScaling={false}>
-              ×
-            </ThemedText>
+            <AppIcon name="close" size={18} />
           </Tappable>
         ) : null}
       </View>

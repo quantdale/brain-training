@@ -229,10 +229,12 @@ describe('tap', () => {
     expect(late.phase).toBe('go');
     expect(late.stats.reactions).toEqual([]);
 
-    // Exactly at the deadline still counts (timer/dispatch boundary).
+    // The window is half-open: exactly at expiry belongs to the timer.
     const atDeadline = speedGameReducer(live, { type: 'tap', rtMs: params.timeoutMs });
-    expect(atDeadline.phase).toBe('roundResult');
-    expect(atDeadline.stats.reactions).toEqual([params.timeoutMs]);
+    expect(atDeadline).toBe(live);
+    const justInside = speedGameReducer(live, { type: 'tap', rtMs: params.timeoutMs - 1 });
+    expect(justInside.phase).toBe('roundResult');
+    expect(justInside.stats.reactions).toEqual([params.timeoutMs - 1]);
 
     // A late tap on a NO-GO trial is NOT a no-go false start either: the
     // withhold window expiry scores it as a correct withhold.

@@ -107,9 +107,12 @@ describe('ColorStroopScreen verdict cues', () => {
   });
 
   it('shows the timeout verdict beside the stimulus and still names the answer', async () => {
-    const trial = await startTrial('verdict-timeout');
+    const { clock } = await renderScreen('verdict-timeout');
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    const trial = firstTrial('verdict-timeout');
 
     await act(async () => {
+      clock.advance(2500);
       jest.advanceTimersByTime(2500);
     });
 

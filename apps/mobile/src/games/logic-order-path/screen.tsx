@@ -66,7 +66,6 @@ import {
   persistOrderPathSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { availableNext } from "./solver";
 import { GAME_ID, createInitialOrderPathState } from "./types";
 import { SCORING_VERSION } from "./versions";
 
@@ -280,7 +279,8 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
       if (
         current.phase !== "round" ||
         current.paused ||
-        current.roundDeadlineMs === null
+        current.roundDeadlineMs === null ||
+        current.placedItems.includes(item)
       ) {
         return;
       }
@@ -288,17 +288,15 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
       if (nowMs > current.roundDeadlineMs) {
         return;
       }
-      // Feedback reflects whether the tapped item is the unique valid next
-      // placement at the current step — not merely the first solution item.
-      const round = current.currentRound;
-      const available =
-        round !== null
-          ? availableNext(round.items, round.edges, current.placedItems)
-          : [];
-      liveAudioHaptics.feedback(
-        available.length === 1 && available[0] === item ? "correct" : "wrong",
-      );
-      dispatch({ type: "select-item", item, nowMs });
+      const action = { type: "select-item" as const, item, nowMs };
+      const next = orderPathGameReducer(current, action);
+      if (next === current) return;
+      // Claim the placement synchronously: several distinct queued presses
+      // may arrive before React commits, and a replay must stay silent while
+      // the next new tile is judged against the newly advanced path.
+      stateRef.current = next;
+      liveAudioHaptics.feedback(next.roundCorrect ? "correct" : "wrong");
+      dispatch(action);
     },
     [clock, dispatch],
   );
@@ -423,6 +421,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
                     key={item}
                     testID={testId(GAME_ID, "item", item)}
                     label={item}
+                    disabled={state.placedItems.includes(item)}
                     onPress={() => handleSelectItem(item)}
                   />
                 ))}

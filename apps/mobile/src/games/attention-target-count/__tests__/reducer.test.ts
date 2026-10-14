@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { targetCountGameReducer } from '../reducer';
-import { createInitialTargetCountState } from '../types';
+import { inputStamp, createInitialTargetCountState } from '../types';
 import type { TargetCountGameState } from '../types';
 import { generateRound } from '../generator';
 import { perfectSessionScore } from '../scoring';
@@ -17,7 +17,7 @@ function startSession(
 ): TargetCountGameState {
   let state = createInitialTargetCountState();
   state = targetCountGameReducer(state, { type: 'select-difficulty', level });
-  state = targetCountGameReducer(state, { type: 'start-session', seed, sessionId, startedAtMs: 100 });
+  state = targetCountGameReducer(state, { nowMs: 100, type: 'start-session', seed, sessionId, startedAtMs: 100 });
   return state;
 }
 
@@ -81,7 +81,7 @@ describe('answer', () => {
   it('scores a correct answer and moves to roundResult', () => {
     let state = startSession('g');
     const correct = state.currentRound?.targetCount ?? -1;
-    state = targetCountGameReducer(state, { type: 'answer', selectedCount: correct, elapsedMs: 1000 });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), type: 'answer', selectedCount: correct, nowMs: state.roundStartedAtMs + 1000 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundCorrect).toBe(true);
     expect(state.roundOutcome).toBe('correct');
@@ -97,7 +97,7 @@ describe('answer', () => {
     // Pick any value guaranteed not to equal the correct count (targets are >= 1).
     const wrongChoice = 0;
     expect(state.currentRound?.targetCount).toBeGreaterThanOrEqual(1);
-    state = targetCountGameReducer(state, { type: 'answer', selectedCount: wrongChoice, elapsedMs: 1000 });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), type: 'answer', selectedCount: wrongChoice, nowMs: state.roundStartedAtMs + 1000 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundCorrect).toBe(false);
     expect(state.roundOutcome).toBe('wrong');
@@ -108,7 +108,7 @@ describe('answer', () => {
 
   it('scores a timeout (null selection)', () => {
     let state = startSession('g');
-    state = targetCountGameReducer(state, { type: 'answer', selectedCount: null, elapsedMs: 9000 });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), type: 'answer', selectedCount: null, nowMs: state.roundStartedAtMs + 9000 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundCorrect).toBe(false);
     expect(state.roundOutcome).toBe('timeout');
@@ -116,13 +116,14 @@ describe('answer', () => {
 
   it('ignores answers outside showGrid or while paused', () => {
     const intro = targetCountGameReducer(createInitialTargetCountState(), {
+      stamp: inputStamp(createInitialTargetCountState()),
       type: 'answer',
       selectedCount: 3,
-      elapsedMs: 1,
+      nowMs: createInitialTargetCountState().roundStartedAtMs + 1,
     });
     expect(intro.phase).toBe('intro');
-    const paused = targetCountGameReducer(startSession('g'), { type: 'pause' });
-    const after = targetCountGameReducer(paused, { type: 'answer', selectedCount: 3, elapsedMs: 1 });
+    const paused = targetCountGameReducer(startSession('g'), { nowMs: startSession('g').roundStartedAtMs, type: 'pause' });
+    const after = targetCountGameReducer(paused, { stamp: inputStamp(paused), type: 'answer', selectedCount: 3, nowMs: paused.roundStartedAtMs + 1 });
     expect(after.phase).toBe('showGrid');
     expect(after.stats.roundsPlayed).toBe(0);
   });
@@ -132,7 +133,7 @@ describe('next-round', () => {
   function answerCorrectly(state: TargetCountGameState): TargetCountGameState {
     const correct = state.currentRound?.targetCount ?? -1;
     // Instant (elapsedMs 0) correct answer → full speed bonus → perfect per-round score.
-    return targetCountGameReducer(state, { type: 'answer', selectedCount: correct, elapsedMs: 0 });
+    return targetCountGameReducer(state, { stamp: inputStamp(state), type: 'answer', selectedCount: correct, nowMs: state.roundStartedAtMs + 0 });
   }
 
   it('escalates distractor classes after every 2 perfect rounds (ladder determinism)', () => {
@@ -143,10 +144,10 @@ describe('next-round', () => {
     // Rounds 1–2 perfect → streak 2 entering round 3.
     const round0 = state.currentRound!;
     state = answerCorrectly(state);
-    state = targetCountGameReducer(state, { type: 'next-round' });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
     const round1 = state.currentRound!;
     state = answerCorrectly(state);
-    state = targetCountGameReducer(state, { type: 'next-round' });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
 
     // Round 3 must replay exactly as a generation with +1 escalated class.
     expect(state.currentRound).toEqual(
@@ -166,11 +167,11 @@ describe('next-round', () => {
     const base = TARGET_COUNT_DIFFICULTY_PARAMS.normal;
     let state = startSession(seed);
     state = answerCorrectly(state); // streak 1
-    state = targetCountGameReducer(state, { type: 'next-round' });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
     state = answerCorrectly(state); // streak 2
-    state = targetCountGameReducer(state, { type: 'next-round' }); // round 3 @ +1 class
-    state = targetCountGameReducer(state, { type: 'answer', selectedCount: -7, elapsedMs: 10 }); // wrong
-    state = targetCountGameReducer(state, { type: 'next-round' }); // round 4
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' }); // round 3 @ +1 class
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), type: 'answer', selectedCount: -7, nowMs: state.roundStartedAtMs + 10 }); // wrong
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' }); // round 4
     expect(state.stats.streak).toBe(0);
     expect(state.currentRound).toEqual(
       generateRound({
@@ -184,7 +185,7 @@ describe('next-round', () => {
   it('advances to the next round after answering', () => {
     let state = startSession('next-solve');
     state = answerCorrectly(state);
-    state = targetCountGameReducer(state, { type: 'next-round' });
+    state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
     expect(state.phase).toBe('showGrid');
     expect(state.roundIndex).toBe(1);
     expect(state.currentRound?.cells).toHaveLength(4 * 4);
@@ -195,7 +196,7 @@ describe('next-round', () => {
     let state = startSession('final', 'easy'); // 6 rounds
     for (let round = 0; round < 6; round += 1) {
       state = answerCorrectly(state);
-      state = targetCountGameReducer(state, { type: 'next-round' });
+      state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(6);
@@ -205,24 +206,24 @@ describe('next-round', () => {
 
   it('is ignored outside roundResult', () => {
     const state = startSession('x');
-    expect(targetCountGameReducer(state, { type: 'next-round' }).phase).toBe('showGrid');
+    expect(targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' }).phase).toBe('showGrid');
   });
 });
 
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
-    const inIntro = targetCountGameReducer(createInitialTargetCountState(), { type: 'pause' });
+    const inIntro = targetCountGameReducer(createInitialTargetCountState(), { nowMs: createInitialTargetCountState().roundStartedAtMs, type: 'pause' });
     expect(inIntro.paused).toBe(false);
-    let state = targetCountGameReducer(startSession('p'), { type: 'pause' });
+    let state = targetCountGameReducer(startSession('p'), { nowMs: startSession('p').roundStartedAtMs, type: 'pause' });
     expect(state.paused).toBe(true);
-    state = targetCountGameReducer(state, { type: 'resume' });
+    state = targetCountGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'resume' });
     expect(state.paused).toBe(false);
-    expect(targetCountGameReducer(state, { type: 'resume' }).paused).toBe(false);
+    expect(targetCountGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'resume' }).paused).toBe(false);
   });
 
   it('cannot pause while paused or on results', () => {
-    let state = targetCountGameReducer(startSession('p'), { type: 'pause' });
-    state = targetCountGameReducer(state, { type: 'pause' });
+    let state = targetCountGameReducer(startSession('p'), { nowMs: startSession('p').roundStartedAtMs, type: 'pause' });
+    state = targetCountGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'pause' });
     expect(state.paused).toBe(true);
   });
 });
@@ -328,6 +329,7 @@ describe('restart hygiene', () => {
     state = targetCountGameReducer(state, { type: 'persistence-failed', message: 'boom' });
 
     state = targetCountGameReducer(state, {
+      nowMs: 200,
       type: 'start-session',
       seed: 'restart-hygiene-2',
       sessionId: 's2',
@@ -351,17 +353,19 @@ describe('restart hygiene', () => {
     let guard = 0;
     while (state.phase !== 'results' && guard < 20) {
       state = targetCountGameReducer(state, {
+        stamp: inputStamp(state),
         type: 'answer',
         selectedCount: state.currentRound?.targetCount ?? -1,
-        elapsedMs: 0,
+        nowMs: state.roundStartedAtMs + 0,
       });
-      state = targetCountGameReducer(state, { type: 'next-round' });
+      state = targetCountGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'next-round' });
       guard += 1;
     }
     expect(state.phase).toBe('results');
     expect(state.stats.streak).toBeGreaterThanOrEqual(2);
 
     const restarted = targetCountGameReducer(state, {
+      nowMs: 200,
       type: 'start-session',
       seed,
       sessionId: 's2',

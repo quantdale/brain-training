@@ -63,7 +63,15 @@ function generateForRound(state: SpatialTransformMatchGameState, roundIndex: num
   };
 }
 
-export function gameReducer(
+export function gameReducer(state: SpatialTransformMatchGameState, action: SpatialTransformMatchAction): SpatialTransformMatchGameState {
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) {
+    return { ...next, inputEpoch: state.inputEpoch + 1 };
+  }
+  return next;
+}
+
+function reduceGameState(
   state: SpatialTransformMatchGameState,
   action: SpatialTransformMatchAction,
 ): SpatialTransformMatchGameState {
@@ -176,6 +184,7 @@ export function gameReducer(
     case 'next-round': {
       if (
         state.phase !== 'roundResult' ||
+        state.paused ||
         state.profile === null ||
         state.difficulty === null
       ) {

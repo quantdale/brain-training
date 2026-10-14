@@ -148,7 +148,7 @@ describe('buildSessionRecord vs the db completion contract', () => {
     expect(record.gameId).toBe(GAME_ID);
     expect(record.gameVersion).toBe(1_000_000);
     expect(record.generatorVersion).toBe(1_000_000);
-    expect(record.scoringVersion).toBe(1_000_000);
+    expect(record.scoringVersion).toBe(versionToNumber(SCORING_VERSION));
     expect(Number.isSafeInteger(record.seed)).toBe(true);
     expect(record.seed).toBe(seedToNumber('persist-seed'));
     // Validation rules enforced by SessionRepository.completeSession:

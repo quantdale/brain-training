@@ -28,7 +28,7 @@ import {
 } from './difficulty';
 import { generateBoard } from './generator';
 import { WRONG_TAP_PENALTY, perfectSessionScore, roundPoints } from './scoring';
-import { INITIAL_STATS, createInitialOddOneOutState } from './types';
+import { INITIAL_STATS, createInitialOddOneOutState, isCurrentInput } from './types';
 import type { OddOneOutAction, OddOneOutGameState, OddOneOutStats } from './types';
 
 export { createInitialOddOneOutState };
@@ -92,6 +92,7 @@ export function oddOneOutReducer(
         {
           ...state,
           profile,
+          inputEpoch: state.inputEpoch + 1,
           seed: action.seed,
           sessionId: action.sessionId,
           startedAtMs: action.startedAtMs,
@@ -116,20 +117,21 @@ export function oddOneOutReducer(
     }
 
     case 'tick': {
-      if (state.phase !== 'playing' || state.paused) {
+      if (state.phase !== 'playing' || state.paused || !isCurrentInput(state, action.stamp) ||
+          !Number.isFinite(action.nowMs) || action.nowMs < state.roundStartedAtMs) {
         return state;
       }
-      return { ...state, remainingMs: Math.max(0, action.remainingMs) };
+      return { ...state, remainingMs: Math.max(0, state.deadlineMs - action.nowMs) };
     }
 
     case 'tap-tile': {
-      if (state.phase !== 'playing' || state.paused || state.board === null) {
+      if (state.phase !== 'playing' || state.paused || state.board === null || !isCurrentInput(state, action.stamp)) {
         return state;
       }
       // Correct tap: the round is solved. A tap after the monotonic deadline
       // is ignored — the window has closed and the next tick owns the timeout
       // resolution (mirrors quick-compare/order-sweep's post-deadline guard).
-      if (action.nowMs > state.deadlineMs) {
+      if (!Number.isFinite(action.nowMs) || action.nowMs < state.roundStartedAtMs || action.nowMs >= state.deadlineMs) {
         return state;
       }
 
@@ -177,7 +179,8 @@ export function oddOneOutReducer(
     }
 
     case 'round-timeout': {
-      if (state.phase !== 'playing' || state.paused) {
+      if (state.phase !== 'playing' || state.paused || !isCurrentInput(state, action.stamp) ||
+          !Number.isFinite(action.nowMs) || action.nowMs < state.deadlineMs) {
         return state;
       }
       return {
@@ -195,7 +198,8 @@ export function oddOneOutReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs)) {
         return state;
       }
       const params = oddOneOutParamsFromProfile(state.profile);
@@ -213,15 +217,23 @@ export function oddOneOutReducer(
     case 'pause': {
       if (
         state.paused ||
+        !Number.isFinite(action.nowMs) ||
         (state.phase !== 'playing' && state.phase !== 'roundResult')
       ) {
         return state;
       }
-      return { ...state, paused: true, remainingMs: Math.max(0, action.remainingMs) };
+      return {
+        ...state,
+        paused: true,
+        inputEpoch: state.inputEpoch + 1,
+        remainingMs: state.phase === 'playing'
+          ? Math.max(0, Math.min(state.windowMs, state.deadlineMs - action.nowMs))
+          : state.remainingMs,
+      };
     }
 
     case 'resume': {
-      if (!state.paused) {
+      if (!state.paused || !Number.isFinite(action.nowMs)) {
         return state;
       }
       const next: OddOneOutGameState = { ...state, paused: false };
@@ -229,6 +241,7 @@ export function oddOneOutReducer(
         // Rebuild the deadline from the frozen remainder so pausing never
         // stretches the window.
         next.deadlineMs = action.nowMs + state.remainingMs;
+        next.roundStartedAtMs += next.deadlineMs - state.deadlineMs;
       }
       return next;
     }

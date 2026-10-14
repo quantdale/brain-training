@@ -34,11 +34,9 @@ import type {
 export { createInitialMathEquationBuilderState };
 
 /**
- * Evaluate an equation built from tokens. Handles left-to-right evaluation
- * by default, with parentheses for grouping.
- *
- * Grammar (left-to-right, no standard precedence):
- *   expr → factor (op factor)*
+ * Evaluate the displayed arithmetic with ordinary precedence and grouping.
+ *   expr → product (('+' | '-') product)*
+ *   product → factor (('×' | '÷') factor)*
  *   factor → number | '(' expr ')'
  */
 
@@ -158,10 +156,41 @@ export function expectsOperatorAfter(tokens: readonly EquationToken[]): boolean 
   return last !== undefined && (typeof last === 'number' || last === ')');
 }
 
+export function equationRoundKey(state: MathEquationBuilderGameState): string {
+  return `${state.sessionId ?? 'idle'}:${state.roundIndex}`;
+}
+
+/** Resolve against active time, never against how many JS ticks were delivered. */
+function sampleRoundClock(state: MathEquationBuilderGameState, atActiveMs: number): MathEquationBuilderGameState {
+  if (state.phase !== 'playing' || state.paused) return state;
+  const elapsed = Number.isFinite(atActiveMs)
+    ? Math.max(state.roundElapsedMs, atActiveMs - state.roundStartActiveMs, 0)
+    : state.timeBudgetMs;
+  const remaining = Math.max(0, state.timeBudgetMs - elapsed);
+  if (remaining === 0) {
+    return {
+      ...state,
+      phase: 'roundResult',
+      roundCorrect: false,
+      roundResult: null,
+      roundElapsedMs: state.timeBudgetMs,
+      timeRemainingMs: 0,
+      stats: { ...state.stats, roundsPlayed: state.stats.roundsPlayed + 1, streak: 0 },
+    };
+  }
+  return elapsed === state.roundElapsedMs ? state : { ...state, roundElapsedMs: elapsed, timeRemainingMs: remaining };
+}
+
 export function mathEquationBuilderGameReducer(
   state: MathEquationBuilderGameState,
   action: MathEquationBuilderAction,
 ): MathEquationBuilderGameState {
+  if ('roundKey' in action && action.roundKey !== undefined && action.roundKey !== equationRoundKey(state)) return state;
+  if ('atActiveMs' in action && action.type !== 'next-round') {
+    state = sampleRoundClock(state, action.atActiveMs);
+    // Pause can still obscure a round that expires at the pause boundary.
+    if (state.phase === 'roundResult' && action.type !== 'pause') return state;
+  }
   switch (action.type) {
     case 'select-difficulty': {
       if (state.phase !== 'intro') return state;
@@ -202,6 +231,8 @@ export function mathEquationBuilderGameReducer(
         roundResult: null,
         timeRemainingMs: params.timeBudgetMs,
         timeBudgetMs: params.timeBudgetMs,
+        roundStartActiveMs: 0,
+        roundElapsedMs: 0,
         prevTarget: null,
         stats: { ...INITIAL_STATS },
         forced: false,
@@ -330,28 +361,7 @@ export function mathEquationBuilderGameReducer(
     }
 
     case 'tick-timer': {
-      if (state.phase !== 'playing') return state;
-      if (state.paused) return state;
-      if (state.timeRemainingMs <= 0) return state;
-
-      const next = state.timeRemainingMs - 1000;
-      if (next <= 0) {
-        // Timer expired: auto-submit as timeout.
-        const stats: MathEquationBuilderStats = {
-          ...state.stats,
-          roundsPlayed: state.stats.roundsPlayed + 1,
-          streak: 0,
-        };
-        return {
-          ...state,
-          phase: 'roundResult',
-          roundCorrect: false,
-          roundResult: null,
-          timeRemainingMs: 0,
-          stats,
-        };
-      }
-      return { ...state, timeRemainingMs: next };
+      return state;
     }
 
     case 'next-round': {
@@ -393,6 +403,8 @@ export function mathEquationBuilderGameReducer(
         roundResult: null,
         timeRemainingMs: nextParams.timeBudgetMs,
         timeBudgetMs: nextParams.timeBudgetMs,
+        roundStartActiveMs: action.atActiveMs,
+        roundElapsedMs: 0,
         prevTarget: state.target,
         // Update profile params for adaptive mode (convert operators to numeric flags).
         ...(state.difficulty === 'adaptive'

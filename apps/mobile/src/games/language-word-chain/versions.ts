@@ -12,7 +12,8 @@
 import { loadContentPack } from "./content-validation";
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = "1.1.0";
+// 1.2 scores only the displayed link's input, preserving the active deadline.
+export const SCORING_VERSION = "1.2.0";
 
 export const CONTENT_PACK_ID: string = loadContentPack().packId;
 

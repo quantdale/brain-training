@@ -9,7 +9,7 @@ import type { CompleteSessionInput } from '@/db';
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { loadContentPack } from '../content-validation';
 import { filterByTiers, selectRound } from '../generator';
-import type { ContextFitRound } from '../types';
+import type { ContextFitRawResult, ContextFitRound } from '../types';
 import ContextFitScreen from '../screen';
 import type { SessionPersistence } from '../session';
 
@@ -126,6 +126,10 @@ describe('ContextFitScreen', () => {
     expect(screen.getByTestId(testId('language-context-fit', 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId('language-context-fit', 'accuracy'))).toHaveTextContent('100%');
     expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as ContextFitRawResult;
+    expect(raw.contentPackVersion).toBe('2.1.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
   });
 
   it('force-win jumps to a perfect results screen', async () => {

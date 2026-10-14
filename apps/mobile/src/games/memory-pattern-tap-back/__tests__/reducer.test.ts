@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { gameReducer } from '../reducer';
-import { createInitialState } from '../types';
+import { createInitialState, observationStamp, recallStamp } from '../types';
 import type { PatternTapBackState } from '../types';
 import { generateRoundSequence } from '../generator';
 import { perfectSessionScore } from '../scoring';
@@ -25,7 +25,7 @@ function startSession(
 function observeAll(state: PatternTapBackState, times = state.length): PatternTapBackState {
   let current = state;
   for (let i = 0; i < times; i += 1) {
-    current = gameReducer(current, { type: 'observe-tick' });
+    current = gameReducer(current, { type: 'observe-tick', stamp: observationStamp(current) });
   }
   return current;
 }
@@ -90,22 +90,22 @@ describe('start-session', () => {
 describe('observe-tick', () => {
   it('advances one tile at a time and hands over to recall at the end', () => {
     let state = startSession('r');
-    state = gameReducer(state, { type: 'observe-tick' });
+    state = gameReducer(state, { type: 'observe-tick', stamp: observationStamp(state) });
     expect(state.observeIndex).toBe(1);
-    state = gameReducer(state, { type: 'observe-tick' });
+    state = gameReducer(state, { type: 'observe-tick', stamp: observationStamp(state) });
     expect(state.observeIndex).toBe(2);
-    state = gameReducer(state, { type: 'observe-tick' });
+    state = gameReducer(state, { type: 'observe-tick', stamp: observationStamp(state) });
     expect(state.observeIndex).toBe(3);
-    state = gameReducer(state, { type: 'observe-tick' });
+    state = gameReducer(state, { type: 'observe-tick', stamp: observationStamp(state) });
     expect(state.phase).toBe('recall');
     expect(state.observeIndex).toBe(-1);
   });
 
   it('is ignored outside the observe phase or while paused', () => {
     const inRecall = observeAll(startSession('r'));
-    expect(gameReducer(inRecall, { type: 'observe-tick' }).phase).toBe('recall');
+    expect(gameReducer(inRecall, { type: 'observe-tick', stamp: observationStamp(inRecall) }).phase).toBe('recall');
     const paused = gameReducer(startSession('r'), { type: 'pause' });
-    expect(gameReducer(paused, { type: 'observe-tick' }).observeIndex).toBe(0);
+    expect(gameReducer(paused, { type: 'observe-tick', stamp: observationStamp(paused) }).observeIndex).toBe(0);
   });
 });
 
@@ -113,18 +113,18 @@ describe('tap-tile', () => {
   it('validates taps against the sequence and completes the round', () => {
     let state = observeAll(startSession('tap', 'easy')); // length 3
     const [t0, t1, t2] = state.sequence;
-    state = gameReducer(state, { type: 'tap-tile', index: t0 });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t0 });
     expect(state.phase).toBe('recall');
     expect(state.inputIndex).toBe(1);
     expect(state.stats.correctTaps).toBe(1);
     expect(state.recallHighlight).toBe(true);
     // Clear the highlight
-    state = gameReducer(state, { type: 'recall-tick' });
+    state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
     expect(state.recallHighlight).toBe(false);
-    state = gameReducer(state, { type: 'tap-tile', index: t1 });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t1 });
     expect(state.inputIndex).toBe(2);
-    state = gameReducer(state, { type: 'recall-tick' });
-    state = gameReducer(state, { type: 'tap-tile', index: t2 });
+    state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t2 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('passed');
     expect(state.stats.roundsPassed).toBe(1);
@@ -139,7 +139,7 @@ describe('tap-tile', () => {
   it('fails the round immediately on a wrong tap', () => {
     let state = observeAll(startSession('tap-wrong'));
     const wrong = (state.sequence[0] + 1) % 9;
-    state = gameReducer(state, { type: 'tap-tile', index: wrong });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: wrong });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('failed');
     expect(state.stats.roundsPlayed).toBe(1);
@@ -151,27 +151,26 @@ describe('tap-tile', () => {
 
   it('is ignored during observe / after the round ended', () => {
     let state = startSession('x');
-    state = gameReducer(state, { type: 'tap-tile', index: 0 });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: 0 });
     expect(state.phase).toBe('observe');
 
     // After the round result, further taps are ignored (no double counting).
     let ended = observeAll(startSession('x'));
-    ended = gameReducer(ended, { type: 'tap-tile', index: -1 }); // wrong tap → failed
+    ended = gameReducer(ended, { type: 'tap-tile', stamp: recallStamp(ended), index: -1 }); // wrong tap → failed
     expect(ended.phase).toBe('roundResult');
-    ended = gameReducer(ended, { type: 'tap-tile', index: 0 });
+    ended = gameReducer(ended, { type: 'tap-tile', stamp: recallStamp(ended), index: 0 });
     expect(ended.stats.roundsPlayed).toBe(1);
     expect(ended.stats.totalTaps).toBe(1);
   });
 
-  it('ignores taps during recall-highlight phase', () => {
+  it('accepts the next correct tap while cosmetic recall feedback is visible', () => {
     let state = observeAll(startSession('tap-hl'));
-    const [t0] = state.sequence;
-    state = gameReducer(state, { type: 'tap-tile', index: t0 });
+    const [t0, t1] = state.sequence;
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t0 });
     expect(state.recallHighlight).toBe(true);
-    // Tapping during highlight should be ignored
-    const stateBefore = { ...state };
-    state = gameReducer(state, { type: 'tap-tile', index: 99 });
-    expect(state.stats.totalTaps).toBe(stateBefore.stats.totalTaps);
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t1 });
+    expect(state.inputIndex).toBe(2);
+    expect(state.stats.totalTaps).toBe(2);
   });
 });
 
@@ -179,15 +178,15 @@ describe('recall-tick', () => {
   it('clears the recall highlight', () => {
     let state = observeAll(startSession('rt'));
     const [t0] = state.sequence;
-    state = gameReducer(state, { type: 'tap-tile', index: t0 });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: t0 });
     expect(state.recallHighlight).toBe(true);
-    state = gameReducer(state, { type: 'recall-tick' });
+    state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
     expect(state.recallHighlight).toBe(false);
   });
 
   it('is a no-op when not in recall or not highlighted', () => {
     const state = startSession('rt2');
-    expect(gameReducer(state, { type: 'recall-tick' }).recallHighlight).toBe(false);
+    expect(gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) }).recallHighlight).toBe(false);
   });
 });
 
@@ -195,8 +194,8 @@ describe('next-round', () => {
   it('escalates the length after a pass and regenerates a distinct sequence', () => {
     let state = observeAll(startSession('escalate'));
     for (const tile of state.sequence) {
-      state = gameReducer(state, { type: 'tap-tile', index: tile });
-      state = gameReducer(state, { type: 'recall-tick' });
+      state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: tile });
+      state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
     }
     expect(state.roundOutcome).toBe('passed');
     state = gameReducer(state, { type: 'next-round' });
@@ -209,7 +208,7 @@ describe('next-round', () => {
 
   it('holds the length after a failure', () => {
     let state = observeAll(startSession('hold'));
-    state = gameReducer(state, { type: 'tap-tile', index: (state.sequence[0] + 1) % 9 });
+    state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: (state.sequence[0] + 1) % 9 });
     state = gameReducer(state, { type: 'next-round' });
     expect(state.length).toBe(4);
     expect(state.roundIndex).toBe(1);
@@ -220,8 +219,8 @@ describe('next-round', () => {
     for (let round = 0; round < 4; round += 1) {
       state = observeAll(state);
       for (const tile of state.sequence) {
-        state = gameReducer(state, { type: 'tap-tile', index: tile });
-        state = gameReducer(state, { type: 'recall-tick' });
+        state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: tile });
+        state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
       }
       state = gameReducer(state, { type: 'next-round' });
     }
@@ -310,8 +309,8 @@ describe('QA force hooks (state shaping)', () => {
   it('force-lose from a scored round result keeps the recorded outcome', () => {
     let state = observeAll(startSession('qa-lose2'));
     for (const tile of state.sequence) {
-      state = gameReducer(state, { type: 'tap-tile', index: tile });
-      state = gameReducer(state, { type: 'recall-tick' });
+      state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: tile });
+      state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
     }
     expect(state.roundOutcome).toBe('passed');
     const result = gameReducer(state, { type: 'qa/force-lose' });

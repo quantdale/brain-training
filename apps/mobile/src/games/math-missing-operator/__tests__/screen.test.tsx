@@ -212,7 +212,7 @@ describe('MathMissingOperatorScreen', () => {
     expect(raw.bestStreak).toBe(7);
     // 1.1.0: campaign-010 W23 content wave (large-operand template block);
     // scoring semantics unchanged, so the rest of this suite still pins the old math.
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

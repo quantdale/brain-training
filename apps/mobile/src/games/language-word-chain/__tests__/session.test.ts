@@ -19,11 +19,11 @@ function rawInputStats() {
   return { ...INITIAL_STATS, roundsPlayed: 4, roundsCorrect: 3 };
 }
 
-function buildRaw(): LanguageWordChainRawResult {
+function buildRaw(scoringVersion = '1.1.0'): LanguageWordChainRawResult {
   return buildWordChainRawResult({
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
-    scoringVersion: SCORING_VERSION,
+    scoringVersion,
     difficulty: "normal",
     params: {
       tierMask: 3,
@@ -53,7 +53,7 @@ describe("buildWordChainRawResult", () => {
     expect(raw.gameVersion).toBe("1.0.0");
     // Seeded pack selection is procedural provenance: versioned, never null.
     expect(raw.generatorVersion).toBe("1.0.0");
-    expect(raw.scoringVersion).toBe(SCORING_VERSION);
+    expect(raw.scoringVersion).toBe('1.1.0');
     expect(raw.seed).toBe("seed-x");
     expect(raw.difficulty).toBe("normal");
     expect(raw.challengeRating).toBe(0.5);
@@ -106,6 +106,21 @@ describe("seedToNumber", () => {
 });
 
 describe("buildSessionRecord", () => {
+  it('keeps legacy scoring provenance while recording the current version for new runs', () => {
+    for (const scoringVersion of ['1.1.0', SCORING_VERSION]) {
+      const raw = buildRaw(scoringVersion);
+      const record = buildSessionRecord({
+        sessionId: `version-${scoringVersion}`, rawResult: raw,
+        difficulty: resolveWordChainDifficulty('normal'),
+        normalized: { value: 0.5, scale: '0..1', raw: { ...raw } as GameRawResult },
+        xp: 0, startedAtMs: 10, completedAtMs: 110, activeDurationMs: 100,
+      });
+      expect(raw.scoringVersion).toBe(scoringVersion);
+      expect(record.scoringVersion).toBe(scoringVersion === '1.1.0' ? 1_001_000 : 1_002_000);
+      expect(record.rawResult).toBe(raw);
+    }
+  });
+
   it("maps the outcome onto the persistence record shape", () => {
     const raw = buildRaw();
     const profile = resolveWordChainDifficulty("normal");

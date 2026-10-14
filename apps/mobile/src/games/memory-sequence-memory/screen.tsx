@@ -12,8 +12,8 @@
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer (so the score-attack
- * budget stops too) and cancels reveal pacing; resuming re-flashes the
- * current tile and continues from the same position. The board is covered by
+ * budget stops too) and cancels reveal pacing; resuming keeps the current
+ * tile visible for its remaining active reveal time. The board is covered by
  * the opaque shared `PauseOverlay` and hidden from the accessibility tree
  * while paused.
  *
@@ -23,6 +23,7 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
@@ -36,8 +37,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameDeadlineTimeout,
-  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 
@@ -65,6 +64,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialSequenceMemoryState } from './types';
+import type { SequenceMemoryAction, SequenceMemoryStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Countdown ticker period in ms (drives the remaining-time display). */
@@ -110,6 +110,8 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const [, tick] = useReducer((value: number) => value + 1, 0);
 
   const stateRef = useRef(state);
+  const handledEventsRef = useRef(new WeakSet<object>());
+  const revealDeadlineRef = useRef<{ key: string; activeDeadlineMs: number } | null>(null);
   /**
    * Monotonic elapsed time at the moment the budget expired (set by the
    * countdown interval right before dispatching `time-up`). Finalization
@@ -125,6 +127,15 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     stateRef.current = state;
   });
 
+  const applyGameplayAction = useCallback((action: SequenceMemoryAction) => {
+    const current = stateRef.current;
+    const next = sequenceMemoryGameReducer(current, action);
+    // Advance the known-sequence cursor synchronously for separate native taps.
+    stateRef.current = next;
+    dispatch(action);
+    return next;
+  }, []);
+
   const session = useGameSession({
     gameId: GAME_ID,
     clock,
@@ -135,8 +146,10 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => applyGameplayAction({ type: 'pause' }),
   });
+  const sessionStatus = session.status;
+  const sessionElapsedMs = session.elapsedMs;
 
   const tutorial = useMemo(
     () => createSequenceMemoryTutorialLifecycle(tutorialStore),
@@ -156,15 +169,43 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const inSession =
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
 
-  // ---- Reveal pacing: one tick per tile. The deadline preserves the current
-  // tile's remaining flash time across pause/resume.
-  useGameDeadlineTimeout(
-    state.phase === 'reveal' && !state.paused,
-    () => dispatch({ type: 'reveal-tick' }),
-    revealMs,
-    clock,
-    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
-  );
+  const liveStamp = useMemo<SequenceMemoryStamp>(() => ({
+    sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch,
+  }), [state.sessionId, state.roundIndex, state.inputEpoch]);
+
+  // Lifecycle active time stops at the pause handler, even if React's cleanup
+  // is delayed. Capture this reveal position so a cleared, queued callback
+  // cannot skip the next tile or a resumed flash.
+  useEffect(() => {
+    if (state.phase !== 'reveal' || state.paused) return;
+    const key = `${state.sessionId}:${state.roundIndex}:${state.revealedIndex}`;
+    if (revealDeadlineRef.current?.key !== key) {
+      revealDeadlineRef.current = { key, activeDeadlineMs: sessionElapsedMs() + revealMs };
+    }
+    const deadline = revealDeadlineRef.current.activeDeadlineMs;
+    const revealedIndex = state.revealedIndex;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled || sessionStatus() !== 'active' || sessionElapsedMs() < deadline || sessionElapsedMs() >= budgetMs) return;
+      applyGameplayAction({ type: 'reveal-tick', revealedIndex, stamp: liveStamp });
+    }, Math.ceil(Math.max(0, deadline - sessionElapsedMs())));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.sessionId, state.roundIndex, state.revealedIndex, revealMs, budgetMs, liveStamp, sessionStatus, sessionElapsedMs, applyGameplayAction]);
+
+  const expireIfNeeded = useCallback((stamp: SequenceMemoryStamp) => {
+    const current = stateRef.current;
+    if (current.paused || sessionStatus() !== 'active' || current.profile === null ||
+      current.sessionId !== stamp.sessionId || current.roundIndex !== stamp.roundIndex ||
+      current.inputEpoch !== stamp.inputEpoch ||
+      (current.phase !== 'reveal' && current.phase !== 'input' && current.phase !== 'roundResult')) return false;
+    const elapsedMs = sessionElapsedMs();
+    const currentBudget = sequenceMemoryParamsFromProfile(current.profile).sessionSeconds * 1000;
+    if (elapsedMs < currentBudget) return false;
+    setDisplayRemainingMs(0);
+    timeUpElapsedMsRef.current = currentBudget;
+    applyGameplayAction({ type: 'time-up', elapsedMs, stamp });
+    return true;
+  }, [sessionStatus, sessionElapsedMs, applyGameplayAction]);
 
   // ---- Score-attack countdown: while in session and unpaused, check the
   // monotonic budget every 250ms; expire the session when it is exhausted and
@@ -173,23 +214,23 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   // while paused. Duplicate expiry ticks between the dispatch and the next
   // render are inert: the reducer ignores `time-up` outside in-session
   // phases and the ref below records the first expiry instant only.
-  useGameInterval(
-    inSession && !state.paused,
-    () => {
-      const elapsedMs = session.elapsedMs();
-      if (elapsedMs >= budgetMs) {
-        setDisplayRemainingMs(0);
-        if (timeUpElapsedMsRef.current === null) {
-          timeUpElapsedMsRef.current = elapsedMs;
-        }
-        dispatch({ type: 'time-up' });
-      } else {
+  useEffect(() => {
+    if (!inSession || state.paused) return;
+    let cancelled = false;
+    const interval = setInterval(() => {
+      const current = stateRef.current;
+      if (cancelled || sessionStatus() !== 'active' || current.paused ||
+        current.sessionId !== liveStamp.sessionId || current.roundIndex !== liveStamp.roundIndex ||
+        current.inputEpoch !== liveStamp.inputEpoch) return;
+      if (expireIfNeeded(liveStamp)) return;
+      const elapsedMs = sessionElapsedMs();
+      if (elapsedMs < budgetMs) {
         setDisplayRemainingMs(Math.max(0, budgetMs - elapsedMs));
         tick();
       }
-    },
-    COUNTDOWN_TICK_MS,
-  );
+    }, COUNTDOWN_TICK_MS);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [inSession, state.paused, sessionStatus, sessionElapsedMs, liveStamp, expireIfNeeded, budgetMs]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -303,9 +344,9 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      applyGameplayAction({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -313,28 +354,40 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   }, [session, goBack]);
 
   const handleTapTile = useCallback(
-    (index: number) => {
+    (index: number, event: GestureResponderEvent | undefined, stamp: SequenceMemoryStamp) => {
       const current = stateRef.current;
-      if (current.phase !== 'input' || current.paused) {
+      if (current.phase !== 'input' || current.paused || sessionStatus() !== 'active' ||
+        current.sessionId !== stamp.sessionId || current.roundIndex !== stamp.roundIndex ||
+        current.inputEpoch !== stamp.inputEpoch) {
         return;
       }
-      if (index === current.sequence[current.inputIndex]) {
+      if (expireIfNeeded(stamp)) return;
+      if (event !== undefined) {
+        const identity = event.nativeEvent ?? event;
+        if (handledEventsRef.current.has(identity)) return;
+        handledEventsRef.current.add(identity);
+      }
+      const next = applyGameplayAction({ type: 'tap-tile', index, elapsedMs: sessionElapsedMs(), stamp });
+      if (next === current) return;
+      if (next.stats.correctTaps > current.stats.correctTaps) {
         liveAudioHaptics.playSfx('memory-sequence-memory-tile-correct');
         liveAudioHaptics.haptic('light');
       } else {
         liveAudioHaptics.playSfx('memory-sequence-memory-tile-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-tile', index });
     },
-    [dispatch],
+    [sessionStatus, sessionElapsedMs, expireIfNeeded, applyGameplayAction],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const level = current.difficulty ?? 'normal';
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     timeUpElapsedMsRef.current = null;
+    revealDeadlineRef.current = null;
+    handledEventsRef.current = new WeakSet<object>();
     const identity = session.begin();
     // Reset the countdown label before the first ticker tick so a restarted
     // session (e.g. "Play again") starts from the full budget, not the
@@ -345,13 +398,13 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       (sequenceMemoryParamsFromProfile(resolveSequenceMemoryDifficulty(level))?.sessionSeconds ??
         90) * 1000;
     setDisplayRemainingMs(startBudgetMs);
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -380,7 +433,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const visualFor = useCallback(
     (index: number): PadTileVisualState => {
       if (state.phase === 'reveal') {
-        return index === state.revealedIndex ? 'revealed' : 'idle';
+        return index === state.sequence[state.revealedIndex] ? 'revealed' : 'idle';
       }
       if (state.phase === 'input' || state.phase === 'roundResult') {
         // The wrong tap ends the round immediately and keeps its error cue.
@@ -486,7 +539,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
                 testID={testId(GAME_ID, 'reveal-pad')}
                 visualFor={visualFor}
                 disabled
-                onPressTile={handleTapTile}
+                onPressTile={(index, event) => handleTapTile(index, event, liveStamp)}
               />
             </>
           ) : null}
@@ -523,7 +576,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
               tileCount={tileCount}
               testID={testId(GAME_ID, 'input-pad')}
               visualFor={visualFor}
-              onPressTile={handleTapTile}
+              onPressTile={(index, event) => handleTapTile(index, event, liveStamp)}
             />
           ) : null}
 
@@ -549,12 +602,16 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
                 testID={testId(GAME_ID, 'round-result-pad')}
                 visualFor={visualFor}
                 disabled
-                onPressTile={handleTapTile}
+                onPressTile={(index, event) => handleTapTile(index, event, liveStamp)}
               />
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label="Next sequence"
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => {
+                  if (!expireIfNeeded(liveStamp)) {
+                    applyGameplayAction({ type: 'next-round', elapsedMs: session.elapsedMs(), stamp: liveStamp });
+                  }
+                }}
               />
             </View>
           ) : null}

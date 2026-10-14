@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
 import { wordScrambleGameReducer } from '../reducer';
-import { createInitialWordScrambleState } from '../types';
+import { continuationStamp, createInitialWordScrambleState } from '../types';
 import type { WordScrambleGameState } from '../types';
 
 function startSession(
@@ -133,7 +133,7 @@ describe('next-round', () => {
   it('advances to the next round after a pass', () => {
     let state = startSession('next-p');
     state = submitCorrect(state);
-    state = wordScrambleGameReducer(state, { type: 'next-round' });
+    state = wordScrambleGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(state.phase).toBe('play');
     expect(state.roundIndex).toBe(1);
     expect(state.currentRound).not.toBeNull();
@@ -143,7 +143,7 @@ describe('next-round', () => {
     let state = startSession('next-final', 'easy'); // 4 rounds
     for (let round = 0; round < 4; round += 1) {
       state = submitCorrect(state);
-      state = wordScrambleGameReducer(state, { type: 'next-round' });
+      state = wordScrambleGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(4);
@@ -152,7 +152,7 @@ describe('next-round', () => {
 
   it('next-round is ignored outside roundResult', () => {
     const state = startSession('next-early');
-    const result = wordScrambleGameReducer(state, { type: 'next-round' });
+    const result = wordScrambleGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(result.phase).toBe('play');
   });
 });

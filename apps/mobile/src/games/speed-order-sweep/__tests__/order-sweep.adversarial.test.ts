@@ -237,7 +237,7 @@ describe('reducer: tap handling', () => {
     expect(state).toBe(before);
   });
 
-  it('counts a duplicate tap on an already-cleared token as wrong (defense-in-depth; UI disables cleared tokens)', () => {
+  it('ignores a queued duplicate tap on an already-cleared disabled token', () => {
     let state = startSession('easy'); // 6 tokens / 2 rows — small board
     const round = state.round as OrderSweepRound;
     const firstId = tokenByValue(round, round.order[0]).id;
@@ -246,13 +246,14 @@ describe('reducer: tap handling', () => {
     expect(state.clearedCount).toBe(1);
     expect(state.lastVerdict).toBe('correct');
 
-    // Same cell tapped again while still in 'active': values are unique so it
-    // can never be the required minimum — the reducer records a wrong tap.
+    // The rendered token is disabled after its clear. A callback queued before
+    // the commit must not become a penalty against the next required number.
+    const cleared = state;
     state = tap(state, firstId, T0 + 200);
-    expect(state.clearedCount).toBe(1);
-    expect(state.lastVerdict).toBe('wrong');
-    expect(state.stats.wrongTaps).toBe(1);
-    expect(state.stats.streak).toBe(0);
+    expect(state).toBe(cleared);
+    expect(state.lastVerdict).toBe('correct');
+    expect(state.stats.wrongTaps).toBe(0);
+    expect(state.stats.streak).toBe(1);
   });
 
   it('ignores input after the window expires but accepts a tap at exactly the deadline', () => {

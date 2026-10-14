@@ -10,6 +10,7 @@ import { generateRound } from '../generator';
 import type { SessionPersistence } from '../session';
 import type { CompleteSessionInput, CompleteSessionResult } from '@/db';
 import {
+  createFakeClock,
   createInMemoryTutorialStore,
   createRng,
   noopAudioHaptics,
@@ -185,8 +186,10 @@ describe('TargetCountScreen', () => {
   });
 
   it('pausing freezes the round window and resume continues the remainder', async () => {
+    const clock = createFakeClock(0);
     await render(
       <TargetCountScreen
+        clock={clock}
         tutorialStore={completedStore()}
         sessionSeed="pause-seed"
       />,
@@ -196,6 +199,7 @@ describe('TargetCountScreen', () => {
 
     // Partway into the normal-level round window (9000ms).
     await act(async () => {
+      clock.advance(3000);
       jest.advanceTimersByTime(3000);
     });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
@@ -205,6 +209,7 @@ describe('TargetCountScreen', () => {
     // board itself is hidden from the accessibility tree, so assertions
     // resume before querying game content).
     await act(async () => {
+      clock.advance(60000);
       jest.advanceTimersByTime(60000);
     });
 
@@ -213,10 +218,12 @@ describe('TargetCountScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
     expect(screen.queryByTestId(testId(GAME_ID, 'round-timeout'))).toBeNull();
     await act(async () => {
+      clock.advance(5900);
       jest.advanceTimersByTime(5900);
     });
     expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
     await act(async () => {
+      clock.advance(200);
       jest.advanceTimersByTime(200);
     });
     expect(screen.queryByTestId(testId(GAME_ID, 'show-grid'))).toBeNull();
@@ -262,6 +269,7 @@ describe('TargetCountScreen', () => {
   });
 
   it('restart after a QA-forced round-1 loss restarts the full round window', async () => {
+    const clock = createFakeClock(0);
     const persistSession: SessionPersistence = {
       completeSession: jest.fn(async () => ({
         session: {} as never,
@@ -273,6 +281,7 @@ describe('TargetCountScreen', () => {
     };
     await render(
       <TargetCountScreen
+        clock={clock}
         tutorialStore={completedStore()}
         sessionSeed="restart-ref"
         persistSession={persistSession}
@@ -280,6 +289,7 @@ describe('TargetCountScreen', () => {
     );
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     await act(async () => {
+      clock.advance(3000);
       jest.advanceTimersByTime(3000);
     });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
@@ -291,9 +301,15 @@ describe('TargetCountScreen', () => {
     // 6000ms into a fresh normal-level window (9000ms) the round must still be
     // live; the pre-fix accumulator carried 3000ms over from before the restart.
     await act(async () => {
+      clock.advance(6000);
       jest.advanceTimersByTime(6000);
     });
     expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
+    await act(async () => {
+      clock.advance(3000);
+      jest.advanceTimersByTime(3000);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
   });
   it('persists the final adaptive challenge rating in the session record', async () => {
     // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
@@ -364,6 +380,7 @@ describe('TargetCountScreen', () => {
   });
 
   it('a tap after the round timed out stays silent and keeps the timeout verdict', async () => {
+    const clock = createFakeClock(0);
     const sfx: string[] = [];
     setLiveAudioHaptics({
       ...noopAudioHaptics,
@@ -374,12 +391,14 @@ describe('TargetCountScreen', () => {
       const rounds = sessionRounds('test-seed', 'normal');
       await render(
         <TargetCountScreen
+          clock={clock}
           tutorialStore={completedStore()}
           sessionSeed="test-seed"
         />,
       );
       await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
       await act(async () => {
+        clock.advance(9200);
         jest.advanceTimersByTime(9200);
       });
       expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeTruthy();

@@ -104,6 +104,14 @@ beforeEach(() => {
 });
 
 describe('Home plan copy and leg launches (073 §3/§4)', () => {
+  it('reports saved games and skipped legs separately on a completed plan', async () => {
+    mockDbState.db = makeFakeDb(makeInstance({ currentIndex: 4, status: 'completed' }));
+    await renderRouter({ '/(tabs)/': HomeScreen }, { initialUrl: '/(tabs)/' });
+    expect(screen.getByTestId('home-workout-complete-panel')).toHaveTextContent(/3 games saved · 1 skipped/);
+    expect(screen.getByTestId('home-workout-complete-panel')).not.toHaveTextContent('4/4 games saved');
+    expect(screen.getByTestId('home-workout-progress-bar').props.accessibilityLabel).toBe('3 of 4 games played, 1 skipped');
+  });
+
   it('renders a skipped leg as Skipped, never as Done', async () => {
     mockDbState.db = makeFakeDb(makeInstance());
     await renderRouter({ '/(tabs)/': HomeScreen }, { initialUrl: '/(tabs)/' });

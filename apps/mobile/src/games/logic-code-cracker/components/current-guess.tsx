@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { COLOR_PALETTE } from './color-picker';
 import { GameButton } from './button';
+import { useCodePegSize } from './use-code-peg-size';
 
 export interface CurrentGuessProps {
   /** The colors currently selected (0-based indices). */
@@ -31,10 +32,11 @@ export function CurrentGuess({
   onClear,
 }: CurrentGuessProps) {
   const theme = useTheme();
+  const { pegSize, onLayout } = useCodePegSize(codeLength);
 
   return (
     <View style={styles.container} testID={testId('logic-code-cracker', 'current-guess')}>
-      <View style={styles.pegs}>
+      <View style={styles.pegs} onLayout={onLayout} testID={testId('logic-code-cracker', 'guess-pegs')}>
         {Array.from({ length: codeLength }, (_, i) => {
           const colorIndex = i < currentGuess.length ? currentGuess[i] : null;
           return (
@@ -44,6 +46,8 @@ export function CurrentGuess({
               style={[
                 styles.peg,
                 {
+                  width: pegSize,
+                  height: pegSize,
                   backgroundColor: colorIndex !== null ? COLOR_PALETTE[colorIndex] : theme.border,
                   borderColor: theme.border,
                 },
@@ -69,14 +73,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     gap: Spacing.two,
+    width: '100%',
   },
   pegs: {
     flexDirection: 'row',
     gap: Spacing.two,
+    width: '100%',
+    justifyContent: 'center',
   },
   peg: {
-    width: 44,
-    height: 44,
+    flexShrink: 0,
     borderRadius: 22,
     borderWidth: 2,
   },

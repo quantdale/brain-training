@@ -1,0 +1,353 @@
+{
+  "artDirection": "Play Lab",
+  "records": [
+    {
+      "kind": "image",
+      "name": "workout-assembly",
+      "source": "docs/redesign/artwork/campaign077/sources/workout-assembly-v1.png",
+      "sourceSha256": "037bb537b4b1ceb1b77e27090ebd28adb0bf61a1a7f97356ffb2e040793ad0fb",
+      "sourceBytes": 1414045,
+      "output": "apps/mobile/assets/artwork/workout-assembly.png",
+      "sha256": "2515e4eb46c0e97e40930adf59a0bfcb238c7f66574ae134b859b2b274c9d311",
+      "bytes": 139461,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        66,
+        117,
+        1196,
+        1102
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "memory",
+      "source": "docs/redesign/artwork/campaign077/sources/memory-v1.png",
+      "sourceSha256": "9027a0e423a611689094b194b07e9ee8d712b05741c083d830737aab4eb5a992",
+      "sourceBytes": 1025820,
+      "output": "apps/mobile/assets/artwork/memory.png",
+      "sha256": "818bba30451fc4a4bca266337516c0a5ed37414e9fe2b53548b65aef81c1840a",
+      "bytes": 116872,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        106,
+        189,
+        1171,
+        1042
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "attention",
+      "source": "docs/redesign/artwork/campaign077/sources/attention-v1.png",
+      "sourceSha256": "a308b4bb10cb133594b028b5353b3c0738c3d928bacc37ed76b843d05f9bb783",
+      "sourceBytes": 867706,
+      "output": "apps/mobile/assets/artwork/attention.png",
+      "sha256": "f691871f68e8d954b1a9d1948a6991adedbff5308ffa9e2021d97e683fb839ee",
+      "bytes": 119406,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        121,
+        219,
+        1130,
+        1007
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "logic",
+      "source": "docs/redesign/artwork/campaign077/sources/logic-v2.png",
+      "sourceSha256": "526f439e30435a130070ec06ab0aed49a39fb735c7cd6271dfb1028ea6bb8bcc",
+      "sourceBytes": 1123114,
+      "output": "apps/mobile/assets/artwork/logic.png",
+      "sha256": "6cd3cc49385e9726654e3b1eec8e347aa32061cd4accff13bb36ac1a53c15b03",
+      "bytes": 140233,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        131,
+        134,
+        1133,
+        1201
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "math",
+      "source": "docs/redesign/artwork/campaign077/sources/math-v1.png",
+      "sourceSha256": "526415fd371ceba4e23697e12800110d9325cb500fafc06ec9010a9968b37548",
+      "sourceBytes": 1115399,
+      "output": "apps/mobile/assets/artwork/math.png",
+      "sha256": "df3135fbe1a660e5e785e1dc18c376b7148c28afc777a95825ed0c2b5110b50e",
+      "bytes": 117811,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        79,
+        183,
+        1205,
+        1105
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "language",
+      "source": "docs/redesign/artwork/campaign077/sources/language-v1.png",
+      "sourceSha256": "68a349f261a0b1c1fa7e3cf908b3d77d58c67d2317579931f0c246e40ac820c2",
+      "sourceBytes": 753599,
+      "output": "apps/mobile/assets/artwork/language.png",
+      "sha256": "ab62a6344101bddad7b5df39f864a7e08f910b95b0324e8291adae1b00da4375",
+      "bytes": 124844,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        253,
+        220,
+        1106,
+        1008
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "speed",
+      "source": "docs/redesign/artwork/campaign077/sources/speed-v2.png",
+      "sourceSha256": "5e2e1a5b68b340d79e537e5d491b068c60a6845c8ca4d4e4551bd97ca9e7408f",
+      "sourceBytes": 819723,
+      "output": "apps/mobile/assets/artwork/speed.png",
+      "sha256": "69b9f2ecc50039247083aed0d3426635a8d338345bdf792c45a9b1f5f36bd171",
+      "bytes": 108669,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        140,
+        167,
+        1125,
+        1083
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "flexibility",
+      "source": "docs/redesign/artwork/campaign077/sources/flexibility-v2.png",
+      "sourceSha256": "9e13bbebbc92b1d40d2c4f0014b7fdd7836d961859bdccfe11b24784dfeb047d",
+      "sourceBytes": 983061,
+      "output": "apps/mobile/assets/artwork/flexibility.png",
+      "sha256": "fefd7a81fe17045b2738f3e4b972fd0500acfeb5bd7d9cc5e191d239805fc5da",
+      "bytes": 114140,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        92,
+        176,
+        1163,
+        1075
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "spatial",
+      "source": "docs/redesign/artwork/campaign077/sources/spatial-v2.png",
+      "sourceSha256": "adf4f8cb35ec75be8d5e6cd5943de8dea76da692dd3c5dd6ce90633cc305a12a",
+      "sourceBytes": 530396,
+      "output": "apps/mobile/assets/artwork/spatial.png",
+      "sha256": "6701ae3abf3ffd30491fce58f7d8e698dbaffbc17618a0cd9400bbe0f4f31fd4",
+      "bytes": 103348,
+      "width": 512,
+      "height": 512,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "sourceVisibleBounds": [
+        291,
+        279,
+        994,
+        1049
+      ],
+      "visibleAlphaThreshold": 16,
+      "method": "Visible-bounds crop and aspect-preserving Lanczos thumbnail onto transparent canvas; source unchanged",
+      "acceptance": "source and small light/dark composites reviewed; native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "app-icon",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "sourceSha256": "2d8f05236831ae99bed9c086bd34413eeb0cf0f41622f1ac53e81ad267bcf067",
+      "sourceBytes": 1023356,
+      "output": "apps/mobile/assets/branding/app-icon.png",
+      "sha256": "69d73821e0e33ce5b9c7f8e96a36e1d766d6a36853451fb205f2ce6c04fec83e",
+      "bytes": 238694,
+      "width": 1024,
+      "height": 1024,
+      "alphaExtrema": null,
+      "method": "Alpha-bound crop, Lanczos rescale, platform canvas composite; monochrome reuses source alpha",
+      "acceptance": "Original source reviewed; launcher/splash native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "adaptive-foreground",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "sourceSha256": "2d8f05236831ae99bed9c086bd34413eeb0cf0f41622f1ac53e81ad267bcf067",
+      "sourceBytes": 1023356,
+      "output": "apps/mobile/assets/branding/adaptive-foreground.png",
+      "sha256": "e451d22b046b621c7d907ecd7a84a49c886e80b2ec8607bc2760877028a7ef43",
+      "bytes": 223843,
+      "width": 1024,
+      "height": 1024,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "method": "Alpha-bound crop, Lanczos rescale, platform canvas composite; monochrome reuses source alpha",
+      "acceptance": "Original source reviewed; launcher/splash native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "adaptive-monochrome",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "sourceSha256": "2d8f05236831ae99bed9c086bd34413eeb0cf0f41622f1ac53e81ad267bcf067",
+      "sourceBytes": 1023356,
+      "output": "apps/mobile/assets/branding/adaptive-monochrome.png",
+      "sha256": "2b30cc8e7adf31f426c2d089fe53f18826958b86466835689b743cf24f3f3519",
+      "bytes": 28342,
+      "width": 1024,
+      "height": 1024,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "method": "Alpha-bound crop, Lanczos rescale, platform canvas composite; monochrome reuses source alpha",
+      "acceptance": "Original source reviewed; launcher/splash native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "splash-mark",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "sourceSha256": "2d8f05236831ae99bed9c086bd34413eeb0cf0f41622f1ac53e81ad267bcf067",
+      "sourceBytes": 1023356,
+      "output": "apps/mobile/assets/branding/splash-mark.png",
+      "sha256": "20c4e62a4a9dc226f5e0dd4ee38d12e1d703c29cb6671c90b076c7d5efc4c4d3",
+      "bytes": 34557,
+      "width": 256,
+      "height": 256,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "method": "Alpha-bound crop, Lanczos rescale, platform canvas composite; monochrome reuses source alpha",
+      "acceptance": "Original source reviewed; launcher/splash native verification pending"
+    },
+    {
+      "kind": "image",
+      "name": "favicon",
+      "source": "docs/redesign/artwork/campaign077/sources/app-mark-v1.png",
+      "sourceSha256": "2d8f05236831ae99bed9c086bd34413eeb0cf0f41622f1ac53e81ad267bcf067",
+      "sourceBytes": 1023356,
+      "output": "apps/mobile/assets/branding/favicon.png",
+      "sha256": "9baa99f26602da5b69b76f995cbbb06757cfdc9e1b078929872abebb5fef3a36",
+      "bytes": 2980,
+      "width": 64,
+      "height": 64,
+      "alphaExtrema": null,
+      "method": "Alpha-bound crop, Lanczos rescale, platform canvas composite; monochrome reuses source alpha",
+      "acceptance": "Original source reviewed; launcher/splash native verification pending"
+    },
+    {
+      "kind": "font",
+      "family": "Manrope",
+      "subfamily": "Regular",
+      "weight": 400,
+      "source": "docs/redesign/artwork/campaign077/fonts/Manrope-variable.ttf",
+      "sourceSha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+      "sourceUrl": "https://github.com/google/fonts/tree/main/ofl/manrope",
+      "license": "apps/mobile/assets/fonts/OFL-Manrope.txt",
+      "output": "apps/mobile/assets/fonts/Manrope-Regular.ttf",
+      "sha256": "2602c71d1f36c96da0022706f15da7d51102d19d10510b77b5a39bf861122807",
+      "bytes": 97436
+    },
+    {
+      "kind": "font",
+      "family": "Manrope",
+      "subfamily": "SemiBold",
+      "weight": 600,
+      "source": "docs/redesign/artwork/campaign077/fonts/Manrope-variable.ttf",
+      "sourceSha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+      "sourceUrl": "https://github.com/google/fonts/tree/main/ofl/manrope",
+      "license": "apps/mobile/assets/fonts/OFL-Manrope.txt",
+      "output": "apps/mobile/assets/fonts/Manrope-SemiBold.ttf",
+      "sha256": "54aedc3fcde9875c6e8f63394c01b66186ebe08478b6f7d10a0ec795e8f8b234",
+      "bytes": 97568
+    },
+    {
+      "kind": "font",
+      "family": "Manrope",
+      "subfamily": "Bold",
+      "weight": 700,
+      "source": "docs/redesign/artwork/campaign077/fonts/Manrope-variable.ttf",
+      "sourceSha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+      "sourceUrl": "https://github.com/google/fonts/tree/main/ofl/manrope",
+      "license": "apps/mobile/assets/fonts/OFL-Manrope.txt",
+      "output": "apps/mobile/assets/fonts/Manrope-Bold.ttf",
+      "sha256": "f9696798e2d82d52207ac00c4462bc86999d371ab87401db4067feb3def4d27b",
+      "bytes": 97424
+    }
+  ]
+}

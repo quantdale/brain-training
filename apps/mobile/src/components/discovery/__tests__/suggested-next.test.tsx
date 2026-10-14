@@ -7,13 +7,20 @@
  * replaces the old banner-card hero.
  */
 
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { render, screen, within } from '@testing-library/react-native';
 
 import type { GameDefinition } from '@/registry/registry';
 
 import type { DiscoverySnapshot } from '../discovery-data';
 import { SuggestedNext } from '../suggested-next';
+
+const mockViewport = { width: 390, height: 844, scale: 3, fontScale: 1 };
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: () => mockViewport,
+}));
+beforeEach(() => { Object.assign(mockViewport, { width: 390, fontScale: 1 }); });
 
 function makeGame(
   id: string,
@@ -62,6 +69,16 @@ const SNAPSHOT: DiscoverySnapshot = {
 };
 
 describe('suggested next storefront', () => {
+  it.each([{ width: 320, fontScale: 1 }, { width: 390, fontScale: 2 }])('keeps recommendations readable at $width dp and $fontScale font scale', async (viewport) => {
+    Object.assign(mockViewport, viewport);
+    await render(<SuggestedNext data={SNAPSHOT} />);
+    expect(screen.getByTestId('games-suggested-title')).toHaveTextContent(TOP.name);
+    expect(screen.getByTestId('games-suggested-open')).toBeOnTheScreen();
+    expect(screen.queryByTestId('games-featured-world', { includeHiddenElements: true })).toBeNull();
+    expect(screen.getByTestId('games-suggested-alternative-layout')).toHaveStyle({ flexDirection: 'column' });
+    expect(screen.getByTestId(`games-suggested-alternative.${SECOND.id}`)).toBeOnTheScreen();
+  });
+
   it('leads with the top pick as a game stage carrying one action key', async () => {
     await render(<SuggestedNext data={SNAPSHOT} />);
 

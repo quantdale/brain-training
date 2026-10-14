@@ -7,8 +7,8 @@
   ],
   "description": "Spot the pattern in a number sequence, then pick the next term.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
-  "generatorVersion": "1.0.0",
+  "gameVersion": "1.1.0",
+  "generatorVersion": "1.1.0",
   "contentVersion": null,
   "hasTutorial": true
 }

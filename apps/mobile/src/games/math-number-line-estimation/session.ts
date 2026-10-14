@@ -56,7 +56,7 @@ export interface BuildRawResultInput {
  * full reproducibility envelope (seed, versions, difficulty, generator info).
  */
 export function buildNumberLineRawResult(input: BuildRawResultInput): NumberLineRawResult {
-  const generatorInfo = {
+  const generatorInfo: Record<string, string | number | boolean> = {
     rounds: input.params.rounds,
     budgetMs: input.params.budgetMs,
     lineMin: input.params.lineMin,
@@ -64,6 +64,9 @@ export function buildNumberLineRawResult(input: BuildRawResultInput): NumberLine
     tolerancePct: input.params.tolerancePct,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
+  if (versionToNumber(input.gameVersion) >= versionToNumber('2.0.0')) {
+    generatorInfo.taskMode = 'numeric-target-hidden-position-v2';
+  }
   const diagnosticMetadata: DiagnosticMetadata = createDiagnosticMetadata({
     gameId: GAME_ID,
     gameVersion: input.gameVersion,

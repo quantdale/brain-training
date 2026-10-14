@@ -1,6 +1,6 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 // Adversarial reducer suite (campaign 011 W01): response accounting under
-// double-taps/late taps/boundaries, drift-free cadence under stalls,
+// double-taps/late taps/boundaries, measured exposure under stalls,
 // exact pause freezing, adaptive window stepping incl. the relaxed
 // window > slot catch-up, QA force paths, and replay determinism.
 import { describe, expect, it } from '@jest/globals';
@@ -35,16 +35,23 @@ const SLOT_ADAPTIVE = trialSlotMs(ADAPTIVE_PARAMS.stimulusOnMs, ADAPTIVE_PARAMS.
 function start(seed = 't', level: DifficultyLevel = 'normal'): VigilanceGameState {
   let s = createInitialVigilanceState();
   s = vigilanceGameReducer(s, { type: 'select-difficulty', level });
-  return vigilanceGameReducer(s, {
+  s = vigilanceGameReducer(s, {
     type: 'start-session',
     seed,
     sessionId: 'sess-1',
     startedAtMs: 100,
   });
+  return vigilanceGameReducer(s, { type: 'trial-presented', atActiveMs: 0 });
 }
 
-const tick = (s: VigilanceGameState, atActiveMs: number): VigilanceGameState =>
-  vigilanceGameReducer(s, { type: 'trial-tick', atActiveMs });
+// Simulate the display commit after a pure transition starts a new trial.
+// Screen regressions separately hold/delay this commit to cover real batching.
+const tick = (s: VigilanceGameState, atActiveMs: number): VigilanceGameState => {
+  const next = vigilanceGameReducer(s, { type: 'trial-tick', atActiveMs });
+  return next.phase === 'stream' && !next.trialPresented
+    ? vigilanceGameReducer(next, { type: 'trial-presented', atActiveMs })
+    : next;
+};
 
 const respond = (s: VigilanceGameState, atActiveMs: number): VigilanceGameState =>
   vigilanceGameReducer(s, { type: 'respond', atActiveMs });
@@ -201,16 +208,14 @@ describe('response accounting', () => {
 });
 
 describe('monotonic lifecycle deltas only (no wall clock)', () => {
-  it('clamps negative/pre-onset timestamps to a zero-length reaction', () => {
+  it('rejects negative/pre-onset and nonfinite timestamps without awarding a zero-length reaction', () => {
     const seed = 'rt-clamp';
     firstGoIndex(seed, 'normal');
-    let s = start(seed);
-    s = respond(s, -50);
-    expect(s.outcome).toBe('hit'); // first trial is a go for this seed family… guarded below
-    expect(s.responseRtMs).toBe(0);
-    expect(s.stats.reactions).toEqual([0]);
-    expect(s.stats.bestReactionMs).toBe(0);
-    expect(s.stats.score).toBe(hitScore(0, NORMAL)); // fastest bucket: 150
+    const s = start(seed);
+    for (const at of [-50, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      expect(respond(s, at)).toBe(s);
+      expect(tick(s, at)).toBe(s);
+    }
 
     let z = start(`${seed}-zero`);
     z = respond(z, 0);
@@ -227,8 +232,39 @@ describe('monotonic lifecycle deltas only (no wall clock)', () => {
   });
 });
 
-describe('drift-free scheduled onsets', () => {
-  it('advances to prevStart + slot exactly, and catches up after a stall', () => {
+describe('measured display onsets', () => {
+  it('cannot score or time out a new trial until its display commit is recorded', () => {
+    let s = start('077-vigilance-stall');
+    s = vigilanceGameReducer(s, { type: 'trial-tick', atActiveMs: 10_000 });
+    expect(s.stats.omissions).toBe(1);
+    s = vigilanceGameReducer(s, { type: 'trial-tick', atActiveMs: 10_000 });
+    expect(s.trialIndex).toBe(1);
+    expect(s.trialPresented).toBe(false);
+    expect(vigilanceGameReducer(s, { type: 'trial-tick', atActiveMs: 15_000 })).toBe(s);
+    expect(respond(s, 15_000)).toBe(s);
+    s = vigilanceGameReducer(s, { type: 'trial-presented', atActiveMs: 15_000 });
+    expect(s.trialStartActiveMs).toBe(15_000);
+    expect(respond(s, 15_001).responseRtMs).toBe(1);
+    expect(s.stats.omissions).toBe(1);
+  });
+
+  it('rejects stale trial/session/pause stamps and earlier active samples', () => {
+    const first = start('077-vigilance-stall');
+    const trial = { sessionId: first.sessionId, trialIndex: first.trialIndex, inputEpoch: first.inputEpoch };
+    const sampled = tick(first, 300);
+    expect(respond(sampled, 299)).toBe(sampled);
+    expect(tick(sampled, 299)).toBe(sampled);
+    const paused = vigilanceGameReducer(sampled, { type: 'pause' });
+    const resumed = vigilanceGameReducer(paused, { type: 'resume' });
+    expect(vigilanceGameReducer(resumed, { type: 'respond', atActiveMs: 400, trial })).toBe(resumed);
+    const next = tick(respond(first, 300), SLOT_NORMAL);
+    expect(vigilanceGameReducer(next, { type: 'respond', atActiveMs: 1300, trial })).toBe(next);
+    expect(vigilanceGameReducer(next, { type: 'trial-tick', atActiveMs: 10_000, trial })).toBe(next);
+    const otherSession = { ...trial, sessionId: 'another-session', inputEpoch: next.inputEpoch, trialIndex: next.trialIndex };
+    expect(vigilanceGameReducer(next, { type: 'respond', atActiveMs: 1300, trial: otherSession })).toBe(next);
+  });
+
+  it('keeps normal cadence and gives a digit presented after a stall its full window', () => {
     const seed = 'cadence';
     let s = start(seed);
     expect(s.trialStartActiveMs).toBe(0);
@@ -242,22 +278,22 @@ describe('drift-free scheduled onsets', () => {
     expect(s.trialIndex).toBe(0); // feedback tail still playing
     s = tick(s, 1250);
     expect(s.trialIndex).toBe(1);
-    expect(s.trialStartActiveMs).toBe(Math.min(1250, 0 + SLOT_NORMAL)); // exactly scheduled
+    expect(s.trialStartActiveMs).toBe(1250);
 
     // Trial 1: a tap lands right after the advance (new stimulus legitimately live).
     s = respond(s, 1255);
     expect(s.responseRtMs).toBe(5);
 
-    // Stall: timers freeze for ~1.4 s mid-trial 2; the next onset must clamp
-    // back onto the schedule instead of drifting forward forever.
-    s = tick(s, 2600 - 1250); // 1350: unresolved yet? (window 1200 already passed → resolves)
-    if (s.outcome === null) {
-      s = tick(s, 1400);
-    }
+    s = tick(s, 10_000);
+    expect(s.trialIndex).toBe(2);
+    expect(s.trialStartActiveMs).toBe(10_000);
+    expect(s.outcome).toBeNull();
+    s = tick(s, 10_000);
+    s = tick(s, 11_199);
+    expect(s.outcome).toBeNull();
+    s = tick(s, 11_200);
     expect(s.outcome).not.toBeNull();
-    const advancedAt = 2500;
-    s = tick(s, advancedAt);
-    expect(s.trialStartActiveMs).toBe(Math.min(advancedAt, 1250 + SLOT_NORMAL)); // 2500, not 2500+
+    expect(s.stats.trialsPlayed).toBe(3);
   });
 
   it('completes a full expert session (42 timeouts) under irregular ticks + a big stall', () => {
@@ -417,31 +453,25 @@ describe('adaptive response-window stepping', () => {
     expect(windows.some((x) => x > ADAPTIVE_PARAMS.responseWindowMs)).toBe(true);
   });
 
-  it('resolves a relaxed window (> slot) at window end and catches the cadence up', () => {
+  it('resolves a relaxed window (> slot) at window end without backdating the next cue', () => {
     // State surgery: any reachable adaptive state may carry window > slot
     // (errors relax toward 1400 > slot 1150). The trial must NOT stick at the
-    // slot end; it times out at the window end, then the next onset clamps.
+    // slot end; it times out at the window end, then starts a fresh exposure.
     const seed = 'adapt-wide';
     const wide: VigilanceGameState = { ...start(seed, 'adaptive'), responseWindowMs: 1400 };
     let s = tick(wide, 1149);
     expect(s.outcome).toBeNull(); // still waiting — slot end alone decides nothing
 
-    let resolvedAt = -1;
-    for (let at = 1150; at <= 2000; at += 50) {
-      s = tick(s, at);
-      if (resolvedAt < 0 && s.outcome !== null) {
-        resolvedAt = at;
-        expect(at).toBeGreaterThanOrEqual(1400); // decided by the WINDOW, not the slot
-        expect(s.trialElapsedMs).toBe(SLOT_ADAPTIVE); // clamped to the slot
-      }
-    }
-    expect(resolvedAt).toBeGreaterThan(0);
-
-    s = tick(s, resolvedAt + 50); // slot long past → immediate advance
-    if (s.phase === 'stream') {
-      expect(s.trialStartActiveMs).toBe(Math.min(resolvedAt + 50, 0 + SLOT_ADAPTIVE));
-      expect(s.trialStartActiveMs).toBeLessThan(resolvedAt + 50); // caught up
-    }
+    s = tick(s, 1399);
+    expect(s.outcome).toBeNull();
+    s = tick(s, 1400);
+    expect(s.outcome).not.toBeNull();
+    expect(s.trialElapsedMs).toBe(SLOT_ADAPTIVE);
+    s = tick(s, 1450);
+    expect(s.trialIndex).toBe(1);
+    expect(s.trialStartActiveMs).toBe(1450);
+    expect(tick(s, 1450).outcome).toBeNull();
+    expect(respond(s, 1451).responseRtMs).toBe(1);
   });
 
   it('keeps fixed levels at a constant window and maps challenge ratings correctly', () => {

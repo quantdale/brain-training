@@ -33,26 +33,23 @@
 
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 
 import { SectionHeader } from "@/components/shell";
-import { GameWorldArt } from "@/components/discovery/game-identity";
+import { DomainArtwork } from "@/components/discovery/domain-artwork";
 import {
+  AppIcon,
   Button,
   Card,
   EmptyState,
   Entrance,
-  HAIRLINE,
   ListRow,
   ProgressBar,
-  ProgressRing,
   Report,
   ReportRow,
   SectionGrid,
   Skeleton,
   SkeletonText,
-  Spark,
-  StreakStrip,
   showToast,
 } from '@/components/ui';
 import {
@@ -251,6 +248,7 @@ async function loadClaimableRewardCount(
 export default function HomeScreen() {
   const theme = useTheme();
   const today = localDateString();
+  const { width, fontScale } = useWindowDimensions();
   const [refreshKey, setRefreshKey] = useState(0);
   // Reload on every focus so slots reflect sessions completed elsewhere (the
   // workout instance additionally self-refreshes via workout events).
@@ -540,7 +538,9 @@ export default function HomeScreen() {
   const currentGame = workoutFlow.currentGameId
     ? allGames.find((g) => g.id === workoutFlow.currentGameId)
     : undefined;
-  const consoleGame = currentGame ?? workout[0] ?? allGames[0];
+  const skippedCount = workoutFlow.instance?.skippedIndices?.length ?? 0;
+  const playedCount = Math.max(0, workoutIndex - skippedCount);
+  const savedPlanLine = `${playedCount} ${playedCount === 1 ? "game" : "games"} saved${skippedCount > 0 ? ` · ${skippedCount} skipped` : ""}`;
 
   const streak = reconstructStreak(
     data.activityDates,
@@ -600,15 +600,11 @@ export default function HomeScreen() {
       : null;
   const heroPlanLine =
     workout.length > 0
-      ? `${workout.length} games${dailyExpectedMinutes ? ` · about ${dailyExpectedMinutes} minutes` : ""} · ${
-          data.recentSessions.length > 0
-            ? "balanced across your recent training."
-            : "a balanced starting set."
-        }`
+      ? `${workout.length} ${workout.length === 1 ? 'game' : 'games'}${dailyExpectedMinutes ? ` · about ${dailyExpectedMinutes} minutes` : ""}`
       : null;
   const heroCtaSublabel =
     workoutStatus === "completed"
-      ? `${workout.length}/${workout.length} games saved`
+      ? savedPlanLine
       : workout.length === 0
         ? undefined
         : isResuming
@@ -789,77 +785,65 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Today's Workout — the screen's single focal object (campaign 055).
-          The focus-module world art leads, a compact body carries the plan,
-          progress and the one primary key, and the per-game legs move to a
-          quiet Report directly below. */}
+      {/* Small habit context and one daily action before the detailed plan. */}
+      <View style={[styles.habitRail, { borderColor: theme.border }]} testID="home-context">
+        <View style={styles.habitMetric} testID="home-streak-card">
+          <AppIcon name="streak" tone="streak" size={18} />
+          <ThemedText type="label" testID="home-stat-streak">{currentStreak}</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">day streak</ThemedText>
+        </View>
+        <View style={styles.habitMetric} testID="home-level-card">
+          <AppIcon name="layers" tone="xp" size={18} />
+          <ThemedText type="label" testID="home-stat-level">{`Level ${level}`}</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary" testID="home-stat-xp">
+            {data.totalXp} XP
+          </ThemedText>
+        </View>
+        {data.balance > 0 ? (
+          <View style={styles.habitMetric} testID="home-stat-coins" accessibilityLabel={`${data.balance} coins`}>
+            <AppIcon name="coins" tone="currency" size={18} />
+            <ThemedText type="label">{data.balance}</ThemedText>
+          </View>
+        ) : null}
+      </View>
+
       <Entrance index={0}>
-        {/* Change 076 (lock section 1): the focal workout object is the
-            immersive stage card — charcoal in both schemes, stageInk type. */}
-        <Card variant="stage" padding="none" testID="home-workout-cta">
-          {consoleGame ? (
-            <View testID="home-training-console">
-              <GameWorldArt
-                game={consoleGame}
-                size="stage"
-                testID="home-training-console-world"
-              />
-            </View>
-          ) : null}
+        <Card variant="outlined" padding="none" testID="home-workout-cta">
           <View style={styles.heroBody}>
-            <View style={styles.heroTitle}>
-              <View style={styles.heroEyebrowRow}>
-                <Spark size={14} color={theme.accent} />
-                <ThemedText type="eyebrow" themeColor="stageInk">
-                  TODAY
-                </ThemedText>
+            <View style={styles.workoutHeading} testID="home-training-console">
+              <View style={styles.workoutHeadingCopy}>
+                <ThemedText type="headline">Today&apos;s Workout</ThemedText>
+                {heroPlanLine ? (
+                  <ThemedText type="bodySmall" themeColor="textSecondary" testID="home-workout-plan">
+                    {heroPlanLine}
+                  </ThemedText>
+                ) : null}
               </View>
-              <ThemedText type="headline" themeColor="stageInk">Today&apos;s Workout</ThemedText>
-              {heroPlanLine ? (
-                <ThemedText
-                  type="bodySmall"
-                  themeColor="stageInk"
-                  testID="home-workout-plan">
-                  {heroPlanLine}
-                </ThemedText>
+              {fontScale < 1.5 && width >= 360 ? (
+                <DomainArtwork name="workout" size={112} testID="home-training-console-world" />
               ) : null}
-              <ThemedText
-                type="caption"
-                themeColor="stageInk"
-                testID="home-local-trust">
-                Your training is ready on this device and works offline.
-              </ThemedText>
             </View>
             {workoutStatus === "completed" ? (
-              <View
-                style={[styles.completePanel, { backgroundColor: theme.successSoft }]}
-                testID="home-workout-complete-panel">
-                <ThemedText
-                  type="label"
-                  themeColor="successSoftText"
-                  testID="home-workout-complete">
-                  Workout complete
-                </ThemedText>
-                <ThemedText type="caption" themeColor="successSoftText">
-                  {`${workout.length}/${workout.length} games saved. See today's progress for a summary.`}
-                </ThemedText>
+              <View style={[styles.completePanel, { backgroundColor: theme.successSoft }]} testID="home-workout-complete-panel">
+                <View style={styles.habitMetric}>
+                  <AppIcon name="check" tone="successSoftText" size={18} />
+                  <ThemedText type="label" themeColor="successSoftText" testID="home-workout-complete">
+                    Workout complete
+                  </ThemedText>
+                </View>
+                <ThemedText type="bodySmall" themeColor="successSoftText">{savedPlanLine}</ThemedText>
               </View>
             ) : workout.length > 0 ? (
               <View style={styles.progressRow}>
-                {/* stageInk required: this numeral sits on the charcoal stage
-                    card, where the default paper ink is unreadable (device
-                    capture: near-black "0/4" on the stage). */}
-                <ThemedText type="numeralXl" themeColor="stageInk" testID="home-workout-progress">
+                <ThemedText type="numeral" testID="home-workout-progress">
                   {`${workoutIndex}/${workout.length}`}
                 </ThemedText>
                 <View style={styles.progressCopy}>
-                  <ThemedText type="label" themeColor="stageInk">
-                    {`${workoutIndex} of ${workout.length} complete`}
+                  <ThemedText type="label">
+                    {skippedCount > 0 ? `${playedCount} played · ${skippedCount} skipped` : `${workoutIndex} of ${workout.length} complete`}
                   </ThemedText>
                   {currentGame ? (
-                    <ThemedText type="caption" themeColor="stageInk">
-                      {`Next: ${currentGame.name}`}
-                    </ThemedText>
+                    <ThemedText type="caption" themeColor="textSecondary">{`Next: ${currentGame.name}`}</ThemedText>
                   ) : null}
                 </View>
               </View>
@@ -868,67 +852,44 @@ export default function HomeScreen() {
               <>
                 <ProgressBar
                   value={workoutIndex / workout.length}
-                  tone="success"
+                  tone="accent"
                   testID="home-workout-progress-bar"
-                  accessibilityLabel={
-                    workoutStatus === "completed"
-                      ? `Workout complete, ${workout.length} of ${workout.length} games done`
-                      : `${workoutIndex} of ${workout.length} games done`
-                  }
+                  accessibilityLabel={`${playedCount} of ${workout.length} games played${skippedCount > 0 ? `, ${skippedCount} skipped` : ""}`}
                 />
                 {workoutStatus === "completed" ? (
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    label="See today's progress"
-                    sublabel={`${workout.length}/${workout.length} games saved`}
-                    testID="home-workout-continue"
+                  <Button variant="primary" size="lg" label="See today's progress"
+                    sublabel={savedPlanLine} testID="home-workout-continue"
                     accessibilityLabel="See today's progress"
                     accessibilityHint="Review your completed workout"
-                    onPress={() => router.replace("/progress")}
-                  />
+                    trailingIcon={<AppIcon name="next" tone="accentOn" size={20} />}
+                    onPress={() => router.replace("/progress")} />
                 ) : heroHref ? (
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    label={heroCtaLabel}
-                    sublabel={heroCtaSublabel}
-                    testID="home-workout-continue"
-                    accessibilityLabel={heroCtaAccessibilityLabel}
-                    onPress={() => router.push(heroHref)}
-                  />
+                  <Button variant="primary" size="lg" label={heroCtaLabel} sublabel={heroCtaSublabel}
+                    testID="home-workout-continue" accessibilityLabel={heroCtaAccessibilityLabel}
+                    trailingIcon={<AppIcon name="next" tone="accentOn" size={20} />}
+                    onPress={() => router.push(heroHref)} />
                 ) : null}
               </>
             ) : hasCatalog && workoutFlow.loadFailed ? (
-              // A failed load-or-create must not read as "no catalog installed".
               <Card tone="dangerSoft" testID="home-workout-error">
                 <View style={styles.errorBody}>
-                  <ThemedText type="label" themeColor="dangerSoftText">
-                    Couldn&apos;t load today&apos;s workout
-                  </ThemedText>
-                  <ThemedText type="bodySmall" themeColor="dangerSoftText">
-                    Your plan is stored on this phone — try again to reload it.
-                  </ThemedText>
-                  <Button
-                    variant="secondary"
-                    label="Try again"
-                    testID="home-workout-retry"
-                    onPress={workoutFlow.retry}
-                  />
+                  <ThemedText type="label" themeColor="dangerSoftText">Couldn&apos;t load today&apos;s workout</ThemedText>
+                  <ThemedText type="bodySmall" themeColor="dangerSoftText">Your plan is stored on this phone — try again to reload it.</ThemedText>
+                  <Button variant="secondary" label="Try again" testID="home-workout-retry" onPress={workoutFlow.retry} />
                 </View>
               </Card>
             ) : hasCatalog && workoutFlow.status === "loading" ? (
-              // Hold the skeleton instead of flashing the empty-plan copy while
-              // the durable instance loads.
               <Skeleton height={Spacing.six * 2} testID="home-workout-loading" />
             ) : (
-              <EmptyState
-                testID="home-workout-empty"
-                icon={<Spark size={32} color={theme.accent} />}
-                title="No plan yet"
-                message="Your daily 4-game training plan will appear here once games are registered."
-              />
+              <EmptyState testID="home-workout-empty" icon={<AppIcon name="games" size={32} tone="accentText" />}
+                title="No plan yet" message="Your daily 4-game training plan will appear here once games are registered." />
             )}
+            <View style={styles.habitMetric}>
+              <AppIcon name="shield" size={14} tone="textMuted" />
+              <ThemedText type="caption" themeColor="textMuted" testID="home-local-trust">
+                Ready to play offline.
+              </ThemedText>
+            </View>
           </View>
         </Card>
 
@@ -985,90 +946,21 @@ export default function HomeScreen() {
         ) : null}
       </Entrance>
 
-      {/* Context stays available, but outside the decision surface. Report
-          grammar keeps streak, level and coins as evidence — not a second
-          hero competing with today's workout. */}
-      <Report title="Your training" testID="home-context">
-        {/* The streak row carries the strip, milestone line and at-risk note;
-            ReportRow has no testID slots for those nodes, so the row is
-            composed directly inside Report's hairline grammar. */}
-        <View
-          style={[styles.reportRow, { borderBottomColor: theme.border }]}
-          testID="home-streak-card">
-          <View style={styles.reportRowHead}>
-            <ThemedText type="bodySmall" themeColor="textSecondary">
-              Day streak
-            </ThemedText>
-            <ThemedText
-              type="numeralXl"
-              style={{ color: theme.streak }}
-              testID="home-stat-streak">
-              {currentStreak}
-            </ThemedText>
-          </View>
-          <StreakStrip
-            count={currentStreak}
-            testID="home-streak-card-tracker"
-          />
-          {streakMilestoneLine ? (
-            <ThemedText
-              type="caption"
-              themeColor="textSecondary"
-              testID="home-streak-card-next-milestone">
-              {streakMilestoneLine}
-            </ThemedText>
-          ) : null}
-          {loaded && streak.atRisk ? (
-            <View
-              style={[styles.atRisk, { backgroundColor: theme.warningSoft }]}
-              testID="home-streak-at-risk">
-              <ThemedText type="caption" themeColor="warningSoftText">
-                Play today to keep your streak alive.
-              </ThemedText>
-            </View>
-          ) : null}
+      {loaded && streak.atRisk ? (
+        <View style={[styles.atRisk, { backgroundColor: theme.warningSoft }]} testID="home-streak-at-risk">
+          <ThemedText type="caption" themeColor="warningSoftText">Play today to keep your streak alive.</ThemedText>
         </View>
-
-        <ReportRow
-          testID="home-level-card"
-          icon={
-            <ProgressRing
-              value={levelRatio}
-              tone="xp"
-              size={48}
-              label={
-                xpToNext > 0
-                  ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
-                  : `Level ${level}, ${data.totalXp} XP total, max level`
-              }
-              testID="home-stat-xp">
-              <ThemedText
-                type="numeralLg"
-                themeColor="xp"
-                testID="home-stat-level">
-                {level}
-              </ThemedText>
-            </ProgressRing>
-          }
-          label="Level"
-          value={`${data.totalXp} XP`}
-          hint={
-            xpToNext > 0
-              ? `${xpToNext} XP to Level ${level + 1}`
-              : "Max level"
-          }
-          divider={data.balance > 0}
-        />
-
-        {data.balance > 0 ? (
-          <ReportRow
-            testID="home-stat-coins"
-            label="Coins"
-            value={`🪙 ${data.balance}`}
-            accessibilityLabel={`${data.balance} coins`}
-          />
-        ) : null}
-      </Report>
+      ) : null}
+      <View style={styles.progressCopy} testID="home-streak-card-tracker">
+        <ProgressBar value={levelRatio} tone="xp" testID="home-level-progress"
+          accessibilityLabel={`Level ${level}, ${xpToNext} XP to Level ${level + 1}`} />
+        <ThemedText type="caption" themeColor="textSecondary">
+          {xpToNext > 0 ? `${xpToNext} XP to Level ${level + 1}` : "Max level"}
+        </ThemedText>
+        <ThemedText type="caption" themeColor="textMuted" testID="home-streak-card-next-milestone">
+          {streakMilestoneLine}
+        </ThemedText>
+      </View>
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
@@ -1378,6 +1270,19 @@ const styles = StyleSheet.create({
     gap: Spacing.twoHalf,
     padding: Spacing.three,
   },
+  workoutHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  workoutHeadingCopy: { flex: 1, gap: Spacing.one, minWidth: 0 },
+  habitRail: {
+    flexDirection: "row", flexWrap: "wrap", alignItems: "center",
+    gap: Spacing.three, paddingBottom: Spacing.twoHalf, borderBottomWidth: 1,
+  },
+  habitMetric: {
+    flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: Spacing.oneHalf,
+  },
   completePanel: {
     borderRadius: Radii.medium,
     padding: Spacing.two,
@@ -1385,25 +1290,6 @@ const styles = StyleSheet.create({
   },
   planReport: {
     marginTop: Spacing.three,
-  },
-  reportRow: {
-    gap: Spacing.one,
-    paddingVertical: Spacing.two,
-    borderBottomWidth: HAIRLINE,
-  },
-  reportRowHead: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: Spacing.two,
-  },
-  heroEyebrowRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.one,
-  },
-  heroTitle: {
-    gap: Spacing.half,
   },
   progressRow: {
     flexDirection: "row",

@@ -9,7 +9,10 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.1.0';
+// 1.2: the scored sequence is the sequence shown to the player, and only
+// current-slot, distinct input advances it. Historical raw records keep
+// their original versions and generated sequences.
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

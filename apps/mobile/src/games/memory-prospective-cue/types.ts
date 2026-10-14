@@ -196,7 +196,7 @@ export type ProspectiveCueAction =
       /** Stream index whose response window expired (stamped by its interval). */
       itemIndex: number;
     }
-  | { type: "next-round" }
+  | { type: "next-round" ; stamp: ResultContinuationStamp }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "tutorial-open" }
@@ -227,6 +227,8 @@ export interface ProspectiveCueGameState {
   phase: ProspectiveCuePhase;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
+  /** Retires queued result continuations at session and pause boundaries. */
+  continuationEpoch: number;
   /** Selected difficulty (preselected 'normal' in the intro). */
   difficulty: DifficultyLevel | null;
   /** Resolved difficulty profile for the active session. */
@@ -285,6 +287,7 @@ export interface ProspectiveCueGameState {
 
 export function createInitialProspectiveCueState(): ProspectiveCueGameState {
   return {
+    continuationEpoch: 0,
     phase: "intro",
     paused: false,
     difficulty: "normal",
@@ -319,4 +322,31 @@ export function createInitialProspectiveCueState(): ProspectiveCueGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+/** The exact result window that rendered a continuation control. */
+export interface ResultContinuationStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly phase: ProspectiveCueGameState['phase'];
+  readonly epoch: number;
+}
+
+export function continuationStamp(state: ProspectiveCueGameState): ResultContinuationStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    phase: state.phase,
+    epoch: state.continuationEpoch,
+  };
+}
+
+export function ownsContinuation(
+  state: ProspectiveCueGameState,
+  stamp: ResultContinuationStamp | undefined,
+): boolean {
+  return !state.paused && !state.tutorialOpen && stamp !== undefined &&
+    state.sessionId !== null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.phase === state.phase &&
+    stamp.epoch === state.continuationEpoch;
 }

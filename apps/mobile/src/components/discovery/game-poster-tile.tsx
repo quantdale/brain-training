@@ -21,6 +21,7 @@ import { GameWorldArt, getGameIdentity, IdentityMark } from '@/components/discov
 import { masteryTierLabel, useDomainHue } from '@/components/discovery/game-card';
 import { ThemedText } from '@/components/themed-text';
 import { Tappable } from '@/components/ui/tappable';
+import { AppIcon } from '@/components/ui/app-icon';
 import { useTheme } from '@/hooks/use-theme';
 import type { MasterySummary } from '@/mastery';
 import type { GameDefinition } from '@/registry/registry';
@@ -73,12 +74,10 @@ export const GamePosterTile = memo(function GamePosterTile({
             {identity.verb}
           </ThemedText>
           {isFavorite ? (
-            <ThemedText type="caption" themeColor="warning" allowFontScaling={false} aria-hidden>
-              ★
-            </ThemedText>
+            <AppIcon name="favorite" size={16} tone="warningText" />
           ) : null}
         </View>
-        <ThemedText type="bodyLarge" numberOfLines={2} style={styles.name}>
+        <ThemedText type="bodyLarge" style={styles.name}>
           {game.name}
         </ThemedText>
         {tier ? (
@@ -117,6 +116,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontWeight: '800',
+    fontWeight: '700',
   },
 });

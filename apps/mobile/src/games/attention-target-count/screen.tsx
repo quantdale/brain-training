@@ -36,7 +36,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -57,8 +57,7 @@ import {
   persistTargetCountSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialTargetCountState } from './types';
-import type { TargetCountAction } from './types';
+import { GAME_ID, createInitialTargetCountState, inputStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface TargetCountScreenProps {
@@ -74,8 +73,6 @@ export interface TargetCountScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Countdown accumulator step (ms); also bounds the pause-freeze drift. */
-const ROUND_TICK_MS = 100;
 
 export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
   const {
@@ -90,16 +87,20 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
   const [state, dispatch] = useReducer(targetCountGameReducer, undefined, createInitialTargetCountState);
 
   const stateRef = useRef(state);
-  // Accumulated ACTIVE (non-paused) time in the current round; reset when a new
-  // round begins so pause/resume freezes and continues the remaining window
-  // instead of restarting it (and the speed bonus stays honest).
-  const roundElapsedRef = useRef(0);
-  const roundElapsedRoundRef = useRef(-1);
-
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
   });
+
+  const applyGameplayAction = useCallback((action: Parameters<typeof targetCountGameReducer>[1]) => {
+    const current = stateRef.current;
+    const next = targetCountGameReducer(current, action);
+    // Claim the transition before React commits; old callbacks stay silent.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+  const stamp = useMemo(() => inputStamp(state), [state]);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -108,14 +109,13 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       const current = stateRef.current;
       return (current.phase === 'showGrid' || current.phase === 'roundResult') && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => applyGameplayAction({ type: 'pause', nowMs: clock.now() }),
   });
 
   const tutorial = useMemo(() => createTargetCountTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createTargetCountQaForceStateHooks(dispatch), [dispatch]);
 
   const params = state.profile !== null ? targetCountParamsFromProfile(state.profile) : null;
-  const roundTimeMs = params?.roundTimeMs ?? 9000;
   const rounds = params?.rounds ?? 8;
   const inSession = state.phase === 'showGrid' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
@@ -127,34 +127,14 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
     }
   }, [tutorial]);
 
-  // ---- Reset the per-round elapsed baseline when a fresh grid begins.
-  useEffect(() => {
-    if (state.phase === 'showGrid' && roundElapsedRoundRef.current !== state.roundIndex) {
-      roundElapsedRoundRef.current = state.roundIndex;
-      roundElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex]);
-
-  // ---- Per-round countdown with freeze-and-continue: a window of
-  // `roundTimeMs` of ACTIVE (non-paused) time, accumulated in ROUND_TICK_MS
-  // steps. While paused, the interval is cleared so no time accrues; on resume
-  // it continues from where it left off, so pausing can never stretch the
-  // window or reset the elapsed time the speed bonus is computed from.
-  useGameInterval(
+  // Scheduling and score measurement share the reducer's monotonic deadline.
+  const remainingWindowMs = Math.ceil(Math.max(0, state.deadlineMs - clock.now()));
+  useGameDeadlineTimeout(
     state.phase === 'showGrid' && !state.paused,
-    () => {
-      roundElapsedRef.current = Math.min(roundTimeMs, roundElapsedRef.current + ROUND_TICK_MS);
-      if (roundElapsedRef.current >= roundTimeMs) {
-        // Budget exhausted: timeout answer (the reducer ignores it once the
-        // phase has moved on, mirroring the old clear-then-dispatch order).
-        dispatch({
-          type: 'answer',
-          selectedCount: null,
-          elapsedMs: roundElapsedRef.current,
-        });
-      }
-    },
-    ROUND_TICK_MS,
+    () => applyGameplayAction({ type: 'answer', selectedCount: null, nowMs: clock.now(), stamp }),
+    remainingWindowMs,
+    clock,
+    `round:${state.sessionId}:${state.roundIndex}:${state.deadlineMs}:${remainingWindowMs}`,
   );
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
@@ -265,9 +245,9 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      applyGameplayAction({ type: 'resume', nowMs: clock.now() });
     }
-  }, [session, dispatch]);
+  }, [session, clock, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -280,23 +260,9 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       if (current.phase !== 'showGrid' || current.paused) {
         return;
       }
-      // Feedback follows the authoritative round outcome, not the tap's
-      // optimism: the reducer owns the round-window guard, so resolve the
-      // answer through it first. An answer past the budget resolves to a
-      // timeout (the pending tick owns that resolution) and must stay silent
-      // — sounding "correct" for a round that scores a timeout is the
-      // Campaign 023 late-tap mismatch. No timing logic is duplicated: this
-      // is the same pure transition the dispatch below commits.
-      const action: TargetCountAction = {
-        type: 'answer',
-        selectedCount,
-        elapsedMs: roundElapsedRef.current,
-      };
-      const next = targetCountGameReducer(current, action);
-      dispatch(action);
-      if (next.phase !== 'roundResult' || next.roundOutcome === null) {
-        return;
-      }
+      if (session.status() !== 'active') return;
+      const next = applyGameplayAction({ type: 'answer', selectedCount, nowMs: clock.now(), stamp });
+      if (next === null || next.roundOutcome === null) return;
       if (next.roundOutcome === 'correct') {
         liveAudioHaptics.playSfx('memory-tile-correct');
         liveAudioHaptics.haptic('light');
@@ -306,24 +272,22 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       }
       // Timeout: the timeout verdict owns the feedback — never correct/wrong.
     },
-    [dispatch],
+    [applyGameplayAction, clock, session, stamp],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== "intro" && current.phase !== "results") return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
-    // A restart begins a brand-new round window: clear the previous session's
-    // active-time accumulator so a QA-forced end at round 0 cannot shorten it.
-    roundElapsedRef.current = 0;
-    roundElapsedRoundRef.current = -1;
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
+      nowMs: clock.now(),
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, clock, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -529,7 +493,7 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => applyGameplayAction({ type: 'next-round', nowMs: clock.now(), stamp })}
               />
             </View>
           ) : null}

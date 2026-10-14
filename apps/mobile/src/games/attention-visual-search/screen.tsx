@@ -65,7 +65,7 @@ import {
   persistVisualSearchSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialVisualSearchState } from './types';
+import { continuationStamp, GAME_ID, createInitialVisualSearchState } from './types';
 import type { VisualSearchAction } from './types';
 import { SCORING_VERSION } from './versions';
 
@@ -101,6 +101,12 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: VisualSearchAction) => {
+    stateRef.current = visualSearchGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
@@ -115,8 +121,23 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     },
     // The reducer shifts deadlines by the paused duration, so it needs the
     // wall-clock reading at the exact pause/resume moments.
-    onPause: () => dispatch({ type: 'pause', nowMs: clock.now() }),
+    onPause: () => dispatchContinuation({ type: 'pause', nowMs: clock.now() }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: VisualSearchAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = visualSearchGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createVisualSearchTutorialLifecycle(tutorialStore),
@@ -248,9 +269,9 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume', nowMs: clock.now() });
+      dispatchContinuation({ type: 'resume', nowMs: clock.now() });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -436,7 +457,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

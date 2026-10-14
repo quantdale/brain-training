@@ -9,7 +9,7 @@
 import { Switch, View } from 'react-native';
 
 import { useSettings } from '@/components/settings/settings-provider';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import type { SettingKey } from '@/components/settings/settings-provider';
@@ -19,11 +19,11 @@ const ROWS: { key: SettingKey; label: string; caption: string }[] = [
   { key: 'haptics', label: 'Haptics', caption: 'Vibration feedback' },
 ];
 
-export function SensorySettingsCard() {
+export function SensorySettingsCard({ title = 'Settings' }: { title?: string }) {
   const { settings, setSetting } = useSettings();
   return (
     <ThemedView type="surface" style={styles.card} testID="settings-card">
-      <ThemedText type="subtitle">Settings</ThemedText>
+      <ThemedText type="headline">{title}</ThemedText>
       {ROWS.map((row) => (
         <View key={row.key} style={styles.row}>
           <View style={styles.text}>
@@ -50,8 +50,8 @@ export function SensorySettingsCard() {
 
 const styles = {
   card: {
-    borderRadius: 20,
-    padding: Spacing.four,
+    borderRadius: Radii.medium,
+    padding: Spacing.three,
     gap: Spacing.three,
   },
   row: {

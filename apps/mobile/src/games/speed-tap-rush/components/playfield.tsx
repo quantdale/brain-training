@@ -7,7 +7,8 @@
  * and fully deterministic.
  *
  * The target circle is positioned with percentage offsets and translated to
- * center on its point; its size is `2 * radius` of the field width.
+ * center on its point. Its diameter is the larger of `2 * radius * width`
+ * and the platform touch-target floor; the reducer uses the same geometry.
  */
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -18,7 +19,8 @@ import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
-import type { TargetPosition } from '../types';
+import type { FieldGeometry, TargetPosition } from '../types';
+import { targetDiameter, validFieldGeometry } from '../geometry';
 
 export interface PlayfieldProps {
   /** The live target, or null (round transition / idle). */
@@ -31,7 +33,7 @@ export interface PlayfieldProps {
   /** Semantic testID of the target circle (defaults to `GAME_ID.target`). */
   targetTestID?: string;
   /** Stable tap handler (memoized field skips re-renders). */
-  onTap: (x: number, y: number) => void;
+  onTap: (x: number, y: number, geometry: FieldGeometry) => void;
 }
 
 export const Playfield = memo(function Playfield({
@@ -43,21 +45,23 @@ export const Playfield = memo(function Playfield({
   onTap,
 }: PlayfieldProps) {
   const theme = useTheme();
-  // Measured field width in px; 0 until the first layout pass. Taps are only
-  // meaningful once the size is known (tests fire the layout event first).
-  const [width, setWidth] = useState(0);
+  // Layout and touch coordinates share dp units. Both axes remain unavailable
+  // until the first layout pass (tests fire that event before tapping).
+  const [geometry, setGeometry] = useState<FieldGeometry>({ width: 0, height: 0 });
+  const diameter = targetDiameter(radius, geometry.width);
 
-  const handleLayout = (event: { nativeEvent: { layout: { width: number } } }) => {
-    setWidth(event.nativeEvent.layout.width);
+  const handleLayout = (event: { nativeEvent: { layout: FieldGeometry } }) => {
+    const { width, height } = event.nativeEvent.layout;
+    setGeometry({ width, height });
   };
 
   const handlePress = (event: { nativeEvent: { locationX: number; locationY: number } }) => {
-    if (width <= 0 || target === null || disabled) {
+    if (!validFieldGeometry(geometry) || target === null || disabled) {
       return;
     }
-    const x = Math.min(1, Math.max(0, event.nativeEvent.locationX / width));
-    const y = Math.min(1, Math.max(0, event.nativeEvent.locationY / width));
-    onTap(x, y);
+    const x = Math.min(1, Math.max(0, event.nativeEvent.locationX / geometry.width));
+    const y = Math.min(1, Math.max(0, event.nativeEvent.locationY / geometry.height));
+    onTap(x, y, geometry);
   };
 
   return (
@@ -89,7 +93,8 @@ export const Playfield = memo(function Playfield({
             {
               left: `${target.x * 100}%`,
               top: `${target.y * 100}%`,
-              width: `${2 * radius * 100}%`,
+              width: diameter,
+              height: diameter,
               backgroundColor: theme.speed,
             },
           ]}

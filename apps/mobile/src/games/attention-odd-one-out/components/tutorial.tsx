@@ -16,7 +16,7 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R canary A);
  * mechanics stay local.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -118,11 +118,15 @@ function DemoGrid({ onWrong, onDone, onSkip }: DemoGridProps) {
   );
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);
   const [solved, setSolved] = useState(false);
+  const resolvedRef = useRef(false);
 
   const handleTap = (index: number) => {
-    if (solved) {
+    if (resolvedRef.current) {
       return;
     }
+    // The first delivered tap owns this attempt, even before React remounts
+    // the replay board. A queued tap from the old attempt cannot solve it.
+    resolvedRef.current = true;
     if (index === board.oddIndex) {
       setSolved(true);
       onDone();

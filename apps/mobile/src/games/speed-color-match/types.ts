@@ -60,6 +60,7 @@ export interface SpeedColorMatchStats {
   readonly trialsCorrect: number;
   readonly bestStreak: number;
   readonly streak: number;
+  /** Mean of correct responses only; 0 until a correct response exists. */
   readonly avgReactionMs: number;
   readonly fastestReactionMs: number;
   readonly slowestReactionMs: number;
@@ -127,13 +128,20 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Identity of the rendered stimulus and pause epoch, never persisted. */
+export interface SpeedColorMatchStamp {
+  readonly sessionId: string | null;
+  readonly trialIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type SpeedColorMatchAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'trial-shown'; shownAtMs: number }
-  | { type: 'tap-color'; color: ColorName; tappedAtMs: number }
-  | { type: 'trial-timeout'; timedOutAtMs: number }
-  | { type: 'next-trial' }
+  | { type: 'trial-shown'; shownAtMs: number; stamp?: SpeedColorMatchStamp }
+  | { type: 'tap-color'; color: ColorName; tappedAtMs: number; stamp?: SpeedColorMatchStamp }
+  | { type: 'trial-timeout'; timedOutAtMs: number; stamp?: SpeedColorMatchStamp }
+  | { type: 'next-trial'; stamp?: SpeedColorMatchStamp }
   | { type: 'pause' }
   | { type: 'resume'; pausedMs?: number }
   | { type: 'tutorial-open' }
@@ -179,6 +187,8 @@ export interface SpeedColorMatchGameState {
   pausedDurationMs: number;
   /** 0-based index of the current trial. */
   trialIndex: number;
+  /** Invalidates rendered callbacks on new trials and pause transitions. */
+  inputEpoch: number;
   /** The full generated trial sequence. */
   trials: readonly Trial[];
   /** Timestamp when the current trial was shown to the player. */
@@ -216,6 +226,7 @@ export function createInitialSpeedColorMatchState(): SpeedColorMatchGameState {
     activeDurationMs: 0,
     pausedDurationMs: 0,
     trialIndex: 0,
+    inputEpoch: 0,
     trials: [],
     trialShownAtMs: null,
     currentTrialOutcome: null,

@@ -5,10 +5,12 @@ import type { DifficultyLevel } from '@/sdk';
 
 import { tapRushGameReducer } from '../reducer';
 import { tapRushParamsFromProfile , TAP_RUSH_DIFFICULTY_PARAMS } from '../difficulty';
-import { createInitialTapRushState } from '../types';
+import { createInitialTapRushState, targetStamp } from '../types';
 import type { TapRushGameState } from '../types';
 import { generateRoundTargets } from '../generator';
 import { perfectSessionScore } from '../scoring';
+
+const FIELD = { width: 340, height: 340 };
 
 function startSession(
   seed: string,
@@ -31,7 +33,7 @@ function startSession(
 /** Tap the live target's exact center (a deterministic hit). */
 function tapLiveTarget(state: TapRushGameState, nowMs: number): TapRushGameState {
   const target = state.targets[state.targetIndex];
-  return tapRushGameReducer(state, { type: 'tap', x: target.x, y: target.y, nowMs });
+  return tapRushGameReducer(state, { type: 'tap', stamp: targetStamp(state), geometry: FIELD, x: target.x, y: target.y, nowMs });
 }
 
 /**
@@ -52,7 +54,7 @@ function tapOutside(state: TapRushGameState, nowMs: number): TapRushGameState {
   const target = state.targets[state.targetIndex];
   const params = tapRushParamsFromProfile(state.profile as NonNullable<TapRushGameState['profile']>);
   const point = outsidePoint(target, params.targetRadius);
-  return tapRushGameReducer(state, { type: 'tap', x: point.x, y: point.y, nowMs });
+  return tapRushGameReducer(state, { type: 'tap', stamp: targetStamp(state), geometry: FIELD, x: point.x, y: point.y, nowMs });
 }
 
 describe('select-difficulty', () => {
@@ -148,15 +150,15 @@ describe('tap', () => {
   it('ignores taps after the window closed (the expiry timer owns that)', () => {
     const state = startSession('late-tap');
     expect(state.deadlineMs).toBe(2100);
-    const after = tapRushGameReducer(state, { type: 'tap', x: 0.5, y: 0.5, nowMs: 2200 });
+    const after = tapRushGameReducer(state, { type: 'tap', stamp: targetStamp(state), geometry: FIELD, x: 0.5, y: 0.5, nowMs: 2200 });
     expect(after.stats.targetsHit).toBe(0);
     expect(after.targetIndex).toBe(0);
   });
 
   it('is ignored outside the active phase or while paused', () => {
     const roundResult = tapRushGameReducer(startSession('x'), { type: 'pause' });
-    expect(tapRushGameReducer(roundResult, { type: 'tap', x: 0.5, y: 0.5, nowMs: 1500 }).paused).toBe(true);
-    const intro = tapRushGameReducer(createInitialTapRushState(), { type: 'tap', x: 0.5, y: 0.5, nowMs: 0 });
+    expect(tapRushGameReducer(roundResult, { type: 'tap', stamp: targetStamp(roundResult), geometry: FIELD, x: 0.5, y: 0.5, nowMs: 1500 }).paused).toBe(true);
+    const intro = tapRushGameReducer(createInitialTapRushState(), { type: 'tap', stamp: targetStamp(createInitialTapRushState()), geometry: FIELD, x: 0.5, y: 0.5, nowMs: 0 });
     expect(intro.phase).toBe('intro');
   });
 });
@@ -164,7 +166,7 @@ describe('tap', () => {
 describe('target-expired', () => {
   it('counts a miss and advances to the next target', () => {
     let state = startSession('expire');
-    state = tapRushGameReducer(state, { type: 'target-expired', nowMs: 2100 });
+    state = tapRushGameReducer(state, { type: 'target-expired', stamp: targetStamp(state), nowMs: 2100 });
     expect(state.stats.targetsMissed).toBe(1);
     expect(state.stats.streak).toBe(0);
     expect(state.roundMisses).toBe(1);
@@ -238,7 +240,7 @@ describe('next-round', () => {
     let state = startSession('final', 'easy'); // 3 rounds × 8 targets
     for (let round = 0; round < 3; round += 1) {
       for (let i = 0; i < 8; i += 1) {
-        state = tapLiveTarget(state, 1000);
+        state = tapLiveTarget(state, state.spawnedAtMs ?? 1000);
       }
       state = tapRushGameReducer(state, { type: 'next-round', spawnedAtMs: 3000 });
     }
@@ -286,7 +288,7 @@ describe('pause / resume', () => {
 
     // A hit right after resume measures only the active time since spawn.
     const target = state.targets[state.targetIndex];
-    const hit = tapRushGameReducer(state, { type: 'tap', x: target.x, y: target.y, nowMs: 5200 });
+    const hit = tapRushGameReducer(state, { type: 'tap', stamp: targetStamp(state), geometry: FIELD, x: target.x, y: target.y, nowMs: 5200 });
     expect(hit.stats.reactions).toEqual([200]);
   });
 

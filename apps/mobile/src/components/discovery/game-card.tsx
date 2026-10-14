@@ -38,6 +38,7 @@ export function masteryTierLabel(tier: MasteryTier): string {
  * dead surface cannot drift back into the census.
  */
 function domainKeyFor(category: string): DomainName | null {
+  if (category === 'Logic & Problem Solving') return 'logic';
   const key = category.toLowerCase() as DomainName;
   return key in DomainColors.light ? key : null;
 }

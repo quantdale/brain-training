@@ -17,16 +17,16 @@
  */
 
 import { useMemo, useState } from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView, View, useWindowDimensions } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import {
+  AppIcon,
   Button,
   Chip,
   EmptyState,
   IconButton,
-  Spark,
   TextField,
 } from '@/components/ui';
 import { SectionHeader } from '@/components/shell';
@@ -34,14 +34,10 @@ import { useDiscoveryData } from '@/components/discovery/discovery-data';
 import { GamePosterTile } from '@/components/discovery/game-poster-tile';
 import { getGameIdentity } from '@/components/discovery/game-identity';
 import { SuggestedNext } from '@/components/discovery/suggested-next';
-import { useTheme } from '@/hooks/use-theme';
 import { useGridColumns } from '@/platform/layout';
 import { getAllGameDefinitions, type GameDefinition } from '@/registry/registry';
 import { GAME_CATEGORIES } from '@/sdk';
 import { Spacing } from '@/theme/tokens';
-
-/** The poster grid is never a single column: compact phones go two-up. */
-const MIN_GRID_COLUMNS = 2;
 
 function categoryTestID(category: string): string {
   return `games-filter-${category.toLowerCase().replace(/[^a-z]/g, '')}`;
@@ -61,10 +57,12 @@ function chunkRows(
 }
 
 export default function GamesScreen() {
-  const theme = useTheme();
   const games = getAllGameDefinitions();
-  // Two-up on phones, following the layout tier once it offers more.
-  const columns = Math.max(MIN_GRID_COLUMNS, useGridColumns());
+  const { width, fontScale } = useWindowDimensions();
+  const gridColumns = useGridColumns();
+  // A large-text or narrow phone uses full-width entries rather than clipping
+  // the essential game name to preserve a decorative two-column poster grid.
+  const columns = fontScale >= 1.5 || width < 360 ? 1 : Math.max(2, gridColumns);
   // Single snapshot for Suggested Next and poster badges (favourites +
   // mastery); refreshes on focus so detail-screen toggles land without a
   // remount.
@@ -132,20 +130,20 @@ export default function GamesScreen() {
     <ScreenShell>
       <View style={styles.headerBlock}>
         <ThemedText type="eyebrow" themeColor="accentText">
-          TRAIN YOUR BRAIN
+          Explore your skills
         </ThemedText>
         <ThemedText type="title" testID="games-title">
           Games
         </ThemedText>
         <ThemedText type="bodySmall" themeColor="textSecondary">
-          Pick a game to train a skill. New games appear here as they are added.
+          {games.length} games across eight skills. Find your next challenge.
         </ThemedText>
       </View>
 
       {games.length === 0 ? (
         <EmptyState
           testID="games-empty"
-          icon={<Spark size={40} color={theme.accent} />}
+          icon={<AppIcon name="games" size={40} tone="accentText" />}
           title="No games yet"
           message="The game library is being built."
         />
@@ -170,16 +168,13 @@ export default function GamesScreen() {
                 label="Clear search"
                 onPress={() => setQuery('')}
                 icon={
-                  <ThemedText type="body" themeColor="textSecondary" allowFontScaling={false}>
-                    ✕
-                  </ThemedText>
+                  <AppIcon name="close" />
                 }
               />
             ) : null}
           </View>
 
           <View style={styles.browseBlock} testID="games-browse-all">
-            <SectionHeader title="Browse all games" />
             {/* One scrollable rail instead of a wrapping pill cloud
                 (campaign 052: crowded filters pushed the grid down). */}
             <ScrollView
@@ -206,8 +201,8 @@ export default function GamesScreen() {
               ))}
               <Chip
                 testID="games-filter-favorites"
-                label="★ Favorites"
-                count={discovery.favorites.size}
+                label="Favorites"
+                count={discovery.error == null && discovery.loaded ? discovery.favorites.size : undefined}
                 selected={favOnly}
                 onPress={() => setFavOnly((value) => !value)}
               />
@@ -224,15 +219,28 @@ export default function GamesScreen() {
             </ScrollView>
           </View>
 
+          {discovery.loaded && discovery.error != null ? (
+            <EmptyState testID="games-data-error" icon={<AppIcon name="retry" size={28} tone="dangerText" />}
+              title="Couldn’t load your game activity"
+              message="Your favorites and recommendations couldn’t be read. The full library is still available."
+              actionLabel="Try again" onAction={discovery.retry} />
+          ) : isDefaultView ? <SuggestedNext data={discovery} /> : null}
 
+          <SectionHeader title="Browse all games" />
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">
-            Showing {visible.length} of {games.length} games
+            {favOnly && (!discovery.loaded || discovery.error != null)
+              ? discovery.loaded ? 'Favorites unavailable' : 'Loading favorites…'
+              : `Showing ${visible.length} of ${games.length} games`}
           </ThemedText>
 
-          {visible.length === 0 ? (
+          {favOnly && (!discovery.loaded || discovery.error != null) ? (
+            <ThemedText type="bodySmall" themeColor="textSecondary" testID="games-favorites-unavailable">
+              {discovery.loaded ? 'Favorites are temporarily unavailable. Try loading your activity again.' : 'Loading your favorite games…'}
+            </ThemedText>
+          ) : visible.length === 0 ? (
             <EmptyState
               testID={favoritesEmpty ? 'games-favorites-empty' : 'games-no-results'}
-              icon={<Spark size={40} color={theme.warning} />}
+              icon={<AppIcon name={favoritesEmpty ? 'favorite' : 'search'} size={32} tone="textMuted" />}
               title={favoritesEmpty ? 'No favorites yet' : 'No matches'}
               message={
                 favoritesEmpty
@@ -266,10 +274,6 @@ export default function GamesScreen() {
             </View>
           )}
 
-          {/* 076 review round-2 fix: the recommendation renders AFTER the
-              catalog grid so the first viewport shows the library tiles and
-              filters (action-led navigation requirement). */}
-          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
         </>
       )}
     </ScreenShell>

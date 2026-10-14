@@ -64,8 +64,9 @@ import {
   persistSymbolTrackerSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialSymbolTrackerState } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, createInitialSymbolTrackerState } from './types';
+import type { SymbolTrackerAction } from './types';
 
 export interface SymbolTrackerScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -103,6 +104,12 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
   );
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: SymbolTrackerAction) => {
+    stateRef.current = symbolTrackerGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   // Per-round observe timer baseline: tracks elapsed ACTIVE (non-paused) observe
   // time so pausing freezes and resuming resumes the remaining window (not a restart).
   const observeElapsedRef = useRef(0);
@@ -128,8 +135,23 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatchContinuation({ type: 'pause' }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: SymbolTrackerAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = symbolTrackerGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createSymbolTrackerTutorialLifecycle(tutorialStore),
@@ -329,9 +351,9 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -618,7 +640,7 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

@@ -57,7 +57,7 @@ import {
   persistMathSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialMathState } from './types';
+import { continuationStamp, GAME_ID, createInitialMathState } from './types';
 import type { MathAction } from './types';
 import { SCORING_VERSION } from './versions';
 
@@ -90,6 +90,12 @@ export default function MathScreen(props: MathScreenProps = {}) {
   const [state, dispatch] = useReducer(mathGameReducer, undefined, createInitialMathState);
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: MathAction) => {
+    stateRef.current = mathGameReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
@@ -102,8 +108,23 @@ export default function MathScreen(props: MathScreenProps = {}) {
       const current = stateRef.current;
       return (current.phase === 'problem' || current.phase === 'feedback') && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatchContinuation({ type: 'pause' }),
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: MathAction = {
+      type: 'next-problem', stamp: renderedContinuation, startedAtActiveMs: session.elapsedMs(),
+    };
+    const next = mathGameReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(() => createMathTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createMathQaForceStateHooks(dispatch), [dispatch]);
@@ -238,9 +259,9 @@ export default function MathScreen(props: MathScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [session, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -290,9 +311,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
     // Timeout: the timeout verdict owns the feedback — never correct/wrong.
   }, [session, dispatch]);
 
-  const handleNext = useCallback(() => {
-    dispatch({ type: 'next-problem', startedAtActiveMs: session.elapsedMs() });
-  }, [session, dispatch]);
+
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
@@ -396,7 +415,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
                 problem={state.problem}
                 enteredAnswer={state.enteredAnswer}
                 isLastProblem={isLastProblem}
-                onNext={handleNext}
+                onNext={handleContinue}
               />
             </View>
           ) : null}

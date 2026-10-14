@@ -18,7 +18,7 @@ import {
 } from './difficulty';
 import { generateRound } from './generator';
 import { roundScore } from './scoring';
-import { INITIAL_STATS, createInitialWordScrambleState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialWordScrambleState } from './types';
 import type {
   WordScrambleAction,
   WordScrambleGameState,
@@ -56,6 +56,7 @@ export function wordScrambleGameReducer(
       });
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'play',
         paused: false,
         profile,
@@ -142,6 +143,9 @@ export function wordScrambleGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
         return state;
       }
@@ -195,11 +199,11 @@ export function wordScrambleGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

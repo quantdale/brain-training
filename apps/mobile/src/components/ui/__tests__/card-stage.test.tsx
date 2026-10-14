@@ -22,7 +22,7 @@ describe('Card stage variant (076 lock)', () => {
     const card = screen.getByTestId('stage-card-light');
     const style = Array.isArray(card.props.style) ? card.props.style : [card.props.style];
     const flat = Object.assign({}, ...style.filter(Boolean));
-    expect(flat.backgroundColor).toBe('#1F2124');
+    expect(flat.backgroundColor).toBe('#172132');
     expect(flat.borderWidth).toBe(1.5);
   });
 
@@ -33,6 +33,6 @@ describe('Card stage variant (076 lock)', () => {
     const card = screen.getByTestId('stage-card-dark');
     const style = Array.isArray(card.props.style) ? card.props.style : [card.props.style];
     const flat = Object.assign({}, ...style.filter(Boolean));
-    expect(flat.backgroundColor).toBe('#1B1D21');
+    expect(flat.backgroundColor).toBe('#172132');
   });
 });

@@ -35,6 +35,17 @@ function baseInput() {
 }
 
 describe('buildNumberLineRawResult', () => {
+  it('labels the new task only on version 2 records while preserving legacy scoring provenance', () => {
+    const legacy = buildNumberLineRawResult(baseInput());
+    const current = buildNumberLineRawResult({ ...baseInput(), gameVersion: '2.0.0', scoringVersion: '2.0.0' });
+    expect(legacy.gameVersion).toBe('1.0.0');
+    expect(legacy.scoringVersion).toBe('1.0.0');
+    expect(legacy.generatorInfo.taskMode).toBeUndefined();
+    expect(current.generatorVersion).toBe(legacy.generatorVersion);
+    expect(current.score).toBe(legacy.score);
+    expect(current.generatorInfo.taskMode).toBe('numeric-target-hidden-position-v2');
+  });
+
   it('carries stats plus the full reproducibility envelope', () => {
     const raw = buildNumberLineRawResult(baseInput());
     expect(raw.gameId).toBeUndefined(); // gameId lives on the record, not the raw result

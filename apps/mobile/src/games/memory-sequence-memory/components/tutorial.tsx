@@ -10,8 +10,9 @@
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R canary A);
  * mechanics stay local.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -115,31 +116,49 @@ function DemoPad({ attempt, onWrong, onDone, onSkip }: DemoPadProps) {
   const [revealedIndex, setRevealedIndex] = useState(0);
   const [inputIndex, setInputIndex] = useState(0);
   const [wrongTile, setWrongTile] = useState<number | null>(null);
+  const inputIndexRef = useRef(0);
+  const activeRef = useRef(true);
+  const handledEventsRef = useRef(new WeakSet<object>());
 
   const revealing = revealedIndex >= 0 && revealedIndex < DEMO_LENGTH;
   const completed = inputIndex >= DEMO_LENGTH;
+
+  useEffect(() => {
+    activeRef.current = true;
+    return () => { activeRef.current = false; };
+  }, []);
 
   // Reveal pacing: one tile every DEMO_REVEAL_MS, then hand over to input.
   useEffect(() => {
     if (!revealing) {
       return;
     }
-    const timer = setTimeout(() => setRevealedIndex((index) => index + 1), DEMO_REVEAL_MS);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled && activeRef.current) setRevealedIndex((index) => index + 1);
+    }, DEMO_REVEAL_MS);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [revealing, revealedIndex]);
 
-  const handleTap = (index: number) => {
-    if (revealing || completed) {
+  const handleTap = (index: number, event?: GestureResponderEvent) => {
+    if (!activeRef.current || revealing || inputIndexRef.current >= DEMO_LENGTH) {
       return;
     }
-    if (index === sequence[inputIndex]) {
+    if (event !== undefined) {
+      const identity = event.nativeEvent ?? event;
+      if (handledEventsRef.current.has(identity)) return;
+      handledEventsRef.current.add(identity);
+    }
+    if (index === sequence[inputIndexRef.current]) {
       setWrongTile(null);
-      const next = inputIndex + 1;
+      const next = inputIndexRef.current + 1;
+      inputIndexRef.current = next;
       setInputIndex(next);
       if (next >= DEMO_LENGTH) {
         onDone();
       }
     } else {
+      activeRef.current = false;
       setWrongTile(index);
       onWrong();
     }
@@ -147,7 +166,7 @@ function DemoPad({ attempt, onWrong, onDone, onSkip }: DemoPadProps) {
 
   const visualFor = (index: number): PadTileVisualState => {
     if (revealing) {
-      return index === revealedIndex ? 'revealed' : 'idle';
+      return index === sequence[revealedIndex] ? 'revealed' : 'idle';
     }
     if (sequence.slice(0, inputIndex).includes(index)) {
       return 'correct';

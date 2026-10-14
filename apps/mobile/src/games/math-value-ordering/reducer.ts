@@ -36,7 +36,7 @@ import {
 } from './difficulty';
 import { generateRound, sortedValuesOf } from './generator';
 import { perfectSessionScore, roundScore, speedFactorOf } from './scoring';
-import { INITIAL_STATS, createInitialValueOrderingState } from './types';
+import { ownsContinuation, INITIAL_STATS, createInitialValueOrderingState } from './types';
 import type {
   RoundOutcome,
   ValueOrderingAction,
@@ -155,6 +155,7 @@ export function valueOrderingGameReducer(
       const round = generateRound(createRng(action.seed), 0, params, params.tiles, null);
       return {
         ...state,
+        continuationEpoch: state.continuationEpoch + 1,
         phase: 'ordering',
         paused: false,
         profile,
@@ -233,6 +234,9 @@ export function valueOrderingGameReducer(
     }
 
     case 'next-round': {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (state.phase !== 'feedback' || state.profile === null || state.difficulty === null) {
         return state;
       }
@@ -270,11 +274,11 @@ export function valueOrderingGameReducer(
       if (state.paused || state.phase === 'results' || state.phase === 'intro') {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case 'tutorial-open': {

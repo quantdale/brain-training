@@ -70,9 +70,9 @@ import {
   persistFlexibilityRuleFlipSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, RULE_LABELS, createInitialFlexibilityRuleFlipState } from './types';
-import type { Card } from './types';
 import { SCORING_VERSION } from './versions';
+import { continuationStamp, GAME_ID, RULE_LABELS, createInitialFlexibilityRuleFlipState } from './types';
+import type { FlexibilityRuleFlipAction, Card } from './types';
 
 export interface RuleFlipScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -103,6 +103,12 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
   const [state, dispatch] = useReducer(flexibilityRuleFlipReducer, undefined, createInitialFlexibilityRuleFlipState);
 
   const stateRef = useRef(state);
+  // Claim lifecycle boundaries synchronously: queued Next callbacks can run
+  // before React commits the pause or continuation dispatch.
+  const dispatchContinuation = useCallback((action: FlexibilityRuleFlipAction) => {
+    stateRef.current = flexibilityRuleFlipReducer(stateRef.current, action);
+    dispatch(action);
+  }, [dispatch]);
   /** Monotonic-clock time the current trial became active (response origin). */
   const trialStartRef = useRef(0);
   /** Clock time a pause began inside the current trial, or null. */
@@ -129,9 +135,24 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       if (current.phase === 'trialActive') {
         pauseStartRef.current = clock.now();
       }
-      dispatch({ type: 'pause' });
+      dispatchContinuation({ type: 'pause' });
     },
   });
+
+  const renderedContinuation = continuationStamp(state);
+  const handleContinue = () => {
+    if (session.status() !== 'active' || !session.isCurrentSession(renderedContinuation.sessionId)) {
+      return;
+    }
+    const current = stateRef.current;
+    const action: FlexibilityRuleFlipAction = {
+      type: 'next-round', stamp: renderedContinuation,
+    };
+    const next = flexibilityRuleFlipReducer(current, action);
+    if (next === current) return;
+    stateRef.current = next;
+    dispatch(action);
+  };
 
   const tutorial = useMemo(
     () => createFlexibilityRuleFlipTutorialLifecycle(tutorialStore),
@@ -294,9 +315,9 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       pauseStartRef.current = null;
     }
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
+      dispatchContinuation({ type: 'resume' });
     }
-  }, [session, clock, dispatch]);
+  }, [session, clock, dispatchContinuation]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -536,7 +557,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next trial'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={handleContinue}
               />
             </View>
           ) : null}

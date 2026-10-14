@@ -460,14 +460,14 @@ const styles = StyleSheet.create({
   },
   mechanicStage: {
     gap: Spacing.three,
-    padding: Spacing.twoHalf,
+    padding: Spacing.two,
     borderWidth: 1,
     borderRadius: Spacing.two,
   },
   stagePanel: {
     flex: 1,
     borderRadius: Radii.large,
-    padding: Spacing.two,
+    padding: 0,
     gap: Spacing.two,
   },
   workoutContext: {

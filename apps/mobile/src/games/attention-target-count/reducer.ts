@@ -19,7 +19,7 @@ import {
 } from './difficulty';
 import { generateRound } from './generator';
 import { roundScore } from './scoring';
-import { INITIAL_STATS, createInitialTargetCountState } from './types';
+import { INITIAL_STATS, createInitialTargetCountState, isCurrentInput } from './types';
 import type { TargetCountAction, TargetCountGameState, TargetCountStats } from './types';
 
 export { createInitialTargetCountState };
@@ -60,6 +60,10 @@ export function targetCountGameReducer(
         phase: 'showGrid',
         paused: false,
         profile,
+        inputEpoch: state.inputEpoch + 1,
+        roundStartedAtMs: action.nowMs,
+        deadlineMs: action.nowMs + params.roundTimeMs,
+        remainingMs: params.roundTimeMs,
         seed: action.seed,
         sessionId: action.sessionId,
         startedAtMs: action.startedAtMs,
@@ -85,25 +89,32 @@ export function targetCountGameReducer(
     }
 
     case 'answer': {
-      if (state.phase !== 'showGrid' || state.paused || state.profile === null || state.currentRound === null) {
+      if (state.phase !== 'showGrid' || state.paused || state.profile === null || state.currentRound === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs) || action.nowMs < state.roundStartedAtMs) {
         return state;
       }
       const params = targetCountParamsFromProfile(state.profile);
       const roundTimeMs = params.roundTimeMs;
-      const correct = action.selectedCount === state.currentRound.targetCount;
+      const timedOut = action.nowMs >= state.deadlineMs;
+      if (action.selectedCount === null && !timedOut) return state;
+      const selectedCount = timedOut ? null : action.selectedCount;
+      // A closed window always records its full active budget, including a
+      // timeout delivered after a pause that began once the window expired.
+      const elapsedMs = timedOut ? roundTimeMs : action.nowMs - state.roundStartedAtMs;
+      const correct = selectedCount === state.currentRound.targetCount;
       const roundsPlayed = state.stats.roundsPlayed + 1;
       const roundsCorrect = state.stats.roundsCorrect + (correct ? 1 : 0);
-      const score = state.stats.score + roundScore(correct, roundTimeMs, action.elapsedMs);
+      const score = state.stats.score + roundScore(correct, roundTimeMs, elapsedMs);
       const streak = correct ? state.stats.streak + 1 : 0;
       const bestStreak = Math.max(state.stats.bestStreak, streak);
       const bestRoundTimeMs = correct
-        ? Math.min(state.stats.bestRoundTimeMs, action.elapsedMs)
+        ? Math.min(state.stats.bestRoundTimeMs, elapsedMs)
         : state.stats.bestRoundTimeMs;
       const stats: TargetCountStats = {
         score,
         roundsPlayed,
         roundsCorrect,
-        totalElapsedMs: state.stats.totalElapsedMs + action.elapsedMs,
+        totalElapsedMs: state.stats.totalElapsedMs + elapsedMs,
         totalBudgetMs: state.stats.totalBudgetMs + roundTimeMs,
         bestStreak,
         streak,
@@ -111,13 +122,13 @@ export function targetCountGameReducer(
       };
       const roundOutcome: 'correct' | 'wrong' | 'timeout' = correct
         ? 'correct'
-        : action.selectedCount === null
+        : selectedCount === null
           ? 'timeout'
           : 'wrong';
       return {
         ...state,
         phase: 'roundResult',
-        selectedCount: action.selectedCount,
+        selectedCount,
         roundCorrect: correct,
         roundOutcome,
         stats,
@@ -125,7 +136,8 @@ export function targetCountGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs)) {
         return state;
       }
       const params = targetCountParamsFromProfile(state.profile);
@@ -150,6 +162,9 @@ export function targetCountGameReducer(
         ...state,
         phase: 'showGrid',
         roundIndex: nextIndex,
+        roundStartedAtMs: action.nowMs,
+        deadlineMs: action.nowMs + params.roundTimeMs,
+        remainingMs: params.roundTimeMs,
         currentRound,
         prevRound: state.currentRound,
         selectedCount: null,
@@ -159,14 +174,28 @@ export function targetCountGameReducer(
     }
 
     case 'pause': {
-      if (state.paused || state.phase === 'results' || state.phase === 'intro') {
+      if (state.paused || state.phase === 'results' || state.phase === 'intro' || !Number.isFinite(action.nowMs)) {
         return state;
       }
-      return { ...state, paused: true };
+      return {
+        ...state,
+        paused: true,
+        inputEpoch: state.inputEpoch + 1,
+        remainingMs: state.phase === 'showGrid'
+          ? Math.max(0, state.deadlineMs - action.nowMs)
+          : state.remainingMs,
+      };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused || !Number.isFinite(action.nowMs)) return state;
+      const deadlineMs = state.phase === 'showGrid' ? action.nowMs + state.remainingMs : state.deadlineMs;
+      return {
+        ...state,
+        paused: false,
+        deadlineMs,
+        roundStartedAtMs: state.roundStartedAtMs + deadlineMs - state.deadlineMs,
+      };
     }
 
     case 'tutorial-open': {

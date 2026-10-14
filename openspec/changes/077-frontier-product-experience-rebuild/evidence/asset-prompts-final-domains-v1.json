@@ -1,0 +1,14 @@
+{
+  "tool": "ChatGPT image_gen",
+  "transparentBackground": true,
+  "records": [
+    {
+      "prompt": "Create one ORIGINAL standalone illustration for the Flexibility category of an offline brain-training app's coherent Play Lab asset family. A compact sculptural learning toy: two chunky rounded square tiles connected by a clean curved switching loop, one tile turquoise with an embossed circle, one teal-green with an embossed triangle. Shapes are simple and clear, no text or numbers. Three-quarter view, precisely constructed plausible geometry, restrained MATTE molded polymer with diffuse upper-left light and subtle self shadow, soft broad highlights, NO metallic finish or glossy reflections. Clean friendly silhouette, not a mascot or copied logo, no brain, no literal anatomy. Turquoise/teal main colors with quiet mint companion accents. Center object entirely in square canvas with generous transparent padding, no background plane, no cast shadow outside the object, true alpha background. Legible at 96px, low detail, no confetti, scenery, screen, lettering or additional props. This is decorative category art; don't depict a puzzle requiring a particular answer. Output a single high-quality matte sculptural toy icon.",
+      "decision": "Geometry/material reviewed; palette disagrees with canonical domain role, rejected pending ImageGen color revision."
+    },
+    {
+      "prompt": "Create one ORIGINAL standalone Spatial-category learning-tool illustration for a Play Lab brain-training app asset family. A precisely made small three-dimensional block puzzle: three chunky lavender-purple cubes form a clear right-angle L in one flat layer, with one slightly darker purple cube stacked directly on the corner cube. Four cubes total, physically plausible exact aligned orthogonal geometry with visible seams. Three-quarter isometric view from above, calm restrained MATTE molded polymer, softly rounded cube edges, diffuse upper-left light and subtle self-shadow, broad soft highlights. NO glossy chrome, glass, metallic material, impossible overlaps, melted edges, perspective tricks, text, digits, arrows, lines, logos or extra objects. Quiet lilac/purple color family, one soft pale lavender accent face. Center this complete block construction in square canvas with at least15% genuine transparent margin on all sides, no background plane or ground shadow. Clean crisp alpha silhouette readable at 96px on white and deep navy. This is decorative spatial identity art, not an essential game instruction or answer. Single high quality original matte sculptural learning toy icon, true transparent background.",
+      "decision": "Geometry/material reviewed; palette disagrees with canonical domain role, rejected pending ImageGen color revision."
+    }
+  ]
+}

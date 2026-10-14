@@ -31,7 +31,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
+  useGameDeadlineTimeout,
   useGameSession,
 } from "@/components/game-host";
 import type { GameHostView } from "@/components/game-host";
@@ -61,7 +61,7 @@ import {
   persistPairRecallSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { GAME_ID, createInitialPairRecallState } from "./types";
+import { GAME_ID, createInitialPairRecallState, inputStamp } from "./types";
 import { SCORING_VERSION } from "./versions";
 
 export interface PairRecallScreenProps {
@@ -77,8 +77,6 @@ export interface PairRecallScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Study pacing tick granularity in ms (freeze-and-continue accumulation step). */
-const STUDY_TICK_MS = 100;
 
 export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
   const {
@@ -97,19 +95,20 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
   );
 
   const stateRef = useRef(state);
-  // Per-round study timer baseline: tracks elapsed ACTIVE (non-paused) study
-  // time so pausing freezes and resuming resumes the remaining window (not a
-  // restart). Keyed by BOTH session id and round index: restarting must not
-  // inherit the previous session's partial study window (a restart from a QA
-  // force-lose at round 0 used to collide on roundIndex 0 alone).
-  const studyElapsedRef = useRef(0);
-  const studyRoundRef = useRef(-1);
-  const studySessionRef = useRef<string | null>(null);
-
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
   });
+
+  const applyGameplayAction = useCallback((action: Parameters<typeof pairRecallGameReducer>[1]) => {
+    const current = stateRef.current;
+    const next = pairRecallGameReducer(current, action);
+    // Claim the transition before React commits; old callbacks stay silent.
+    stateRef.current = next;
+    dispatch(action);
+    return next === current ? null : next;
+  }, []);
+  const stamp = useMemo(() => inputStamp(state), [state]);
 
   const session = useGameSession({
     gameId: GAME_ID,
@@ -123,7 +122,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: "pause" }),
+    onPause: () => applyGameplayAction({ type: "pause", nowMs: clock.now() }),
   });
 
   const tutorial = useMemo(
@@ -137,7 +136,6 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
 
   const params =
     state.profile !== null ? pairRecallParamsFromProfile(state.profile) : null;
-  const studyMs = params?.studyMs ?? 2600;
   const rounds = params?.rounds ?? 5;
   const inSession =
     state.phase === "study" ||
@@ -145,41 +143,14 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-round study timer baseline when a new study round begins
-  // (or a new session starts, even at round 0).
-  useEffect(() => {
-    if (
-      state.phase === "study" &&
-      (studySessionRef.current !== state.sessionId ||
-        studyRoundRef.current !== state.roundIndex)
-    ) {
-      studySessionRef.current = state.sessionId;
-      studyRoundRef.current = state.roundIndex;
-      studyElapsedRef.current = 0;
-    }
-  }, [state.phase, state.roundIndex, state.sessionId]);
-
-  // Study pacing with freeze-and-continue: a window of `studyMs` of ACTIVE
-  // (non-paused) time, accumulated in 100ms steps. While paused, the interval
-  // is cleared so no time accrues; on resume it continues from where it left
-  // off, so the pairs stay visible for exactly the time the player has not yet
-  // studied.
-  useGameInterval(
+  // The reducer captures the exact pause budget; wakeups follow its absolute deadline.
+  const studyRemainingMs = Math.ceil(Math.max(0, state.studyDeadlineMs - clock.now()));
+  useGameDeadlineTimeout(
     state.phase === "study" && !state.paused,
-    () => {
-      const current = stateRef.current;
-      if (current.phase !== "study" || current.paused) {
-        return; // stale tick across a phase/pause boundary — never re-fire
-      }
-      studyElapsedRef.current = Math.min(
-        studyMs,
-        studyElapsedRef.current + STUDY_TICK_MS,
-      );
-      if (studyElapsedRef.current >= studyMs) {
-        dispatch({ type: "study-tick" });
-      }
-    },
-    STUDY_TICK_MS,
+    () => applyGameplayAction({ type: "study-tick", nowMs: clock.now(), stamp }),
+    studyRemainingMs,
+    clock,
+    `study:${state.sessionId}:${state.roundIndex}:${state.studyDeadlineMs}:${studyRemainingMs}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -311,9 +282,9 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: "resume" });
+      applyGameplayAction({ type: "resume", nowMs: clock.now() });
     }
-  }, [session, dispatch]);
+  }, [session, clock, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -326,29 +297,26 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
       if (current.phase !== "recall" || current.paused || current.roundScored) {
         return;
       }
-      // Per-cue feedback matches the answer actually given; the round-level
-      // success/failure sting plays via the roundOutcome effect.
-      const round = current.round;
-      const correct =
-        round !== null &&
-        round.pairs[round.cueOrder[current.cueIndex]].responseId === responseId;
-      liveAudioHaptics.feedback(correct ? "correct" : "wrong");
-      dispatch({ type: "respond", responseId });
+      if (session.status() !== 'active') return;
+      const next = applyGameplayAction({ type: 'respond', responseId, stamp });
+      if (next?.lastCue) liveAudioHaptics.feedback(next.lastCue.correct ? 'correct' : 'wrong');
     },
-    [dispatch],
+    [applyGameplayAction, stamp, session],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== "intro" && current.phase !== "results") return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: "start-session",
+      nowMs: clock.now(),
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, clock, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -537,7 +505,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next round"}
-                onPress={() => dispatch({ type: "next-round" })}
+                onPress={() => applyGameplayAction({ type: "next-round", nowMs: clock.now(), stamp })}
               />
             </View>
           ) : null}

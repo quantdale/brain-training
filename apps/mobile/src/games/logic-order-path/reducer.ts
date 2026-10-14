@@ -122,6 +122,11 @@ export function orderPathGameReducer(
         // Expired: let the screen's expiry timer fire the timeout transition.
         return state;
       }
+      // A placed tile is no longer a choice. Queued/repeated press events for
+      // that same tile must not turn the player's valid path into a mistake.
+      if (state.placedItems.includes(action.item)) {
+        return state;
+      }
       const round = state.currentRound;
       const available = availableNext(round.items, round.edges, state.placedItems);
       const elapsed = Math.max(0, action.nowMs - state.roundStartedAtMs);

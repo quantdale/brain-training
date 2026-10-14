@@ -1,9 +1,8 @@
 /**
  * Game detail — `/game-detail/[id]` (change 076 UI/UX reboot, task 4.4).
  *
- * Identity-first header on the immersive stage (REFERENCE_LOCK §1/§4): a
- * compact board still, the game title and its domain tag, the mechanic line,
- * and the screen's single red Play CTA — all inside the first viewport.
+ * Play Lab introduction: bounded original domain media, native title/rule,
+ * clear Play action and a neutral readable surface in either theme.
  * Mastery, records and recent sessions render BELOW the fold as numbered
  * hairline fact rows (lock §8): quiet evidence, never competing with the
  * identity artifact.
@@ -43,6 +42,7 @@ import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import {
   BackLink,
+  AppIcon,
   Button,
   Card,
   EmptyState,
@@ -59,14 +59,6 @@ import { useTheme } from "@/hooks/use-theme";
 import { computeMastery, MASTERY_TIERS, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
 import { parseCanonicalGameId } from "@/routing/route-params";
-
-/**
- * Translucent white on the charcoal stage (REFERENCE_LOCK §7: dark is
- * designed, not inverted — the stage is charcoal in BOTH schemes, so these
- * do not need theme variants).
- */
-const STAGE_INK_MUTED = "rgba(255, 255, 255, 0.72)";
-const STAGE_LINE = "rgba(255, 255, 255, 0.28)";
 
 interface DetailData {
   /** Load-time clock for relative-day formatting (set outside render). */
@@ -223,6 +215,7 @@ export default function GameDetailScreen() {
   const tierName = masteryTierLabel(summary.tier);
   const tierMax = MASTERY_TIERS.length - 1;
   const identity = getGameIdentity(game);
+  const unplayed = !data.aggregate && data.recent.length === 0 && (data.masteryInput?.sessions ?? 0) === 0;
 
   return (
     <ScreenShell>
@@ -237,21 +230,20 @@ export default function GameDetailScreen() {
           and the title are the event; the Play CTA completes the first
           viewport. Historical testID note: `game-detail-mastery` predates the
           reboot and names this hero card. */}
-      <Card variant="stage" padding="none" testID="game-detail-mastery">
+      <Card variant="outlined" padding="none" testID="game-detail-mastery">
         <GameWorldArt game={game} size="hero" testID="game-detail-world" />
         <View style={styles.stageBody}>
           <View style={styles.identityRow} testID="game-detail-identity">
             <IdentityMark
               family={identity.family}
               size={26}
-              color={hue?.base ?? theme.stageInk}
+              color={hue?.softText ?? theme.text}
               testID="game-detail-identity-mark"
             />
             <ThemedText
               type="eyebrow"
-              themeColor="stageInk"
+              themeColor="textSecondary"
               style={styles.identityVerb}
-              numberOfLines={1}
               testID="game-detail-identity-verb">
               {identity.verb}
             </ThemedText>
@@ -259,8 +251,8 @@ export default function GameDetailScreen() {
                 category (e.g. "Memory"/Memory), where it would parrot the
                 title (Campaign 026 visual-QA edge case). */}
             {game.primaryCategory !== game.name ? (
-              <View style={styles.domainTag} testID="game-detail-category">
-                <ThemedText type="caption" themeColor="stageInk">
+              <View style={[styles.domainTag, { borderColor: theme.border }]} testID="game-detail-category">
+                <ThemedText type="caption" themeColor="textSecondary">
                   {game.primaryCategory}
                 </ThemedText>
               </View>
@@ -268,21 +260,21 @@ export default function GameDetailScreen() {
           </View>
           <ThemedText
             type="gameTitle"
-            themeColor="stageInk"
+            themeColor="text"
             testID="game-detail-title"
-            numberOfLines={2}>
+            >
             {game.name}
           </ThemedText>
           {identity.interaction ? (
             <ThemedText
               type="bodyRead"
-              style={styles.stageMuted}
+              themeColor="textSecondary"
               testID="game-detail-mechanic">
               {identity.interaction}
             </ThemedText>
           ) : null}
           {game.hasTutorial ? (
-            <ThemedText type="caption" style={styles.stageMuted}>
+            <ThemedText type="caption" themeColor="textSecondary">
               Includes a short guided tutorial on first play.
             </ThemedText>
           ) : null}
@@ -301,7 +293,8 @@ export default function GameDetailScreen() {
       <Button
         variant="secondary"
         fullWidth={false}
-        label={currentFavorite ? "★ Favorited" : "☆ Add to favorites"}
+        label={currentFavorite ? "Favorited" : "Add to favorites"}
+        icon={<AppIcon name="favorite" tone={currentFavorite ? 'accentText' : 'textSecondary'} />}
         testID="game-detail-favorite"
         accessibilityLabel={
           currentFavorite ? "Remove from favorites" : "Add to favorites"
@@ -338,6 +331,12 @@ export default function GameDetailScreen() {
           testID="game-detail-error"
           action={{ label: "Try again", onPress: retryLoad }}
         />
+      ) : unplayed ? (
+        <View testID="game-detail-first-play">
+          <StateCard variant="empty" title="Make your first run"
+            message="Complete a game to start your records and mastery. Your results stay saved on this device."
+            testID="game-detail-records" />
+        </View>
       ) : (
         <>
           {/* Below the fold, evidence speaks in numbered hairline fact rows
@@ -571,6 +570,7 @@ const styles = StyleSheet.create({
   },
   identityRow: {
     flexDirection: "row",
+    flexWrap: 'wrap',
     alignItems: "center",
     gap: Spacing.two,
   },
@@ -579,13 +579,9 @@ const styles = StyleSheet.create({
   },
   domainTag: {
     borderWidth: 1,
-    borderColor: STAGE_LINE,
     borderRadius: Spacing.one,
     paddingHorizontal: Spacing.oneHalf,
     paddingVertical: Spacing.half,
-  },
-  stageMuted: {
-    color: STAGE_INK_MUTED,
   },
   sectionTitleRow: {
     flexDirection: "row",

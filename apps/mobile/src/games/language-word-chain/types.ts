@@ -169,6 +169,13 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+export interface WordChainCueStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  /** Includes the displayed step and pause/resume generation. */
+  readonly inputEpoch: number;
+}
+
 export type LanguageWordChainAction =
   | { type: "select-difficulty"; level: DifficultyLevel }
   | {
@@ -180,9 +187,9 @@ export type LanguageWordChainAction =
       /** Monotonic clock now (gameplay timing — round deadline base). */
       nowMs: number;
     }
-  | { type: "answer-step"; index: number; nowMs: number }
-  | { type: "expire-round"; nowMs: number }
-  | { type: "next-round"; nowMs: number }
+  | { type: "answer-step"; index: number; nowMs: number; cue?: WordChainCueStamp }
+  | { type: "expire-round"; nowMs: number; cue?: WordChainCueStamp }
+  | { type: "next-round"; nowMs: number; cue?: WordChainCueStamp }
   | { type: "pause"; nowMs: number }
   | { type: "resume"; nowMs: number }
   | { type: "tutorial-open" }
@@ -211,6 +218,8 @@ export type LanguageWordChainAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface LanguageWordChainState {
+  /** Displayed link/pause generation; prevents solving a link before it renders. */
+  inputEpoch: number;
   phase: LanguageWordChainPhase;
   /** True while the SDK lifecycle is paused (timers frozen, content hidden). */
   paused: boolean;
@@ -287,6 +296,7 @@ export interface LanguageWordChainState {
 export function createInitialLanguageWordChainState(): LanguageWordChainState {
   return {
     phase: "intro",
+    inputEpoch: 0,
     paused: false,
     difficulty: "normal",
     profile: null,

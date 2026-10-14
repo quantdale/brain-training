@@ -97,14 +97,31 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** A callback remains bound to the session, round, phase and pause epoch it rendered. */
+export interface MemoryWindowStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+  readonly phase: MemoryPhase;
+}
+
+export interface MemoryRevealStamp extends MemoryWindowStamp {
+  /** Sequence position, never a tile identity. */
+  readonly revealedIndex: number;
+}
+
+export interface MemoryRecallStamp extends MemoryWindowStamp {
+  readonly inputIndex: number;
+}
+
 export type MemoryAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'reveal-tick' }
-  | { type: 'tap-tile'; index: number }
-  | { type: 'next-round' }
-  | { type: 'pause' }
-  | { type: 'resume' }
+  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number; nowMs: number }
+  | { type: 'reveal-tick'; nowMs: number; stamp: MemoryRevealStamp }
+  | { type: 'tap-tile'; index: number; stamp: MemoryRecallStamp }
+  | { type: 'next-round'; nowMs: number; stamp: MemoryWindowStamp }
+  | { type: 'pause'; nowMs: number }
+  | { type: 'resume'; nowMs: number }
   | { type: 'tutorial-open' }
   | { type: 'tutorial-close' }
   | {
@@ -131,6 +148,8 @@ export type MemoryAction =
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface MemoryGameState {
   phase: MemoryPhase;
+  /** Changes on session start and each pause/resume boundary. */
+  inputEpoch: number;
   /** True while the SDK lifecycle is paused (timers frozen, board obscured). */
   paused: boolean;
   /** Selected difficulty (preselected 'normal' in the intro). */
@@ -152,8 +171,11 @@ export interface MemoryGameState {
   length: number;
   /** Tile indices of the current round's sequence. */
   sequence: readonly number[];
-  /** Tile currently flashing during reveal; -1 when not revealing. */
+  /** Sequence position currently flashing; -1 when not revealing. */
   revealedIndex: number;
+  /** Exact current-tile exposure deadline and the frozen pause remainder. */
+  revealDeadlineMs: number;
+  revealRemainingMs: number;
   /** Next expected position during input. */
   inputIndex: number;
   /** Taps recorded this round (in order). */
@@ -180,6 +202,7 @@ export interface MemoryGameState {
 export function createInitialMemoryState(): MemoryGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,
@@ -194,6 +217,8 @@ export function createInitialMemoryState(): MemoryGameState {
     length: 0,
     sequence: [],
     revealedIndex: -1,
+    revealDeadlineMs: 0,
+    revealRemainingMs: 0,
     inputIndex: 0,
     taps: [],
     roundOutcome: null,
@@ -209,4 +234,21 @@ export function createInitialMemoryState(): MemoryGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+export function windowStamp(state: MemoryGameState): MemoryWindowStamp {
+  return { sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch, phase: state.phase };
+}
+
+export function revealStamp(state: MemoryGameState): MemoryRevealStamp {
+  return { ...windowStamp(state), revealedIndex: state.revealedIndex };
+}
+
+export function recallStamp(state: MemoryGameState): MemoryRecallStamp {
+  return { ...windowStamp(state), inputIndex: state.inputIndex };
+}
+
+export function isCurrentWindow(state: MemoryGameState, stamp: MemoryWindowStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex && stamp.inputEpoch === state.inputEpoch && stamp.phase === state.phase;
 }

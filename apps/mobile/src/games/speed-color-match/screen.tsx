@@ -40,7 +40,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -67,7 +66,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { COLOR_PALETTE, GAME_ID, createInitialSpeedColorMatchState } from './types';
-import type { ColorName } from './types';
+import type { ColorName, SpeedColorMatchAction, SpeedColorMatchStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface SpeedColorMatchScreenProps {
@@ -217,6 +216,16 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     stateRef.current = state;
   });
 
+  const applyGameplayAction = useCallback((action: SpeedColorMatchAction) => {
+    const current = stateRef.current;
+    const next = speedColorMatchReducer(current, action);
+    // Claim the stimulus before React commits so duplicate queued presses
+    // cannot score the same trial or play optimistic success feedback twice.
+    stateRef.current = next;
+    dispatch(action);
+    return next;
+  }, []);
+
   const session = useGameSession({
     gameId: GAME_ID,
     clock,
@@ -226,9 +235,10 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     },
     onPause: () => {
       pauseStartedAtRef.current = clock.now();
-      dispatch({ type: 'pause' });
+      applyGameplayAction({ type: 'pause' });
     },
   });
+  const sessionStatus = session.status;
 
   const tutorial = useMemo(() => createSpeedColorMatchTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createSpeedColorMatchQaForceStateHooks(dispatch), [dispatch]);
@@ -239,25 +249,33 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   const inSession = state.phase === 'trial' || state.phase === 'roundResult';
   const isLastTrial = state.trialIndex + 1 >= totalTrials;
 
+  const liveStamp = useMemo<SpeedColorMatchStamp>(() => ({
+    sessionId: state.sessionId, trialIndex: state.trialIndex, inputEpoch: state.inputEpoch,
+  }), [state.sessionId, state.trialIndex, state.inputEpoch]);
+
   // ---- Auto-show trial when entering trial phase. The shown timestamp is a
   // monotonic clock reading (constitution §20), never wall-clock time.
   useEffect(() => {
     if (state.phase === 'trial' && state.trialShownAtMs === null && !state.paused) {
-      dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
+      applyGameplayAction({ type: 'trial-shown', shownAtMs: clock.now(), stamp: liveStamp });
     }
-  }, [state.phase, state.trialShownAtMs, state.paused, clock]);
+  }, [state.phase, state.trialShownAtMs, state.paused, clock, applyGameplayAction, liveStamp]);
 
   // ---- Stimulus timeout: auto-fail trial on expiry. Scheduled from the
   // monotonic onset (`trialShownAtMs`); pausing deactivates the timer and the
-  // deadline helper resumes from the remaining active budget, so paused time
+  // shifted onset resumes from the remaining active budget, so paused time
   // never counts against the response window.
-  useGameDeadlineTimeout(
-    state.phase === 'trial' && !state.paused && state.trialShownAtMs !== null,
-    () => dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() }),
-    stimulusTimeoutMs,
-    clock,
-    `trial:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
-  );
+  useEffect(() => {
+    if (state.phase !== 'trial' || state.paused || state.trialShownAtMs === null) return;
+    const deadline = state.trialShownAtMs + stimulusTimeoutMs;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      // Clearing a native timer cannot retract work already queued for JS.
+      if (cancelled || sessionStatus() !== 'active') return;
+      applyGameplayAction({ type: 'trial-timeout', timedOutAtMs: clock.now(), stamp: liveStamp });
+    }, Math.ceil(Math.max(0, deadline - clock.now())));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.trialShownAtMs, stimulusTimeoutMs, clock, liveStamp, sessionStatus, applyGameplayAction]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -374,10 +392,9 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
           ? 0
           : Math.max(0, clock.now() - pauseStartedAtRef.current);
       pauseStartedAtRef.current = null;
-      const current = stateRef.current;
-      dispatch({ type: 'resume', pausedMs: current.phase === 'trial' ? pausedMs : undefined });
+      applyGameplayAction({ type: 'resume', pausedMs });
     }
-  }, [session, clock, dispatch]);
+  }, [session, clock, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
@@ -385,13 +402,19 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   }, [session, goBack]);
 
   const handleTapColor = useCallback(
-    (color: ColorName) => {
+    (color: ColorName, stamp: SpeedColorMatchStamp) => {
       const current = stateRef.current;
-      if (current.phase !== 'trial' || current.paused || current.trialShownAtMs === null) {
+      if (current.phase !== 'trial' || current.paused || current.trialShownAtMs === null || sessionStatus() !== 'active') {
         return;
       }
       const trial = current.trials[current.trialIndex];
       if (!trial) return;
+
+      // Reaction time = monotonic clock delta from stimulus onset to the tap;
+      // wall-clock jumps can never distort a measured reaction. Feedback is
+      // emitted only after this exact rendered stimulus accepts the action.
+      const next = applyGameplayAction({ type: 'tap-color', color, tappedAtMs: clock.now(), stamp });
+      if (next === current) return;
 
       if (color === trial.swatchColor) {
         liveAudioHaptics.playSfx('memory-tile-correct');
@@ -400,24 +423,22 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
         liveAudioHaptics.playSfx('memory-tile-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      // Reaction time = monotonic clock delta from stimulus onset to the tap;
-      // wall-clock jumps can never distort a measured reaction.
-      dispatch({ type: 'tap-color', color, tappedAtMs: clock.now() });
     },
-    [clock, dispatch],
+    [clock, sessionStatus, applyGameplayAction],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -518,7 +539,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
           </View>
           <ColorButtonGrid
             colors={COLOR_PALETTE}
-            onPress={handleTapColor}
+            onPress={(color) => handleTapColor(color, liveStamp)}
             disabled={state.paused || state.phase !== 'trial'}
           />
 
@@ -536,7 +557,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
               <GameButton
                 testID={testId(GAME_ID, 'next-trial')}
                 label={isLastTrial ? 'See results' : 'Next trial'}
-                onPress={() => dispatch({ type: 'next-trial' })}
+                onPress={() => applyGameplayAction({ type: 'next-trial', stamp: liveStamp })}
               />
             </View>
           ) : null}

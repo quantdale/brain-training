@@ -5,17 +5,13 @@
  * strategy: curated/versioned packs for vocabulary; §31 Phase-2 "curated/
  * content-pack language"). The pack is validated mechanically at module load
  * (`loadContentPack`), so an invalid pack fails fast instead of producing
- * broken rounds. The registry contract marks this game `generatorVersion: null`
- * because challenges come from this curated pack, not a procedural generator.
+ * broken rounds. The content version identifies the curated wording; the
+ * generator version identifies the seeded item selection and option shuffling.
  *
- * Confusability contract (verified by validation code, not asserted by hand):
- * every item belongs to a semantic `family` — a homogeneous group of same
- * part-of-speech semantic neighbors declared in the pack. The prompt and all
- * four options must be members of the item's family word list, which makes
- * every distractor a genuine semantic neighbor of the prompt. The correct
- * answer is the pack author's declared mapping (`correctIndex`); validation
- * enforces that it differs from the prompt, is unique among the options, and
- * that the prompt never appears as an option.
+ * Mechanical contract: the correct option is the only option declared in the
+ * item's `family`, it differs from the prompt, and all four options are unique.
+ * A family is an editorial grouping, not proof of interchangeable meanings:
+ * cross-family synonyms and differences of meaning need separate review.
  */
 import packJson from './content/pack.json';
 
@@ -41,7 +37,7 @@ export interface PackItem {
   readonly correctWord: string;
   /** Difficulty tier of this item. */
   readonly tier: Tier;
-  /** Semantic family id (see module docs); every word of the item is a member. */
+  /** Editorial family id shared by the prompt's keyed synonym. */
   readonly family: string;
 }
 
@@ -51,7 +47,7 @@ export interface ContentPack {
   readonly packVersion: string;
   /** Must equal `items.length`. */
   readonly itemCount: number;
-  /** Semantic family id → member words (homogeneous synonym groups). */
+  /** Editorial family id → member words; meanings need separate review. */
   readonly families: Readonly<Record<string, readonly string[]>>;
   readonly items: readonly PackItem[];
 }
@@ -86,7 +82,7 @@ function requireWord(value: unknown, where: string): string {
 
 /**
  * Validate an unknown JSON value (the bundled pack.json) into a frozen,
- * fully-verified `ContentPack`. Throws `ContentPackError` on the first
+ * mechanically validated `ContentPack`. Throws `ContentPackError` on the first
  * violation. Every check below is mechanical — nothing is asserted by hand.
  */
 export function validateContentPack(json: unknown): ContentPack {
@@ -103,7 +99,7 @@ export function validateContentPack(json: unknown): ContentPack {
     fail(`packVersion "${packVersion}" must be a semantic version like "1.0.0"`);
   }
 
-  // ---- Families: homogeneous semantic groups, words unique across all of them.
+  // ---- Declared families: words must be unique across all groups.
   if (!isPlainObject(json.families)) {
     fail('families must be an object of familyId → word array');
   }
@@ -202,7 +198,7 @@ export function validateContentPack(json: unknown): ContentPack {
     }
     const correctWord = options[raw.correctIndex];
 
-    // The correct answer must be a real synonym (member of the item's family),
+    // The correct answer must belong to the item's declared family,
     // and must differ from the prompt. The prompt must never appear as an option.
     if (norm(correctWord) === promptNorm) {
       fail(`${where}: correct answer "${correctWord}" must differ from the prompt`);
@@ -211,9 +207,10 @@ export function validateContentPack(json: unknown): ContentPack {
       fail(`${where}: the prompt "${prompt}" must not appear among the options`);
     }
 
-    // Semantic correctness: exactly one option must be a synonym (member of the
-    // item's family). The other three must be plausible distractors from DIFFERENT
-    // families. This ensures exactly one defensible correct answer per round.
+    // Mechanical family check: exactly one option must be a member of the
+    // item's family. The other three come from outside that group.
+    // Cross-family synonyms and differences of meaning still need
+    // editorial review; family membership alone cannot establish either.
     let synonymCount = 0;
     for (const option of options) {
       if (familyWords.has(norm(option))) {

@@ -12,7 +12,7 @@ import {
 } from './difficulty';
 import { generateTrials } from './generator';
 import { perfectSessionScore, trialScore } from './scoring';
-import { INITIAL_STATS, createInitialColorStroopState } from './types';
+import { FLIP_CUE_MS, INITIAL_STATS, createInitialColorStroopState, isCurrentInput } from './types';
 import type { ColorStroopAction, ColorStroopGameState, ColorStroopStats } from './types';
 
 export { createInitialColorStroopState };
@@ -43,6 +43,10 @@ export function colorStroopGameReducer(
         phase: 'stimulus',
         paused: false,
         profile,
+        inputEpoch: state.inputEpoch + 1,
+        roundStartedAtMs: action.nowMs,
+        deadlineMs: action.nowMs + params.stimulusMs,
+        remainingMs: params.stimulusMs,
         seed: action.seed,
         sessionId: action.sessionId,
         startedAtMs: action.startedAtMs,
@@ -74,7 +78,8 @@ export function colorStroopGameReducer(
     }
 
     case 'submit-answer': {
-      if (state.phase !== 'stimulus' || state.paused || state.profile === null) {
+      if (state.phase !== 'stimulus' || state.paused || state.profile === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs) || action.nowMs < state.roundStartedAtMs) {
         return state;
       }
 
@@ -83,13 +88,18 @@ export function colorStroopGameReducer(
         return state;
       }
 
+      if (action.nowMs >= state.deadlineMs) {
+        return colorStroopGameReducer(state, { type: 'trial-timeout', nowMs: action.nowMs, stamp: action.stamp });
+      }
+      const responseTimeMs = action.nowMs - state.roundStartedAtMs;
+
       const correct = action.answer === trial.correctAnswer;
       const isPostFlip = trial.isFlipPoint && state.trialsSinceFlip <= 1;
       // Speed bonus is normalized against THIS level's stimulus window
       // (campaign 014) so scoring stays comparable across difficulties.
       const params = colorStroopParamsFromProfile(state.profile);
       const points = correct
-        ? trialScore(action.responseTimeMs, params.stimulusMs, isPostFlip)
+        ? trialScore(responseTimeMs, params.stimulusMs, isPostFlip)
         : 0;
 
       const totalTries = state.stats.trialsPlayed + 1;
@@ -103,15 +113,15 @@ export function colorStroopGameReducer(
         bestStreak: Math.max(state.stats.bestStreak, newCorrectStreak),
         streak: newCorrectStreak,
         postFlipCorrect: newPostFlipCorrect,
-        totalResponseTimeMs: state.stats.totalResponseTimeMs + action.responseTimeMs,
-        fastestResponseMs: Math.min(state.stats.fastestResponseMs, action.responseTimeMs),
+        totalResponseTimeMs: state.stats.totalResponseTimeMs + responseTimeMs,
+        fastestResponseMs: Math.min(state.stats.fastestResponseMs, responseTimeMs),
       };
 
       return {
         ...state,
         phase: 'feedback',
         currentAnswer: action.answer,
-        currentResponseTimeMs: action.responseTimeMs,
+        currentResponseTimeMs: responseTimeMs,
         currentCorrect: correct,
         previousCorrect: correct,
         stats,
@@ -119,18 +129,23 @@ export function colorStroopGameReducer(
     }
 
     case 'dismiss-flip-cue': {
-      if (state.phase !== 'flipCue') {
+      if (state.phase !== 'flipCue' || state.paused || state.profile === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs) || action.nowMs < state.deadlineMs) {
         return state;
       }
       return {
         ...state,
         phase: 'stimulus',
         showingFlipCue: false,
+        roundStartedAtMs: action.nowMs,
+        deadlineMs: action.nowMs + colorStroopParamsFromProfile(state.profile).stimulusMs,
+        remainingMs: colorStroopParamsFromProfile(state.profile).stimulusMs,
       };
     }
 
     case 'next-trial': {
-      if (state.phase !== 'feedback' || state.profile === null) {
+      if (state.phase !== 'feedback' || state.paused || state.profile === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs)) {
         return state;
       }
       const params = colorStroopParamsFromProfile(state.profile);
@@ -152,6 +167,9 @@ export function colorStroopGameReducer(
           trialsSinceFlip: 0,
           showingFlipCue: true,
           phase: 'flipCue',
+          roundStartedAtMs: action.nowMs,
+          deadlineMs: action.nowMs + FLIP_CUE_MS,
+          remainingMs: FLIP_CUE_MS,
           currentRule: state.currentRule === 'ink' ? 'word' : 'ink',
         };
       }
@@ -164,30 +182,35 @@ export function colorStroopGameReducer(
         currentAnswer: null,
         currentResponseTimeMs: null,
         currentCorrect: null,
+        roundStartedAtMs: action.nowMs,
+        deadlineMs: action.nowMs + params.stimulusMs,
+        remainingMs: params.stimulusMs,
       };
     }
 
     case 'trial-timeout': {
       // Stimulus timeout: the unanswered trial counts as wrong (full-window
       // response time) but the session continues with the next trial.
-      if (state.phase !== 'stimulus' || state.paused || state.profile === null) {
+      if (state.phase !== 'stimulus' || state.paused || state.profile === null ||
+          !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs) || action.nowMs < state.deadlineMs) {
         return state;
       }
       const trial = state.trials[state.trialIndex];
       if (!trial) {
         return state;
       }
+      const responseTimeMs = colorStroopParamsFromProfile(state.profile).stimulusMs;
       const stats: ColorStroopStats = {
         ...state.stats,
         trialsPlayed: state.stats.trialsPlayed + 1,
         streak: 0,
-        totalResponseTimeMs: state.stats.totalResponseTimeMs + action.responseTimeMs,
+        totalResponseTimeMs: state.stats.totalResponseTimeMs + responseTimeMs,
       };
       return {
         ...state,
         phase: 'feedback',
         currentAnswer: null,
-        currentResponseTimeMs: action.responseTimeMs,
+        currentResponseTimeMs: responseTimeMs,
         currentCorrect: false,
         previousCorrect: false,
         stats,
@@ -195,14 +218,30 @@ export function colorStroopGameReducer(
     }
 
     case 'pause': {
-      if (state.paused || state.phase === 'results' || state.phase === 'intro') {
+      if (state.paused || state.phase === 'results' || state.phase === 'intro' || !Number.isFinite(action.nowMs)) {
         return state;
       }
-      return { ...state, paused: true };
+      return {
+        ...state,
+        paused: true,
+        inputEpoch: state.inputEpoch + 1,
+        remainingMs: state.phase === 'stimulus' || state.phase === 'flipCue'
+          ? Math.max(0, state.deadlineMs - action.nowMs)
+          : state.remainingMs,
+      };
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused || !Number.isFinite(action.nowMs)) return state;
+      const deadlineMs = state.phase === 'stimulus' || state.phase === 'flipCue'
+        ? action.nowMs + state.remainingMs
+        : state.deadlineMs;
+      return {
+        ...state,
+        paused: false,
+        deadlineMs,
+        roundStartedAtMs: state.roundStartedAtMs + deadlineMs - state.deadlineMs,
+      };
     }
 
     case 'tutorial-open': {

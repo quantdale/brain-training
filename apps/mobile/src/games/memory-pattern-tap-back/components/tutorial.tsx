@@ -10,8 +10,9 @@
  * resets its internal observe/input state without any setState-in-effect
  * cascades.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -115,10 +116,18 @@ function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
   );
   const [observeIndex, setObserveIndex] = useState(0);
   const [inputIndex, setInputIndex] = useState(0);
+  const resolvedInput = useRef(0);
+  const deliveredPresses = useRef(new WeakSet<object>());
+  const activeAttempt = useRef(true);
   const [wrongTile, setWrongTile] = useState<number | null>(null);
 
   const observing = observeIndex >= 0 && observeIndex < DEMO_LENGTH;
   const completed = inputIndex >= DEMO_LENGTH;
+
+  useEffect(() => {
+    activeAttempt.current = true;
+    return () => { activeAttempt.current = false; };
+  }, []);
 
   // Observe pacing: one tile every DEMO_REVEAL_MS, then hand over to input.
   useEffect(() => {
@@ -129,18 +138,24 @@ function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
     return () => clearTimeout(timer);
   }, [observing, observeIndex]);
 
-  const handleTap = (index: number) => {
-    if (observing || completed) {
+  const handleTap = (index: number, event: GestureResponderEvent) => {
+    const nativePress = event?.nativeEvent;
+    if (observing || !activeAttempt.current || resolvedInput.current >= DEMO_LENGTH ||
+        nativePress == null || deliveredPresses.current.has(nativePress)) {
       return;
     }
-    if (index === sequence[inputIndex]) {
+    deliveredPresses.current.add(nativePress);
+    const cursor = resolvedInput.current;
+    if (index === sequence[cursor]) {
       setWrongTile(null);
-      const next = inputIndex + 1;
+      const next = cursor + 1;
+      resolvedInput.current = next;
       setInputIndex(next);
       if (next >= DEMO_LENGTH) {
         onDone();
       }
     } else {
+      resolvedInput.current = DEMO_LENGTH;
       setWrongTile(index);
       onWrong();
     }
@@ -148,7 +163,7 @@ function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
 
   const visualFor = (index: number): TileVisualState => {
     if (observing) {
-      return index === observeIndex ? 'observed' : 'idle';
+      return index === sequence[observeIndex] ? 'observed' : 'idle';
     }
     if (sequence.slice(0, inputIndex).includes(index)) {
       return 'selected';

@@ -141,11 +141,11 @@ beforeEach(() => {
 });
 
 describe('home template-workout start failure path', () => {
-  it('describes a starting set when there is no recorded session history', async () => {
+  it('leads with workout length without claiming recorded personal history', async () => {
     await renderHome();
 
     expect(screen.getByTestId('home-workout-plan')).toHaveTextContent(
-      /balanced starting set/i,
+      /1 game\b/i,
     );
     expect(screen.getByTestId('home-workout-plan')).not.toHaveTextContent(
       /recent training/i,
@@ -156,17 +156,15 @@ describe('home template-workout start failure path', () => {
     await renderHome();
 
     expect(screen.getByTestId('home-local-trust')).toHaveTextContent(
-      /ready on this device and works offline/i,
+      /ready to play offline/i,
     );
   });
 
-  it('renders the workout progress numeral in stage ink on the charcoal stage', async () => {
-    // Device-capture defect: the numeral used the default paper ink on the
-    // stage card and was unreadable (near-black on charcoal).
+  it('renders the compact workout count in readable ink on its content surface', async () => {
     await renderHome();
 
     const numeral = screen.getByTestId('home-workout-progress');
-    expect(StyleSheet.flatten(numeral.props.style).color).toBe(Colors.light.stageInk);
+    expect(StyleSheet.flatten(numeral.props.style).color).toBe(Colors.light.text);
   });
 
   it('surfaces a failed start, stays on Home, and keeps the CTA retryable', async () => {

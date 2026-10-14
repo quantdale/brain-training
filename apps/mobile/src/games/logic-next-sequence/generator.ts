@@ -605,7 +605,7 @@ export function describePattern(
         ? 'Terms are consecutive cubes.'
         : `Terms are consecutive cubes plus ${params.offset}.`;
     case 'alternating':
-      return `The steps alternate between +${params.stepA} and +${params.stepB}.`;
+      return `Two sequences interleave: positions 1, 3, 5… add ${params.stepA}; positions 2, 4, 6… add ${params.stepB}.`;
     case 'fibonacci':
       return 'Each term is the sum of the two previous terms.';
     case 'increments':

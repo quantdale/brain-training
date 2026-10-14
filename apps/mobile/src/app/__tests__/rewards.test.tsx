@@ -14,13 +14,15 @@
  * write failure, and `@/db` serves a fake repository surface. This mirrors the
  * mocking pattern of data-management.test.tsx / results-workout-cta.test.tsx.
  */
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   fireEvent,
   renderRouter,
   screen,
   waitFor,
 } from 'expo-router/testing-library';
+import { within } from '@testing-library/react-native';
+import * as ReactNative from 'react-native';
 
 import RewardsScreen from '@/app/rewards';
 import { ToastHost, resetToastQueueForTests } from '@/components/ui';
@@ -93,6 +95,12 @@ const mockedPurchase = jest.mocked(purchaseCosmetic);
 const mockedEquip = jest.mocked(equipCosmeticPersisted);
 const mockedRefreshProgression = jest.mocked(refreshProgression);
 
+/** Feed the same viewport to both the route and the shared shell layout hooks. */
+function setViewport(width: number, fontScale: number) {
+  const dimensions = { width, fontScale, height: 844, scale: 1 };
+  ReactNative.Dimensions.set({ window: dimensions, screen: dimensions });
+}
+
 /** Minimal repository surface used by loadRewards + collectClaimableRewards. */
 function makeDb(): AppDatabase {
   return {
@@ -141,7 +149,9 @@ beforeEach(() => {
   mockDbState.unlockRows = [];
   mockDbState.balance = 0;
   mockDbState.settings = {};
+  setViewport(390, 1);
 });
+afterEach(() => { jest.restoreAllMocks(); });
 
 describe('rewards claim failure paths', () => {
   it('surfaces a single claim write failure and leaves the item unclaimed', async () => {
@@ -205,6 +215,7 @@ describe('rewards claim failure paths', () => {
 
     // The screen refreshes after the failure (durable claims resync); the
     // failed pass is never presented as success.
+    await fireEvent.press(screen.getByTestId('rewards-inbox-toggle'));
     expect(
       screen.getByTestId(`reward-claim-${fragment(`achievement:${ACH_FIRST.id}`)}`),
     ).toBeOnTheScreen();
@@ -321,5 +332,73 @@ describe('rewards progression refresh wiring', () => {
     expect(screen.getByTestId('rewards-collection-intro')).toHaveTextContent(
       /earned coins/i,
     );
+  });
+});
+
+describe('Rewards readable collection and deliberate claims', () => {
+  it.each([[320, 1], [390, 2]])('keeps all cosmetics readable as rows at width %i and font scale %i', async (width, fontScale) => {
+    setViewport(width, fontScale);
+    await renderRewards();
+    const cosmetic = await screen.findByTestId(`rewards-cosmetic-${PURCHASEABLE.id}`);
+    expect(cosmetic).toHaveStyle({ width: '100%' });
+    expect(within(cosmetic).getByText(PURCHASEABLE.name).props.numberOfLines).toBeUndefined();
+    expect(screen.getAllByTestId(/^rewards-cosmetic-/)).toHaveLength(COSMETIC_DEFINITIONS.length);
+    expect(screen.getByTestId(`cosmetic-buy-${PURCHASEABLE.id}`)).toBeDisabled();
+  });
+
+  it('keeps readable grid cells at ordinary phone widths', async () => {
+    await renderRewards();
+    const cosmetic = await screen.findByTestId(`rewards-cosmetic-${PURCHASEABLE.id}`);
+    const style = ReactNative.StyleSheet.flatten(cosmetic.props.style);
+    expect(style.width).toBeGreaterThanOrEqual(164);
+    expect(style.width).toBeLessThan(200);
+  });
+
+  it('filters ownership and cancels a pending purchase confirmation when the view changes', async () => {
+    mockDbState.balance = PURCHASEABLE.price ?? 0;
+    await renderRewards();
+    const buyId = `cosmetic-buy-${PURCHASEABLE.id}`;
+    await fireEvent.press(await screen.findByTestId(buyId));
+    expect(screen.getByTestId(buyId).props.accessibilityLabel).toMatch(/Confirm purchase/);
+    await fireEvent.press(screen.getByTestId('rewards-filter-owned'));
+    expect(screen.queryByTestId(`rewards-cosmetic-${PURCHASEABLE.id}`)).toBeNull();
+    expect(screen.getByTestId('rewards-filter-owned').props.accessibilityState.selected).toBe(true);
+    for (const cosmetic of screen.getAllByTestId(/^rewards-cosmetic-/)) {
+      expect(cosmetic.props.accessibilityLabel).toMatch(/Owned|Equipped|Earned/);
+    }
+    await fireEvent.press(screen.getByTestId('rewards-filter-all'));
+    expect(screen.getByTestId(buyId).props.accessibilityLabel).toMatch(/^Buy /);
+    await fireEvent.press(screen.getByTestId(buyId));
+    expect(mockedPurchase).not.toHaveBeenCalled();
+  });
+
+  it('distinguishes earned cosmetics from purchased ownership', async () => {
+    const earned = COSMETIC_DEFINITIONS.find((definition) => definition.unlock.type === 'achievement')!;
+    if (earned.unlock.type !== 'achievement') throw new Error('missing earned cosmetic fixture');
+    mockDbState.unlockRows = [{ achievementId: earned.unlock.achievementId, unlockedAt: 1, claimedAt: 2 }];
+    mockDbState.settings = { cosmetics: { owned: [PURCHASEABLE.id], equipped: {} } };
+    await renderRewards();
+    const earnedCard = await screen.findByTestId(`rewards-cosmetic-${earned.id}`);
+    expect(within(earnedCard).getByText('Earned')).toBeOnTheScreen();
+    expect(earnedCard.props.accessibilityLabel).toMatch(/Earned and owned/);
+    const purchasedCard = screen.getByTestId(`rewards-cosmetic-${PURCHASEABLE.id}`);
+    expect(within(purchasedCard).getByText('Owned')).toBeOnTheScreen();
+    expect(within(purchasedCard).queryByText('Earned')).toBeNull();
+  });
+
+  it('previews a short inbox and exposes every claim under its explicit expansion', async () => {
+    const definitions = ACHIEVEMENT_DEFINITIONS_V1.slice(0, 4);
+    mockDbState.unlockRows = definitions.map((definition) => ({
+      achievementId: definition.id, unlockedAt: 1, claimedAt: null,
+    }));
+    await renderRewards();
+    await screen.findByTestId(`reward-claim-${fragment(`achievement:${definitions[0].id}`)}`);
+    expect(screen.getAllByTestId(/^reward-claim-/)).toHaveLength(1);
+    expect(screen.getByTestId('rewards-claim-all')).toHaveTextContent('Claim all 4');
+    await fireEvent.press(screen.getByTestId('rewards-inbox-toggle'));
+    for (const definition of definitions) {
+      expect(screen.getByTestId(`reward-claim-${fragment(`achievement:${definition.id}`)}`)).toBeOnTheScreen();
+    }
+    expect(screen.getAllByTestId(/^reward-claim-/)).toHaveLength(4);
   });
 });

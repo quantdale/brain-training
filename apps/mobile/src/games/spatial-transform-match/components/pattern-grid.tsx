@@ -22,6 +22,13 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 
+/** Describe each rendered filled cell without disclosing a transformation. */
+export function describePattern(gridSize: number, pattern: readonly number[]): string {
+  const side = Math.round(Math.sqrt(gridSize));
+  const filled = [...pattern].sort((a, b) => a - b).map((index) => `row ${Math.floor(index / side) + 1} column ${index % side + 1}`);
+  return `${side} rows by ${side} columns. Rows run top to bottom; columns run left to right. ${filled.length > 0 ? `Filled cells: ${filled.join('; ')}. All other cells empty.` : 'All cells empty.'}`;
+}
+
 export interface PatternGridProps {
   gridSize: number;
   /** Cell indices that are filled. */
@@ -46,7 +53,9 @@ export const PatternGrid = memo(function PatternGrid({
     <View
       style={styles.grid}
       testID={testID}
-      accessibilityLabel={accessibilityLabel}>
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={`${accessibilityLabel}. ${describePattern(gridSize, pattern)}`}>
       {Array.from({ length: gridSize }, (_, index) => {
         const row = Math.floor(index / side);
         const col = index % side;
@@ -57,6 +66,7 @@ export const PatternGrid = memo(function PatternGrid({
               accessibilityLabel={
                 `Row ${row + 1} column ${col + 1} ${filledSet.has(index) ? 'filled' : 'empty'}`
               }
+              importantForAccessibility="no"
               style={[
                 styles.tile,
                 {

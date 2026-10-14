@@ -250,7 +250,7 @@ describe('SpatialCoordinateTurnScreen', () => {
     expect(raw.score).toBe(perfectSessionScore(DIFFICULTY_PARAMS.normal));
     expect(raw.roundsPlayed).toBe(plan.length);
     expect(raw.correctPicks).toBe(plan.length);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

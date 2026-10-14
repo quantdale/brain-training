@@ -74,6 +74,26 @@ describe('start-session', () => {
 });
 
 describe('answer', () => {
+  it.each([20_000, 20_001])('resolves a correct answer at %sms to timeout with no score', (elapsedMs) => {
+    const state = startSession('late-answer');
+    const after = ruleGridGameReducer(state, { type: 'answer', selectedValue: state.currentRound!.answer, elapsedMs });
+    expect(after.roundOutcome).toBe('timeout');
+    expect(after.selectedValue).toBeNull();
+    expect(after.stats.score).toBe(0);
+    expect(after.stats.roundsCorrect).toBe(0);
+    expect(after.stats.totalElapsedMs).toBe(20_000);
+    expect(after.stats.bestRoundTimeMs).toBe(Number.POSITIVE_INFINITY);
+    expect(ruleGridGameReducer(after, { type: 'answer', selectedValue: state.currentRound!.answer, elapsedMs: 100 }))
+      .toBe(after);
+  });
+
+  it('still scores a correct answer one millisecond before the deadline', () => {
+    const state = startSession('in-time');
+    const after = ruleGridGameReducer(state, { type: 'answer', selectedValue: state.currentRound!.answer, elapsedMs: 19_999 });
+    expect(after.roundOutcome).toBe('correct');
+    expect(after.stats.bestRoundTimeMs).toBe(19_999);
+  });
+
   it('scores a correct answer', () => {
     const state = startSession('g');
     const answer = state.currentRound!.answer;

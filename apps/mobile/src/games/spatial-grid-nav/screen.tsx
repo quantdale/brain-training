@@ -49,7 +49,6 @@ import { Tutorial } from "./components/tutorial";
 import { paramsFromProfile, sessionChallengeRating } from "./difficulty";
 import { gameDefinition } from "./game-definition";
 import {
-  createQaForceStateHooks,
   createSpatialGridNavTutorialLifecycle,
 } from "./hooks";
 import { gameReducer } from "./reducer";
@@ -62,6 +61,7 @@ import {
 } from "./session";
 import type { SessionPersistence } from "./session";
 import { GAME_ID, createInitialState } from "./types";
+import type { SpatialGridNavAction } from './types';
 import { SCORING_VERSION } from "./versions";
 
 export interface SpatialGridNavScreenProps {
@@ -89,14 +89,25 @@ export default function SpatialGridNavScreen(
   } = props;
   const theme = useTheme();
   const goBack = useSafeBack('/games');
-  const [state, dispatch] = useReducer(
+  const [state, reactDispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialState,
   );
 
   const stateRef = useRef(state);
-  /** Monotonic timestamp (clock.now()) of when the trial became active. */
+  // Accept a transition synchronously so a queued callback cannot act on a
+  // previous cue or play feedback twice before the next React commit.
+  const dispatch = useCallback((action: SpatialGridNavAction) => {
+    const current = stateRef.current;
+    const next = gameReducer(current, action);
+    if (next === current) return false;
+    stateRef.current = next;
+    reactDispatch(action);
+    return true;
+  }, []);
+  const inputEpoch = state.inputEpoch;
+  /** Lifecycle active elapsed time when the trial became visible. */
   const choiceStartedAtRef = useRef(0);
 
   // Keep a ref of the latest state for event handlers (guards).
@@ -117,12 +128,14 @@ export default function SpatialGridNavScreen(
     },
     onPause: () => dispatch({ type: "pause" }),
   });
+  const readActiveTime = session.elapsedMs;
 
   const tutorial = useMemo(
     () => createSpatialGridNavTutorialLifecycle(tutorialStore),
     [tutorialStore],
   );
-  const qaHooks = useMemo(() => createQaForceStateHooks(dispatch), [dispatch]);
+  const forceWin = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-win' }); }, [dispatch]);
+  const forceLose = useCallback(() => { assertDevOnly(); dispatch({ type: 'qa/force-lose' }); }, [dispatch]);
 
   const params =
     state.profile !== null ? paramsFromProfile(state.profile) : null;
@@ -132,19 +145,20 @@ export default function SpatialGridNavScreen(
     state.phase === "trialActive" || state.phase === "trialResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Record the monotonic time when a trial becomes active (answer timing).
+  // Keep the round's active anchor through pause/resume. The lifecycle removes
+  // paused segments without discarding any pre-pause thinking time.
   useEffect(() => {
-    if (state.phase === "trialActive" && !state.paused) {
-      choiceStartedAtRef.current = clock.now();
+    if (state.phase === "trialActive") {
+      choiceStartedAtRef.current = readActiveTime();
     }
-  }, [state.phase, state.paused, clock]);
+  }, [state.phase, state.roundIndex, state.sessionId, readActiveTime]);
 
   // First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
       dispatch({ type: "tutorial-open" });
     }
-  }, [tutorial]);
+  }, [tutorial, dispatch]);
 
   // Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -249,6 +263,7 @@ export default function SpatialGridNavScreen(
     session,
     xpHook,
     persistSession,
+    dispatch,
   ]);
 
   // Session controls (mechanics live here; mechanics-free plumbing does not).
@@ -270,10 +285,11 @@ export default function SpatialGridNavScreen(
   const handlePickCell = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== "trialActive" || current.paused) {
+      if (current.phase !== "trialActive" || current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch || !Number.isInteger(index) || current.round === null || index < 0 || index >= current.round.options.length) {
         return;
       }
-      const answerMs = clock.now() - choiceStartedAtRef.current;
+      const answerMs = Math.max(0, session.elapsedMs() - choiceStartedAtRef.current);
+      if (!dispatch({ type: "pick-cell", index, responseMs: answerMs })) return;
       if (index === current.round?.correctIndex) {
         liveAudioHaptics.playSfx("memory-tile-correct");
         liveAudioHaptics.haptic("light");
@@ -281,13 +297,19 @@ export default function SpatialGridNavScreen(
         liveAudioHaptics.playSfx("memory-tile-wrong");
         liveAudioHaptics.haptic("warning");
       }
-      dispatch({ type: "pick-cell", index, responseMs: answerMs });
     },
-    [clock, dispatch],
+    [session, inputEpoch, dispatch],
   );
+
+  const handleNextRound = useCallback(() => {
+    const current = stateRef.current;
+    if (current.paused || session.status() !== 'active' || inputEpoch !== stateRef.current.inputEpoch) return;
+    dispatch({ type: 'next-round' });
+  }, [session, inputEpoch, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -390,12 +412,12 @@ export default function SpatialGridNavScreen(
           {`Round ${state.roundIndex + 1}/${rounds}`}
         </ThemedText>
       }
-      score={String(state.stats.score)}
+      score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
-          onForceWin={qaHooks.forceWin}
-          onForceLose={qaHooks.forceLose}
+          onForceWin={forceWin}
+          onForceLose={forceLose}
           onForceTimeout={forceTimeout}
         />
       }
@@ -490,7 +512,7 @@ export default function SpatialGridNavScreen(
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next round"}
-                onPress={() => dispatch({ type: "next-round" })}
+                onPress={handleNextRound}
               />
             </View>
           ) : null}

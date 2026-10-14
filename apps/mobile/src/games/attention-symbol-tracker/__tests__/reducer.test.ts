@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { symbolTrackerGameReducer } from '../reducer';
-import { createInitialSymbolTrackerState } from '../types';
+import { continuationStamp, createInitialSymbolTrackerState } from '../types';
 import type { QaForceStatePatch, SymbolTrackerGameState } from '../types';
 import { EMPTY, generateRound } from '../generator';
 import {
@@ -257,7 +257,7 @@ describe('respond deadline', () => {
     expect(state.stats.score).toBe(0);
     expect(state.stats.correctTargets).toBe(0);
     // The session stays fully playable afterwards.
-    const next = symbolTrackerGameReducer(state, { type: 'next-round' });
+    const next = symbolTrackerGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(next.phase).toBe('observe');
     expect(next.respondTimedOut).toBe(false);
   });
@@ -305,7 +305,7 @@ describe('next-round', () => {
     }
     state = symbolTrackerGameReducer(state, { type: 'submit' });
     const prevTracked = state.trackedSymbolIds;
-    state = symbolTrackerGameReducer(state, { type: 'next-round' });
+    state = symbolTrackerGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     expect(state.phase).toBe('observe');
     expect(state.roundIndex).toBe(1);
     expect(state.trackCount).toBe(3);
@@ -321,7 +321,7 @@ describe('next-round', () => {
         state = symbolTrackerGameReducer(state, { type: 'tap-cell', index: cell });
       }
       state = symbolTrackerGameReducer(state, { type: 'submit' });
-      state = symbolTrackerGameReducer(state, { type: 'next-round' });
+      state = symbolTrackerGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(4);

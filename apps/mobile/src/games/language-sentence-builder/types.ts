@@ -44,6 +44,9 @@ export interface SentenceBuilderStats {
   readonly bestStreak: number;
   readonly streak: number;
   readonly longestSentence: number;
+  /** Number of words offered across completed rounds, distinct from input count. */
+  readonly totalWords: number;
+  /** Actual accepted tile presses across completed rounds. */
   readonly totalTaps: number;
   readonly correctTaps: number;
   /** Sum of all per-round accuracy fractions (0..1) for normalization. */
@@ -57,6 +60,7 @@ export const INITIAL_STATS: Readonly<SentenceBuilderStats> = Object.freeze({
   bestStreak: 0,
   streak: 0,
   longestSentence: 0,
+  totalWords: 0,
   totalTaps: 0,
   correctTaps: 0,
   accuracySum: 0,
@@ -182,7 +186,9 @@ export interface SentenceBuilderState {
   taps: readonly number[];
   /** Next expected tap index. */
   inputIndex: number;
-  roundOutcome: 'passed' | 'failed' | null;
+  roundOutcome: 'passed' | 'partial' | 'failed' | null;
+  /** Points from this round only; the session score is cumulative. */
+  roundPoints: number;
   /** Previous round's category (for near-duplicate avoidance). */
   prevCategory: string | null;
   /** Sentence texts already dealt this session (no sentence repeats). */
@@ -222,6 +228,7 @@ export function createInitialState(): SentenceBuilderState {
     taps: [],
     inputIndex: 0,
     roundOutcome: null,
+    roundPoints: 0,
     prevCategory: null,
     usedSentenceTexts: [],
     stats: { ...INITIAL_STATS },

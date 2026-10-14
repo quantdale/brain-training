@@ -1,0 +1,37 @@
+[
+  {
+    "file": "STATE.md",
+    "sha256": "f6dd0557e9727f37fc1017df825e1edb52fa2022d098b554c256f19ccd6ca615",
+    "bytes": 101861
+  },
+  {
+    "file": "VALIDATION.md",
+    "sha256": "28f697359c767008dad022824ccb7c67fb34484682814e3261fa531388efa064",
+    "bytes": 461921
+  },
+  {
+    "file": "KNOWN_ISSUES.md",
+    "sha256": "0fcf0df62d80cd91b12b342bc44494fa63e5eb0d4ecd33d38cba163e861eb1da",
+    "bytes": 57981
+  },
+  {
+    "file": "CURRENT_CAMPAIGN.md",
+    "sha256": "78e04a07d443a58c30c703adf752ee7c343cf053dff51fa387700e35d3be2aa5",
+    "bytes": 25926
+  },
+  {
+    "file": "EXECUTION_PROMPT.md",
+    "sha256": "03b3ca1dec236de855120b36e163837e36885feb0a78eb8a1bdbc432191d8d65",
+    "bytes": 5684
+  },
+  {
+    "file": "GOVERNANCE.json",
+    "sha256": "0db5033c125f1ba675791e1d31e56f142af8da5313941719476e5bfaa0342553",
+    "bytes": 5186
+  },
+  {
+    "file": "task-ownership.json",
+    "sha256": "b990531f4484b7d7cf2e4b1e6474939b2a9e47f5cf4abc8c50d34db87232d0cc",
+    "bytes": 1766
+  }
+]

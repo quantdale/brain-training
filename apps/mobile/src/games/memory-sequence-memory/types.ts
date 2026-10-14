@@ -107,14 +107,21 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Rendered round and pause identity; transient, never stored in results. */
+export interface SequenceMemoryStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type SequenceMemoryAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'reveal-tick' }
-  | { type: 'tap-tile'; index: number }
-  | { type: 'next-round' }
+  | { type: 'reveal-tick'; stamp?: SequenceMemoryStamp; revealedIndex?: number }
+  | { type: 'tap-tile'; index: number; elapsedMs?: number; stamp?: SequenceMemoryStamp }
+  | { type: 'next-round'; elapsedMs?: number; stamp?: SequenceMemoryStamp }
   /** Screen-dispatched when the monotonic time budget is exhausted. */
-  | { type: 'time-up' }
+  | { type: 'time-up'; elapsedMs?: number; stamp?: SequenceMemoryStamp }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
@@ -164,11 +171,12 @@ export interface SequenceMemoryGameState {
   pausedDurationMs: number;
   /** 0-based index of the current sequence round. */
   roundIndex: number;
+  inputEpoch: number;
   /** Sequence length of the current round. */
   length: number;
   /** Tile indices of the current round's sequence. */
   sequence: readonly number[];
-  /** Tile currently flashing during reveal; -1 when not revealing. */
+  /** Position in `sequence` currently flashing; -1 when not revealing. */
   revealedIndex: number;
   /** Next expected position during input. */
   inputIndex: number;
@@ -209,6 +217,7 @@ export function createInitialSequenceMemoryState(): SequenceMemoryGameState {
     activeDurationMs: 0,
     pausedDurationMs: 0,
     roundIndex: 0,
+    inputEpoch: 0,
     length: 0,
     sequence: [],
     revealedIndex: -1,

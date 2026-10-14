@@ -16,6 +16,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui/badge';
 import { Tappable } from '@/components/ui/tappable';
 import { HAIRLINE } from '@/components/ui/radius';
+import { AppIcon } from '@/components/ui/app-icon';
 import { useTheme } from '@/hooks/use-theme';
 import { Radii, Spacing, type ColorTheme, type ThemeColor } from '@/theme/tokens';
 import type { CosmeticSlot } from '@/cosmetics';
@@ -35,6 +36,10 @@ export interface CollectibleTileProps {
   testID?: string;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  /** Compact collection rows prevent oversized square media at large text. */
+  layout?: 'grid' | 'row';
+  /** Stable cosmetic id differentiates the preview without reading its name. */
+  identityKey?: string;
 }
 
 const DEFAULT_OBJECT_COLOR = '#6C5CE7';
@@ -43,7 +48,7 @@ const DEFAULT_OBJECT_COLOR = '#6C5CE7';
  * The object itself, one shape language per slot:
  * `avatarFrame` a keyed ring, `accent` a colour ramp, `celebration` a burst.
  */
-function CollectibleObject({ slot, color }: { slot: CosmeticSlot; color: string }) {
+function CollectibleObject({ slot, color, identityKey }: { slot: CosmeticSlot; color: string; identityKey?: string }) {
   if (slot === 'accent') {
     return (
       <View style={styles.ramp} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -57,6 +62,31 @@ function CollectibleObject({ slot, color }: { slot: CosmeticSlot; color: string 
     );
   }
   if (slot === 'celebration') {
+    if (identityKey?.includes('confetti')) {
+      return (
+        <View style={styles.burst} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {[[8, 8, -25], [32, 3, 20], [51, 16, 65], [21, 27, 35], [42, 36, -15], [4, 42, 20], [28, 50, -45]].map(([left, top, angle], index) => (
+            <View key={index} style={{ position: 'absolute', left, top, width: 7, height: 12,
+              borderRadius: Radii.extraSmall, backgroundColor: color, transform: [{ rotate: `${angle}deg` }] }} />
+          ))}
+        </View>
+      );
+    }
+    if (identityKey?.includes('fireworks')) {
+      return (
+        <View style={styles.burst} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {[{ left: 4, top: 5 }, { left: 34, top: 26 }].map((center, index) => (
+            <View key={index} style={{ position: 'absolute', ...center, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
+              {[0, 45, 90, 135].map((angle) => (
+                <View key={angle} style={{ position: 'absolute', width: 3, height: 28, borderRadius: Radii.pill,
+                  backgroundColor: color, transform: [{ rotate: `${angle}deg` }] }} />
+              ))}
+              <View style={{ width: 8, height: 8, borderRadius: Radii.pill, backgroundColor: color }} />
+            </View>
+          ))}
+        </View>
+      );
+    }
     return (
       <View style={styles.burst} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={[styles.burstCore, { backgroundColor: color }]} />
@@ -90,6 +120,8 @@ export function CollectibleTile({
   testID,
   accessibilityLabel,
   accessibilityHint,
+  layout = 'grid',
+  identityKey,
 }: CollectibleTileProps) {
   const theme = useTheme();
   const color = preview.color ?? DEFAULT_OBJECT_COLOR;
@@ -102,6 +134,7 @@ export function CollectibleTile({
       <View
         style={[
           styles.plate,
+          layout === 'row' && styles.rowPlate,
           {
             backgroundColor: theme[plateTone],
             borderColor: state === 'equipped' ? theme.accent : theme.border,
@@ -109,27 +142,20 @@ export function CollectibleTile({
           },
         ]}>
         <View style={[styles.object, locked && styles.objectLocked]}>
-          <CollectibleObject slot={slot} color={color} />
+          <CollectibleObject slot={slot} color={color} identityKey={identityKey} />
         </View>
         {locked ? (
-          <ThemedText
-            type="label"
-            themeColor="textMuted"
-            style={styles.lockGlyph}
-            allowFontScaling={false}
-            aria-hidden>
-            {'🔒'}
-          </ThemedText>
+          <View style={styles.lockGlyph}><AppIcon name="lock" size={16} tone="textMuted" /></View>
         ) : null}
       </View>
-      <View style={styles.plinth}>
-        <ThemedText type="bodySmall" numberOfLines={2} style={styles.name}>
+      <View style={[styles.plinth, layout === 'row' && styles.rowPlinth]}>
+        <ThemedText type="bodySmall" style={styles.name}>
           {name}
         </ThemedText>
         {state === 'equipped' ? (
           <Badge label="Equipped" size="sm" tone="accent" />
         ) : detail ? (
-          <ThemedText type="caption" themeColor={locked ? 'textMuted' : 'textSecondary'} numberOfLines={2}>
+          <ThemedText type="caption" themeColor={locked ? 'textMuted' : 'textSecondary'}>
             {detail}
           </ThemedText>
         ) : null}
@@ -149,7 +175,7 @@ export function CollectibleTile({
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
         feedback="tap"
-        style={styles.tile}
+        style={[styles.tile, layout === 'row' && styles.rowTile]}
         pressedStyle={{ opacity: 0.9 }}>
         {plate}
       </Tappable>
@@ -157,7 +183,7 @@ export function CollectibleTile({
   }
 
   return (
-    <View testID={testID} accessibilityLabel={label} style={styles.tile}>
+    <View testID={testID} accessibilityLabel={label} style={[styles.tile, layout === 'row' && styles.rowTile]}>
       {plate}
     </View>
   );
@@ -179,6 +205,9 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.one,
   },
+  rowTile: { flexDirection: 'row', alignItems: 'center', gap: Spacing.twoHalf },
+  rowPlate: { width: 80, height: 80, flexShrink: 0 },
+  rowPlinth: { flex: 1, minWidth: 0 },
   plate: {
     aspectRatio: 1,
     borderRadius: Radii.small,

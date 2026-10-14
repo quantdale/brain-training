@@ -159,6 +159,12 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+export interface QuickCompareCueStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type QuickCompareAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | {
@@ -171,6 +177,7 @@ export type QuickCompareAction =
     }
   | {
       type: 'answer';
+      cue?: QuickCompareCueStamp;
       /** Selected option index. */
       index: number;
       /** Monotonic clock value at answer time. */
@@ -178,10 +185,11 @@ export type QuickCompareAction =
     }
   | {
       type: 'answer-timeout';
+      cue?: QuickCompareCueStamp;
       /** Monotonic clock value when the window closed. */
       nowMs: number;
     }
-  | { type: 'next-round'; spawnedAtMs: number }
+  | { type: 'next-round'; spawnedAtMs: number; cue?: QuickCompareCueStamp }
   | { type: 'pause' }
   | {
       type: 'resume';
@@ -215,6 +223,8 @@ export type QuickCompareAction =
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface QuickCompareGameState {
+  /** Displayed round/pause generation; ephemeral, never stored in results. */
+  inputEpoch: number;
   phase: QuickComparePhase;
   /** True while the SDK lifecycle is paused (timers frozen, field obscured). */
   paused: boolean;
@@ -264,6 +274,7 @@ export interface QuickCompareGameState {
 export function createInitialQuickCompareState(): QuickCompareGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,

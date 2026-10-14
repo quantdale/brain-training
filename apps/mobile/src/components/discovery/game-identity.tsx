@@ -10,9 +10,10 @@
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type { GameDefinition } from '@/sdk';
-import { ArcadePalette, Radii, Spacing, type ColorTheme } from '@/theme/tokens';
+import { Radii, Spacing, type ColorTheme, type DomainName } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 import { GameBoardStill } from './board-stills';
+import { DomainArtwork, hasDomainArtwork } from './domain-artwork';
 
 /** The eight mechanic families used by the catalog-wide identity system. */
 export type GameIdentityFamily =
@@ -576,17 +577,6 @@ export interface GameWorldArtProps {
   testID?: string;
 }
 
-const DOMAIN_BY_CATEGORY: Readonly<Record<string, keyof typeof ArcadePalette.light>> = {
-  Memory: 'coral',
-  Attention: 'cyan',
-  Speed: 'yellow',
-  Math: 'violet',
-  Language: 'cyan',
-  'Logic & Problem Solving': 'mint',
-  Flexibility: 'coral',
-  Spatial: 'yellow',
-};
-
 const DOMAIN_THEME_KEYS: Readonly<Record<string, string>> = {
   Memory: 'memory',
   Attention: 'attention',
@@ -604,7 +594,6 @@ function variantFor(id: string): number {
 
 function worldColors(theme: ColorTheme, category: string) {
   const key = DOMAIN_THEME_KEYS[category] ?? 'accent';
-  const staticKey = DOMAIN_BY_CATEGORY[category] ?? 'coral';
   // SAFETY: ColorTheme values at these domain-key slots are CSS color strings;
   // unknown category keys fall back to the explicitly typed accent colors.
   const record = theme as unknown as Record<string, string>;
@@ -613,7 +602,7 @@ function worldColors(theme: ColorTheme, category: string) {
     soft: record[`${key}Soft`] ?? theme.accentSoft,
     on: record[`${key}On`] ?? theme.accentOn,
     ink: theme.text,
-    secondary: ArcadePalette.light[staticKey],
+    secondary: record[`${key}Text`] ?? theme.accentText,
     surface: theme.surface,
   };
 }
@@ -790,15 +779,25 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
   const scale = height / 112;
   const variant = variantFor(game.id);
   const boardStill = GameBoardStill({ gameId: game.id, colors, variant, scale });
+  const domain = DOMAIN_THEME_KEYS[game.primaryCategory] as DomainName | undefined;
+
+  // Introductions invite with original media; the catalog's smaller covers
+  // keep each game's accurate native board grammar, so siblings stay distinct.
+  if (size !== 'card' && domain && hasDomainArtwork(domain)) {
+    return (
+      <View testID={testID} accessible={false} importantForAccessibility="no-hide-descendants"
+        style={[styles.world, { height, backgroundColor: colors.soft, borderWidth: 0, alignItems: 'center', justifyContent: 'center' }]}>
+        <DomainArtwork name={domain} size={height * 1.25} testID={testID ? `${testID}-artwork` : undefined} />
+      </View>
+    );
+  }
 
   return (
     <View
       testID={testID}
       accessible={false}
       importantForAccessibility="no-hide-descendants"
-      style={[styles.world, { height, backgroundColor: colors.soft, borderColor: colors.base }]}>
-      <View style={[styles.worldCorner, { backgroundColor: colors.base }]} />
-      <View style={[styles.worldCornerSecondary, { backgroundColor: colors.secondary }]} />
+      style={[styles.world, { height, backgroundColor: colors.soft, borderWidth: 0 }]}>
       {boardStill ? (
         <View style={styles.boardStillCenter}>
           {/* Board geometry is height-bounded. Percent-width boxes in a full-width
@@ -812,11 +811,6 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
       )}
       <View style={[styles.worldBadge, { backgroundColor: colors.base }]}>
         <IdentityMark family={identity.family} size={Math.round(22 * Math.min(scale, 1.5))} color={colors.on} />
-      </View>
-      <View style={[styles.worldTicks, { borderColor: colors.ink }]}>
-        {[0, 1, 2, 3, 4].map((index) => (
-          <View key={index} style={[styles.worldTick, { backgroundColor: colors.ink, opacity: index <= variant + 1 ? 0.82 : 0.2 }]} />
-        ))}
       </View>
     </View>
   );

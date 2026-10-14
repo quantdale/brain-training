@@ -29,9 +29,10 @@ import {
 import { generateRound } from "./generator";
 import { itemPoints, perfectSessionScore } from "./scoring";
 import {
+  ownsContinuation,
   INITIAL_STATS,
   createInitialProspectiveCueState,
-} from "./types";
+} from './types';
 import type {
   ItemResponse,
   LastItemOutcome,
@@ -178,6 +179,7 @@ export function prospectiveCueGameReducer(
       return openRound(
         {
           ...state,
+          continuationEpoch: state.continuationEpoch + 1,
           profile,
           seed: action.seed,
           sessionId: action.sessionId,
@@ -246,6 +248,9 @@ export function prospectiveCueGameReducer(
     }
 
     case "next-round": {
+      if (!ownsContinuation(state, action.stamp)) {
+        return state;
+      }
       if (
         state.phase !== "roundResult" ||
         state.profile === null ||
@@ -280,11 +285,11 @@ export function prospectiveCueGameReducer(
       ) {
         return state;
       }
-      return { ...state, paused: true };
+      return { ...state, continuationEpoch: state.continuationEpoch + 1, paused: true };
     }
 
     case "resume": {
-      return state.paused ? { ...state, paused: false } : state;
+      return state.paused ? { ...state, continuationEpoch: state.continuationEpoch + 1, paused: false } : state;
     }
 
     case "tutorial-open": {

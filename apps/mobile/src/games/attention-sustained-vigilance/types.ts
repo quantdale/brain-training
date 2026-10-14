@@ -182,11 +182,19 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Transient identity of a rendered trial; never part of a persisted result. */
+export interface VigilanceTrialStamp {
+  readonly sessionId: string | null;
+  readonly trialIndex: number;
+  readonly inputEpoch: number;
+}
+
 export type VigilanceAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'trial-tick'; atActiveMs: number }
-  | { type: 'respond'; atActiveMs: number }
+  | { type: 'trial-presented'; atActiveMs: number; trial?: VigilanceTrialStamp }
+  | { type: 'trial-tick'; atActiveMs: number; trial?: VigilanceTrialStamp }
+  | { type: 'respond'; atActiveMs: number; trial?: VigilanceTrialStamp }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
@@ -233,6 +241,10 @@ export interface VigilanceGameState {
   stopDigit: number;
   /** 0-based index of the current trial. */
   trialIndex: number;
+  /** Invalidates queued native input/ticks on new trials, sessions and pause. */
+  inputEpoch: number;
+  /** The screen has committed this digit and measured its actual onset. */
+  trialPresented: boolean;
   /** Response window in effect for the current trial (adaptive moves it). */
   responseWindowMs: number;
   /** Lifecycle active-ms reading when the current trial's stimulus appeared. */
@@ -273,6 +285,8 @@ export function createInitialVigilanceState(): VigilanceGameState {
     stream: [],
     stopDigit: 0,
     trialIndex: 0,
+    inputEpoch: 0,
+    trialPresented: false,
     responseWindowMs: 0,
     trialStartActiveMs: 0,
     trialElapsedMs: 0,

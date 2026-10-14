@@ -73,7 +73,16 @@ function finishRound(
   };
 }
 
-export function orderSweepGameReducer(
+export function orderSweepGameReducer(state: OrderSweepGameState, action: OrderSweepAction): OrderSweepGameState {
+  // Every live caller stamps the cue it displayed. Unstamped pure actions
+  // remain usable for deterministic fixtures; stored results contain no cue.
+  if ('cue' in action && action.cue !== undefined && (action.cue.sessionId !== state.sessionId || action.cue.roundIndex !== state.roundIndex || action.cue.inputEpoch !== state.inputEpoch)) return state;
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) return { ...next, inputEpoch: state.inputEpoch + 1 };
+  return next;
+}
+
+function reduceGameState(
   state: OrderSweepGameState,
   action: OrderSweepAction,
 ): OrderSweepGameState {
@@ -148,6 +157,9 @@ export function orderSweepGameReducer(
       if (token === undefined) {
         return state; // empty grid cell
       }
+      // A cleared token is disabled in the displayed board. A queued repeat
+      // must not be reclassified as a wrong tap against the next required value.
+      if (round.order.slice(0, state.clearedCount).includes(token.value)) return state;
       const required = requiredValue(round, state.clearedCount);
       if (required === null) {
         return state; // board already swept; expiry timer owns the transition
@@ -203,6 +215,7 @@ export function orderSweepGameReducer(
       if (state.phase !== 'active' || state.paused || state.profile === null) {
         return state;
       }
+      if (state.deadlineMs === null || action.nowMs < state.deadlineMs) return state;
       const expired = state.round !== null ? state.round.order.length - state.clearedCount : 0;
       return {
         ...state,
@@ -221,7 +234,7 @@ export function orderSweepGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = orderSweepParamsFromProfile(state.profile);

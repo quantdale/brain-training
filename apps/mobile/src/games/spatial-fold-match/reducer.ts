@@ -55,7 +55,15 @@ function generateForRound(state: SpatialFoldMatchGameState, roundIndex: number) 
   };
 }
 
-export function gameReducer(
+export function gameReducer(state: SpatialFoldMatchGameState, action: SpatialFoldMatchAction): SpatialFoldMatchGameState {
+  const next = reduceGameState(state, action);
+  if (next !== state && (next.phase !== state.phase || next.paused !== state.paused || next.sessionId !== state.sessionId || next.roundIndex !== state.roundIndex)) {
+    return { ...next, inputEpoch: state.inputEpoch + 1 };
+  }
+  return next;
+}
+
+function reduceGameState(
   state: SpatialFoldMatchGameState,
   action: SpatialFoldMatchAction,
 ): SpatialFoldMatchGameState {
@@ -165,6 +173,7 @@ export function gameReducer(
     case 'next-round': {
       if (
         state.phase !== 'roundResult' ||
+        state.paused ||
         state.profile === null ||
         state.difficulty === null
       ) {

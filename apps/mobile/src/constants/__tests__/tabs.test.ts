@@ -26,9 +26,7 @@ describe('tab model', () => {
   it('gives every tab a label, icons and a web href', () => {
     for (const tab of TAB_DEFINITIONS) {
       expect(tab.label.length).toBeGreaterThan(0);
-      expect(tab.sf.length).toBeGreaterThan(0);
-      expect(tab.md.length).toBeGreaterThan(0);
-      expect(tab.web.length).toBeGreaterThan(0);
+      expect(tab.icon).toBe(tab.name === 'index' ? 'home' : tab.name);
       expect(tab.href.startsWith('/')).toBe(true);
     }
   });

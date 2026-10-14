@@ -17,7 +17,7 @@
  *
  * The random-`screenId` instability itself is solved by the normalization seam
  * in `./router-tree-normalizer.ts`, which lets ONE integrated test pin the real
- * NativeTabs navigation tree (all four triggers + focused-tab wiring + screen
+ * ExpoRouter Tabs navigation tree (all four destinations + focused-tab wiring + screen
  * content) deterministically — see the last test in this file.
  *
  * Game-level visual determinism is covered separately by each game's seeded

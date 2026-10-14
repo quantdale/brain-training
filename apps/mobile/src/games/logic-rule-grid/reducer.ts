@@ -80,7 +80,12 @@ export function ruleGridGameReducer(
       }
       const params = ruleGridParamsFromProfile(state.profile);
       const currentRound = state.currentRound;
-      const selectedValue = action.selectedValue;
+      // The monotonic elapsed value comes from the tap/timeout caller. A tap
+      // queued behind a busy event loop can arrive before the JS timeout but
+      // after the deadline; it must resolve to the same timeout verdict.
+      const late = !Number.isFinite(action.elapsedMs) || action.elapsedMs >= params.roundTimeMs;
+      const elapsedMs = late ? params.roundTimeMs : Math.max(0, action.elapsedMs);
+      const selectedValue = late ? null : action.selectedValue;
       const correct = selectedValue === currentRound.answer;
       const score = state.stats.score + roundScore(correct, currentRound.size);
       const streak = correct ? state.stats.streak + 1 : 0;
@@ -88,12 +93,12 @@ export function ruleGridGameReducer(
         score,
         roundsPlayed: state.stats.roundsPlayed + 1,
         roundsCorrect: state.stats.roundsCorrect + (correct ? 1 : 0),
-        totalElapsedMs: state.stats.totalElapsedMs + action.elapsedMs,
+        totalElapsedMs: state.stats.totalElapsedMs + elapsedMs,
         totalBudgetMs: state.stats.totalBudgetMs + params.roundTimeMs,
         bestStreak: Math.max(state.stats.bestStreak, streak),
         streak,
         bestRoundTimeMs: correct
-          ? Math.min(state.stats.bestRoundTimeMs, action.elapsedMs)
+          ? Math.min(state.stats.bestRoundTimeMs, elapsedMs)
           : state.stats.bestRoundTimeMs,
       };
       const roundOutcome: 'correct' | 'wrong' | 'timeout' = correct

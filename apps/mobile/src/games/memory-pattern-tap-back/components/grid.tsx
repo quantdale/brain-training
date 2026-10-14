@@ -6,6 +6,7 @@
  */
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
 
@@ -18,7 +19,7 @@ export interface TileGridProps {
   testID: string;
   visualFor: (index: number) => TileVisualState;
   disabled?: boolean;
-  onPressTile: (index: number) => void;
+  onPressTile: (index: number, event: GestureResponderEvent) => void;
 }
 
 export const TileGrid = memo(function TileGrid({ gridSize, testID, visualFor, disabled = false, onPressTile }: TileGridProps) {

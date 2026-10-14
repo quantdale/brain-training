@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
 import { flexibilityCueReducer } from '../reducer';
-import { createInitialFlexibilityCueState } from '../types';
+import { continuationStamp, createInitialFlexibilityCueState } from '../types';
 import type { FlexibilityCueGameState } from '../types';
 import { generateSession } from '../generator';
 import { perfectSessionScore, roundScore } from '../scoring';
@@ -34,7 +34,7 @@ function wrongPick(state: FlexibilityCueGameState, responseMs = 0): FlexibilityC
 }
 
 function next(state: FlexibilityCueGameState): FlexibilityCueGameState {
-  return flexibilityCueReducer(state, { type: 'next-round' });
+  return flexibilityCueReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
 }
 
 describe('select-difficulty', () => {
@@ -205,7 +205,7 @@ describe('next-round', () => {
 
   it('is ignored outside trialResult', () => {
     const inActive = startSession('n');
-    const after = flexibilityCueReducer(inActive, { type: 'next-round' });
+    const after = flexibilityCueReducer(inActive, { stamp: continuationStamp(inActive), type: 'next-round' });
     expect(after.roundIndex).toBe(0);
   });
 });

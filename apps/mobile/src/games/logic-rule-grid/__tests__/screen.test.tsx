@@ -39,6 +39,45 @@ describe('RuleGridScreen', () => {
     jest.useRealTimers();
   });
 
+  it('names the asked row and column in the live prompt', async () => {
+    const round = round0Answer();
+    await render(<RuleGridScreen tutorialStore={completedStore()} sessionSeed="test-seed" />);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-prompt')))
+      .toHaveTextContent(new RegExp(`row ${round.blankRow + 1}, column ${round.blankCol + 1}`));
+  });
+
+  it.each([20_000, 20_001])('scores an answer arriving at %sms as a timeout before the scheduled callback', async (elapsedMs) => {
+    let now = 100;
+    const clock = { now: () => now };
+    const round = round0Answer();
+    await render(<RuleGridScreen clock={clock} tutorialStore={completedStore()} sessionSeed="test-seed" />);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // Move the injected monotonic clock only. The JS timeout has not run, as
+    // happens when the event loop delivers a queued tap after the deadline.
+    now += elapsedMs;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'symbol-option', String(round.answer))));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeTruthy();
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-correct'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'score-live'))).toHaveTextContent('0');
+  });
+
+  it('excludes paused wall time from the live answer deadline', async () => {
+    let now = 100;
+    const clock = { now: () => now };
+    const round = round0Answer();
+    await render(<RuleGridScreen clock={clock} tutorialStore={completedStore()} sessionSeed="test-seed" />);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    now += 9_000;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    now += 50_000;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    now += 10_999;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'symbol-option', String(round.answer))));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeTruthy();
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-timeout'))).toBeNull();
+  });
+
   it('renders the intro screen with difficulty buttons', async () => {
     await render(<RuleGridScreen tutorialStore={completedStore()} sessionSeed="test-seed" />);
     expect(screen.getByTestId(testId(GAME_ID, 'screen'))).toBeTruthy();

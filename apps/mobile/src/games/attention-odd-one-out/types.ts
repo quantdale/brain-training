@@ -161,6 +161,14 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
   readonly difficulty?: DifficultyLevel;
 }
 
+/** Identity of the displayed board/phase; queued callbacks keep their original stamp. */
+export interface OddOneOutInputStamp {
+  readonly sessionId: string | null;
+  readonly roundIndex: number;
+  readonly inputEpoch: number;
+  readonly phase: OddOneOutPhase;
+}
+
 export type OddOneOutAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | {
@@ -172,16 +180,16 @@ export type OddOneOutAction =
       /** Monotonic clock value; the round deadline is derived from it. */
       nowMs: number;
     }
-  /** Countdown display refresh; `remainingMs` comes from the monotonic clock. */
-  | { type: 'tick'; remainingMs: number }
+  /** Countdown display refresh against the round's absolute deadline. */
+  | { type: 'tick'; nowMs: number; stamp: OddOneOutInputStamp }
   /** A tile was tapped; `nowMs` (monotonic) sizes the solve ratio. */
-  | { type: 'tap-tile'; index: number; nowMs: number }
+  | { type: 'tap-tile'; index: number; nowMs: number; stamp: OddOneOutInputStamp }
   /** The display window expired for the current round. */
-  | { type: 'round-timeout' }
+  | { type: 'round-timeout'; nowMs: number; stamp: OddOneOutInputStamp }
   /** Advance after a round result; `nowMs` seeds the next round's deadline. */
-  | { type: 'next-round'; nowMs: number }
-  /** Pause freezes the window; the screen reports the precise remaining ms. */
-  | { type: 'pause'; remainingMs: number }
+  | { type: 'next-round'; nowMs: number; stamp: OddOneOutInputStamp }
+  /** Pause freezes the precise remainder at the monotonic action time. */
+  | { type: 'pause'; nowMs: number }
   /** Resume restarts the window from `nowMs` + stored remaining. */
   | { type: 'resume'; nowMs: number }
   | { type: 'tutorial-open' }
@@ -210,6 +218,8 @@ export type OddOneOutAction =
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface OddOneOutGameState {
   phase: OddOneOutPhase;
+  /** Changes at a new session or pause, invalidating previously rendered input. */
+  inputEpoch: number;
   /** True while the SDK lifecycle is paused (window frozen, board obscured). */
   paused: boolean;
   /** Selected difficulty (preselected 'normal' in the intro). */
@@ -267,6 +277,7 @@ export interface OddOneOutGameState {
 export function createInitialOddOneOutState(): OddOneOutGameState {
   return {
     phase: 'intro',
+    inputEpoch: 0,
     paused: false,
     difficulty: 'normal',
     profile: null,
@@ -301,4 +312,20 @@ export function createInitialOddOneOutState(): OddOneOutGameState {
     authoritativeDeltas: [],
     tutorialOpen: false,
   };
+}
+
+export function inputStamp(state: OddOneOutGameState): OddOneOutInputStamp {
+  return {
+    sessionId: state.sessionId,
+    roundIndex: state.roundIndex,
+    inputEpoch: state.inputEpoch,
+    phase: state.phase,
+  };
+}
+
+export function isCurrentInput(state: OddOneOutGameState, stamp: OddOneOutInputStamp): boolean {
+  return stamp != null && stamp.sessionId === state.sessionId &&
+    stamp.roundIndex === state.roundIndex &&
+    stamp.inputEpoch === state.inputEpoch &&
+    stamp.phase === state.phase;
 }

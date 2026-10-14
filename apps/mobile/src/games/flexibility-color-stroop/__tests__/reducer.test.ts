@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { colorStroopGameReducer } from '../reducer';
-import { createInitialColorStroopState } from '../types';
+import { inputStamp, createInitialColorStroopState } from '../types';
 import type { ColorStroopGameState } from '../types';
 import { generateTrials } from '../generator';
 import { perfectSessionScore } from '../scoring';
@@ -17,7 +17,7 @@ function startSession(
 ): ColorStroopGameState {
   let state = createInitialColorStroopState();
   state = colorStroopGameReducer(state, { type: 'select-difficulty', level });
-  state = colorStroopGameReducer(state, { type: 'start-session', seed, sessionId, startedAtMs: 100 });
+  state = colorStroopGameReducer(state, { nowMs: 100, type: 'start-session', seed, sessionId, startedAtMs: 100 });
   return state;
 }
 
@@ -83,7 +83,7 @@ describe('submit-answer', () => {
     const correctAnswer = trial.correctAnswer;
 
     // Submit correct answer.
-    state = colorStroopGameReducer(state, { type: 'submit-answer', answer: correctAnswer, responseTimeMs: 500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: correctAnswer, nowMs: state.roundStartedAtMs + 500 });
     expect(state.phase).toBe('feedback');
     expect(state.currentCorrect).toBe(true);
     expect(state.stats.correctTrials).toBe(1);
@@ -95,7 +95,7 @@ describe('submit-answer', () => {
     const trial = state.trials[0];
     const wrongAnswer = trial.correctAnswer === 'red' ? 'blue' : 'red';
 
-    state = colorStroopGameReducer(state, { type: 'submit-answer', answer: wrongAnswer, responseTimeMs: 500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: wrongAnswer, nowMs: state.roundStartedAtMs + 500 });
     expect(state.phase).toBe('feedback');
     expect(state.currentCorrect).toBe(false);
     expect(state.stats.correctTrials).toBe(0);
@@ -106,13 +106,13 @@ describe('submit-answer', () => {
     // In feedback phase (after answering).
     let state = startSession('x');
     const trial = state.trials[0];
-    state = colorStroopGameReducer(state, { type: 'submit-answer', answer: trial.correctAnswer, responseTimeMs: 500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: trial.correctAnswer, nowMs: state.roundStartedAtMs + 500 });
     expect(state.phase).toBe('feedback');
-    state = colorStroopGameReducer(state, { type: 'submit-answer', answer: 'red', responseTimeMs: 500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: 'red', nowMs: state.roundStartedAtMs + 500 });
     expect(state.phase).toBe('feedback'); // Still in feedback, no double counting.
 
     // In intro phase.
-    state = colorStroopGameReducer(createInitialColorStroopState(), { type: 'submit-answer', answer: 'red', responseTimeMs: 500 });
+    state = colorStroopGameReducer(createInitialColorStroopState(), { stamp: inputStamp(createInitialColorStroopState()), type: 'submit-answer', answer: 'red', nowMs: createInitialColorStroopState().roundStartedAtMs + 500 });
     expect(state.phase).toBe('intro');
   });
 });
@@ -123,11 +123,11 @@ describe('next-trial', () => {
     const trial = state.trials[0];
 
     // Answer correctly.
-    state = colorStroopGameReducer(state, { type: 'submit-answer', answer: trial.correctAnswer, responseTimeMs: 500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: trial.correctAnswer, nowMs: state.roundStartedAtMs + 500 });
     expect(state.phase).toBe('feedback');
 
     // Move to next trial.
-    state = colorStroopGameReducer(state, { type: 'next-trial' });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     expect(state.phase).toBe('stimulus');
     expect(state.trialIndex).toBe(1);
   });
@@ -137,13 +137,13 @@ describe('next-trial', () => {
     for (let i = 0; i < 10; i += 1) {
       // If we're in flipCue phase (from a rule flip), dismiss it first.
       if (state.phase === 'flipCue') {
-        state = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+        state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'dismiss-flip-cue' });
       }
       expect(state.phase).toBe('stimulus');
       const trial = state.trials[state.trialIndex];
-      state = colorStroopGameReducer(state, { type: 'submit-answer', answer: trial.correctAnswer, responseTimeMs: 500 });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'submit-answer', answer: trial.correctAnswer, nowMs: state.roundStartedAtMs + 500 });
       expect(state.phase).toBe('feedback');
-      state = colorStroopGameReducer(state, { type: 'next-trial' });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.trialsPlayed).toBe(10);
@@ -164,18 +164,19 @@ describe('rule flips (live flow)', () => {
         expect(state.showingFlipCue).toBe(true);
         expect(state.currentRule).not.toBe(lastStimulusRule);
         flips += 1;
-        state = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+        state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'dismiss-flip-cue' });
         expect(state.phase).toBe('stimulus');
         lastStimulusRule = state.currentRule;
       }
       expect(state.phase).toBe('stimulus');
       const trial = state.trials[state.trialIndex];
       state = colorStroopGameReducer(state, {
+        stamp: inputStamp(state),
         type: 'submit-answer',
         answer: trial.correctAnswer,
-        responseTimeMs: 500,
+        nowMs: state.roundStartedAtMs + 500,
       });
-      state = colorStroopGameReducer(state, { type: 'next-trial' });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     }
     expect(flips).toBeGreaterThan(0);
   });
@@ -183,7 +184,7 @@ describe('rule flips (live flow)', () => {
   it('dismiss-flip-cue is a no-op outside the flipCue phase', () => {
     const state = startSession('dismiss-guard');
     expect(state.phase).toBe('stimulus');
-    const after = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+    const after = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'dismiss-flip-cue' });
     expect(after).toBe(state);
   });
 });
@@ -191,7 +192,7 @@ describe('rule flips (live flow)', () => {
 describe('trial-timeout', () => {
   it('scores the unanswered trial as wrong and continues the session', () => {
     let state = startSession('timeout-test');
-    state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 1500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'trial-timeout', nowMs: state.roundStartedAtMs + 1500 });
     expect(state.phase).toBe('feedback');
     expect(state.currentCorrect).toBe(false);
     expect(state.currentAnswer).toBeNull();
@@ -201,21 +202,22 @@ describe('trial-timeout', () => {
     expect(state.stats.totalResponseTimeMs).toBe(1500);
 
     // The session must continue after a slow trial.
-    state = colorStroopGameReducer(state, { type: 'next-trial' });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     expect(state.phase).toBe('stimulus');
     expect(state.trialIndex).toBe(1);
   });
 
   it('is ignored while paused or outside the stimulus phase', () => {
-    let state = colorStroopGameReducer(startSession('timeout-guard'), { type: 'pause' });
+    let state = colorStroopGameReducer(startSession('timeout-guard'), { nowMs: startSession('timeout-guard').roundStartedAtMs, type: 'pause' });
     const before = state.stats;
-    state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 1500 });
+    state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'trial-timeout', nowMs: state.roundStartedAtMs + 1500 });
     expect(state.stats).toBe(before);
     expect(state.phase).toBe('stimulus');
 
     const intro = colorStroopGameReducer(createInitialColorStroopState(), {
+      stamp: inputStamp(createInitialColorStroopState()),
       type: 'trial-timeout',
-      responseTimeMs: 1500,
+      nowMs: createInitialColorStroopState().roundStartedAtMs + 1500,
     });
     expect(intro.phase).toBe('intro');
   });
@@ -224,11 +226,11 @@ describe('trial-timeout', () => {
     let state = startSession('all-timeout', 'easy'); // 10 trials
     for (let i = 0; i < 10; i += 1) {
       if (state.phase === 'flipCue') {
-        state = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+        state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.deadlineMs, type: 'dismiss-flip-cue' });
       }
-      state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 2000 });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), type: 'trial-timeout', nowMs: state.roundStartedAtMs + 2000 });
       expect(state.phase).toBe('feedback');
-      state = colorStroopGameReducer(state, { type: 'next-trial' });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.trialsPlayed).toBe(10);
@@ -238,18 +240,18 @@ describe('trial-timeout', () => {
 
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
-    const inIntro = colorStroopGameReducer(createInitialColorStroopState(), { type: 'pause' });
+    const inIntro = colorStroopGameReducer(createInitialColorStroopState(), { nowMs: createInitialColorStroopState().roundStartedAtMs, type: 'pause' });
     expect(inIntro.paused).toBe(false);
-    let state = colorStroopGameReducer(startSession('p'), { type: 'pause' });
+    let state = colorStroopGameReducer(startSession('p'), { nowMs: startSession('p').roundStartedAtMs, type: 'pause' });
     expect(state.paused).toBe(true);
-    state = colorStroopGameReducer(state, { type: 'resume' });
+    state = colorStroopGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'resume' });
     expect(state.paused).toBe(false);
-    expect(colorStroopGameReducer(state, { type: 'resume' }).paused).toBe(false);
+    expect(colorStroopGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'resume' }).paused).toBe(false);
   });
 
   it('cannot pause while paused or on results', () => {
-    let state = colorStroopGameReducer(startSession('p'), { type: 'pause' });
-    state = colorStroopGameReducer(state, { type: 'pause' });
+    let state = colorStroopGameReducer(startSession('p'), { nowMs: startSession('p').roundStartedAtMs, type: 'pause' });
+    state = colorStroopGameReducer(state, { nowMs: state.roundStartedAtMs, type: 'pause' });
     expect(state.paused).toBe(true);
   });
 });
@@ -358,11 +360,12 @@ describe('QA force-loss from the flip cue', () => {
     for (let i = 0; i < 5; i += 1) {
       const trial = state.trials[state.trialIndex];
       state = colorStroopGameReducer(state, {
+        stamp: inputStamp(state),
         type: 'submit-answer',
         answer: trial.correctAnswer,
-        responseTimeMs: 100,
+        nowMs: state.roundStartedAtMs + 100,
       });
-      state = colorStroopGameReducer(state, { type: 'next-trial' });
+      state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });
     }
     expect(state.phase).toBe('flipCue');
     const before = state.stats;
@@ -380,9 +383,10 @@ describe('QA force-win timing', () => {
   it('records a wholly instant run with no leftover response times', () => {
     const started = startSession('qa-win-rt');
     const answered = colorStroopGameReducer(started, {
+      stamp: inputStamp(started),
       type: 'submit-answer',
       answer: started.trials[0].correctAnswer,
-      responseTimeMs: 900,
+      nowMs: started.roundStartedAtMs + 900,
     });
     expect(answered.stats.totalResponseTimeMs).toBe(900);
 
@@ -405,6 +409,7 @@ describe('restart resets the previous session outcome', () => {
     expect(state.authoritativeXp).toBe(40);
 
     state = colorStroopGameReducer(state, {
+      nowMs: 200,
       type: 'start-session',
       seed: 'stale-outcome-2',
       sessionId: 's2',

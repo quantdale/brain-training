@@ -218,6 +218,17 @@ export function codeCrackerGameReducer(
         ...state,
         phase: 'roundReveal',
         roundIndex: nextIndex,
+        // The screen, selection cap and submit guard all consume this profile.
+        // Publish the new round length atomically with its secret, while
+        // retaining the starting generator parameter for session provenance.
+        profile: {
+          ...state.profile,
+          parameters: {
+            ...state.profile.parameters,
+            initialCodeLength: params.initialCodeLength ?? params.codeLength,
+            codeLength,
+          },
+        },
         secretCode,
         currentGuess: [],
         roundGuesses: [],

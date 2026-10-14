@@ -78,6 +78,7 @@ async function tapValue(value: number) {
   await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'number-line')), {
     nativeEvent: { locationX: xOf(value) },
   });
+  await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-estimate')));
 }
 
 describe('NumberLineScreen verdict cues', () => {
@@ -108,11 +109,11 @@ describe('NumberLineScreen verdict cues', () => {
     expect(within(guess).queryByText('✓', { includeHiddenElements: true })).toBeNull();
     // … the prompt stays mounted while feedback shows …
     expect(screen.getByTestId(testId(GAME_ID, 'prompt'))).toHaveTextContent(
-      'Where does the flag sit?',
+      'Compare your estimate with the correct position.',
     );
     // … the reveal names both positions, and the verdict is in words.
     expect(screen.getByTestId(testId(GAME_ID, 'reveal'))).toHaveTextContent(
-      `The flag was at ${target}. You tapped ${miss}.`,
+      `The target was ${target}. You estimated ${miss}.`,
     );
     expect(screen.getByTestId(testId(GAME_ID, 'number-line')).props.accessibilityLabel).toMatch(
       /Too far off/,
@@ -149,7 +150,7 @@ describe('NumberLineScreen verdict cues', () => {
     expect(screen.queryByTestId(testId(GAME_ID, 'line-guess'), { includeHiddenElements: true })).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'prompt'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'reveal'))).toHaveTextContent(
-      `The flag was at ${target}.`,
+      `The target was ${target}.`,
     );
     expect(screen.getByTestId(testId(GAME_ID, 'number-line')).props.accessibilityLabel).toMatch(
       /Timed out/,

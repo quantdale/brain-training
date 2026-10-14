@@ -9,7 +9,8 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.0.0';
+// 1.1 rejects stale expiry and cleared-token replays without adding penalties.
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

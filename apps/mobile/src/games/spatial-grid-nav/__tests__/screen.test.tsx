@@ -198,7 +198,7 @@ describe("SpatialGridNavScreen", () => {
     const raw = input.session.rawResult as SpatialGridNavRawResult;
     expect(raw.score).toBe(DIFFICULTY_PARAMS.normal.rounds * 150);
     expect(raw.correctPicks).toBe(DIFFICULTY_PARAMS.normal.rounds);
-    expect(raw.diagnosticMetadata.gameVersion).toBe("1.0.0");
+    expect(raw.diagnosticMetadata.gameVersion).toBe("1.1.0");
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe("normal");
     expect(raw.forced).toBe(false);

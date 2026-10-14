@@ -45,7 +45,6 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -67,6 +66,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialSpeedState } from './types';
+import type { SpeedAction, SpeedRoundStamp } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface SpeedScreenProps {
@@ -100,6 +100,15 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     stateRef.current = state;
   });
 
+  const applyGameplayAction = useCallback((action: SpeedAction) => {
+    const current = stateRef.current;
+    const next = speedGameReducer(current, action);
+    // Claim before React renders: queued native work observes the transition.
+    stateRef.current = next;
+    dispatch(action);
+    return next;
+  }, []);
+
   const session = useGameSession({
     gameId: GAME_ID,
     clock,
@@ -112,9 +121,10 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     },
     onPause: () => {
       pauseStartedAtRef.current = clock.now();
-      dispatch({ type: 'pause' });
+      applyGameplayAction({ type: 'pause' });
     },
   });
+  const sessionStatus = session.status;
 
   const tutorial = useMemo(() => createSpeedTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createSpeedQaForceStateHooks(dispatch), [dispatch]);
@@ -127,27 +137,29 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     state.phase === 'wait' || state.phase === 'go' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- GO timer: after the seeded delay the signal appears; `goAtMs` is the
-  // monotonic clock reading at the actual display moment (timer jitter-safe).
-  // Pause deactivates the timer; resume continues its remaining budget.
-  useGameDeadlineTimeout(
-    state.phase === 'wait' && !state.paused,
-    () => dispatch({ type: 'go', goAtMs: clock.now() }),
-    state.delayMs,
-    clock,
-    `wait:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
-  );
+  const liveStamp = useMemo<SpeedRoundStamp>(() => ({
+    sessionId: state.sessionId, roundIndex: state.roundIndex, inputEpoch: state.inputEpoch,
+  }), [state.sessionId, state.roundIndex, state.inputEpoch]);
 
-  // ---- Reaction-window timeout: no tap within timeoutMs of GO → the round
-  // fails as a timeout. Pause cancels it; resuming continues the remaining
-  // window instead of restarting it.
-  useGameDeadlineTimeout(
-    state.phase === 'go' && !state.paused,
-    () => dispatch({ type: 'round-timeout' }),
-    timeoutMs,
-    clock,
-    `go:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
-  );
+  // Capture this exact window, including its pause epoch. clearTimeout alone
+  // cannot retract a native callback already queued for delivery to JS.
+  useEffect(() => {
+    if (state.paused || (state.phase !== 'wait' && state.phase !== 'go')) return;
+    const deadlineMs = state.phase === 'wait'
+      ? (state.waitAtMs ?? clock.now()) + state.delayMs
+      : (state.goAtMs ?? clock.now()) + timeoutMs;
+    const phase = state.phase;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled || sessionStatus() !== 'active') return;
+      if (phase === 'wait') {
+        applyGameplayAction({ type: 'go', goAtMs: clock.now(), stamp: liveStamp });
+      } else {
+        applyGameplayAction({ type: 'round-timeout', nowMs: clock.now(), stamp: liveStamp });
+      }
+    }, Math.ceil(Math.max(0, deadlineMs - clock.now())));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [state.phase, state.paused, state.waitAtMs, state.delayMs, state.goAtMs, timeoutMs, clock, liveStamp, applyGameplayAction, sessionStatus]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -264,28 +276,26 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
           ? 0
           : Math.max(0, clock.now() - pauseStartedAtRef.current);
       pauseStartedAtRef.current = null;
-      const current = stateRef.current;
-      dispatch({ type: 'resume', pausedMs: current.phase === 'go' ? pausedMs : undefined });
+      applyGameplayAction({ type: 'resume', pausedMs });
     }
-  }, [clock, session, dispatch]);
+  }, [clock, session, applyGameplayAction]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
     goBack();
   }, [session, goBack]);
 
-  const handleTrigger = useCallback(() => {
+  const handleTrigger = useCallback((stamp: SpeedRoundStamp) => {
     const current = stateRef.current;
-    if (current.paused) {
+    if (current.paused || sessionStatus() !== 'active') {
       return;
     }
     if (current.phase === 'wait') {
       // False start: tapped before the GO signal. Resolve through the same pure
       // transition the dispatch below commits so the sensory feedback derives
       // from the reducer's outcome, not from tap optimism (R4).
-      const action = { type: 'false-start' as const };
-      const next = speedGameReducer(current, action);
-      dispatch(action);
+      const action = { type: 'false-start' as const, stamp };
+      const next = applyGameplayAction(action);
       if (next.stats.falseStarts > current.stats.falseStarts) {
         liveAudioHaptics.playSfx('speed-false-start');
         liveAudioHaptics.haptic('warning');
@@ -301,9 +311,8 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     if (rtMs < 0) {
       return; // monotonic-clock invariant; never negative in practice
     }
-    const action = { type: 'tap' as const, rtMs };
-    const next = speedGameReducer(current, action);
-    dispatch(action);
+    const action = { type: 'tap' as const, rtMs, stamp };
+    const next = applyGameplayAction(action);
     if (next === current) {
       // Authoritative rejection (e.g. a tap past the response window): the
       // expiry timer owns the resolution, so no feedback may present here.
@@ -318,19 +327,21 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     }
     liveAudioHaptics.playSfx('speed-trigger');
     liveAudioHaptics.haptic(rtMs <= (params?.passMs ?? 600) ? 'success' : 'warning');
-  }, [clock, dispatch, params]);
+  }, [clock, applyGameplayAction, params, sessionStatus]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    if (current.phase !== 'intro' && current.phase !== 'results') return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
-    dispatch({
+    applyGameplayAction({
       type: 'start-session',
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
+      nowMs: clock.now(),
     });
-  }, [session, sessionSeed, dispatch]);
+  }, [session, sessionSeed, applyGameplayAction, clock]);
 
   const handleRestart = handleStart;
 
@@ -426,7 +437,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
               <TriggerButton
                 active={false}
                 testID={testId(GAME_ID, 'trigger')}
-                onPress={handleTrigger}
+                onPress={() => handleTrigger(liveStamp)}
               />
             </View>
           ) : null}
@@ -443,7 +454,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
                 active
                 hold={state.isNoGoRound}
                 testID={testId(GAME_ID, 'trigger')}
-                onPress={handleTrigger}
+                onPress={() => handleTrigger(liveStamp)}
               />
             </View>
           ) : null}
@@ -513,7 +524,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => applyGameplayAction({ type: 'next-round', nowMs: clock.now(), stamp: liveStamp })}
               />
             </View>
           ) : null}

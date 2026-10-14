@@ -24,6 +24,14 @@ import { usePrefersReducedMotion } from '@/components/game-ui';
 import { GAME_ID } from '../types';
 import type { ReadonlyGrid } from '../generator';
 
+/** Describe the displayed cells, never the keyed fold or correct option. */
+export function describeGrid(grid: ReadonlyGrid): string {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const filled = grid.flatMap((row, r) => row.flatMap((cell, c) => cell ? [`row ${r + 1} column ${c + 1}`] : []));
+  return `${rows} rows by ${cols} columns. Rows run top to bottom; columns run left to right. ${filled.length > 0 ? `Filled cells: ${filled.join('; ')}. All other cells empty.` : 'All cells empty.'}`;
+}
+
 export interface GridViewProps {
   /** The grid to render (rows × cols boolean matrix). */
   grid: ReadonlyGrid;
@@ -49,7 +57,9 @@ export const GridView = memo(function GridView({
     <View
       style={styles.grid}
       testID={testID}
-      accessibilityLabel={accessibilityLabel}>
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={`${accessibilityLabel}. ${describeGrid(grid)}`}>
       {grid.map((row, r) => (
         <View key={r} style={styles.row}>
           {row.map((filled, c) => (
@@ -57,6 +67,7 @@ export const GridView = memo(function GridView({
               key={c}
               testID={testId(GAME_ID, 'cell', `${r}-${c}`)}
               accessibilityLabel={`Row ${r + 1} column ${c + 1} ${filled ? 'filled' : 'empty'}`}
+              importantForAccessibility="no"
               style={[
                 styles.cell,
                 {

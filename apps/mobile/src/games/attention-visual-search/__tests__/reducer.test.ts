@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { visualSearchGameReducer } from '../reducer';
-import { createInitialVisualSearchState } from '../types';
+import { continuationStamp, createInitialVisualSearchState } from '../types';
 import type { VisualSearchGameState } from '../types';
 import { generateRoundTarget } from '../generator';
 import { perfectSessionScore } from '../scoring';
@@ -36,7 +36,7 @@ function startSession(
 function passRound(state: VisualSearchGameState, nowMs = 0): VisualSearchGameState {
   let current = visualSearchGameReducer(state, { type: 'tap-tile', index: state.targetIndex, nowMs });
   expect(current.roundOutcome).toBe('passed');
-  current = visualSearchGameReducer(current, { type: 'next-round' });
+  current = visualSearchGameReducer(current, { stamp: continuationStamp(current), type: 'next-round' });
   return current;
 }
 
@@ -45,7 +45,7 @@ function timeoutRound(state: VisualSearchGameState, nowMs = state.roundDeadlineM
   const current = visualSearchGameReducer(state, { type: 'tick', nowMs });
   expect(current.roundOutcome).toBe('failed');
   expect(current.failReason).toBe('timeout');
-  return visualSearchGameReducer(current, { type: 'next-round' });
+  return visualSearchGameReducer(current, { stamp: continuationStamp(current), type: 'next-round' });
 }
 
 describe('select-difficulty', () => {
@@ -263,7 +263,7 @@ describe('next-round', () => {
       index: (state.targetIndex + 1) % state.gridSize,
       nowMs: 0,
     });
-    state = visualSearchGameReducer(state, { type: 'next-round' }); // fail → grow
+    state = visualSearchGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' }); // fail → grow
     expect(state.windowMs).toBe(3_000);
   });
 
@@ -276,7 +276,7 @@ describe('next-round', () => {
         nowMs: 0,
       });
       expect(state.roundOutcome).toBe('passed');
-      state = visualSearchGameReducer(state, { type: 'next-round' });
+      state = visualSearchGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(12);
@@ -289,7 +289,7 @@ describe('next-round', () => {
     state = visualSearchGameReducer(state, { type: 'tick', nowMs: 120_000 });
     expect(state.phase).toBe('results');
     // next-round from results is a no-op
-    expect(visualSearchGameReducer(state, { type: 'next-round' }).phase).toBe('results');
+    expect(visualSearchGameReducer(state, { stamp: continuationStamp(state), type: 'next-round' }).phase).toBe('results');
   });
 });
 
