@@ -142,3 +142,24 @@ actual clean-checkout/native final source/ending-SHA CI/handoff gates stay open.
   remains SHA256b282291269598dee75536dc8ca26bef79667105bca2dcb798326bdfef362e611.
 - Runtime-QA/offline/workflow/affected-map/repo-state gates rerun PASS; theme/
   capture validator7 tests PASS. Original failed matrices remain immutable.
+
+## Green source checkpoint918c20ed — 2026-10-14
+
+- Full Jest02 PASS:664 suites/7614 tests,5 reviewed opt-in skips,5 snapshots;
+  1043.05s. JSONsuccess=true,failed suites/tests0; skip classification PASS.
+  Jest01 remains the recorded failed initial run; no result was overwritten.
+- TypeScript PASS and full-source ESLint PASS/zero warnings at918c20ed, bothexit0.
+  Registry/provenance/ownership/repo-state rerun PASS after the local commit.
+- Native preview02 PASS:532 tasks/14m5s;1103-file source inventory has zero
+  differences from918c20ed app source. InventorySHA256
+  02a946c803fcb9ad50664772d9b94c337d534beefc2e23c1b796c6540ae4a62c.
+  APK949915d17e11e3f350481f6b1b6a1db621f51cc2d13111b893a5749d38401b57,
+  52,264,147B. Metro2474 modules versus preview01's4313 after bounded per-icon
+  imports. This is an intermediate preview, not final native certification.
+- Prior preview01 APK retained locally with verified8c312012… SHA. Exact SQLite
+  files preserved separately before install; verification used a working copy,
+  integrityok/sessions6. An initial backup query mistakenly namedsessions instead
+  ofgame_sessions and failed before install; corrected verification passed.
+  adb install-r SUCCESS; post-install data/theme/visual/runtime proof remains open.
+- Independent no-finding contract review covers only specified result/data/
+  Rewards callers; all other open game/presentation/certification work remains.

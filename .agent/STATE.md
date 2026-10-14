@@ -10,8 +10,9 @@
 
 ## Current checkpoint — 2026-10-14
 
-This commit records the first converged implementation wave. Remote main is
-still c7bbf0dd pending completion of the integrated rerun before push. The full Campaign 077 scope is ACTIVE; final certification is open.
+Implementation checkpoint918c20ed1760e1691bf7a601aa6c8db1161bd495 records the
+first converged wave. Integrated gates below now pass; this evidence checkpoint
+is ready to push with it. The full Campaign 077 scope is ACTIVE; final certification is open.
 Mandatory startup and repo-state reconciliation pass. No temporary Git branches
 or worktrees were created.
 
@@ -32,7 +33,8 @@ Shared palette/type/control/navigation, responsive Home/discovery/detail and
 purpose-grouped Profile/Rewards are implemented. Independent actual native critique
 found library framing, redundant first-play reports, reward-action hierarchy and
 technical recommendation language; current source corrects those findings. Native
-preview 02 is building with these changes and the latest completed game repairs.
+preview02 built successfully from the exact inventoried app source of918c20ed
+with these changes and the latest completed game repairs.
 Progress, results, data/supporting presentation, all-game visual convergence and
 motion remain open.
 
@@ -49,12 +51,13 @@ Whole Jest run 01: 663 passed suites, one failed suite, four skipped suites;
 were stale design-system documentation claims. The guide now matches current
 tokens and its unchanged nine-test suite passes. Five intentional visual snapshots
 pass; actual Home text grouping removes generated trailing whitespace. Full Jest
-run 02 is in progress; no whole-suite green result is claimed yet. Global TypeScript,
+run02 PASS:664 suites/7614 tests,5 reviewed opt-in skips,5 snapshots,1043.05s. Global TypeScript,
 full source zero-warning ESLint, strict OpenSpec, registry/provenance/ownership,
 Expo alignment, offline/runtime-QA/workflow/affected-map gates pass. Dependency
 scan retains ten previously accepted advisories with no new moderate+ production
 finding. Clean-checkout self-test passes; actual clean-checkout certification remains
-open. Web export is in progress.
+open. Web export PASS,22 routes. TypeScript and zero-warning full-source ESLint were
+rerun at918c20ed and both exit0.
 
 Installed native preview 01: APK SHA256
 8c312012ca91a91f1c6bd234464879b98a89d25454f8709d1f88e9ddc42dbf42,
@@ -78,7 +81,12 @@ gameplay qualification. Trace stays external. Dedicated braintraining-ui35 /
 emulator-5570 GUI was witnessed visible and not minimized; final handoff witness
 remains required. No host mouse, keyboard or focus automation was used.
 
-Next: finish converged gates and commit/push; repair observation/input/semantic
+Preview02 build PASS532 tasks/14m5s;1103-file inventory matches918c20ed app source
+with zero differences. APK949915d17e11e3f350481f6b1b6a1db621f51cc2d13111b893a5749d38401b57,
+52,264,147B. Previous APK and exact SQLite backup preserved; pre-install integrity
+ok/sessions6. Install-r SUCCESS. Post-install theme/data/captures remain open.
+
+Next: push this checkpoint; repair observation/input/semantic
 siblings; redesign remaining routes and motion; review current native images across
 all required profiles; complete real gameplay/data/offline/performance journeys,
 clean-checkout and exact ending-SHA four-workflow CI; leave Home in the visible GUI.
