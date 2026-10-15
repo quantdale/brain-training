@@ -11,6 +11,12 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Actual6c fresh clean-checkout composite PASS703suites7921tests5snapshots/
+  all declared gates/cleanstatus; allfour6cCI SUCCESS. Native08 exact6c build/
+  stage532tasks5m54s/APKcbb5aeb2...a4f2f/source/assets/permissionsPASS, notinstalled
+  while Data07 exclusively owns5570. ActualMerge and text-edit invalidation
+  rootimage-proven; Replace/restart/posttaskDB pending. NATIVE_PREVIEW08.md.
+
 - Home loading/unavailable read-state recovery sourcecomplete/6suites32tests5
   snapshots/types/scopedlintPASS; native08proofrequired. c87fourCIallSUCCESS;
   finalsourcefullcomposite stillrequired. Native07focused2x14/14/rootimageviews

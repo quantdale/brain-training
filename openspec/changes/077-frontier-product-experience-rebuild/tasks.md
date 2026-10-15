@@ -61,7 +61,7 @@
 
 ## 9. Wave I — Certification and hardening
 
-- [ ] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates.
+- [x] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Actual6c fresh composite703/7921/fivesnapshots and native08 permission allowlist PASS; ending-SHA and runtime gates remain separate (NATIVE_PREVIEW08.md).
 - [ ] 9.2 Verify migration compatibility, SQLite integrity, existing progress/session/workout/economy, export/import/merge/replace restore and exactly-once persistence under restart/recovery.
 - [ ] 9.3 Build native Android, record APK/source/hash/ABI/package/permissions, install and device-hash; verify cold launch without Metro and original assets offline.
 - [ ] 9.4 Verify navigation/themes/gameplay/scored feedback/results/workout continuation/force-stop/relaunch/settings/recovery/offline/memory/performance/logcat on the visible dedicated emulator; inspect selective ARTEMIS traces.

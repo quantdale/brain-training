@@ -12,8 +12,10 @@
   loadedretaineddata. Gfx64launch/Homeframes60janky/median150ms and skippedframe
   logs are unresolved performance evidence, notPASS. Needbounded no-dump/warm
   interaction controls and actualgameplay; noleakclaim fromsinglePSS149372KiB.
-- d62AppCI's fivecanary failures are understood inactivefalse style entries;
-  local reproduced/update/unchangedverify5PASS. Finalwholecomposite/newCI required.
+- d62AppCI's fivecanary failures were inactivefalse style entries. Corrected6c
+  actual full fresh composite nowPASS703suites7921tests/fivesnapshots and allfour
+  CI SUCCESS. Historical failed d62 run remains preserved. Final endingSHA CI
+  remains separate from this current-source qualification.
 
 - Native06 actual profile review found P2 Android2x heading descenders, truncated
   automatic backup-name explanation, narrow populated backup filenames and

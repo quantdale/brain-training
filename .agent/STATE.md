@@ -8,7 +8,24 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native06 and actual final-source clean checkout
+## Current checkpoint — native08 staged; actual6c clean checkout PASS
+
+Actual fresh independent6c0829c8 clone full unflagged composite terminalPASS,
+703suites7921tests5snapshots436.351s; four skipped suites/five classified opt-in
+tests, failed0; all declared composite gates/unchanged tracked status PASS.
+SummarySHA1080cd2b4f22df7a36259a2504e38c5fe1d80edf804d50e7fbd9ff35297a3d3a.
+First attempted reused-clone certification correctly failed inherited-dependency
+preflight; separate fresh02 success does not relabel that failed attempt.
+Allfour6c CI SUCCESS: App38714343817,Integrity38714344003,
+Android38714343901,iOS38714343701. Final endingSHA remains separate.
+
+Native08 exact6c source built/staged,532tasks5m54s/exit0,APKcbb5aeb2...a4f2f,
+52,310,051B;1107exact files/941mappedownfiles/changedHome present/eightpermissions
+PASS;9artwork pixel/3fonts byte-identical. NOT INSTALLED while Prodata07 owns5570.
+Root actually viewed Mergecomplete step38 and validReplace→edited'{' preview
+removal steps50/51; controller hierarchy also provesApply disabled. Replacewrite/
+restart/post-taskSQLite notyetproven. 40sec officialMCP watcher remainsactive.
+See NATIVE_PREVIEW08.md; full original077 remainsACTIVE.
 
 Latest source wave fixes Home's observed false Level1/0XP/empty-history claims
 during loading/read failure. Two valid caller regressions fail before (initial

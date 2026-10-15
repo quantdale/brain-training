@@ -1,5 +1,23 @@
 # Validation — Campaign077
 
+## Actual current-source composite and staged native08
+
+Fresh independent D:/bt077-cert-6c0829c8 full unflagged composite terminalPASS;
+trackedmutationPASS/independentGitclean. 703suites7921tests5snapshots436.351s,
+four skipped suites/five classified opt-in tests, zero failures/updates. Types/
+full lint/web22/strict62/security/provenance/registry/offline and all declared
+composite gates PASS. SummarySHA1080cd2b4f22df7a36259a2504e38c5fe1d80edf804d50e7fbd9ff35297a3d3a.
+Initial reused-clone preflight failure preserved; fresh02 didnotweaken guard.
+Allfour6c CI SUCCESS: App38714343817,Integrity38714344003,
+Android38714343901,iOS38714343701. EndingSHA obligation remains separate.
+
+Native08 build/stagePASS532tasks5m54s/1107exactfiles/941mappedownfiles/
+onechangedHome exact/permissions8/9artworkpixels/3fontbytes. APKcbb5aeb2...a4f2f,
+52,310,051B. Installation/device/runtime OPEN while Prodata07 owns5570. Root
+viewed actualMergecompletion38 and preview/edit50/51; disabledapply corroborated
+bycontrollerhierarchy. Replacewrite/restart/posttaskSQLite pending. Detailed
+proof, initial failure and warning boundaries: evidence/NATIVE_PREVIEW08.md.
+
 ## Home read-availability recovery
 
 Native06 fallbackimages showrealP2 Home falsezero/emptyclaims whileloading. New
