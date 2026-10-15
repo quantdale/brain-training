@@ -10,6 +10,23 @@
 
 ## Current checkpoint — native06 and actual final-source clean checkout
 
+Native07 product source d62bbfc75cc7eb8ba2fabdf31a43666ef91bdcd8 is installed:
+APKf1a7d86fcc1920c5d14b9e61684f4a6919a697ca9b068232baadcb4255ac6347,
+52,312,459B;532tasks5m11s PASS,1107files exact/941mappedsourcefiles exact,
+permissions/devicehash/install/data8sessions/settings PASS. Root viewed actual
+new light2x Home/Games/Profile/Progress/Activity and original three heading pixel
+probes PASS. Focused14frame run02 stillRUNNING; first run failed honestly on
+loadingProfile, now readinesspoll bounded90s avoids restarting loading reads.
+
+CI d62 App38709536007 FAILED five canaries solely46 additional inactive false
+style entries. Local5fail reproduced; intentional expected snapshots updated,
+5afterPASS/5unchangedverifyPASS, no productcode changed for that correction.
+Independent d62 full clean composite stillRUNNING with originalcanaries, expected
+to retain failure; new committed correction needs full composite/endingCI.
+Startup repeatcold5425/3715/3258ms with retaineddata, firstinstall10681ms. Gfx
+launch64frames/60janky/median150ms remain UNRESOLVED; memPSS149372KiB single
+sample/no leakclaim. No fatal/ANR/OOM observed in scopedlog. NATIVE_PREVIEW07.md.
+
 Actual independent06 review now rejects loading/stale profile frames despite
 the old structural capture gate. Source followup repairs confirmed2x heading
 descenders, backupname hint/filename layout and no-response0ms mean analytics;

@@ -1,5 +1,24 @@
 # Validation — Campaign077
 
+## Native07 correction checkpoint
+
+d62bbfc7 APKf1a7d86f...6347 build532tasks5m11s/install/exactdata/devicehash/
+8permissions/source1107files/941mappedfiles PASS. First focusedfont2 capture
+FAILED onloadingProfile, preservedmanifest/no falselyacceptedPNG. Bracketed
+readiness02 RUNNING; original3nativeheadingpixelprobesPASS and actual5light2x
+frames rootreviewed. Fullmatrix acceptance stillOPEN.
+
+d62AppCI FAIL1suite5canarysnapshots (701suites7912testsPASS,5failed). Local5
+fail reproduced, all46snapshotinsertions are inactivefalse styles; expected
+snapshotsupdated5PASS, unchangedverify5PASS. Actualold d62 fullcompositeRUNNING
+notgreen. New-source finalcomposite/fourCIrequired. Types/fullsource lint PASS.
+
+Quiet planned cold5425/3715/3258ms,firstpostinstall10681ms; retainedloadedHome.
+PSS149372KiB/RSS262228KiB pointonly. Gfx64launch/Homeframes60janky93.75percent,
+median150ms,p90=250ms; skippedframe/HWUI logdiagnostics but no observedfatal/ANR/
+OOM. Performance remains UNRESOLVED pending bounded controls; no60fpsclaim.
+Native07 identity/probes/failures/limits recordedin evidence/NATIVE_PREVIEW07.md.
+
 ## Current certification checkpoint — native06 / afabda3a
 
 Subsequent actual profile review found4P2 families and7 currently identified

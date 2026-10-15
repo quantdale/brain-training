@@ -179,6 +179,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             false,
                             false,
                             false,
+                            false,
                             undefined,
                           ]
                         }
@@ -200,6 +201,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "letterSpacing": -0.5,
                               "lineHeight": 36,
                             },
+                            false,
                             false,
                             false,
                             false,
@@ -340,6 +342,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 false,
                                 false,
                                 false,
+                                false,
                                 undefined,
                               ]
                             }
@@ -360,6 +363,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "fontWeight": "400",
                                   "lineHeight": 17,
                                 },
+                                false,
                                 false,
                                 false,
                                 false,
@@ -526,6 +530,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 false,
                                 false,
                                 false,
+                                false,
                                 undefined,
                               ]
                             }
@@ -546,6 +551,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "fontWeight": "400",
                                   "lineHeight": 17,
                                 },
+                                false,
                                 false,
                                 false,
                                 false,
@@ -634,6 +640,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                         "letterSpacing": -0.3,
                                         "lineHeight": 29,
                                       },
+                                      false,
                                       false,
                                       false,
                                       false,
@@ -859,6 +866,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     false,
                                     false,
                                     false,
+                                    false,
                                     {
                                       "textAlign": "center",
                                     },
@@ -880,6 +888,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "fontWeight": "400",
                                       "lineHeight": 21,
                                     },
+                                    false,
                                     false,
                                     false,
                                     false,
@@ -1025,6 +1034,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     false,
                                     false,
                                     false,
+                                    false,
                                     undefined,
                                   ]
                                 }
@@ -1117,6 +1127,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               false,
                               false,
                               false,
+                              false,
                               undefined,
                             ]
                           }
@@ -1136,6 +1147,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "fontWeight": "400",
                                 "lineHeight": 17,
                               },
+                              false,
                               false,
                               false,
                               false,
@@ -1204,6 +1216,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   false,
                                   false,
                                   false,
+                                  false,
                                   undefined,
                                 ]
                               }
@@ -1225,6 +1238,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "fontWeight": "400",
                                 "lineHeight": 21,
                               },
+                              false,
                               false,
                               false,
                               false,
@@ -1662,6 +1676,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       "fontWeight": "400",
                       "lineHeight": 17,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -2205,6 +2220,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     false,
                     false,
                     false,
+                    false,
                     {
                       "color": "#45546B",
                       "fontFamily": "Manrope",
@@ -2676,6 +2692,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     false,
                     false,
                     false,
+                    false,
                     {
                       "color": "#45546B",
                       "fontFamily": "Manrope",
@@ -3063,6 +3080,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     false,
                     false,
                     false,
+                    false,
                     {
                       "color": "#45546B",
                       "fontFamily": "Manrope",
@@ -3192,6 +3210,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -3216,6 +3235,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -3236,6 +3256,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -3461,6 +3482,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                     false,
                     false,
                     false,
+                    false,
                     {
                       "textAlign": "center",
                     },
@@ -3482,6 +3504,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -3605,6 +3628,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   false,
                   false,
                   false,
+                  false,
                   undefined,
                 ]
               }
@@ -3626,6 +3650,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     "letterSpacing": -0.5,
                     "lineHeight": 36,
                   },
+                  false,
                   false,
                   false,
                   false,
@@ -3766,6 +3791,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       false,
                       false,
                       false,
+                      false,
                       undefined,
                     ]
                   }
@@ -3786,6 +3812,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         "fontWeight": "400",
                         "lineHeight": 17,
                       },
+                      false,
                       false,
                       false,
                       false,
@@ -3952,6 +3979,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       false,
                       false,
                       false,
+                      false,
                       undefined,
                     ]
                   }
@@ -3972,6 +4000,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         "fontWeight": "400",
                         "lineHeight": 17,
                       },
+                      false,
                       false,
                       false,
                       false,
@@ -4060,6 +4089,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "letterSpacing": -0.3,
                               "lineHeight": 29,
                             },
+                            false,
                             false,
                             false,
                             false,
@@ -4285,6 +4315,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           false,
                           false,
                           false,
+                          false,
                           {
                             "textAlign": "center",
                           },
@@ -4306,6 +4337,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          false,
                           false,
                           false,
                           false,
@@ -4451,6 +4483,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           false,
                           false,
                           false,
+                          false,
                           undefined,
                         ]
                       }
@@ -4543,6 +4576,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -4562,6 +4596,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       "fontWeight": "400",
                       "lineHeight": 17,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -4630,6 +4665,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         false,
                         false,
                         false,
+                        false,
                         undefined,
                       ]
                     }
@@ -4651,6 +4687,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -4772,6 +4809,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   false,
                   false,
                   false,
+                  false,
                   undefined,
                 ]
               }
@@ -4816,6 +4854,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -4835,6 +4874,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -4922,6 +4962,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                           "fontWeight": "400",
                           "lineHeight": 21,
                         },
+                        false,
                         false,
                         false,
                         false,
@@ -5056,6 +5097,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -5076,6 +5118,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -5124,6 +5167,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     false,
                     false,
                     false,
+                    false,
                     undefined,
                   ]
                 }
@@ -5143,6 +5187,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    false,
                     false,
                     false,
                     false,
@@ -5230,6 +5275,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                           "fontWeight": "400",
                           "lineHeight": 21,
                         },
+                        false,
                         false,
                         false,
                         false,

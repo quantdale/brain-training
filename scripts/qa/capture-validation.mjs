@@ -58,8 +58,10 @@ export function captureFramePair({ capture, readHierarchy, isReady }) {
 export function settledRoute(xml, pkg, markers, requireAll = false, expectedText) {
   return routeArrived(xml, pkg, markers, requireAll) &&
     (!expectedText || xml.includes(`text="${expectedText}"`)) &&
-    !/resource-id="[^"]*(?:-loading|-skeleton)(?:-[^"]*)?"/.test(xml);
+    !hasLoadingContent(xml);
 }
+
+export const hasLoadingContent = (xml) => /resource-id="[^"]*(?:-loading|-skeleton)(?:-[^"]*)?"/.test(xml);
 
 /** A requested matrix is complete only when EVERY unique key has valid content. */
 export function captureIssues(manifest) {

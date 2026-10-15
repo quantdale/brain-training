@@ -122,3 +122,23 @@ NOT READY; owner taste approval awaits personal review.
 At this source all four GitHub workflows SUCCESS: App38695294948, Repository
 Integrity38695294961, Android38695294918, iOS38695294897. These certify afabda3a,
 not the eventual ending commit or subsequent visual corrections.
+
+Terminal review supplement: independent reviewer actually viewed162 PNGs, then
+hit a usage limit before the last default/dark18. Root personally inspected all
+of those18, completing180 actual image views in total. Root additionally rejects
+default/dark Activity's skeleton and Progress's incomplete below-selector body.
+Nine entries in total are now rejected/qualified as incomplete, with no inferred
+data loss. No newP1 found; backup filename compression also repeats in default
+dark. Full PNG/XML hashes and all requested/observed themes checked, APK-bound
+theme-witness hash matches. Manifest SHA256
+`96f9d71c4969e58379e6e2f9ce2ff22be7e6401b711846ce5fd10d48558c837d`.
+Local `actual-profile-review.json` records every row and review boundary.
+
+Local before/after gallery `qa-artifacts/campaign077/gallery-preview06/index.html`
+contains180 comparisons:150 genuine fresh077 baseline pairs plus30 explicitly
+unmatched populated/detail states. Its original comparisons JSON retains pending
+visual verdicts; the separate actual-profile-review JSON supplies subsequent
+qualified/rejected dispositions without overwriting earlier evidence. It is an
+intermediate gallery, not final acceptance. Native07 is now building from pushed
+`d62bbfc75cc7eb8ba2fabdf31a43666ef91bdcd8`; build/install/capture results must be
+recorded after their actual terminal outcomes.

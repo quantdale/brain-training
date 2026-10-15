@@ -33,7 +33,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
-import { captureFramePair, captureIssues, contentColorCount, inspectPng, settledRoute } from './capture-validation.mjs';
+import { captureFramePair, captureIssues, contentColorCount, hasLoadingContent, inspectPng, settledRoute } from './capture-validation.mjs';
 import { resolvedThemeWitness } from './resolved-theme-witness.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -560,7 +560,13 @@ async function main() {
         let hierarchyBracketed = false;
         let reopenedCold = false;
         const markers = surface.expects ?? [];
-        for (let attempt = 0; attempt < 3; attempt += 1) {
+        // Wait on observed readiness under a bounded deadline. Restarting an
+        // already loading route after two dumps restarts its database reads
+        // and can prevent it from ever settling on a slow emulator.
+        const frameDeadline = Date.now() + 90_000;
+        let captureAttempts = 0;
+        for (; Date.now() < frameDeadline;) {
+          captureAttempts += 1;
           const frame = captureFramePair({
             capture: () => capturePng(device, pngPath),
             readHierarchy: (stage) => {
@@ -586,10 +592,10 @@ async function main() {
           // only judge arrival when the dump actually produced a tree.
           routeVerified = frame.ready;
           hierarchyBracketed = frame.ready;
-          if (routeVerified || attempt === 2) {
+          if (routeVerified) {
             break;
           }
-          if (!reopenedCold) {
+          if (!reopenedCold && xmlBytes > 0 && !hasLoadingContent(xml)) {
             // Cold-start retry: force-stop first so the URL is delivered as
             // the initial intent rather than a droppable onNewIntent.
             try {
@@ -600,7 +606,9 @@ async function main() {
             openRoute(device, options.scheme, surface.route, options.pkg);
             reopenedCold = true;
           }
-          await sleep(surface.settleMs + options.settleMs);
+          // This is a readiness poll, not an acceptance retry: no frame is
+          // accepted until its two settled hierarchies match exactly.
+          await sleep(1500);
           wake(device);
           await sleep(600);
         }
@@ -638,6 +646,7 @@ async function main() {
           beforeXml: relative(ROOT, beforeXmlPath).replace(/\\/g, '/'),
           beforeXmlSha256: existsSync(beforeXmlPath) ? fileSha256(beforeXmlPath) : null,
           hierarchyBracketed,
+          captureAttempts,
           deepLinkStarted: opened,
           foregroundVerified,
           routeVerified,

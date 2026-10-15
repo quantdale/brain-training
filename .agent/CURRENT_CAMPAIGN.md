@@ -11,6 +11,11 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Native07 d62bbfc7 build/install/data/sourcehash PASS; actual2x threeoriginal
+  heading probes nowPASS. Focused14capture/readiness02 running. FiveCIcanary
+  structure failures reproduced/corrected5PASS; finalwhole/newCI stillrequired.
+  Quietlaunch/jank evidence remainsunresolved, detailedin NATIVE_PREVIEW07.md.
+
 - Actual native06 profile critique found fourP2 families and stale/loading frame
   evidence; source corrections and focused regressions pass. New settled-PNG
   bracketing harness11tests PASS. Source freeze/build07 and affected native

@@ -2,6 +2,13 @@
 
 ## Fresh audit findings
 
+- Native07 quiet cold draw5425/3715/3258ms (initialpostinstall10681ms), with
+  loadedretaineddata. Gfx64launch/Homeframes60janky/median150ms and skippedframe
+  logs are unresolved performance evidence, notPASS. Needbounded no-dump/warm
+  interaction controls and actualgameplay; noleakclaim fromsinglePSS149372KiB.
+- d62AppCI's fivecanary failures are understood inactivefalse style entries;
+  local reproduced/update/unchangedverify5PASS. Finalwholecomposite/newCI required.
+
 - Native06 actual profile review found P2 Android2x heading descenders, truncated
   automatic backup-name explanation, narrow populated backup filenames and
   no-response mean0ms presented as performance. Source repairs/focused checks

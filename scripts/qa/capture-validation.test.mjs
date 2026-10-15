@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { captureFramePair, captureIssues, contentColorCount, inspectPng, routeArrived, settledRoute } from './capture-validation.mjs';
+import { captureFramePair, captureIssues, contentColorCount, hasLoadingContent, inspectPng, routeArrived, settledRoute } from './capture-validation.mjs';
 
 const { PNG } = createRequire(new URL('../../apps/mobile/package.json', import.meta.url))('pngjs');
 
@@ -97,6 +97,8 @@ test('settled routes exclude loading content despite a present title', () => {
   const home = xml.replace('bootstrap-recovery-title', 'home-title');
   assert.equal(settledRoute(home, pkg, ['home-title']), true);
   assert.equal(settledRoute(home.replace('bootstrap-recovery-message', 'home-loading'), pkg, ['home-title']), false);
+  assert.equal(hasLoadingContent(home.replace('bootstrap-recovery-message', 'profile-loading-text')), true);
+  assert.equal(hasLoadingContent(home), false);
 });
 
 test('stable capture pairs retain matching before and after witnesses', () => {
