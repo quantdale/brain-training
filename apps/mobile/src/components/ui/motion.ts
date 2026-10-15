@@ -64,9 +64,9 @@ export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedb
   const animate = enabled && !reducedMotion;
 
   // 061: track drivers so a new press stops the in-flight one (rapid
-  // taps must not accumulate drivers) and unmount stops everything. A
-  // mid-press re-render (e.g. the press opens a sheet and the surface
-  // unmounts) must not leave the surface stuck at the pressed scale.
+  // taps must not accumulate drivers). Policy changes and unmount stop
+  // everything: disabling the surface or enabling reduced motion mid-press
+  // must not leave a held scale waiting for a press-out that may never arrive.
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
   const runDriver = (animation: Animated.CompositeAnimation) => {
     animRef.current?.stop();
@@ -83,7 +83,7 @@ export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedb
       animRef.current = null;
       scale.setValue(1);
     };
-  }, [scale]);
+  }, [animate, scale]);
 
   const handlePressIn = () => {
     setPressed(true);

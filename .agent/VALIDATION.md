@@ -1,5 +1,25 @@
 # Validation — Campaign077
 
+## Fresh1ef composite / shared press-policy regression
+
+Actualfresh independent1ef4a587 full unflaggedcomposite terminalexit0/PASS,
+704suites7923tests5snapshots339.064s/failed0;4skippedsuites5classifiedopt-ins.
+All declaredgates and independenttrackedGitstatusclean. SummarySHA256
+a844d78f21e891192a008080e20656a0bd5ffcc942302e98d2a94bcdcb1a2a84;
+logSHA2566ec3426370c14e19209a2108bf52c117dc632d350f602737109e39bbff9ca6ea.
+DEP0190retained/no observedJestworkerforced-exit. Latermotionfix notincluded.
+
+RealTappable/live motionstore before4FAIL0.97vs1/2controlsPASS20.747s;
+existingcleanup nowdepends on effectiveanimatepolicy. After6suites42PASS25.009s,
+lint0. InitialglobaltypesTS2345 readonlytesttuplefixedwithoutassertionchange;
+focused6PASS3.567s,globaltypes02exit0/scopedlint02exit0/strict62/ownership/repostate
+PASS. Independentread-onlyfinalreview noP1/P2. FinalnewAPK/nativeproofopen.
+
+Native10 exact1ef built/staged532tasks4m54s/1107files/941mappedown/assets/eight
+permissionsPASS,APK5855fa95...23f75/52,310,423B. NOTINSTALLED and excludeslater
+motionfix. Pro872ded85 owns5570; reporteddefaultarmedbounds require actualrawfile
+rootqualification. Fullprofile/workout/offline/perf/endingCI/handoff remainopen.
+
 ## Native09 installed / storage healthy-route source recovery
 
 Native09 exact624a5a77 build532tasks4m56s/1107files/941mappedownfiles/bothchanged

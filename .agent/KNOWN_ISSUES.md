@@ -2,6 +2,12 @@
 
 ## Fresh audit findings
 
+- ConfirmedP2 livepresspolicy leavesheldscale0.97 when disabled/reduced-motion
+  changesbeforepressout. Sourcefixedexistingcleanupdeps;4validbeforefailures,
+  6suites42afterPASS. NewtestreadonlyTS2345fixed/globaltypes02/lint/strictPASS;
+  independentread-onlyreview noP1/P2. PRESS_POLICY_RECOVERY.md. Native10staged
+  predatesfix; finalAPK/nativeinteraction acceptance remainsopen.
+
 - Independentrouteinventory P2healthy `/storage-unavailable` falsefailure/deadRetry
   is sourcefixedwithGoHomefallback; actualfailedbootstrapretry retained.2redcaller
   failures/5suites53after/globaltypes/scopedlintPASS. Native09excludesfix; final

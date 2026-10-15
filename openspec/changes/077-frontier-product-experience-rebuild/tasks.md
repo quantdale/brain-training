@@ -25,24 +25,24 @@
 
 - [x] 4.1 Rebuild shared colors, type/spacing/radius/elevation and layout roles against the lock, preserving clear game semantics and disabled-control contrast.
 - [x] 4.2 Reconstruct existing navigation/headers/cards/buttons/icons/badges/inputs/dialogs/progress/empty/loading/error primitives without duplicating a second library.
-- [ ] 4.3 Improve game HUD/stage/feedback/pause/results contracts and responsive board/control hierarchy while retaining IDs/external contracts.
+- [x] 4.3 Improve game HUD/stage/feedback/pause/results contracts and responsive board/control hierarchy while retaining IDs/external contracts. CURRENT_IMPLEMENTATION.md credits integrated source; native state acceptance remains in5.7/6.4/9.4.
 - [ ] 4.4 Integrate purposeful reduced-motion-safe native-friendly motion without gameplay timing bias or unnecessary rerenders; independently inspect canary screenshots.
 
 ## 5. Wave E — Primary and supporting surfaces
 
-- [ ] 5.1 Redesign Home/today/workout/quick start and first-use/empty/populated states so the main action and useful progress remain clear.
-- [ ] 5.2 Redesign Games discovery/search/filter/favorites/recent/recommendations and game identity/details, with accessible responsive grids and differentiated inviting artwork.
-- [ ] 5.3 Refine introductions, interactive tutorials/help, session results/rewards and workout completion with reachable actions and honest feedback.
-- [ ] 5.4 Redesign Progress summaries/domain/game/activity/detail with useful readable trends/domain identities and clear metric interpretation.
-- [ ] 5.5 Redesign Rewards, quests, achievements, Profile/preferences/settings with purpose-based information architecture and polished states.
-- [ ] 5.6 Refine data management/export/import/backup/restore/recovery, keyboard/modal flows and honest empty/loading/error states; protect saved data and compatibility.
+- [x] 5.1 Redesign Home/today/workout/quick start and first-use/empty/populated states so the main action and useful progress remain clear. Implemented source/caller states; final visual/runtime gates remain open.
+- [x] 5.2 Redesign Games discovery/search/filter/favorites/recent/recommendations and game identity/details, with accessible responsive grids and differentiated inviting artwork. Implemented source/caller states; final visual/runtime gates remain open.
+- [x] 5.3 Refine introductions, interactive tutorials/help, session results/rewards and workout completion with reachable actions and honest feedback. Implemented source/caller states; selected native tutorials/workout remain open.
+- [x] 5.4 Redesign Progress summaries/domain/game/activity/detail with useful readable trends/domain identities and clear metric interpretation. PROGRESS_WAVE/PRESENTATION_RECOVERY plus later heading/metric corrections; final profiles open.
+- [x] 5.5 Redesign Rewards, quests, achievements, Profile/preferences/settings with purpose-based information architecture and polished states. Source/caller/disclosure and transaction contracts implemented; final native acceptance open.
+- [x] 5.6 Refine data management/export/import/backup/restore/recovery, keyboard/modal flows and honest empty/loading/error states; protect saved data and compatibility. RUNTIME_DATA07 qualifies actual writes/edit/restart; corrected confirmation and healthy-storage native proof remain open.
 - [ ] 5.7 Inspect every modified major screen in light/dark/2×/compact/larger/applicable reduced motion; record before/after judgments and independent wave critique, correct findings.
 
 ## 6. Wave F — Game presentation and correctness recovery
 
 - [x] 6.1 Repair confirmed High/Critical adaptive-state, board-geometry, timeout and hit-area defects before feature expansion; preserve fail-before/pass-after evidence.
 - [x] 6.2 Repair every remaining confirmed mechanics/scoring/content/input/lifecycle defect, test the real caller pattern, assess siblings/shared causes and version changed rules.
-- [ ] 6.3 Bring all 42 game presentations into the shared language while preserving mechanic-specific identity, stimulus clarity, correct grids/touch geometry and readable instructions.
+- [x] 6.3 Bring all 42 game presentations into the shared language while preserving mechanic-specific identity, stimulus clarity, correct grids/touch geometry and readable instructions. All42 source/caller assessment and vector/shared-role convergence complete; selected actual native states remain6.4/6.5.
 - [ ] 6.4 Verify tutorials/start/active/feedback/pause/resume/quit/complete/restart/interruption and scoring/input/accessibility with deterministic tests/fixtures and selective actual interactions.
 - [ ] 6.5 Verify honest rounded feedback/results, normalization, session/XP/reward exactly-once effects, and historical provenance; finish all 42 assessment rows with explicit evidence/unvalidated boundaries.
 

@@ -8,6 +8,29 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
+## Current checkpoint — current-source composite and live motion recovery
+
+Actualfresh1ef4a587 unflaggedclean-checkout composite terminalPASS/exit0,
+704suites7923tests5snapshots339.064s;4skippedsuites5classifiedtests, failed0,
+every declaredgate/independentGitclean. SummarySHAa844d78f21e891192a008080e20656a0bd5ffcc942302e98d2a94bcdcb1a2a84.
+Native10 built/stagedonly:APK5855fa95...23f75/52,310,423B/532tasks4m54s,
+1107exactfiles/941mappedownfiles/assets/permissionsPASS. Notinstalled.
+
+Independentacceptance auditcredits sourceimplementation of allroutefamilies/
+sharedHUD/42presentation, keeping nativeacceptance open. NewrealP2 presspolicy:
+disabled/livereduced-motion duringheldpress leaves0.97scale.4validredfailures,
+minimalexistingcleanupdependencyfix,6suites42afterPASS; initialnewtestTS2345
+typing corrected, focused6PASS/globaltypes02/scopedlint/strict62PASS. Independent
+read-onlyreview noP1/P2. PRESS_POLICY_RECOVERY/CURRENT_IMPLEMENTATION/NATIVE_PREVIEW10.
+
+Native09 remainsinstalled. Pro872ded85 nonwritinggeometry stillowns5570/40s
+MCPwatch. Latestcontrollerreports validdefaultarmedXML84,244→996,370 matching
+resting; rawfile/rootprobe/imagequalification stillpending, neverassumedPASS.
+InitialexpiredXML/staleposition taps preserved; rootboundedfurtherattempts.
+Compact/font2/restoredsettings remainopen. No install/capture/gameplay competing.
+Nextsourcefrozenbuild mustinclude newmotionfix; fullprofiles/offlineworkout/
+finalCI/handoff remainrequired. Fulloriginal077ACTIVE.
+
 ## Current checkpoint — native09 installed; bounded geometry qualification
 
 Native09 nowinstalled exact624a5a77:APK0afcb249...8487a9c/52,310,075B,

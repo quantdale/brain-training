@@ -6,7 +6,7 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 |---|---|---|---|
 | 0 Owner verdict/mandate | Meaningful complete working redesign; preserve good ideas/product data, not just green tests | All | OPEN |
 | 1 Team/audit/preserve/implement | Independent audits; KEEP/REFINE/REDESIGN/REBUILD decisions; integrated implemented outcomes | 1,5,6,8 | OPEN |
-| 2 Discovery/new change | Main sync/source/history/architecture42/tokens/assets/debts/infra; new named change; preserved076 | 1.1–1.4 | Source/setup COMPLETE; route/state acceptance remains OPEN |
+| 2 Discovery/new change | Main sync/source/history/architecture42/tokens/assets/debts/infra; new named change; preserved076 | 1.1–1.4 | Source/setup/inventory COMPLETE; native route/state acceptance remains OPEN |
 | 3 Every screen | All listed route/state/scroll/keyboard/modal/real/empty/loading/error/first-use profiles, actionable findings with severity/reproduction/correction | 1.3,1.5,5,8 | OPEN |
 | 4 Refero extensively | Actual tool calls/IDs/examples/lessons/adopted/rejected decisions for each interface family | 2.1–2.2 | COMPLETE — recorded research, full references and adopted/rejected lessons |
 | 5 Three art directions/system | Three different representative directions, nine-axis comparison, selected lock and complete visual roles | 2.3–2.4,4 | Direction/lock/source COMPLETE; native system acceptance OPEN |
@@ -26,7 +26,19 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 
 Each named gate/artifact/profile/game/state becomes an evidence row in the relevant inventory and final report; uncertain or indirect proof stays OPEN. PHYSICAL_ANDROID and IOS_RUNTIME are NOT VALIDATED absent actual devices/platform evidence. This specified limitation does not authorize pretending ARM64/store readiness or owner taste approval.
 
-## Evidence reconciliation — 2026-10-15
+## Current implementation reconciliation
+
+[CURRENT_IMPLEMENTATION.md](CURRENT_IMPLEMENTATION.md) credits the implemented
+source and15-route inventory separately from native acceptance. Actualfresh1ef
+composite PASS704suites7923tests/fivesnapshots/alldeclaredgates/cleanGit; native10
+is stagedonly. Later [PRESS_POLICY_RECOVERY.md](PRESS_POLICY_RECOVERY.md) adds
+the confirmed heldscale repair with4red/42after/globaltypes/lint/strictPASS.
+Pro872ded85 stillowns installednative09 fornonwritinggeometry. Reporteddefault
+bounds are not accepted until root checks actualfiles; otherprofiles/runtimeopen.
+The original fullscope remainsACTIVE. Laterrecords supersede stale pending
+observations below without rewriting their historical evidence.
+
+## Earlier evidence reconciliation — before native09
 
 This checkpoint credits completed implementation without treating source tests as
 native acceptance. The whole brief remains ACTIVE.
