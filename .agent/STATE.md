@@ -8,6 +8,42 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
+## Current checkpoint — native11 installed, final visual matrix running
+
+Pushed product source93353ede4452fd51028da358bfe10892486d1531 passes an actual
+fresh full clean-checkout composite:705suites/7929tests/5snapshots,331.763s,
+zero failures; all declared gates and unchanged tracked Git status pass.
+All four workflows at933 succeed: App38733717754, Integrity38733717905,
+Android38733717778, iOS38733718113. This includes the live press-policy repair.
+Later evidence-only ending-SHA checks remain separate.
+
+Native11 built532tasks/4m15s and is now installed: APK9aa17cda21dfe8a479ba4deb8fb5f442efbd40ac56b1e2810b75b03ffb612246,
+52,310,459B. Exact1107 committed files/941 mapped own files, artwork/fonts,
+eight permissions and device hash pass. Exact SQLite bytes are unchanged across
+install; integrityok/eight sessions/original settings System retained. Initial
+cold draw11166ms is not quiet performance acceptance. Native10 was never installed.
+
+Confirmation09 completed4800.4s. Root replay of actual armed native XML passes
+default/compact/font2 origin, width and original tap-center retention. Root viewed
+all six PNGs: only compact's armed PNG shows the armed label; default/font2 PNGs
+expired and are not armed visual proof. All13 SQLite tables have identical full
+rows before/after the non-writing task. Four default attempts exceeded its cap;
+this controller deviation is recorded. RUNTIME_CONFIRMATION09.md.
+
+Root capture97505 terminal FAIL on firstfont2Home (no PNG/laterGames tree),
+after18 valid compact/light frames. Original preserved; explicit18-frame subset
+passes immutable verifier/independent actual-image review, noP1/P2. Both rootURI
+cold controls reach Home; precise cause unproven. QA harness now stops before
+display provisioning to avoid live activity recreation; syntax/eight capture tests
+pass, no app source change. Fresh remaining144 capture77716 exclusively owns5570,
+font2Home/Games already qualified; compact/dark18 will follow separately.
+Independent reviewers own compact-light and font2-light actual images.
+Next: matrix critique/gallery, all-domain
+art, representative interactive states, compact2x risky tutorials, normal offline
+workout with durable restart/exactly-once effects, final performance/memory/logcat
+and visible Home handoff. Prepared tasks/helpers are ignored artifacts, not results.
+Full original Campaign077 remains ACTIVE; no credentials changed.
+
 ## Current checkpoint — current-source composite and live motion recovery
 
 Actualfresh1ef4a587 unflaggedclean-checkout composite terminalPASS/exit0,

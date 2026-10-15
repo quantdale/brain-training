@@ -2,6 +2,18 @@
 
 ## Fresh audit findings
 
+- Armed Replace geometry is now actual-native-XML qualified in default/compact/
+  font2 on native09. Compact also has visible armed-label PNG; default/font2 PNGs
+  were taken after expiry and are not armed visual proof. Controller's four
+  default attempts exceeded the planned cap, without applying any import.
+  Full13-table comparison confirms no data/settings changes. Native11 includes
+  the source repair; final matrix/runtime remain open. RUNTIME_CONFIRMATION09.md.
+
+- Native11 includes all current source repairs and passes build/install/hash/
+  data/asset checks. Actual fresh933 composite705/7929 and all four933 workflows
+  pass. Full native11 visual/interactive/offline workout/performance acceptance
+  remains open; initial cold11166ms is not accepted quiet performance.
+
 - ConfirmedP2 livepresspolicy leavesheldscale0.97 when disabled/reduced-motion
   changesbeforepressout. Sourcefixedexistingcleanupdeps;4validbeforefailures,
   6suites42afterPASS. NewtestreadonlyTS2345fixed/globaltypes02/lint/strictPASS;

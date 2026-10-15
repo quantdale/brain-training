@@ -1,5 +1,29 @@
 # Validation — Campaign077
 
+## Native11 installed / current product source qualified
+
+93353ede actual fresh unflagged composite PASS/exit0:705suites/7929tests/
+5snapshots,331.763s,4skippedsuites/5classified opt-in tests, zero failures;
+all declared gates/independent Git clean. SummarySHA256
+b2c7a4e9fc5c9275391084e2e6dfa2fdce4c030a0b6bbf5bcc89545d68990170;
+logSHA2568c9a0da9dc882594cbd5eea8252ca2f3dd66ffa7a01c53544275a0bf7b6acd8a.
+All four933 workflows SUCCESS: App38733717754, Integrity38733717905,
+Android38733717778, iOS38733718113. NATIVE_PREVIEW11.md records boundaries.
+
+Native11 exact source/build/assets/eight permissions/install/device hash pass;
+532tasks4m15s, APK9aa17cda...12246/52,310,459B. SQLite exact bytes unchanged,
+integrityok/eight sessions/System settings hash retained. Initialcold11166ms
+not quiet acceptance. Confirmation09 actual XML bounds probes3/3 PASS; only
+compact armed PNG has armed visual label. All13 SQLite table rows unchanged
+across confirmation. Expired default/font2 PNGs and default over-cap attempts
+are recorded, not claimed as ideal controller evidence. First180matrix97505
+terminalFAIL on firstfont2Home/noPNG/laterGames tree. Explicit first18 compact/
+light subset passes immutable verifier/independent all18 image review noP1/P2.
+RootURI controls both reach Home; QA stops before display profile change,
+syntax/eight capture tests PASS, exact routing cause unproven. Fresh remaining
+144capture77716 RUNNING/font2HomeGames qualified; compactdark18 separate.
+Final visual/runtime/offline/workout/performance/handoff remain OPEN.
+
 ## Fresh1ef composite / shared press-policy regression
 
 Actualfresh independent1ef4a587 full unflaggedcomposite terminalexit0/PASS,

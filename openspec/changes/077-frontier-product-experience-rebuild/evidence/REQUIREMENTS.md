@@ -28,6 +28,18 @@ Each named gate/artifact/profile/game/state becomes an evidence row in the relev
 
 ## Current implementation reconciliation
 
+Current product source93353ede is installed as native11 and passes a fresh
+unflagged full composite705suites7929tests/five snapshots/all declared gates/
+unchanged Git, plus all four exact933 workflows. [NATIVE_PREVIEW11.md](NATIVE_PREVIEW11.md)
+records source/APK/install/data/asset identity. [RUNTIME_CONFIRMATION09.md](RUNTIME_CONFIRMATION09.md)
+qualifies actual native armed geometry3/3 via XML, compact armed visual evidence,
+and full13-table preservation. Default/font2 expired after PNGs remain invalid
+as armed visual proof. Original180 native11 matrix failed atfont2Home after18valid
+compactlight. That explicit subset is verified/independently viewed; remaining144
+capture is running after safer profile sequencing, compactdark18 separately.
+No full result is inferred.
+Final interactive/tutorial/offline workout/performance/gallery/handoff remain open.
+
 [CURRENT_IMPLEMENTATION.md](CURRENT_IMPLEMENTATION.md) credits the implemented
 source and15-route inventory separately from native acceptance. Actualfresh1ef
 composite PASS704suites7923tests/fivesnapshots/alldeclaredgates/cleanGit; native10

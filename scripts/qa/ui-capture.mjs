@@ -499,6 +499,12 @@ async function main() {
   for (const theme of options.themes) {
     applyTheme(device, theme);
     for (const profileName of options.profiles) {
+      // Stop before changing display configuration as well as before launch.
+      // A live tutorial activity can otherwise recreate during wm/font changes
+      // while the next route is being prepared. Native11 observed Games after a
+      // requested Home on compact→2x; keep the old activity stopped throughout
+      // configuration rather than racing its recreation with a new link.
+      adb(device, ['shell', 'am', 'force-stop', options.pkg]);
       applyProfile(device, profileName, originalMotion);
       relaunchApp(device, options.pkg);
       await sleep(4000);
