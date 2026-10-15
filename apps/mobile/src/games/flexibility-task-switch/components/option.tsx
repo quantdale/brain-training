@@ -9,13 +9,14 @@
  * (remaining options after the trial is scored).
  *
  * Verdicts are multi-channel (PATTERNS-PLAY 6): the fill changes AND the
- * border weight changes AND a ✓/✕ glyph badge is prepended, so colour is
+ * border weight changes AND a ✓/✕ verdictIcon badge is prepended, so colour is
  * never the only signal. Glyphs opt out of font scaling so rows keep their
  * geometry. `dim` dims to read as locked. Rows reach the ≥44 dp target
  * through their real height — never `hitSlop`, which would overlap the
  * adjacent rows. No animation here, so there is nothing for reduced motion
  * to collapse.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -55,7 +56,7 @@ export const Option = memo(function Option({
       : visual === "wrong"
         ? theme.danger
         : theme.border;
-  const glyph = visual === "correct" ? "✓" : visual === "wrong" ? "✕" : null;
+  const verdictIcon = visual === "correct" ? 'check' : visual === "wrong" ? 'close' : null;
   const badgeFill =
     visual === "correct" ? theme.success : visual === "wrong" ? theme.danger : null;
   const badgeOn =
@@ -92,14 +93,12 @@ export const Option = memo(function Option({
           opacity: visual === "dim" ? 0.5 : 1,
         },
       ]}>
-      {glyph !== null && badgeFill !== null && badgeOn !== null ? (
+      {verdictIcon !== null && badgeFill !== null && badgeOn !== null ? (
         <View
           style={[styles.badge, { backgroundColor: badgeFill }]}
           testID={`${testID}.verdict`}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-            {glyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={badgeOn} size={16} />
         </View>
       ) : null}
       <ThemedText type="bodyLarge" style={styles.label}>

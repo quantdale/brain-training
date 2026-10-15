@@ -8,7 +8,67 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — 2026-10-15 local
+## Current checkpoint — status vectors and data feedback convergence
+
+All42 game functional status markers now use existing AppIcon vectors; puzzle
+symbols/NO-GO/cosmetics remain. Three disjoint packets converged, source rules/
+clocks/handlers/versions unchanged. Root repaired C's unsupported test-query API
+after its agent hit capacity, and three A test typing signatures. Whole Jest06
+PASS702suites7903tests5snapshots306.233s,5reviewedskips/classifierPASS; current
+standalone types05/full-source zero-warning lint03 PASS. Registry/provenance/
+ownership/offline1006/runtime-QA/Expo/workflow/map/repo-state/strict62 PASS.
+
+Prodata05 terminal completed6973.7s/107steps, all9 automated asserts INCONCLUSIVE.
+Read report and actual frames: preservation/keyboard/validation/backup preview/
+scrolled988→945 endpoints/offline art-navigation observed, but Replace write and
+actual text-edit invalidation remain unproven. Initial mis-targeted tap started
+Memory score0; aborted/no completed session. Root independent post-task SQLite:
+integrityok,8sessions/9ledger/15history/15questrows,49coins/settingshash unchanged;
+original network0/2/1 restored. No offline gameplay PASS. RUNTIME_DATA05.md.
+
+Runtime exposed hidden outcome feedback below unrelated wipe/privacy sections.
+Two valid red-before location checks; existing messages now occur beside their
+operation controls, with data engine/consent unchanged. Full data49/49 PASS;
+whole06 started before this last correction, final clean-source run remains
+required. STATUS_CONVERGENCE.md records initial failed fixtures/lint honestly.
+No active ARTEMIS task; installed APK remains05. Root now freezes source/builds
+06, then full profiles, focused restore proof/current-day workout, quiet native
+perf/logcat, final clean checkout/ending-SHA CI/visible handoff. Full077 ACTIVE.
+
+## Earlier checkpoint — preview05 / actual clean checkout
+
+Committed source d164420d9bb108dae05b350c115f62ce4e336333 is installed on5570 as
+preview05, APK991438e79c0c536797a628d62e71488913c1b74d456b11d27c9b958b4b752508,
+52,305,467 bytes. Build532tasks PASS3m52s; exact1106-file committed inventory,
+zero differences; permissions8 allowlist/install/devicehash PASS. Exact SQLite
+db/wal/shm unchanged acrossinstall, separate working copy integrityok/sessions8,
+settingsSystem/sha retained. Cold launch13,195ms under clean-checkout load is an
+unresolved observation, NOT accepted performance. Final quiet measurement open.
+
+Default36/36 captures PASS,18 surfaces×directly witnessed light/dark,411dp. An
+independent reviewer viewed all36 actual PNGs and hashes: no newP1/P2. Corrected
+Progress performance/UTC/elapsed/singular copy visible. Numeric rating endpoints
+are below first viewport; game-intro is a first-play help sheet, not proof of
+background Start reachability. Root actual images agree. Full profiles open.
+
+Actual independent clean clone D:/bt077-cert-d164420d ran the FULL unflagged
+certify-clean-checkout composite: PASS/exit0, fresh npmci and every declared
+composite gate, real parent provenance base, unchanged Gitstatus. Full Jest694
+suites7885tests5snapshots PASS297.471s,5 classified opt-in skips/no failures.
+This is actual certification, separate from self-tests. Native/runtime/final
+source/ending-SHA boundaries remain open. See evidence/NATIVE_PREVIEW05.md.
+
+Read-only finalsource reconciliation:42/42 assessed, all documented confirmed
+source defect families repaired, no remaining confirmed High/Critical source
+defect. FoundP2 functional outcome glyphs outside one vector family and shared
+celebration typography. Three disjoint game packets plus root shared edits are
+converging these without changing stimuli/mechanics/timing/economy. New06build
+then full profiles required. Pro data05ca16b7bc-8742-4085-a428-40e73969e791 owns
+device for actual keyboard/backup/merge/replace-consent/restart/scrolled/offline
+art/navigation checks.40sec officialMCP watcher active; no terminal result yet.
+No other device actions while it owns5570. Full original Campaign077 ACTIVE.
+
+## Earlier checkpoint — before preview05
 
 New source wave on base5df95a3af1d2fc50316f0d2d9e93751db52e7a35 contains concise
 Results/saved continuation before detailed facts, compact data/backup actions,

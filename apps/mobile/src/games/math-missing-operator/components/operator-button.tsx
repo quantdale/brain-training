@@ -21,6 +21,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { GestureResponderEvent } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
@@ -57,7 +58,7 @@ export const OperatorButton = memo(function OperatorButton({
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.border;
   const foregroundColor =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.math;
-  const verdictGlyph = highlight === 'correct' ? '✓' : highlight === 'wrong' ? '✕' : null;
+  const verdictIcon = highlight === 'correct' ? 'check' : highlight === 'wrong' ? 'close' : null;
   const verdictFill =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : null;
   const verdictOn =
@@ -91,14 +92,12 @@ export const OperatorButton = memo(function OperatorButton({
       <ThemedText type="title" style={{ color: foregroundColor }} allowFontScaling={false}>
         {OPERATOR_GLYPHS[operator]}
       </ThemedText>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           testID={`${testID}.verdict`}
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} size={16} color={verdictOn} testID={`status-icon-${verdictIcon}`} />
         </View>
       ) : null}
     </Pressable>

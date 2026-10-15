@@ -12,6 +12,7 @@
  * from the same position. The board is covered by the opaque shared
  * `PauseOverlay` and hidden from the accessibility tree while paused.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -407,12 +408,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
               style={[styles.badge, { backgroundColor: roundSolved ? theme.success : theme.danger }]}
               testID={testId(GAME_ID, 'round-verdict-glyph')}
               importantForAccessibility="no-hide-descendants">
-              <ThemedText
-                type="headline"
-                style={{ color: roundSolved ? theme.successOn : theme.dangerOn }}
-                allowFontScaling={false}>
-                {roundSolved ? '✓' : '✕'}
-              </ThemedText>
+              <AppIcon name={roundSolved ? 'check' : 'close'} color={roundSolved ? theme.successOn : theme.dangerOn} size={20} />
             </View>
             <ThemedText
               type="headline"

@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 /**
  * OrderPath verdict-language tests.
  *
@@ -114,11 +115,9 @@ describe('OrderPathScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✓');
+      }))[0]).toBe('check');
     expect(screen.getByTestId(testId(GAME_ID, 'round-solution'))).toHaveTextContent(
       `Solution: ${first.solution.join(' → ')}`,
     );
@@ -138,11 +137,9 @@ describe('OrderPathScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'round-wrong'))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✕');
+      }))[0]).toBe('close');
     // Wrong pick and correct solution visible together, in words.
     expect(screen.getByTestId(testId(GAME_ID, 'wrong-pick'))).toHaveTextContent(
       `Your last pick: ${badItem}`,
@@ -163,11 +160,9 @@ describe('OrderPathScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('⏱');
+      }))[0]).toBe('time');
   });
 
   it('shows the animated live score while the session runs', async () => {

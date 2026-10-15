@@ -16,6 +16,7 @@ import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
@@ -46,7 +47,7 @@ export const NumberPad = memo(function NumberPad({ onDigit, onBackspace, onSubmi
               return (
                 <Key
                   key="backspace"
-                  label="⌫"
+                  icon="backspace"
                   accessibilityLabel="Delete last digit"
                   testID={testId(GAME_ID, 'backspace')}
                   onPress={onBackspace}
@@ -58,7 +59,7 @@ export const NumberPad = memo(function NumberPad({ onDigit, onBackspace, onSubmi
               return (
                 <Key
                   key="submit"
-                  label="✓"
+                  icon="check"
                   accessibilityLabel="Submit answer"
                   testID={testId(GAME_ID, 'submit')}
                   onPress={onSubmit}
@@ -86,7 +87,8 @@ export const NumberPad = memo(function NumberPad({ onDigit, onBackspace, onSubmi
 });
 
 export interface KeyProps {
-  label: string;
+  label?: string;
+  icon?: AppIconName;
   accessibilityLabel: string;
   testID: string;
   /** Provided for backspace/submit (no extra payload). */
@@ -100,6 +102,7 @@ export interface KeyProps {
 
 export const Key = memo(function Key({
   label,
+  icon,
   accessibilityLabel,
   testID,
   onPress,
@@ -123,9 +126,13 @@ export const Key = memo(function Key({
         { backgroundColor: accent ? theme.math : theme.surface, borderColor: theme.border },
         pressed && styles.pressed,
       ]}>
-      <ThemedText type="headline" style={{ color: accent ? theme.mathOn : theme.text }}>
-        {label}
-      </ThemedText>
+      {icon ? (
+        <AppIcon name={icon} size={24} color={accent ? theme.mathOn : theme.text} testID={`control-icon-${icon}`} />
+      ) : (
+        <ThemedText type="headline" style={{ color: accent ? theme.mathOn : theme.text }}>
+          {label}
+        </ThemedText>
+      )}
     </Pressable>
   );
 });

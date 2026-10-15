@@ -12,7 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/tokens';
@@ -45,7 +45,7 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
         : visual === 'selected'
           ? theme.memorySoft
           : theme.surface;
-  const verdictGlyph = visual === 'selected' ? '✓' : visual === 'error' ? '✕' : null;
+  const verdictIcon = visual === 'selected' ? 'check' : visual === 'error' ? 'close' : null;
   const verdictFill = visual === 'selected' ? theme.success : visual === 'error' ? theme.danger : null;
   const verdictOn =
     visual === 'selected' ? theme.successOn : visual === 'error' ? theme.dangerOn : null;
@@ -69,14 +69,12 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
         { backgroundColor, borderColor: theme.border },
         (pressed || visual === 'revealed') && styles.dim,
       ]}>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           testID={`${tileTestID}.verdict`}
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={verdictOn} size={12} />
         </View>
       ) : null}
     </Pressable>

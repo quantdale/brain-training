@@ -16,6 +16,7 @@
  * timeout per active round segment via the host's pause-aware helper (pause
  * cancels it, resume re-schedules).
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -467,19 +468,11 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
                   ]}
                   importantForAccessibility="no-hide-descendants"
                   testID={testId(GAME_ID, "round-verdict-glyph")}>
-                  <ThemedText
-                    type="headline"
-                    style={{
-                      color:
-                        state.roundOutcome === "correct"
+                  <AppIcon name={state.roundOutcome === "correct" ? 'check' : state.roundOutcome === "timeout" ? 'time' : 'close'} color={state.roundOutcome === "correct"
                           ? theme.successOn
                           : state.roundOutcome === "timeout"
                             ? theme.warningOn
-                            : theme.dangerOn,
-                    }}
-                    allowFontScaling={false}>
-                    {state.roundOutcome === "correct" ? "✓" : state.roundOutcome === "timeout" ? "⏱" : "✕"}
-                  </ThemedText>
+                            : theme.dangerOn} size={20} />
                 </View>
                 <ThemedText
                   type="headline"

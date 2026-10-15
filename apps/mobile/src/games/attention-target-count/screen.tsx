@@ -28,6 +28,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
@@ -335,7 +336,7 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
   const roundVerdict =
     state.roundOutcome === 'correct'
       ? {
-          glyph: '✓',
+          icon: 'check' as const,
           soft: theme.successSoft,
           badge: theme.success,
           glyphColor: theme.successOn,
@@ -343,14 +344,14 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
         }
       : state.roundOutcome === 'timeout'
         ? {
-            glyph: '⏱',
+            icon: 'time' as const,
             soft: theme.warningSoft,
             badge: theme.warning,
             glyphColor: theme.warningOn,
             text: 'warning' as const,
           }
         : {
-            glyph: '✕',
+            icon: 'close' as const,
             soft: theme.dangerSoft,
             badge: theme.danger,
             glyphColor: theme.dangerOn,
@@ -436,12 +437,7 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
                 <View
                   style={[styles.verdictBadge, { backgroundColor: roundVerdict.badge }]}
                   importantForAccessibility="no-hide-descendants">
-                  <ThemedText
-                    type="headline"
-                    style={{ color: roundVerdict.glyphColor }}
-                    allowFontScaling={false}>
-                    {roundVerdict.glyph}
-                  </ThemedText>
+                  <AppIcon name={roundVerdict.icon} color={roundVerdict.glyphColor} size={22} style={{ height: 29 }} />
                 </View>
                 <ThemedText
                   type="headline"

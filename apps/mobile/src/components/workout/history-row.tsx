@@ -15,6 +15,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { formatRelativeDay } from '@/components/shell/format';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, type ThemeColor } from '@/theme/tokens';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
@@ -70,9 +71,7 @@ export function WorkoutHistoryRow({
         style={[styles.mark, { backgroundColor: theme[markSoft] }]}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden>
-        <ThemedText type="label" style={{ color: theme[markText] }} allowFontScaling={false}>
-          {done ? '✓' : '▶'}
-        </ThemedText>
+        <AppIcon name={done ? 'check' : 'play'} size={18} color={theme[markText]} />
       </View>
       <View style={styles.text}>
         <ThemedText

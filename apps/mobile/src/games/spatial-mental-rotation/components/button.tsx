@@ -16,6 +16,7 @@
  * by the screen from the reducer's resolved outcome (`roundOutcome` + `kind`),
  * never from the tap handler's optimistic guess.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -98,13 +99,7 @@ export const AnswerButton = memo(function AnswerButton({
           ]}
           importantForAccessibility="no-hide-descendants"
         >
-          <ThemedText
-            type="label"
-            style={{ color: isCorrect ? theme.successOn : theme.dangerOn }}
-            allowFontScaling={false}
-          >
-            {isCorrect ? '✓' : '✕'}
-          </ThemedText>
+          <AppIcon name={isCorrect ? 'check' : 'close'} color={isCorrect ? theme.successOn : theme.dangerOn} size={16} />
         </View>
       ) : null}
     </Pressable>

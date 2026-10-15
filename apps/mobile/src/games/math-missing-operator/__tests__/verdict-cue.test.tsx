@@ -102,22 +102,22 @@ describe('MathMissingOperatorScreen verdict cues', () => {
     const correctButton = screen.getByTestId(testId(GAME_ID, 'op', equation.answerOperator));
 
     // Wrong cue on the tapped operator …
-    expect(within(wrongButton).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(wrongButton).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(wrongButton.props.accessibilityLabel).toMatch(/Wrong pick/);
     // … correct cue alongside it on the true operator …
     expect(
-      within(correctButton).getByText('✓', { includeHiddenElements: true }),
+      within(correctButton).getByTestId('status-icon-check', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(correctButton.props.accessibilityLabel).toMatch(/Correct/);
     // … and the wrong pick never reads as correct.
-    expect(within(wrongButton).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(wrongButton).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(wrongButton.props.accessibilityLabel).not.toMatch(/Correct/);
     // Untouched operators stay neutral — no verdict glyph, no verdict name.
     for (const op of OPERATORS) {
       if (op === wrongOp || op === equation.answerOperator) continue;
       const idle = screen.getByTestId(testId(GAME_ID, 'op', op));
-      expect(within(idle).queryByText('✓', { includeHiddenElements: true })).toBeNull();
-      expect(within(idle).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+      expect(within(idle).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
+      expect(within(idle).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
       expect(idle.props.accessibilityLabel).not.toMatch(/Correct|Wrong pick/);
     }
   });
@@ -133,12 +133,12 @@ describe('MathMissingOperatorScreen verdict cues', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
     const correctButton = screen.getByTestId(testId(GAME_ID, 'op', equation.answerOperator));
     expect(
-      within(correctButton).getByText('✓', { includeHiddenElements: true }),
+      within(correctButton).getByTestId('status-icon-check', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(correctButton.props.accessibilityLabel).toMatch(/Correct/);
     for (const op of OPERATORS) {
       const button = screen.getByTestId(testId(GAME_ID, 'op', op));
-      expect(within(button).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+      expect(within(button).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     }
   });
 

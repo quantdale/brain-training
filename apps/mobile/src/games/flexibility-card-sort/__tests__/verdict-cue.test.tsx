@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 /**
  * Card-sort verdict-cue tests (PATTERNS-PLAY 6–7, FEEDBACK-CHOREOGRAPHY).
  *
@@ -98,12 +99,12 @@ describe('CardSortScreen verdict cues', () => {
 
     expect(wrongCard.props.accessibilityLabel).toMatch(/^Wrong pick:/);
     expect(correctCard.props.accessibilityLabel).toMatch(/^Correct:/);
-    expect(verdictBadge('round-result-grid', wrongIndex)).toHaveTextContent('✕');
-    expect(verdictBadge('round-result-grid', round.correctIndex)).toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge('round-result-grid', wrongIndex))[0]).toBe('close');
+    expect(statusIconNames(verdictBadge('round-result-grid', round.correctIndex))[0]).toBe('check');
 
     // The wrong answer must not read as correct through any channel.
     expect(wrongCard.props.accessibilityLabel).not.toMatch(/^Correct:/);
-    expect(verdictBadge('round-result-grid', wrongIndex)).not.toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge('round-result-grid', wrongIndex))[0]).not.toBe('check');
   });
 
   it('marks a correct sort with the correct cue', async () => {
@@ -114,6 +115,6 @@ describe('CardSortScreen verdict cues', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeOnTheScreen();
     const correctCard = screen.getByTestId(gridCard('round-result-grid', round.correctIndex));
     expect(correctCard.props.accessibilityLabel).toMatch(/^Correct:/);
-    expect(verdictBadge('round-result-grid', round.correctIndex)).toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge('round-result-grid', round.correctIndex))[0]).toBe('check');
   });
 });

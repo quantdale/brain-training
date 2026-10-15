@@ -152,9 +152,9 @@ describe('ReactionTimeScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
     const cue = verdictCue();
     expect(cue.props.accessibilityLabel).toBe('Last round: passed');
-    expect(within(cue).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(within(cue).getByText('Passed')).toBeOnTheScreen();
-    expect(within(cue).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
 
     // The prompt stays readable under the verdict (R3).
     expect(screen.getByTestId(testId(GAME_ID, 'round-prompt'))).toHaveTextContent(
@@ -175,8 +175,8 @@ describe('ReactionTimeScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-withheld'))).toBeOnTheScreen();
     const cue = verdictCue();
     expect(cue.props.accessibilityLabel).toBe('Last round: held');
-    expect(within(cue).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'round-prompt'))).toHaveTextContent(
       'Prompt: hold — do not tap the ✕ signal',
     );
@@ -193,8 +193,8 @@ describe('ReactionTimeScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
     const cue = verdictCue();
     expect(cue.props.accessibilityLabel).toBe('Last round: timed out');
-    expect(within(cue).getByText('⏱', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-time', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'round-prompt'))).toBeOnTheScreen();
   });
 
@@ -208,8 +208,8 @@ describe('ReactionTimeScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-false-start'))).toBeOnTheScreen();
     const cue = verdictCue();
     expect(cue.props.accessibilityLabel).toBe('Last round: false start');
-    expect(within(cue).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
   });
 
   it('a late tap past the response window stays silent and the expiry owns the timeout', async () => {
@@ -240,7 +240,7 @@ describe('ReactionTimeScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
     const cue = verdictCue();
     expect(cue.props.accessibilityLabel).toBe('Last round: timed out');
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
   });
 
   it('animates the score live in session and in results', async () => {

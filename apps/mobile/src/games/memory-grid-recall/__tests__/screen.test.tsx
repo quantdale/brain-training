@@ -35,6 +35,14 @@ import type { GridRecallRawResult } from "../types";
 import { perfectSessionScore, referenceMaxTargets } from "../scoring";
 import { GRID_RECALL_DIFFICULTY_PARAMS } from "../difficulty";
 
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
+
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
 }));
@@ -491,22 +499,18 @@ describe("GridRecallScreen verdict language (campaign 025)", () => {
     ).toBeOnTheScreen();
     // Every target carries the ✓ verdict badge with the verdict in words…
     for (const cell of targets) {
-      expect(
-        screen.getByTestId(testId(GAME_ID, "cell-verdict", String(cell)), {
+      expect(statusIcon(screen.getByTestId(testId(GAME_ID, "cell-verdict", String(cell)), {
           includeHiddenElements: true,
-        }),
-      ).toHaveTextContent("✓");
+        }), 'check')).not.toBeNull();
       expect(
         screen.getByTestId(testId(GAME_ID, "cell", String(cell))).props
           .accessibilityLabel,
       ).toBe(`Correct: Cell ${cell + 1}`);
     }
     // …and the wrong pick carries the ✕ verdict.
-    expect(
-      screen.getByTestId(testId(GAME_ID, "cell-verdict", String(wrongCell)), {
+    expect(statusIcon(screen.getByTestId(testId(GAME_ID, "cell-verdict", String(wrongCell)), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent("✕");
+      }), 'close')).not.toBeNull();
     expect(
       screen.getByTestId(testId(GAME_ID, "cell", String(wrongCell))).props
         .accessibilityLabel,

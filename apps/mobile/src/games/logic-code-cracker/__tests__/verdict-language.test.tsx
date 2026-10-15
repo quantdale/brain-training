@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 // Jest globals imported explicitly (repo has no @types/jest).
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -69,11 +70,9 @@ describe('CodeCrackerScreen verdict language', () => {
     // decorative (hidden from the a11y tree); the words channel is asserted
     // through the headline and labels.
     expect(screen.getByTestId(testId(GAME_ID, 'round-solved'))).toBeTruthy();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✓');
+      }))[0]).toBe('check');
     // The stem (secret code) stays mounted inside the verdict.
     expect(screen.getByTestId(testId(GAME_ID, 'secret-reveal'))).toBeTruthy();
     for (let i = 0; i < NORMAL.codeLength; i += 1) {
@@ -95,11 +94,9 @@ describe('CodeCrackerScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeTruthy();
     expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeTruthy();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✕');
+      }))[0]).toBe('close');
     expect(screen.getByTestId(testId(GAME_ID, 'secret-reveal'))).toBeTruthy();
   });
 

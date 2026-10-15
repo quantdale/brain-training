@@ -23,6 +23,7 @@ import type { GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -91,9 +92,12 @@ export const OptionButton = memo(function OptionButton({
         },
       ]}>
       {isVerdict ? (
-        <ThemedText type="bodyLarge" style={{ color: textColor }} allowFontScaling={false}>
-          {visual === 'correct' ? '✓' : '✕'}
-        </ThemedText>
+        <AppIcon
+          name={visual === 'correct' ? 'check' : 'close'}
+          size={20}
+          color={textColor}
+          testID={`status-icon-${visual === 'correct' ? 'check' : 'close'}`}
+        />
       ) : null}
       <ThemedText type="bodyLarge" style={{ color: textColor, textAlign: 'center' }}>
         {label}

@@ -16,6 +16,7 @@
  * fills carry dark glyphs. No animation here, so there is nothing for
  * reduced motion to collapse.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -64,9 +65,7 @@ const VerdictChip = memo(function VerdictChip({
       accessibilityState={{ disabled: true, selected: true }}
       disabled
       style={[styles.chip, { backgroundColor, borderColor: theme.border }]}>
-      <ThemedText type="bodyLarge" style={{ color: foregroundColor }} allowFontScaling={false}>
-        {visual === 'correct' ? '✓' : '✕'}
-      </ThemedText>
+      <AppIcon name={visual === 'correct' ? 'check' : 'close'} color={foregroundColor} size={20} />
       <ThemedText type="bodyLarge" style={{ color: foregroundColor }}>
         {label}
       </ThemedText>

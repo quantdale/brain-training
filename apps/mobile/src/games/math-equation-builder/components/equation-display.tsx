@@ -12,6 +12,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { testId } from '@/sdk';
 import { useTheme } from '@/hooks/use-theme';
@@ -95,18 +96,18 @@ export function EquationDisplay({ target, tokens, result, isCorrect }: EquationD
               { backgroundColor: verdict === 'correct' ? theme.success : theme.danger },
             ]}
             importantForAccessibility="no-hide-descendants">
-            <ThemedText
-              type="label"
-              style={{ color: verdict === 'correct' ? theme.successOn : theme.dangerOn }}
-              allowFontScaling={false}>
-              {verdict === 'correct' ? '✓' : '✕'}
-            </ThemedText>
+            <AppIcon
+              name={verdict === 'correct' ? 'check' : 'close'}
+              size={16}
+              color={verdict === 'correct' ? theme.successOn : theme.dangerOn}
+              testID={`status-icon-${verdict === 'correct' ? 'check' : 'close'}`}
+            />
           </View>
           <ThemedText
             type="small"
             themeColor={verdict === 'correct' ? 'success' : 'danger'}
             testID={testId(GAME_ID, 'result')}>
-            {verdict === 'correct' ? '✓ Correct!' : `Your answer: ${result}`}
+            {verdict === 'correct' ? 'Correct!' : `Your answer: ${result}`}
           </ThemedText>
         </View>
       ) : null}

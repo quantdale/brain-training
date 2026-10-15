@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 /**
  * Verdict-cue contract (PATTERNS-PLAY 6) for Next in Sequence.
  *
@@ -7,7 +8,7 @@
  * wrong option must never expose the correct cue or name.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
@@ -100,21 +101,21 @@ describe('LogicScreen verdict cues', () => {
     );
 
     // Wrong cue on the tapped option …
-    expect(within(wrongOption).getByText('✕')).toBeOnTheScreen();
+    expect(statusIconNames(wrongOption)[0]).toBe('close');
     expect(wrongOption.props.accessibilityLabel).toMatch(/Wrong pick/);
     // … correct cue alongside it on the true continuation …
-    expect(within(correctOption).getByText('✓')).toBeOnTheScreen();
+    expect(statusIconNames(correctOption)[0]).toBe('check');
     expect(correctOption.props.accessibilityLabel).toMatch(/Correct/);
     // … and the wrong option never reads as correct.
-    expect(within(wrongOption).queryByText('✓')).toBeNull();
+    expect(statusIconNames(wrongOption)).not.toContain('check');
     expect(wrongOption.props.accessibilityLabel).not.toMatch(/Correct/);
     // Untouched options read as locked, not as verdicts.
     for (let index = 0; index < first.options.length; index += 1) {
       if (index === wrongIndex || index === first.answerIndex) continue;
       const dimmed = screen.getByTestId(testId(GAME_ID, 'option', String(index)));
       expect(dimmed.props.accessibilityLabel).toMatch(/locked/);
-      expect(within(dimmed).queryByText('✓')).toBeNull();
-      expect(within(dimmed).queryByText('✕')).toBeNull();
+      expect(statusIconNames(dimmed)).not.toContain('check');
+      expect(statusIconNames(dimmed)).not.toContain('close');
     }
   });
 

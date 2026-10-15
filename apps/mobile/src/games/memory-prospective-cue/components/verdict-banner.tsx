@@ -24,6 +24,7 @@ import { StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AppIcon } from "@/components/ui/app-icon";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -64,7 +65,7 @@ function OptionChip({ choice, role }: { choice: ResponseChoice; role: OptionRole
     role === "correct" ? theme.success : role === "wrong" ? theme.danger : null;
   const badgeOn =
     role === "correct" ? theme.successOn : role === "wrong" ? theme.dangerOn : null;
-  const badgeGlyph = role === "correct" ? "✓" : role === "wrong" ? "✕" : null;
+  const badgeIcon = role === "correct" ? "check" : role === "wrong" ? "close" : null;
   const accessibilityLabel =
     role === "correct"
       ? `Correct: ${label}`
@@ -91,14 +92,12 @@ function OptionChip({ choice, role }: { choice: ResponseChoice; role: OptionRole
         }>
         {label}
       </ThemedText>
-      {badgeGlyph !== null && badgeFill !== null && badgeOn !== null ? (
+      {badgeIcon !== null && badgeFill !== null && badgeOn !== null ? (
         <View
           testID={testId(GAME_ID, "verdict-option-badge", choice)}
           style={[styles.optionBadge, { backgroundColor: badgeFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-            {badgeGlyph}
-          </ThemedText>
+          <AppIcon name={badgeIcon} color={badgeOn} size={12} />
         </View>
       ) : null}
     </View>
@@ -115,10 +114,10 @@ export function StreamVerdictBanner({ outcome, item }: StreamVerdictBannerProps)
     response === "go" || response === "signal" ? response : null;
 
   const verdict = correct
-    ? ({ word: "Correct", glyph: "✓", kind: "success", testID: "verdict-correct" } as const)
+    ? ({ word: "Correct", icon: "check" as const, kind: "success", testID: "verdict-correct" } as const)
     : timedOut
-      ? ({ word: "Timed out", glyph: "⏱", kind: "warning", testID: "verdict-timeout" } as const)
-      : ({ word: "Wrong pick", glyph: "✕", kind: "danger", testID: "verdict-wrong" } as const);
+      ? ({ word: "Timed out", icon: "time" as const, kind: "warning", testID: "verdict-timeout" } as const)
+      : ({ word: "Wrong pick", icon: "close" as const, kind: "danger", testID: "verdict-wrong" } as const);
 
   const roleFor = (choice: ResponseChoice): OptionRole => {
     if (choice === correctChoice) return "correct";
@@ -152,12 +151,7 @@ export function StreamVerdictBanner({ outcome, item }: StreamVerdictBannerProps)
           testID={testId(GAME_ID, "verdict-badge")}
           style={[styles.badge, { backgroundColor: theme[verdict.kind] }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText
-            type="label"
-            style={{ color: theme[`${verdict.kind}On`] }}
-            allowFontScaling={false}>
-            {verdict.glyph}
-          </ThemedText>
+          <AppIcon name={verdict.icon} color={theme[`${verdict.kind}On`]} size={12} />
         </View>
         <ThemedText
           type="bodyLarge"

@@ -99,8 +99,8 @@ describe('SpeedColorMatchScreen trial verdict cue', () => {
     const cue = screen.getByTestId(testId(GAME_ID, 'trial-correct'));
     expect(cue.props.accessibilityLabel).toBe('Last trial: hit');
     expect(cue).toHaveTextContent(/Hit/);
-    expect(within(cue).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     // The prompt/stem stays mounted while the verdict shows.
     expect(screen.getByTestId(testId(GAME_ID, 'current-swatch'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'trial-status'))).toBeOnTheScreen();
@@ -120,8 +120,8 @@ describe('SpeedColorMatchScreen trial verdict cue', () => {
     const cue = screen.getByTestId(testId(GAME_ID, 'trial-wrong'));
     expect(cue.props.accessibilityLabel).toBe('Last trial: wrong');
     expect(cue).toHaveTextContent(/Wrong/);
-    expect(within(cue).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-correct'))).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'current-swatch'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'trial-status'))).toBeOnTheScreen();
@@ -137,7 +137,7 @@ describe('SpeedColorMatchScreen trial verdict cue', () => {
     const cue = screen.getByTestId(testId(GAME_ID, 'trial-wrong'));
     expect(cue.props.accessibilityLabel).toBe('Last trial: missed');
     expect(cue).toHaveTextContent(/Missed/);
-    expect(within(cue).getByText('⏱', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).getByTestId('status-icon-time', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-correct'))).toBeNull();
   });
 

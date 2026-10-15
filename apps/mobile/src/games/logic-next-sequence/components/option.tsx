@@ -12,6 +12,7 @@
  * cannot reflow the row. No animation here, so there is nothing for reduced
  * motion to collapse.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
@@ -83,9 +84,7 @@ export const Option = memo(function Option({
         },
       ]}>
       {isVerdict ? (
-        <ThemedText type="bodyLarge" style={{ color: foregroundColor }} allowFontScaling={false}>
-          {visual === 'correct' ? '✓' : '✕'}
-        </ThemedText>
+        <AppIcon name={visual === 'correct' ? 'check' : 'close'} color={foregroundColor} size={20} />
       ) : null}
       <ThemedText type="bodyLarge" style={[styles.number, { color: foregroundColor }]}>
         {label}

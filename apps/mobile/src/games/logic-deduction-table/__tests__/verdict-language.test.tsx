@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 /**
  * DeductionTable verdict-language tests.
  *
@@ -108,11 +109,9 @@ describe("LogicDeductionScreen verdict language", () => {
     const panel = screen.getByTestId(testId(GAME_ID, "round-verdict"));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, "round-correct"))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent("✓");
+      }))[0]).toBe('check');
     // The verdict is in the accessible name, not colour alone.
     expect(
       screen.getByLabelText(`Correct: ${first.options[first.correctIndex]}`),
@@ -138,11 +137,9 @@ describe("LogicDeductionScreen verdict language", () => {
     const panel = screen.getByTestId(testId(GAME_ID, "round-verdict"));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, "round-wrong"))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent("✕");
+      }))[0]).toBe('close');
     expect(
       screen.getByLabelText(`Wrong pick: ${first.options[wrongIndex]}`),
     ).toBeOnTheScreen();
@@ -172,11 +169,9 @@ describe("LogicDeductionScreen verdict language", () => {
     const panel = screen.getByTestId(testId(GAME_ID, "round-verdict"));
     expect(panel).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, "round-timeout"))).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, "round-verdict-glyph"), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent("⏱");
+      }))[0]).toBe('time');
     // The answer is still revealed and marked correct.
     expect(
       screen.getByLabelText(`Correct: ${first.options[first.correctIndex]}`),

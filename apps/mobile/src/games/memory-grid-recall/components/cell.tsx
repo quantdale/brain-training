@@ -23,7 +23,7 @@ import { memo } from "react";
 import { Pressable, StyleSheet, View, type GestureResponderEvent } from "react-native";
 
 import { testId } from "@/sdk";
-import { ThemedText } from "@/components/themed-text";
+import { AppIcon } from "@/components/ui/app-icon";
 import { Radii } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { Spacing } from "@/theme/tokens";
@@ -71,7 +71,7 @@ export const Cell = memo(function Cell({
         ? theme.success
         : theme.border;
   const borderWidth = visual === "error" || visual === "correct" ? 3 : 1.5;
-  const verdictGlyph = visual === "correct" ? "✓" : visual === "error" ? "✕" : null;
+  const verdictIcon = visual === "correct" ? "check" : visual === "error" ? "close" : null;
   const verdictFill = visual === "correct" ? theme.success : visual === "error" ? theme.danger : null;
   const verdictOn =
     visual === "correct" ? theme.successOn : visual === "error" ? theme.dangerOn : null;
@@ -95,14 +95,12 @@ export const Cell = memo(function Cell({
         { backgroundColor, borderColor, borderWidth },
         (pressed || visual === "target") && styles.dim,
       ]}>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           testID={testId(GAME_ID, "cell-verdict", String(index))}
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={verdictOn} size={12} />
         </View>
       ) : null}
     </Pressable>

@@ -306,3 +306,49 @@ Dependency auditPASS10accepted/no newmoderate+production; webexport22routes/exit
 PASS with CLIforced-exit housekeepingmessage. Four95e CIworkflowsallSUCCESS exactIDs
 inNATIVE_PREVIEW04.md. Native05/profile/runtime/data/offline/performance/actualclean
 checkout/ending-SHA finalcertification remainopen.
+
+## Preview05 / actual clean checkout — 2026-10-15
+
+- d164420d native05 build532tasks PASS3m52s; exact1106-file source inventory
+  a3e8c1558dd4636a7a0cf12a6055123e217a215bc41e0365ca0f3e885efe7407,
+  zero differences. APK991438e79c0c536797a628d62e71488913c1b74d456b11d27c9b958b4b752508,
+  52,305,467B;8 permissions unchanged. Install-r/devicehash PASS; exact SQLite
+  db/wal/shm unchanged; working copy integrityok/sessions8/settingshash retained.
+  Launch13,195ms under full-checkout load is unresolved/not quiet perfPASS.
+- Default36/36 capture PASS,18 surfaces×directly observedlight/dark411dp. Reviewer
+  viewed everyPNG/hash/witness, noP1/P2. Root inspected9 keyframes. Endpoints
+  below fold remain unproven; game-intro is first-play sheet, background Start
+  hidden, not an accessible-action proof. P3 thinblue seam preserved.
+- Actual independent clone atd164420d, fresh dependencies/no inherited native
+  folders; full unflagged certify-clean-checkout PASS/exit0. All composite gates
+  including real parent provenance/types/lint/web/dependency/strictspecs/full
+  Jest/classifier/cleanstatus PASS.694suites7885tests5snapshots,297.471s,5 reviewed
+  skips,failed0. Preserved summary SHAe0aa3bf1fa9437023c88f3cca54c18472777f4a9419a3995373c17d9c180cb8a.
+  No worker forced-exit warning. Expo forced-exit and final NodeDEP0190 warning
+  retained; no clean-teardown or native/runtime claim. NATIVE_PREVIEW05.md.
+- Root shared status/type focused2suites19tests PASS38.582s. Requested nonexistent
+  spotlight-card test path adds no suite; actual spotlight.test.ts path identified.
+  Final source integration still pending three bounded functional-vector packets.
+- Prodata05ca16b7bc running with40sec MCPwatch. No merge/replace/offline/data journey
+  outcome inferred. New06 native/fullprofile/runtime/perf/finalCI/handoff open.
+
+## Status/operation convergence
+
+A17suites78tests;B149/1680;C19/88 PASS. Initial C13suites26assertions failed on
+unsupported RNTL14 fixture APIs; root corrected actual SVG queries, not app logic.
+Initial types fail fixture APIs/three readonly tuple signatures; current
+standalone types05 PASS/exit0. Initial lint9unusedimports, partialfix02 retained;
+current full-source lint03 PASS/exit0 plus scoped9files zero warnings.
+Whole Jest06 PASS702suites7903tests5snapshots306.233s,5reviewedskips/classifierPASS.
+It predates final inline-data feedback:2 valid before failures, after49/49 PASS.
+Final clean-source composite/full Jest still required. Strict62/registry/
+provenance/ownership/offline1006/runtime-QA/Expo23/workflow4/map55/repo-state PASS.
+
+Data05completed107steps6973.7s;9 asserts ALL INCONCLUSIVE, no checkerPASS. Root
+independent post-task SQLite integrityok/counts preserved/settings unchanged;
+network0/2/1restored. Root viewed actual Memory accidental-start/Attention988→945/
+offline representative/finalHome images. Replacewrite/text-edit invalidation
+NOT VALIDATED; offlineart/navigation distinct from gameplay. Post-tasklaunch
+timeout14.7s under checkload remains unresolved until quiet final measurements.
+Full details in STATUS_CONVERGENCE.md/RUNTIME_DATA05.md. Native06/profile/workout/
+focusedrestore/perf/finalcertification/handoff stillOPEN.

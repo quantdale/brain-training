@@ -12,7 +12,7 @@
  * during static-import evaluation, before test-file bindings exist.
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { act } from '@testing-library/react-native';
+import { act, within } from '@testing-library/react-native';
 import { expectConsoleNoise } from '@/test-utils';
 import { countLocalData ,
   applyImport,
@@ -320,6 +320,8 @@ describe('data-management UX contract', () => {
     expect(message).toHaveTextContent(
       /Saved on this phone as backup-test\.json/,
     );
+    expect(within(screen.getByTestId('data-export-card')).getByTestId('data-message'))
+      .toHaveTextContent(/Saved on this phone/);
     expect(transport.writeBackup).toHaveBeenCalledWith(
       'backup-test.json',
       '{"format":"brain-training-backup"}',
@@ -390,6 +392,8 @@ describe('data-management UX contract', () => {
     );
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/Replace complete/);
+    expect(within(screen.getByTestId('data-import-card')).getByTestId('data-message'))
+      .toHaveTextContent(/Replace complete/);
     // Replace erases the seeded catalog: the call site must restore it.
     expect(mockedRefreshProgression).toHaveBeenCalled();
   });

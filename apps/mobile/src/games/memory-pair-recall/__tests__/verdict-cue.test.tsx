@@ -29,6 +29,14 @@ import type { SessionPersistence } from "../session";
 import { GAME_ID } from "../types";
 import type { PairRecallRound } from "../types";
 
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
+
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
 }));
@@ -126,11 +134,11 @@ describe("PairRecallScreen verdict cues", () => {
       testId(GAME_ID, "feedback-response", String(pair.responseId)),
     );
     expect(
-      within(picked).getByText("✓", { includeHiddenElements: true }),
+      statusIcon(picked, 'check'),
     ).toBeOnTheScreen();
     expect(picked.props.accessibilityLabel).toMatch(/Correct/);
     expect(
-      within(picked).queryByText("✕", { includeHiddenElements: true }),
+      statusIcon(picked, 'close'),
     ).toBeNull();
 
     for (const responseId of round.responseOptions) {
@@ -139,10 +147,10 @@ describe("PairRecallScreen verdict cues", () => {
         testId(GAME_ID, "feedback-response", String(responseId)),
       );
       expect(
-        within(idle).queryByText("✓", { includeHiddenElements: true }),
+        statusIcon(idle, 'check'),
       ).toBeNull();
       expect(
-        within(idle).queryByText("✕", { includeHiddenElements: true }),
+        statusIcon(idle, 'close'),
       ).toBeNull();
       expect(idle.props.accessibilityLabel).not.toMatch(/Correct|Wrong pick/);
     }
@@ -169,17 +177,17 @@ describe("PairRecallScreen verdict cues", () => {
 
     // Wrong cue on the tapped option …
     expect(
-      within(wrongOption).getByText("✕", { includeHiddenElements: true }),
+      statusIcon(wrongOption, 'close'),
     ).toBeOnTheScreen();
     expect(wrongOption.props.accessibilityLabel).toMatch(/Wrong pick/);
     // … correct cue alongside it on the true partner …
     expect(
-      within(correctOption).getByText("✓", { includeHiddenElements: true }),
+      statusIcon(correctOption, 'check'),
     ).toBeOnTheScreen();
     expect(correctOption.props.accessibilityLabel).toMatch(/Correct/);
     // … and the wrong pick never reads as correct.
     expect(
-      within(wrongOption).queryByText("✓", { includeHiddenElements: true }),
+      statusIcon(wrongOption, 'check'),
     ).toBeNull();
     expect(wrongOption.props.accessibilityLabel).not.toMatch(/Correct/);
 
@@ -190,10 +198,10 @@ describe("PairRecallScreen verdict cues", () => {
         testId(GAME_ID, "feedback-response", String(responseId)),
       );
       expect(
-        within(idle).queryByText("✓", { includeHiddenElements: true }),
+        statusIcon(idle, 'check'),
       ).toBeNull();
       expect(
-        within(idle).queryByText("✕", { includeHiddenElements: true }),
+        statusIcon(idle, 'close'),
       ).toBeNull();
       expect(idle.props.accessibilityLabel).not.toMatch(/Correct|Wrong pick/);
     }

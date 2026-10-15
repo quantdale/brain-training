@@ -18,6 +18,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
@@ -39,24 +40,24 @@ const OUTCOME_COPY: Record<
   RoundOutcome,
   {
     readonly label: string;
-    readonly glyph: string;
+    readonly icon: AppIconName;
     readonly family: VerdictFamily;
     readonly accessibilityLabel: string;
   }
 > = {
-  passed: { label: 'Passed', glyph: '✓', family: 'success', accessibilityLabel: 'Last round: passed' },
-  withheld: { label: 'Held', glyph: '✓', family: 'success', accessibilityLabel: 'Last round: held' },
-  failed: { label: 'Too slow', glyph: '✕', family: 'danger', accessibilityLabel: 'Last round: too slow' },
-  timeout: { label: 'Timed out', glyph: '⏱', family: 'warning', accessibilityLabel: 'Last round: timed out' },
+  passed: { label: 'Passed', icon: 'check', family: 'success', accessibilityLabel: 'Last round: passed' },
+  withheld: { label: 'Held', icon: 'check', family: 'success', accessibilityLabel: 'Last round: held' },
+  failed: { label: 'Too slow', icon: 'close', family: 'danger', accessibilityLabel: 'Last round: too slow' },
+  timeout: { label: 'Timed out', icon: 'time', family: 'warning', accessibilityLabel: 'Last round: timed out' },
   'false-start': {
     label: 'False start',
-    glyph: '✕',
+    icon: 'close',
     family: 'danger',
     accessibilityLabel: 'Last round: false start',
   },
   'no-go-false-start': {
     label: 'Tapped ✕',
-    glyph: '✕',
+    icon: 'close',
     family: 'danger',
     accessibilityLabel: 'Last round: tapped the no-go signal',
   },
@@ -132,9 +133,7 @@ export function VerdictCue({ outcome }: VerdictCueProps) {
       <Animated.View
         style={[styles.badge, { backgroundColor: badgeFill, transform: [{ scale }] }]}
         importantForAccessibility="no-hide-descendants">
-        <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-          {copy.glyph}
-        </ThemedText>
+        <AppIcon name={copy.icon} size={16} color={badgeOn} testID={`status-icon-${copy.icon}`} />
       </Animated.View>
       <ThemedText type="smallBold" style={{ color: labelColor }}>
         {copy.label}

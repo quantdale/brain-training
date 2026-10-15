@@ -2,12 +2,28 @@
 
 ## Fresh audit findings
 
-- NEW native High reachability failure: preview03 GridNavigator first-play demo
-  clips full-width answer miniatures below the overlay (ARTEMISa3f662cd step42,
-  root inspected screenshot). Source repair bounds boards/options and adds an
-  explicit long-demo scroll viewport;2 red-before layout failures/normal control,
-  all3 now pass. Installed app still lacks fix; new-build runtime acceptance
-  required before closure. TransformMatch sibling source repair passes11 suites143 tests; both need new-APK native proof.
+- Preview03 High GridNavigator demo reachability: source repaired,2 valid
+  red-before geometry failures/normal control all3 PASS. Preview04 Flasha6b84b21
+  completes the normal tutorial through actual candidates/confirmation/Gotit to
+  reachable Start; root inspected the actual frames. Default native proof PASS,
+  compact/2x/active gameplay still open. TransformMatch source repair11suites143
+  tests PASS; native proof remains required. Original clipped03 image preserved.
+
+- Preview05 initial cold launch13,195ms during full-checkout load is unresolved,
+  and post-data relaunch timedout14.7s under whole-Jest/lint load. Neither is
+  accepted performance. Quiet final-source launches/frame/memory checks open.
+- Final source audit found remaining functional outcome text glyphs across games
+  and celebration text outside shared typography. Bounded disjoint convergence
+  underway; actual stimuli/cosmetic data remain separate. Required full profiles
+  await its build. Default05 all36 actual frames independently reviewed/noP1/P2;
+  populated Attention endpoints belowfold and tutorial-dismissed intro unproven.
+
+- Status vectors/shared typography now source-converged, global702suites7903tests
+  PASS; native06/fullprofiles pending. Data05root-viewed scrolled988→945 closes
+  that default-dark endpoint limit. Replacewrite/text-edit invalidation remain
+  unproven;9 automatic checker outcomes inconclusive. Inline operation feedback
+  fixes confirmed hidden-message placement (2red-before,49afterPASS), native
+  reproof required. Tutorial-dismissed intro/compact/2x/gameplay remain separate.
 
 
 - Repaired in source/caller tests, native acceptance pending: AdaptiveCodeCracker length crash, RuleGrid geometry/depth, TapRush deadlines/hit area, three memory games' ordinal reveal, EquationBuilder precedence, NumberLine answer disclosure, stale restore consent, in-game workout retry, content/partial/average/pause timing defects. Details and packet counts:077/evidence/DEFECTS.md and GAME_AUDIT.md.

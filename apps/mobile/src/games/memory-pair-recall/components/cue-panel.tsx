@@ -21,6 +21,7 @@ import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { testId } from "@/sdk";
+import { AppIcon } from "@/components/ui/app-icon";
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from "@/hooks/use-theme";
 
@@ -91,8 +92,8 @@ const ResponseOption = memo(function ResponseOption({
         ? theme.danger
         : theme.border;
   const borderWidth = verdict !== null ? 3 : 1.5;
-  const verdictGlyph =
-    verdict === "correct" ? "✓" : verdict === "wrong" ? "✕" : null;
+  const verdictIcon =
+    verdict === "correct" ? "check" : verdict === "wrong" ? "close" : null;
   const verdictFill =
     verdict === "correct"
       ? theme.success
@@ -129,18 +130,13 @@ const ResponseOption = memo(function ResponseOption({
       <Text style={[styles.letter, { color: theme.text }]} allowFontScaling={false}>
         {response.glyph}
       </Text>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           testID={testId(GAME_ID, `${testIDKey}-verdict`, String(responseId))}
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           importantForAccessibility="no-hide-descendants"
         >
-          <Text
-            style={[styles.verdictGlyph, { color: verdictOn }]}
-            allowFontScaling={false}
-          >
-            {verdictGlyph}
-          </Text>
+          <AppIcon name={verdictIcon} color={verdictOn} size={12} />
         </View>
       ) : null}
     </Pressable>
@@ -270,9 +266,5 @@ const styles = StyleSheet.create({
     borderRadius: Radii.pill,
     alignItems: "center",
     justifyContent: "center",
-  },
-  verdictGlyph: {
-    fontSize: 13,
-    fontWeight: "700",
   },
 });

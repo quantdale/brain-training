@@ -12,7 +12,7 @@
  * beside the existing `<game>.score` StatRow).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { FakeClock } from '@/sdk';
@@ -25,6 +25,14 @@ import RunningOrderScreen from '../screen';
 import type { SessionPersistence } from '../session';
 import { SYMBOL_COUNT, symbolById } from '../symbols';
 import { GAME_ID } from '../types';
+
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -140,8 +148,8 @@ describe('RunningOrderScreen verdict cues', () => {
       expect(String(slot.props.accessibilityLabel)).toBe(
         `Correct: ${symbolById(target[i]).label}`,
       );
-      expect(within(slot).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-      expect(within(slot).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+      expect(statusIcon(slot, 'check')).toBeOnTheScreen();
+      expect(statusIcon(slot, 'close')).toBeNull();
       expect(flatStyle(slot).borderWidth).toBe(3);
     }
     // A correct round shows no wrong-pick companion slots.
@@ -168,8 +176,8 @@ describe('RunningOrderScreen verdict cues', () => {
 
     const wrongSlot = screen.getByTestId(testId(GAME_ID, 'result-answer', '0'));
     expect(String(wrongSlot.props.accessibilityLabel)).toMatch(/^Wrong pick:/);
-    expect(within(wrongSlot).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(wrongSlot).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(statusIcon(wrongSlot, 'close')).toBeOnTheScreen();
+    expect(statusIcon(wrongSlot, 'check')).toBeNull();
     expect(flatStyle(wrongSlot).borderWidth).toBe(3);
 
     // The correct symbol for the SAME position is in the same frame (R2).
@@ -178,7 +186,7 @@ describe('RunningOrderScreen verdict cues', () => {
       `Correct: ${symbolById(target[0]).label}`,
     );
     expect(
-      within(correctSlot).getByText('✓', { includeHiddenElements: true }),
+      statusIcon(correctSlot, 'check'),
     ).toBeOnTheScreen();
     // Distinct fills back the glyphs — never colour-alone, never identical.
     expect(flatStyle(wrongSlot).backgroundColor).not.toBe(
@@ -189,7 +197,7 @@ describe('RunningOrderScreen verdict cues', () => {
     const matchingSlot = screen.getByTestId(testId(GAME_ID, 'result-answer', '1'));
     expect(String(matchingSlot.props.accessibilityLabel)).toMatch(/^Correct:/);
     expect(
-      within(matchingSlot).getByText('✓', { includeHiddenElements: true }),
+      statusIcon(matchingSlot, 'check'),
     ).toBeOnTheScreen();
 
     // The full correct order remains visible in the verdict frame.
@@ -210,8 +218,8 @@ describe('RunningOrderScreen verdict cues', () => {
     for (let id = 0; id < SYMBOL_COUNT; id += 1) {
       const option = screen.getByTestId(testId(GAME_ID, 'palette', String(id)));
       expect(String(option.props.accessibilityLabel)).toBe(symbolById(id).label);
-      expect(within(option).queryByText('✓', { includeHiddenElements: true })).toBeNull();
-      expect(within(option).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+      expect(statusIcon(option, 'check')).toBeNull();
+      expect(statusIcon(option, 'close')).toBeNull();
       // R6: every tappable palette symbol meets the touch-target floor.
       expect(flatStyle(option)).toMatchObject({
         minHeight: MIN_TOUCH_TARGET,

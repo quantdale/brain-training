@@ -102,15 +102,15 @@ describe('ValueOrderingScreen verdict cues', () => {
     expect(correctTile.props.accessibilityLabel).toMatch(/Correct pick/);
     expect(correctTile.props.accessibilityLabel).toMatch(/position 1/);
     expect(
-      within(correctTile).getByText('✓', { includeHiddenElements: true }),
+      within(correctTile).getByTestId('status-icon-check', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'tile-rank', '1'))).toBeOnTheScreen();
 
     const wrongTile = screen.getByTestId(testId(GAME_ID, 'tile', String(wrong.value)));
     expect(wrongTile.props.accessibilityLabel).toMatch(/Wrong pick/);
     expect(wrongTile.props.accessibilityLabel).not.toMatch(/Correct/);
-    expect(within(wrongTile).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(wrongTile).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(wrongTile).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(wrongTile).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
 
     // Correct sequence and submitted sequence listed side by side.
     const correctOrder = sorted.map((tile) => tile.display).join('  <  ');
@@ -142,10 +142,10 @@ describe('ValueOrderingScreen verdict cues', () => {
     for (const tile of sorted) {
       const el = screen.getByTestId(testId(GAME_ID, 'tile', String(tile.value)));
       expect(el.props.accessibilityLabel).toMatch(/Correct pick/);
-      expect(within(el).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+      expect(within(el).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     }
     const grid = screen.getByTestId(testId(GAME_ID, 'value-grid'));
-    expect(within(grid).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(grid).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     const correctOrder = sorted.map((tile) => tile.display).join('  <  ');
     expect(screen.getByTestId(testId(GAME_ID, 'submitted-order'))).toHaveTextContent(
       `Your order: ${correctOrder}`,
@@ -172,8 +172,8 @@ describe('ValueOrderingScreen verdict cues', () => {
       'Your order: no tiles placed yet.',
     );
     const grid = screen.getByTestId(testId(GAME_ID, 'value-grid'));
-    expect(within(grid).queryByText('✕', { includeHiddenElements: true })).toBeNull();
-    expect(within(grid).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(grid).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
+    expect(within(grid).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
   });
 
   it('animates the score live in session and in results', async () => {

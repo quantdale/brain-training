@@ -7,6 +7,7 @@
  * highlighted cell is the candidate final cell. `CommandList` renders the
  * command sequence as readable text. Plain Views/Text only (no Skia).
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
@@ -50,13 +51,13 @@ export interface GridMarker {
    */
   readonly border?: string;
   /**
-   * Centered ✓/✕ glyph. Decorative for assistive tech (the verdict wording
+   * Centered ✓/✕ icon. Decorative for assistive tech (the verdict wording
    * lives in the option labels and the result headline); hidden from the
    * accessibility tree where rendered.
    */
-  readonly glyph?: string;
+  readonly icon?: 'check' | 'close';
   /** Glyph colour. */
-  readonly glyphColor?: string;
+  readonly iconColor?: string;
 }
 
 export interface GridBoardProps {
@@ -131,19 +132,9 @@ export function GridBoard({
                   {DIR_ARROW[startDir]}
                 </ThemedText>
               ) : null}
-              {!isStart && isMarked && marker!.glyph ? (
+              {!isStart && isMarked && marker!.icon ? (
                 <View importantForAccessibility="no-hide-descendants">
-                  <ThemedText
-                    type="headline"
-                    style={
-                      marker!.glyphColor !== undefined
-                        ? { color: marker!.glyphColor }
-                        : undefined
-                    }
-                    allowFontScaling={false}
-                  >
-                    {marker!.glyph}
-                  </ThemedText>
+                  <AppIcon name={marker!.icon} color={marker!.iconColor ?? theme.text} size={20} />
                 </View>
               ) : null}
             </View>
@@ -198,7 +189,7 @@ export function OptionCell({
 }: OptionCellProps) {
   const theme = useTheme();
 
-  // Verdicts change fill AND border AND glyph, never colour alone
+  // Verdicts change fill AND border AND icon, never colour alone
   // (PATTERNS-PLAY 6, spatial-transform-match canary): the correct route gets
   // a success-soft fill plus a ✓ badge, the wrong step a danger-soft fill
   // plus a ✕ badge. Badges are decorative for assistive tech; the button's
@@ -206,7 +197,7 @@ export function OptionCell({
   // visible together on the trial result. The inner mini board keeps the
   // game's own accent candidate marker (mechanic, not verdict).
   const isWrongPick = selected && !correct;
-  const verdictGlyph = correct ? "✓" : isWrongPick ? "✕" : null;
+  const verdictIcon = correct ? 'check' : isWrongPick ? 'close' : null;
   const backgroundColor = correct
     ? theme.successSoft
     : isWrongPick
@@ -238,7 +229,7 @@ export function OptionCell({
         {
           backgroundColor,
           borderColor,
-          borderWidth: verdictGlyph !== null ? 3 : 2,
+          borderWidth: verdictIcon !== null ? 3 : 2,
           opacity: pressed || disabled ? 0.8 : 1,
         },
       ]}
@@ -255,7 +246,7 @@ export function OptionCell({
         markers={markers}
         testID={testId(GAME_ID, "option-grid", String(index))}
       />
-      {verdictGlyph !== null ? (
+      {verdictIcon !== null ? (
         <View
           testID={testId(GAME_ID, "option-verdict", String(index))}
           style={[
@@ -264,13 +255,7 @@ export function OptionCell({
           ]}
           importantForAccessibility="no-hide-descendants"
         >
-          <ThemedText
-            type="label"
-            style={{ color: correct ? theme.successOn : theme.dangerOn }}
-            allowFontScaling={false}
-          >
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={correct ? theme.successOn : theme.dangerOn} size={16} />
         </View>
       ) : null}
     </Pressable>

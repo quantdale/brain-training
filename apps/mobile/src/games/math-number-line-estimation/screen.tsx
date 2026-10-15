@@ -23,6 +23,7 @@ import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
@@ -338,7 +339,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
     state.outcome === 'hit'
       ? {
           title: 'Hit!',
-          glyph: '✓',
+          icon: 'check' as const,
           soft: theme.successSoft,
           edge: theme.success,
           badge: theme.success,
@@ -349,7 +350,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
       : state.outcome === 'miss'
         ? {
             title: 'Too far off',
-            glyph: '✕',
+            icon: 'close' as const,
             soft: theme.dangerSoft,
             edge: theme.danger,
             badge: theme.danger,
@@ -359,7 +360,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
           }
         : {
             title: "Time's up",
-            glyph: '⏱',
+            icon: 'time' as const,
             soft: theme.warningSoft,
             edge: theme.warning,
             badge: theme.warning,
@@ -443,9 +444,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
               <View
                 style={[styles.badge, { backgroundColor: verdict.badge }]}
                 importantForAccessibility="no-hide-descendants">
-                <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
-                  {verdict.glyph}
-                </ThemedText>
+                <AppIcon name={verdict.icon} size={24} color={verdict.glyphColor} testID={`status-icon-${verdict.icon}`} />
               </View>
               <ThemedText
                 type="headline"

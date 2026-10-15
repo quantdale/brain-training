@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 // Jest globals imported explicitly (repo has no @types/jest).
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
@@ -57,11 +58,9 @@ describe('RuleGridScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeTruthy();
     expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeTruthy();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✓');
+      }))[0]).toBe('check');
     // The verdict is in the accessible name, not colour alone.
     expect(screen.getByLabelText(`Correct: ${round.answer + 1}`)).toBeTruthy();
     // The stem (prompt, grid, answer reveal) stays mounted while feedback shows.
@@ -81,11 +80,9 @@ describe('RuleGridScreen verdict language', () => {
     const panel = screen.getByTestId(testId(GAME_ID, 'round-verdict'));
     expect(panel).toBeTruthy();
     expect(screen.getByTestId(testId(GAME_ID, 'round-wrong'))).toBeTruthy();
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
+    expect(statusIconNames(screen.getByTestId(testId(GAME_ID, 'round-verdict-glyph'), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✕');
+      }))[0]).toBe('close');
     expect(screen.getByLabelText(`Wrong pick: ${wrong + 1}`)).toBeTruthy();
     expect(screen.getByLabelText(`Correct: ${round.answer + 1}`)).toBeTruthy();
     // Untouched candidates stay mounted under the same selectors, now locked.

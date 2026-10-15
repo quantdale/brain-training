@@ -10,6 +10,7 @@
  * Plain Views/Text only. Static rotations (transform rotate to a fixed angle)
  * are used, not animations — there is nothing to guard behind reduced-motion.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -152,7 +153,7 @@ export function OptionArrow({ dir, index, selected, correct, disabled = false, o
   // button's accessibility label carries the verdict in words. Both states
   // stay visible together on the round result.
   const isWrongPick = selected && !correct;
-  const verdictGlyph = correct ? '✓' : isWrongPick ? '✕' : null;
+  const verdictIcon = correct ? 'check' : isWrongPick ? 'close' : null;
   const backgroundColor = correct
     ? theme.successSoft
     : isWrongPick
@@ -183,7 +184,7 @@ export function OptionArrow({ dir, index, selected, correct, disabled = false, o
         {
           backgroundColor,
           borderColor,
-          borderWidth: verdictGlyph !== null ? 3 : 2,
+          borderWidth: verdictIcon !== null ? 3 : 2,
           opacity: pressed || disabled ? 0.8 : 1,
         },
       ]}>
@@ -193,7 +194,7 @@ export function OptionArrow({ dir, index, selected, correct, disabled = false, o
       <ThemedText type="smallBold" style={{ color: theme.textSecondary }}>
         {DIR_LABEL[dir]}
       </ThemedText>
-      {verdictGlyph !== null ? (
+      {verdictIcon !== null ? (
         <View
           testID={testId(GAME_ID, 'option-verdict', String(index))}
           style={[
@@ -201,12 +202,7 @@ export function OptionArrow({ dir, index, selected, correct, disabled = false, o
             { backgroundColor: correct ? theme.success : theme.danger },
           ]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText
-            type="label"
-            style={{ color: correct ? theme.successOn : theme.dangerOn }}
-            allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={correct ? theme.successOn : theme.dangerOn} size={16} />
         </View>
       ) : null}
     </Pressable>
@@ -226,7 +222,7 @@ export interface OptionCoordProps {
 export function OptionCoord({ coord, index, selected, correct, disabled = false, onPress }: OptionCoordProps) {
   const theme = useTheme();
   const isWrongPick = selected && !correct;
-  const verdictGlyph = correct ? '✓' : isWrongPick ? '✕' : null;
+  const verdictIcon = correct ? 'check' : isWrongPick ? 'close' : null;
   const backgroundColor = correct
     ? theme.successSoft
     : isWrongPick
@@ -258,14 +254,14 @@ export function OptionCoord({ coord, index, selected, correct, disabled = false,
         {
           backgroundColor,
           borderColor,
-          borderWidth: verdictGlyph !== null ? 3 : 2,
+          borderWidth: verdictIcon !== null ? 3 : 2,
           opacity: pressed || disabled ? 0.8 : 1,
         },
       ]}>
       <ThemedText type="bodyLarge" style={{ color: theme.text }}>
         {`(${coord.x}, ${coord.y})`}
       </ThemedText>
-      {verdictGlyph !== null ? (
+      {verdictIcon !== null ? (
         <View
           testID={testId(GAME_ID, 'option-verdict', String(index))}
           style={[
@@ -273,12 +269,7 @@ export function OptionCoord({ coord, index, selected, correct, disabled = false,
             { backgroundColor: correct ? theme.success : theme.danger },
           ]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText
-            type="label"
-            style={{ color: correct ? theme.successOn : theme.dangerOn }}
-            allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={correct ? theme.successOn : theme.dangerOn} size={16} />
         </View>
       ) : null}
     </Pressable>

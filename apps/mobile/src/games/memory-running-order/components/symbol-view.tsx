@@ -21,7 +21,7 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
@@ -76,7 +76,7 @@ export const SymbolView = memo(function SymbolView({
     verdict === 'correct' ? theme.success : verdict === 'wrong' ? theme.danger : null;
   const badgeFill = verdict === 'correct' ? theme.success : verdict === 'wrong' ? theme.danger : null;
   const badgeOn = verdict === 'correct' ? theme.successOn : verdict === 'wrong' ? theme.dangerOn : null;
-  const badgeGlyph = verdict === 'correct' ? '✓' : verdict === 'wrong' ? '✕' : null;
+  const badgeIcon = verdict === 'correct' ? 'check' : verdict === 'wrong' ? 'close' : null;
 
   const inner = (
     <View
@@ -93,14 +93,12 @@ export const SymbolView = memo(function SymbolView({
           },
       ]}>
       <Text style={[styles.glyph, { color: symbolInk, fontSize: size }]} allowFontScaling={false}>{sym.glyph}</Text>
-      {badgeGlyph !== null && badgeFill !== null && badgeOn !== null ? (
+      {badgeIcon !== null && badgeFill !== null && badgeOn !== null ? (
         <View
           testID={testID !== undefined ? `${testID}.verdict` : undefined}
           style={[styles.verdict, { backgroundColor: badgeFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-            {badgeGlyph}
-          </ThemedText>
+          <AppIcon name={badgeIcon} color={badgeOn} size={12} />
         </View>
       ) : null}
     </View>

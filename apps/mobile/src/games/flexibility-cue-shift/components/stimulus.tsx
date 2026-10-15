@@ -9,6 +9,7 @@
  * Verdicts change fill AND border weight AND add a ✓/✕ badge, never colour
  * alone, so a miss never reads as a match when both render side by side.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -160,7 +161,7 @@ export const Stimulus = memo(function Stimulus({
       : state === "error"
         ? theme.dangerSoft
         : "transparent";
-  const verdictGlyph = state === "correct" ? "✓" : state === "error" ? "✕" : null;
+  const verdictIcon = state === "correct" ? 'check' : state === "error" ? 'close' : null;
   const verdictFill =
     state === "correct" ? theme.success : state === "error" ? theme.danger : null;
   const verdictOn =
@@ -181,7 +182,7 @@ export const Stimulus = memo(function Stimulus({
           height: size,
           borderColor,
           backgroundColor,
-          borderWidth: verdictGlyph !== null ? 3 : 2,
+          borderWidth: verdictIcon !== null ? 3 : 2,
         },
       ]}
     >
@@ -196,14 +197,12 @@ export const Stimulus = memo(function Stimulus({
           {card.number}
         </ThemedText>
       </View>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           testID={testID !== undefined ? `${testID}.verdict` : undefined}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={verdictOn} size={16} />
         </View>
       ) : null}
     </View>

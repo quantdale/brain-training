@@ -5,11 +5,11 @@
  * of the source pattern. The selected state is highlighted via the theme's
  * accent color border.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
-import { ThemedText } from "@/components/themed-text";
 import { Radii, Spacing } from "@/theme/tokens";
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from "@/hooks/use-theme";
@@ -58,7 +58,7 @@ export const OptionButton = memo(function OptionButton({
     // are opaque verdict-family fills with their `*On` glyph, so the icon
     // reads on any board behind it.
     const isWrongPick = selected && !correct;
-    const verdictGlyph = correct ? "✓" : isWrongPick ? "✕" : null;
+    const verdictIcon = correct ? 'check' : isWrongPick ? 'close' : null;
     const backgroundColor = correct
         ? theme.successSoft
         : isWrongPick
@@ -89,7 +89,7 @@ export const OptionButton = memo(function OptionButton({
                 {
                     backgroundColor,
                     borderColor,
-                    borderWidth: verdictGlyph !== null ? 3 : 2,
+                    borderWidth: verdictIcon !== null ? 3 : 2,
                     opacity: pressed || disabled ? 0.8 : 1,
                 },
             ]}
@@ -108,7 +108,7 @@ export const OptionButton = memo(function OptionButton({
                     testID={testId(GAME_ID, "option-grid", String(index))}
                 />
             </View>
-            {verdictGlyph !== null ? (
+            {verdictIcon !== null ? (
                 <View
                     testID={testId(GAME_ID, "option-verdict", String(index))}
                     style={[
@@ -117,13 +117,7 @@ export const OptionButton = memo(function OptionButton({
                     ]}
                     importantForAccessibility="no-hide-descendants"
                 >
-                    <ThemedText
-                        type="label"
-                        style={{ color: correct ? theme.successOn : theme.dangerOn }}
-                        allowFontScaling={false}
-                    >
-                        {verdictGlyph}
-                    </ThemedText>
+                    <AppIcon name={verdictIcon} color={correct ? theme.successOn : theme.dangerOn} size={16} />
                 </View>
             ) : null}
         </Pressable>

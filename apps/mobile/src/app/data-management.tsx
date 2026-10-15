@@ -161,6 +161,7 @@ export default function DataManagementScreen() {
   const preview = previewSnapshot?.result ?? null;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageTarget, setMessageTarget] = useState<'export' | 'backups' | 'import' | 'wipe'>('export');
   const [wipeConfirm, setWipeConfirm] = useState("");
   const invalidatePreview = useCallback(() => {
     // A revision also rejects an old asynchronous result when the text is
@@ -255,6 +256,7 @@ export default function DataManagementScreen() {
   const onDeleteStranded = useCallback(
     async (name: string) => {
       if (busy) return;
+      setMessageTarget('backups');
       setBusy(true);
       setMessage(null);
       try {
@@ -275,6 +277,7 @@ export default function DataManagementScreen() {
     if (busy) {
       return;
     }
+    setMessageTarget('export');
     setBusy(true);
     setMessage(null);
     try {
@@ -303,10 +306,11 @@ export default function DataManagementScreen() {
   }, [backupName, busy, refresh, savedBackups]);
 
   /** Offer the fresh/saved export to the system share sheet when present. */
-  const onShareBackup = useCallback(async (name: string) => {
+  const onShareBackup = useCallback(async (name: string, target: 'export' | 'backups' = 'backups') => {
     if (busy) {
       return;
     }
+    setMessageTarget(target);
     setBusy(true);
     setMessage(null);
     try {
@@ -328,6 +332,7 @@ export default function DataManagementScreen() {
       if (busy) {
         return;
       }
+      setMessageTarget('backups');
       setBusy(true);
       setMessage(null);
       try {
@@ -350,6 +355,7 @@ export default function DataManagementScreen() {
       if (busy) {
         return;
       }
+      setMessageTarget('backups');
       setBusy(true);
       setMessage(null);
       try {
@@ -369,6 +375,7 @@ export default function DataManagementScreen() {
     if (busy) {
       return;
     }
+    setMessageTarget('import');
     setBusy(true);
     setMessage(null);
     try {
@@ -397,6 +404,7 @@ export default function DataManagementScreen() {
       if (busy || restoreInFlightRef.current) {
         return;
       }
+      setMessageTarget('import');
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
         return;
@@ -452,6 +460,7 @@ export default function DataManagementScreen() {
       if (busy || restoreInFlightRef.current) {
         return;
       }
+      setMessageTarget('import');
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
         return;
@@ -542,6 +551,7 @@ export default function DataManagementScreen() {
     if (busy) {
       return;
     }
+    setMessageTarget('wipe');
     if (wipeConfirm !== "DELETE") {
       setMessage("Type DELETE to confirm wiping all local data.");
       return;
@@ -580,6 +590,15 @@ export default function DataManagementScreen() {
       setBusy(false);
     }
   }, [busy, invalidatePreview, refresh, wipeConfirm]);
+
+  // Keep write and validation outcomes beside their controls. The old footer
+  // hid restore feedback below the unrelated destructive-data section.
+  const operationMessage = (target: typeof messageTarget) => message && messageTarget === target ? (
+    <View testID="data-message" accessibilityLiveRegion="polite"
+      style={[styles.operationMessage, { borderTopColor: theme.border }]}>
+      <ThemedText type="bodySmall">{message}</ThemedText>
+    </View>
+  ) : null;
 
   return (
     <ScreenShell>
@@ -748,10 +767,11 @@ export default function DataManagementScreen() {
                 fullWidth={false}
                 testID={`data-export-share-${lastExportName}`}
                 accessibilityLabel={`Share the exported backup ${lastExportName}`}
-                onPress={() => void onShareBackup(lastExportName)}
+                onPress={() => void onShareBackup(lastExportName, 'export')}
               />
             ) : null}
           </View>
+          {operationMessage('export')}
           {exportText ? (
             <View style={styles.exportBox} testID="data-export-output">
               <ScrollView
@@ -786,6 +806,7 @@ export default function DataManagementScreen() {
             They survive restarts and are NOT removed by deleting your training
             data below. For real safety keep a copy outside the device (Share).
           </ThemedText>
+          {operationMessage('backups')}
           {/* 072: four distinct outcomes. The pre-fix ternary had no failure
               branch, so a read that THREW rendered "No saved backups yet" —
               telling a user who may have six backups on disk that they have
@@ -1125,6 +1146,7 @@ export default function DataManagementScreen() {
               onConfirm={() => void onImport("replace")}
             />
           </View>
+          {operationMessage('import')}
           <ThemedText type="caption" themeColor="warning">
             Replace cannot be undone except by restoring another backup. Not
             sure which mode you need? Merge is always safe.
@@ -1183,6 +1205,7 @@ export default function DataManagementScreen() {
             disabled={busy || wipeConfirm !== "DELETE"}
             onPress={() => void onWipe()}
           />
+          {operationMessage('wipe')}
           <ThemedText type="caption" themeColor="textSecondary">
             Saved backup files are kept by the wipe — restore one from Saved
             Backups if you change your mind.
@@ -1203,13 +1226,6 @@ export default function DataManagementScreen() {
             </ThemedText>
       </Card>
 
-      {message ? (
-        <Card testID="data-message" accessibilityLiveRegion="polite">
-          <ThemedText type="small" themeColor="textSecondary">
-            {message}
-          </ThemedText>
-        </Card>
-      ) : null}
     </ScreenShell>
   );
 }
@@ -1233,6 +1249,10 @@ function CardHeader({ title, soft, ink }: { title: string; soft: ThemeColor; ink
 }
 
 const styles = StyleSheet.create({
+  operationMessage: {
+    borderTopWidth: HAIRLINE,
+    paddingTop: Spacing.two,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "flex-start",

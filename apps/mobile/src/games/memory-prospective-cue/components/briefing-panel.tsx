@@ -11,6 +11,7 @@ import { StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AppIcon } from "@/components/ui/app-icon";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -72,9 +73,7 @@ export function BriefingPanel({ round, survivorIds }: BriefingPanelProps) {
             {round.retiredSignalIds.map((id) => (
               <View key={id} style={styles.retiredChip}>
                 <GlyphChip glyphId={id} />
-                <ThemedText type="caption" themeColor="danger">
-                  ✕
-                </ThemedText>
+                <AppIcon name="close" tone="danger" size={12} style={{ height: 17 }} />
               </View>
             ))}
           </View>

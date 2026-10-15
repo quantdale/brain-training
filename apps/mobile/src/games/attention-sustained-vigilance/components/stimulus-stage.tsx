@@ -27,6 +27,7 @@ import { testId } from '@/sdk';
 import type { TrialVerdict } from '../types';
 import { GAME_ID } from '../types';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -36,23 +37,23 @@ import { GameButton } from './button';
 const VERDICT_COPY: Readonly<
   Record<
     TrialVerdict,
-    { label: string; glyph: string; kind: 'success' | 'danger' | 'warning'; spoken: string }
+    { label: string; icon: 'check' | 'close' | 'time'; kind: 'success' | 'danger' | 'warning'; spoken: string }
   >
 > = {
-  hit: { label: 'Go!', glyph: '✓', kind: 'success', spoken: 'Correct, tapped in time.' },
+  hit: { label: 'Go!', icon: 'check' as const, kind: 'success', spoken: 'Correct, tapped in time.' },
   'correct-hold': {
     label: 'Held — nice',
-    glyph: '✓',
+    icon: 'check' as const,
     kind: 'success',
     spoken: 'Correct, held on the stop number.',
   },
   commission: {
     label: 'That was the stop number',
-    glyph: '✕',
+    icon: 'close' as const,
     kind: 'danger',
     spoken: 'Wrong pick, that was the stop number.',
   },
-  omission: { label: 'Missed one', glyph: '⏱', kind: 'warning', spoken: 'Missed, no tap in time.' },
+  omission: { label: 'Missed one', icon: 'time' as const, kind: 'warning', spoken: 'Missed, no tap in time.' },
 };
 
 export interface StimulusStageProps {
@@ -119,12 +120,7 @@ export function StimulusStage({
             style={[styles.verdictBadge, { backgroundColor: theme[verdict.kind] }]}
             testID={testId(GAME_ID, 'stage-verdict')}
             importantForAccessibility="no-hide-descendants">
-            <ThemedText
-              type="label"
-              style={{ color: theme[`${verdict.kind}On`] }}
-              allowFontScaling={false}>
-              {verdict.glyph}
-            </ThemedText>
+            <AppIcon name={verdict.icon} color={theme[`${verdict.kind}On`]} size={13} style={{ height: 18 }} />
           </View>
         ) : null}
       </View>

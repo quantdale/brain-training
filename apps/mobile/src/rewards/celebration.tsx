@@ -20,7 +20,8 @@ import {
   View,
 } from "react-native";
 
-import { Elevation, Spacing } from "@/constants/theme";
+import { Elevation, Radii, Spacing } from "@/constants/theme";
+import { ThemedText } from "@/components/themed-text";
 import { launchAnimation } from "@/components/ui/motion";
 import { useTheme } from "@/hooks/use-theme";
 import { usePrefersReducedMotion } from "@/components/game-ui/use-reduced-motion";
@@ -141,11 +142,11 @@ export function RewardCelebrationHost() {
           Elevation.raised,
         ]}>
         <Text style={[styles.emoji, { color: theme.overlayText }]}>{current.emoji}</Text>
-        <Text style={[styles.title, { color: theme.overlayText }]}>{current.title}</Text>
+        <ThemedText type="bodyLarge" style={[styles.title, { color: theme.overlayText }]}>{current.title}</ThemedText>
         {rewardBits.length > 0 && (
-          <Text style={[styles.sub, { color: theme.overlayTextMuted }]}>{
+          <ThemedText type="caption" style={[styles.sub, { color: theme.overlayTextMuted }]}>{
             rewardBits.join("   ")
-          }</Text>
+          }</ThemedText>
         )}
       </View>
     </Animated.View>
@@ -161,12 +162,14 @@ const styles = StyleSheet.create({
     zIndex: 100,
     alignItems: "center",
     paddingTop: Spacing.three,
+    paddingHorizontal: Spacing.four,
   },
   // Campaign 026 colour sweep: the celebration banner is a fixed dark
   // overlay (like the pause overlay) by design — it floats above either
   // theme, so its surface/copy colours come from the theme overlay tokens.
   card: {
-    borderRadius: 16,
+    maxWidth: "100%",
+    borderRadius: Radii.medium,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
     alignItems: "center",
@@ -181,12 +184,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "700",
     marginTop: 2,
+    textAlign: "center",
   },
   sub: {
-    fontSize: 12,
     marginTop: 2,
+    textAlign: "center",
   },
 });

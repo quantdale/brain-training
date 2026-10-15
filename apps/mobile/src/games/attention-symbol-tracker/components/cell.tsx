@@ -22,7 +22,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii } from '@/constants/theme';
 import { Spacing } from '@/theme/tokens';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
@@ -109,9 +109,7 @@ export const Cell = memo(function Cell({
           style={[styles.verdict, { backgroundColor: theme.danger }]}
           testID={testId(GAME_ID, 'cell-verdict', String(index))}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: theme.dangerOn }} allowFontScaling={false}>
-            ✕
-          </ThemedText>
+          <AppIcon name="close" color={theme.dangerOn} size={13} style={{ height: 18 }} />
         </View>
       ) : null}
       {visual === 'correct' ? (
@@ -119,9 +117,7 @@ export const Cell = memo(function Cell({
           style={[styles.verdict, { backgroundColor: theme.success }]}
           testID={testId(GAME_ID, 'cell-verdict', String(index))}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: theme.successOn }} allowFontScaling={false}>
-            ✓
-          </ThemedText>
+          <AppIcon name="check" color={theme.successOn} size={13} style={{ height: 18 }} />
         </View>
       ) : null}
     </Pressable>

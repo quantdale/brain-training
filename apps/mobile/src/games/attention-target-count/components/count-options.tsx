@@ -21,6 +21,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -55,7 +56,7 @@ export function CountOptions({ options, onSelect, disabled = false, visualFor }:
               : theme.surface;
         const borderColor =
           visual === 'correct' ? theme.success : visual === 'wrong' ? theme.danger : theme.border;
-        const glyph = visual === 'correct' ? '✓' : visual === 'wrong' ? '✕' : null;
+        const icon = visual === 'correct' ? 'check' : visual === 'wrong' ? 'close' : null;
         const badgeFill = visual === 'correct' ? theme.success : visual === 'wrong' ? theme.danger : null;
         const badgeOn =
           visual === 'correct' ? theme.successOn : visual === 'wrong' ? theme.dangerOn : null;
@@ -88,14 +89,12 @@ export function CountOptions({ options, onSelect, disabled = false, visualFor }:
               pressed && !disabled ? styles.pressed : null,
               visual === 'dim' ? styles.dim : null,
             ]}>
-            {glyph !== null && badgeFill !== null && badgeOn !== null ? (
+            {icon !== null && badgeFill !== null && badgeOn !== null ? (
               <View
                 style={[styles.badge, { backgroundColor: badgeFill }]}
                 testID={testId(GAME_ID, 'count-option', String(value), 'verdict')}
                 importantForAccessibility="no-hide-descendants">
-                <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-                  {glyph}
-                </ThemedText>
+                <AppIcon name={icon} color={badgeOn} size={13} style={{ height: 18 }} />
               </View>
             ) : null}
             <ThemedText type="bodyLarge" style={[styles.number, { color: foreground }]}>

@@ -13,11 +13,11 @@
  * together on the round result, and the choice prompt stays mounted above
  * them (see screen.tsx).
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -55,7 +55,7 @@ export const OptionGrid = memo(function OptionGrid({
   // opaque verdict-family fills with their `*On` glyph, so the icon reads on
   // any board behind it.
   const isWrongPick = selected && !correct;
-  const verdictGlyph = correct ? '✓' : isWrongPick ? '✕' : null;
+  const verdictIcon = correct ? 'check' : isWrongPick ? 'close' : null;
   const backgroundColor = correct
     ? theme.successSoft
     : isWrongPick
@@ -86,7 +86,7 @@ export const OptionGrid = memo(function OptionGrid({
         {
           backgroundColor,
           borderColor,
-          borderWidth: verdictGlyph !== null ? 3 : 2,
+          borderWidth: verdictIcon !== null ? 3 : 2,
           opacity: pressed || disabled ? 0.8 : 1,
         },
       ]}>
@@ -102,7 +102,7 @@ export const OptionGrid = memo(function OptionGrid({
           testID={testId(GAME_ID, 'option-grid', String(index))}
         />
       </View>
-      {verdictGlyph !== null ? (
+      {verdictIcon !== null ? (
         <View
           testID={testId(GAME_ID, 'option-verdict', String(index))}
           style={[
@@ -110,12 +110,7 @@ export const OptionGrid = memo(function OptionGrid({
             { backgroundColor: correct ? theme.success : theme.danger },
           ]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText
-            type="label"
-            style={{ color: correct ? theme.successOn : theme.dangerOn }}
-            allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={correct ? theme.successOn : theme.dangerOn} size={16} />
         </View>
       ) : null}
     </Pressable>

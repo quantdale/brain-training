@@ -105,8 +105,8 @@ describe('NumberLineScreen verdict cues', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'line-flag'))).toBeOnTheScreen();
     const guess = screen.getByTestId(testId(GAME_ID, 'line-guess'), { includeHiddenElements: true });
     expect(guess).toBeOnTheScreen();
-    expect(within(guess).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(guess).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(guess).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(guess).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     // … the prompt stays mounted while feedback shows …
     expect(screen.getByTestId(testId(GAME_ID, 'prompt'))).toHaveTextContent(
       'Compare your estimate with the correct position.',
@@ -130,8 +130,8 @@ describe('NumberLineScreen verdict cues', () => {
 
     expect(screen.getByTestId(testId(GAME_ID, 'round-hit'))).toBeOnTheScreen();
     const guess = screen.getByTestId(testId(GAME_ID, 'line-guess'), { includeHiddenElements: true });
-    expect(within(guess).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(guess).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(guess).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(guess).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'number-line')).props.accessibilityLabel).toMatch(
       /Correct/,
     );

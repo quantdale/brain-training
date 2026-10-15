@@ -10,6 +10,7 @@
  * slots; the only literals in this game are the stimulus hues themselves
  * (see `STROOP_COLOR_HEX` in `../types`, documented there as the mechanic).
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -44,7 +45,7 @@ export function FeedbackDisplay({
     correct && !timedOut
       ? {
           title: 'Correct!',
-          glyph: '✓',
+          icon: 'check' as const,
           soft: theme.successSoft,
           edge: theme.success,
           badge: theme.success,
@@ -54,7 +55,7 @@ export function FeedbackDisplay({
       : timedOut
         ? {
             title: "Time's up!",
-            glyph: '⏱',
+            icon: 'time' as const,
             soft: theme.warningSoft,
             edge: theme.warning,
             badge: theme.warning,
@@ -63,7 +64,7 @@ export function FeedbackDisplay({
           }
         : {
             title: 'Wrong!',
-            glyph: '✕',
+            icon: 'close' as const,
             soft: theme.dangerSoft,
             edge: theme.danger,
             badge: theme.danger,
@@ -81,9 +82,7 @@ export function FeedbackDisplay({
       <View
         style={[styles.badge, { backgroundColor: verdict.badge }]}
         importantForAccessibility="no-hide-descendants">
-        <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
-          {verdict.glyph}
-        </ThemedText>
+        <AppIcon name={verdict.icon} color={verdict.glyphColor} size={20} />
       </View>
       <ThemedText type="headline" themeColor={verdict.text}>
         {verdict.title}

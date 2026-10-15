@@ -24,6 +24,7 @@ import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
@@ -122,12 +123,12 @@ function TapVerdictCue({ verdict }: { verdict: TargetVerdict | null }) {
       }
       accessibilityLiveRegion="polite">
       <Animated.View style={{ transform: [{ scale }] }}>
-        <ThemedText
-          type="headline"
-          themeColor={hit ? 'successOn' : 'dangerOn'}
-          allowFontScaling={false}>
-          {hit ? '✓' : '✕'}
-        </ThemedText>
+        <AppIcon
+          name={hit ? 'check' : 'close'}
+          size={24}
+          tone={hit ? 'successOn' : 'dangerOn'}
+          testID={`status-icon-${hit ? 'check' : 'close'}`}
+        />
       </Animated.View>
     </View>
   );

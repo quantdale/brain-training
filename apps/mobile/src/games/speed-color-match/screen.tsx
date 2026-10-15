@@ -30,6 +30,7 @@ import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
@@ -135,7 +136,7 @@ function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
       ? {
           label: 'Hit',
           spoken: 'Last trial: hit',
-          glyph: '✓',
+          icon: 'check' as const,
           soft: theme.successSoft,
           edge: theme.success,
           badge: theme.success,
@@ -147,7 +148,7 @@ function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
         ? {
             label: 'Wrong',
             spoken: 'Last trial: wrong',
-            glyph: '✕',
+            icon: 'close' as const,
             soft: theme.dangerSoft,
             edge: theme.danger,
             badge: theme.danger,
@@ -158,7 +159,7 @@ function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
         : {
             label: 'Missed',
             spoken: 'Last trial: missed',
-            glyph: '⏱',
+            icon: 'time' as const,
             soft: theme.warningSoft,
             edge: theme.warning,
             badge: theme.warning,
@@ -183,12 +184,7 @@ function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
           { backgroundColor: vocabulary.badge, transform: [{ scale }] },
         ]}
         importantForAccessibility="no-hide-descendants">
-        <ThemedText
-          type="headline"
-          style={{ color: vocabulary.glyphColor }}
-          allowFontScaling={false}>
-          {vocabulary.glyph}
-        </ThemedText>
+        <AppIcon name={vocabulary.icon} size={24} color={vocabulary.glyphColor} testID={`status-icon-${vocabulary.icon}`} />
       </Animated.View>
       <ThemedText type="smallBold" themeColor={vocabulary.text}>
         {vocabulary.label}

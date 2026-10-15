@@ -364,8 +364,8 @@ export default function SpatialGridNavScreen(
         cell: state.round.finalCell,
         color: theme.successSoft,
         border: theme.success,
-        glyph: "✓",
-        glyphColor: theme.success,
+        icon: 'check',
+        iconColor: theme.success,
       },
     ];
     const sel = state.selectedOptionIndex;
@@ -378,8 +378,8 @@ export default function SpatialGridNavScreen(
         cell: state.round.options[sel],
         color: theme.dangerSoft,
         border: theme.danger,
-        glyph: "✕",
-        glyphColor: theme.danger,
+        icon: 'close',
+        iconColor: theme.danger,
       });
     }
     return markers;

@@ -24,6 +24,7 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 
 import { canonicalClamp01, testId } from '@/sdk';
 import { Radii, Spacing } from '@/constants/theme';
@@ -137,7 +138,7 @@ export function NumberLine({
   const estimateFraction = estimate !== null ? valueToFraction(estimate, lineMin, lineMax) : null;
   const markerFill = outcome === 'hit' ? theme.success : outcome === 'miss' ? theme.danger : null;
   const markerOn = outcome === 'hit' ? theme.successOn : outcome === 'miss' ? theme.dangerOn : null;
-  const markerGlyph = outcome === 'hit' ? '✓' : outcome === 'miss' ? '✕' : null;
+  const markerIcon = outcome === 'hit' ? 'check' : outcome === 'miss' ? 'close' : null;
   const trackBorder =
     outcome === 'hit' ? theme.success : outcome === 'miss' ? theme.danger : outcome === 'timeout' ? theme.warning : null;
   const accessibilityLabel = resolved
@@ -222,7 +223,7 @@ export function NumberLine({
             style={[styles.selection, { left: `${draftFraction * 100}%`, borderColor: theme.text, backgroundColor: theme.surface }]}
           />
         ) : null}
-        {resolved && estimateFraction !== null && markerFill !== null && markerOn !== null && markerGlyph !== null ? (
+        {resolved && estimateFraction !== null && markerFill !== null && markerOn !== null && markerIcon !== null ? (
           <View
             pointerEvents="none"
             testID={testId(GAME_ID, 'line-guess')}
@@ -234,9 +235,7 @@ export function NumberLine({
               },
             ]}
             importantForAccessibility="no-hide-descendants">
-            <ThemedText type="label" style={{ color: markerOn }} allowFontScaling={false}>
-              {markerGlyph}
-            </ThemedText>
+            <AppIcon name={markerIcon} size={16} color={markerOn} testID={`status-icon-${markerIcon}`} />
           </View>
         ) : null}
       </Pressable>

@@ -23,6 +23,7 @@ import { Pressable, StyleSheet } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -90,9 +91,12 @@ export const Option = memo(function Option({
       ]}
     >
       {isVerdict ? (
-        <ThemedText type="bodyLarge" style={{ color: foregroundColor }} allowFontScaling={false}>
-          {visual === "correct" ? "✓" : "✕"}
-        </ThemedText>
+        <AppIcon
+          name={visual === 'correct' ? 'check' : 'close'}
+          size={20}
+          color={foregroundColor}
+          testID={`status-icon-${visual === 'correct' ? 'check' : 'close'}`}
+        />
       ) : null}
       <ThemedText
         type="bodyLarge"

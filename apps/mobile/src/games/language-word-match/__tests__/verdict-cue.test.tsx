@@ -108,21 +108,21 @@ describe('LanguageWordMatchScreen verdict cues', () => {
     );
 
     // Wrong cue on the tapped option …
-    expect(within(wrongOption).getByText('✕')).toBeOnTheScreen();
+    expect(within(wrongOption).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(wrongOption.props.accessibilityLabel).toMatch(/Wrong pick/);
     // … correct cue alongside it on the true answer …
-    expect(within(correctOption).getByText('✓')).toBeOnTheScreen();
+    expect(within(correctOption).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(correctOption.props.accessibilityLabel).toMatch(/Correct/);
     // … and the wrong option never reads as correct.
-    expect(within(wrongOption).queryByText('✓')).toBeNull();
+    expect(within(wrongOption).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(wrongOption.props.accessibilityLabel).not.toMatch(/Correct/);
     // Untouched options read as locked, not as verdicts.
     for (let index = 0; index < 4; index += 1) {
       if (index === wrongIndex || index === round.correctIndex) continue;
       const muted = screen.getByTestId(testId(GAME_ID, 'option', String(index)));
       expect(muted.props.accessibilityLabel).toMatch(/locked/);
-      expect(within(muted).queryByText('✓')).toBeNull();
-      expect(within(muted).queryByText('✕')).toBeNull();
+      expect(within(muted).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
+      expect(within(muted).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     }
   });
 

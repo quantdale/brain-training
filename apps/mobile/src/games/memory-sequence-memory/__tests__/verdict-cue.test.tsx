@@ -9,7 +9,7 @@
  * the score animates (`score-live` in session, `score-final` in results).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
@@ -17,6 +17,14 @@ import { generateSequence } from '../generator';
 import SequenceMemoryScreen from '../screen';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
+
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -107,8 +115,8 @@ describe('SequenceMemoryScreen verdict cues', () => {
     // shape cue, so the outcome never leans on colour alone.
     const correctTile = screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[0])));
     expect(correctTile.props.accessibilityLabel).toBe(`Correct: Pad ${sequence[0] + 1}`);
-    expect(within(correctTile).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(correctTile).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(statusIcon(correctTile, 'check')).toBeOnTheScreen();
+    expect(statusIcon(correctTile, 'close')).toBeNull();
     const badge = screen.getByTestId(testId(GAME_ID, 'tile-verdict', String(sequence[0])), {
       includeHiddenElements: true,
     });
@@ -119,8 +127,8 @@ describe('SequenceMemoryScreen verdict cues', () => {
       if (index === sequence[0]) continue;
       const idle = screen.getByTestId(testId(GAME_ID, 'tile', String(index)));
       expect(idle.props.accessibilityLabel).toBe(`Pad ${index + 1}`);
-      expect(within(idle).queryByText('✓', { includeHiddenElements: true })).toBeNull();
-      expect(within(idle).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+      expect(statusIcon(idle, 'check')).toBeNull();
+      expect(statusIcon(idle, 'close')).toBeNull();
     }
   });
 
@@ -144,13 +152,13 @@ describe('SequenceMemoryScreen verdict cues', () => {
     const wrongEl = screen.getByTestId(testId(GAME_ID, 'tile', String(wrongTile)));
     expect(wrongEl.props.accessibilityLabel).toBe(`Wrong pick: Pad ${wrongTile + 1}`);
     expect(wrongEl.props.accessibilityLabel).not.toContain('Correct');
-    expect(within(wrongEl).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(wrongEl).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(statusIcon(wrongEl, 'close')).toBeOnTheScreen();
+    expect(statusIcon(wrongEl, 'check')).toBeNull();
 
     // The correct sequence position is marked in the same frame …
     const expectedEl = screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[1])));
     expect(expectedEl.props.accessibilityLabel).toBe(`Correct: Pad ${sequence[1] + 1}`);
-    expect(within(expectedEl).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(statusIcon(expectedEl, 'check')).toBeOnTheScreen();
     // … the matched prefix keeps its cue …
     const matchedEl = screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[0])));
     expect(matchedEl.props.accessibilityLabel).toBe(`Correct: Pad ${sequence[0] + 1}`);

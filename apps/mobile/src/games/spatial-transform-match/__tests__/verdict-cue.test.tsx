@@ -1,3 +1,4 @@
+import { statusIconNames } from '@/test-utils/status-icons';
 /**
  * Spatial verdict-cue tests (PATTERNS-PLAY 6–7, FEEDBACK-CHOREOGRAPHY).
  *
@@ -115,12 +116,12 @@ describe('SpatialTransformMatchScreen verdict cues', () => {
     expect(correctOption.props.accessibilityLabel).toContain(
       `Option ${roundData.correctOptionIndex + 1}, correct.`,
     );
-    expect(verdictBadge(wrongIndex)).toHaveTextContent('✕');
-    expect(verdictBadge(roundData.correctOptionIndex)).toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge(wrongIndex))[0]).toBe('close');
+    expect(statusIconNames(verdictBadge(roundData.correctOptionIndex))[0]).toBe('check');
 
     // The wrong answer must not read as correct through any channel.
     expect(wrongOption.props.accessibilityLabel).not.toMatch(/correct/);
-    expect(verdictBadge(wrongIndex)).not.toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge(wrongIndex))[0]).not.toBe('check');
   });
 
   it('marks a correct pick with the correct cue', async () => {
@@ -133,6 +134,6 @@ describe('SpatialTransformMatchScreen verdict cues', () => {
     expect(correctOption.props.accessibilityLabel).toContain(
       `Option ${roundData.correctOptionIndex + 1}, correct.`,
     );
-    expect(verdictBadge(roundData.correctOptionIndex)).toHaveTextContent('✓');
+    expect(statusIconNames(verdictBadge(roundData.correctOptionIndex))[0]).toBe('check');
   });
 });

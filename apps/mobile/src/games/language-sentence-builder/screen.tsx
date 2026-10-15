@@ -26,6 +26,7 @@ import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
@@ -425,14 +426,12 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
                     },
                   ]}
                   importantForAccessibility="no-hide-descendants">
-                  <ThemedText
-                    type="headline"
-                    style={{
-                      color: theme[`${verdictColor}On`],
-                    }}
-                    allowFontScaling={false}>
-                    {state.roundOutcome === 'passed' ? '✓' : state.roundOutcome === 'partial' ? '…' : '✕'}
-                  </ThemedText>
+                  <AppIcon
+                    name={state.roundOutcome === 'passed' ? 'check' : state.roundOutcome === 'partial' ? 'more' : 'close'}
+                    size={24}
+                    color={theme[`${verdictColor}On`]}
+                    testID={`status-icon-${state.roundOutcome === 'passed' ? 'check' : state.roundOutcome === 'partial' ? 'more' : 'close'}`}
+                  />
                 </View>
                 {state.roundOutcome !== 'passed' ? (
                   <ThemedText

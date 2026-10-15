@@ -8,7 +8,7 @@
  * roundResult alongside the revealed expected sequence.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
@@ -16,6 +16,14 @@ import { generateRoundSequence } from '../generator';
 import MemoryScreen from '../screen';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
+
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -101,8 +109,8 @@ describe('MemoryScreen verdict cues', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[0]))));
     const correctTile = screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[0])));
     expect(correctTile.props.accessibilityLabel).toBe(`Correct: Tile ${sequence[0] + 1}`);
-    expect(within(correctTile).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(correctTile).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(statusIcon(correctTile, 'check')).toBeOnTheScreen();
+    expect(statusIcon(correctTile, 'close')).toBeNull();
 
     // A wrong tap on any tile other than the expected (and other than the
     // already-matched one, so both cues stay on distinct tiles).
@@ -118,18 +126,18 @@ describe('MemoryScreen verdict cues', () => {
     const wrongEl = screen.getByTestId(testId(GAME_ID, 'tile', String(wrongTile)));
     expect(wrongEl.props.accessibilityLabel).toBe(`Wrong pick: Tile ${wrongTile + 1}`);
     expect(wrongEl.props.accessibilityLabel).not.toContain('Correct');
-    expect(within(wrongEl).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(wrongEl).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(statusIcon(wrongEl, 'close')).toBeOnTheScreen();
+    expect(statusIcon(wrongEl, 'check')).toBeNull();
 
     // The failed tile stays error-marked in roundResult (not recolored as
     // correct) while the matched tile keeps its correct cue — and the full
     // expected sequence stays listed as text beside the board.
     const failedEl = screen.getByTestId(testId(GAME_ID, 'tile', String(wrongTile)));
     expect(failedEl.props.accessibilityLabel).toBe(`Wrong pick: Tile ${wrongTile + 1}`);
-    expect(within(failedEl).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(statusIcon(failedEl, 'close')).toBeOnTheScreen();
     const matchedEl = screen.getByTestId(testId(GAME_ID, 'tile', String(sequence[0])));
     expect(matchedEl.props.accessibilityLabel).toBe(`Correct: Tile ${sequence[0] + 1}`);
-    expect(within(matchedEl).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(statusIcon(matchedEl, 'check')).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'round-result'))).toHaveTextContent(
       new RegExp(`expected ${sequence.map((tile) => tile + 1).join(' · ')}`),
     );

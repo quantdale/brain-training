@@ -6,6 +6,7 @@
  * deterministic palette (game content, not theme tokens) so the color rule is
  * identical across light/dark themes and devices.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -75,7 +76,7 @@ export const CardView = memo(function CardView({
         : visual === 'selected'
           ? theme.flexibilitySoft
           : theme.surface;
-  const verdictGlyph = visual === 'correct' ? '✓' : visual === 'error' ? '✕' : null;
+  const verdictIcon = visual === 'correct' ? 'check' : visual === 'error' ? 'close' : null;
   const verdictFill = visual === 'correct' ? theme.success : visual === 'error' ? theme.danger : null;
   const verdictOn = visual === 'correct' ? theme.successOn : visual === 'error' ? theme.dangerOn : null;
   const accessibilityLabel =
@@ -95,7 +96,7 @@ export const CardView = memo(function CardView({
       onPress={onPressCard ? () => onPressCard(index) : undefined}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: background, borderColor, borderWidth: verdictGlyph !== null ? 3 : 2 },
+        { backgroundColor: background, borderColor, borderWidth: verdictIcon !== null ? 3 : 2 },
         pressed && styles.dim,
       ]}>
       <ThemedText type="display" style={{ color, lineHeight: 48 }}>
@@ -104,14 +105,12 @@ export const CardView = memo(function CardView({
       <ThemedText type="caption" themeColor="textSecondary">
         {card.color}
       </ThemedText>
-      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+      {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
         <View
           testID={`${testID}.verdict`}
           style={[styles.verdict, { backgroundColor: verdictFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-            {verdictGlyph}
-          </ThemedText>
+          <AppIcon name={verdictIcon} color={verdictOn} size={16} />
         </View>
       ) : null}
     </Pressable>

@@ -76,7 +76,7 @@ export function SpotlightCard() {
           </ThemedText>
           {done ? (
             <Badge
-              label="Completed today ✓"
+              label="Completed today"
               tone="success"
               testID="home-spotlight-done"
             />

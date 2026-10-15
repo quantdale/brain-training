@@ -8,6 +8,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -41,7 +42,7 @@ export function FeedbackPanel({
     outcome === 'correct'
       ? {
           title: 'Correct!',
-          glyph: '✓',
+          icon: 'check' as const,
           soft: theme.successSoft,
           badge: theme.success,
           glyphColor: theme.successOn,
@@ -51,7 +52,7 @@ export function FeedbackPanel({
       : outcome === 'incorrect'
         ? {
             title: 'Not quite',
-            glyph: '✕',
+            icon: 'close' as const,
             soft: theme.dangerSoft,
             badge: theme.danger,
             glyphColor: theme.dangerOn,
@@ -60,7 +61,7 @@ export function FeedbackPanel({
           }
         : {
             title: "Time's up",
-            glyph: '⏱',
+            icon: 'time' as const,
             soft: theme.warningSoft,
             badge: theme.warning,
             glyphColor: theme.warningOn,
@@ -76,9 +77,7 @@ export function FeedbackPanel({
       <View
         style={[styles.badge, { backgroundColor: verdict.badge }]}
         importantForAccessibility="no-hide-descendants">
-        <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
-          {verdict.glyph}
-        </ThemedText>
+        <AppIcon name={verdict.icon} size={24} color={verdict.glyphColor} testID={`status-icon-${verdict.icon}`} />
       </View>
       <ThemedText
         type="headline"

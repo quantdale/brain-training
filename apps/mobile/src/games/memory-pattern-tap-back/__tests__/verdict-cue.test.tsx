@@ -24,6 +24,14 @@ import PatternTapBackScreen from '../screen';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
 
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
 }));
@@ -125,8 +133,8 @@ describe('PatternTapBackScreen verdict cues', () => {
       const badge = screen.getByTestId(testId(GAME_ID, 'tile-verdict', String(tile)), {
         includeHiddenElements: true,
       });
-      expect(badge).toHaveTextContent('✓');
-      expect(badge).not.toHaveTextContent('✕');
+      expect(statusIcon(badge, 'check')).not.toBeNull();
+      expect(statusIcon(badge, 'close')).toBeNull();
       expect(badge.props.importantForAccessibility).toBe('no-hide-descendants');
     }
 
@@ -163,18 +171,16 @@ describe('PatternTapBackScreen verdict cues', () => {
     const wrongBadge = screen.getByTestId(testId(GAME_ID, 'tile-verdict', String(wrong)), {
       includeHiddenElements: true,
     });
-    expect(wrongBadge).toHaveTextContent('✕');
-    expect(wrongBadge).not.toHaveTextContent('✓');
+    expect(statusIcon(wrongBadge, 'close')).not.toBeNull();
+    expect(statusIcon(wrongBadge, 'check')).toBeNull();
     expect(wrongBadge.props.importantForAccessibility).toBe('no-hide-descendants');
 
     // …and the correct sequence position is distinguishable in the same frame.
     const expectedEl = screen.getByTestId(testId(GAME_ID, 'tile', String(expected)));
     expect(expectedEl.props.accessibilityLabel).toBe(`Correct: Tile ${expected + 1}`);
-    expect(
-      screen.getByTestId(testId(GAME_ID, 'tile-verdict', String(expected)), {
+    expect(statusIcon(screen.getByTestId(testId(GAME_ID, 'tile-verdict', String(expected)), {
         includeHiddenElements: true,
-      }),
-    ).toHaveTextContent('✓');
+      }), 'check')).not.toBeNull();
 
     // Distinct fills + verdict-thick boundaries back the glyphs (never colour-alone).
     expect(flatStyle(wrongEl).backgroundColor).not.toBe(flatStyle(expectedEl).backgroundColor);

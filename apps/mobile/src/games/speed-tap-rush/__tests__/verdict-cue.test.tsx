@@ -126,8 +126,8 @@ describe('TapRushScreen tap verdict cue', () => {
     await pressAt(field, targets[0].x, targets[0].y);
     const hitCue = screen.getByTestId(testId(GAME_ID, 'verdict'));
     expect(hitCue.props.accessibilityLabel).toBe('Last tap: hit');
-    expect(within(hitCue).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(hitCue).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(hitCue).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(hitCue).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
 
     // A wrong tap raises the miss cue — shape, label, explicitly not a hit.
     const wrong = outsidePoint(targets[1], NORMAL.targetRadius);
@@ -135,7 +135,7 @@ describe('TapRushScreen tap verdict cue', () => {
     const wrongCue = screen.getByTestId(testId(GAME_ID, 'verdict'));
     expect(wrongCue.props.accessibilityLabel).toBe('Last tap: wrong');
     expect(wrongCue.props.accessibilityLabel).not.toContain('hit');
-    expect(within(wrongCue).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(wrongCue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(wrongCue).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(wrongCue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
   });
 });

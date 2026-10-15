@@ -11,7 +11,7 @@
  * (`score-live` in session, `score-final` in results beside the plain row).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import {
   createFakeClock,
@@ -29,6 +29,14 @@ import { glyphById } from "../glyphs";
 import SignalWatchScreen from "../screen";
 import type { SessionPersistence } from "../session";
 import { GAME_ID } from "../types";
+
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -143,10 +151,10 @@ describe("SignalWatchScreen verdict cues", () => {
       testId(GAME_ID, "verdict-option", correctChoice),
     );
     expect(
-      within(correctChip).getByText("✓", { includeHiddenElements: true }),
+      statusIcon(correctChip, 'check'),
     ).toBeOnTheScreen();
     expect(
-      within(correctChip).queryByText("✕", { includeHiddenElements: true }),
+      statusIcon(correctChip, 'close'),
     ).toBeNull();
     expect(String(correctChip.props.accessibilityLabel)).toMatch(/^Correct:/);
 
@@ -155,10 +163,10 @@ describe("SignalWatchScreen verdict cues", () => {
       testId(GAME_ID, "verdict-option", otherChoice),
     );
     expect(
-      within(neutralChip).queryByText("✓", { includeHiddenElements: true }),
+      statusIcon(neutralChip, 'check'),
     ).toBeNull();
     expect(
-      within(neutralChip).queryByText("✕", { includeHiddenElements: true }),
+      statusIcon(neutralChip, 'close'),
     ).toBeNull();
     expect(neutralChip.props.accessibilityLabel).toBe(
       otherChoice === "go" ? "GO" : "SIGNAL",
@@ -203,18 +211,18 @@ describe("SignalWatchScreen verdict cues", () => {
 
     // Wrong cue on the tapped option …
     expect(
-      within(wrongChip).getByText("✕", { includeHiddenElements: true }),
+      statusIcon(wrongChip, 'close'),
     ).toBeOnTheScreen();
     expect(
-      within(wrongChip).queryByText("✓", { includeHiddenElements: true }),
+      statusIcon(wrongChip, 'check'),
     ).toBeNull();
     expect(String(wrongChip.props.accessibilityLabel)).toMatch(/^Wrong pick:/);
     // … correct cue alongside it on the response that was required …
     expect(
-      within(correctChip).getByText("✓", { includeHiddenElements: true }),
+      statusIcon(correctChip, 'check'),
     ).toBeOnTheScreen();
     expect(
-      within(correctChip).queryByText("✕", { includeHiddenElements: true }),
+      statusIcon(correctChip, 'close'),
     ).toBeNull();
     expect(String(correctChip.props.accessibilityLabel)).toMatch(/^Correct:/);
 
@@ -254,13 +262,13 @@ describe("SignalWatchScreen verdict cues", () => {
       testId(GAME_ID, "verdict-option", correctChoice),
     );
     expect(
-      within(correctChip).getByText("✓", { includeHiddenElements: true }),
+      statusIcon(correctChip, 'check'),
     ).toBeOnTheScreen();
     expect(String(correctChip.props.accessibilityLabel)).toMatch(/^Correct:/);
 
     // An omission has no wrong pick: no ✕ anywhere on the banner.
     expect(
-      within(banner).queryByText("✕", { includeHiddenElements: true }),
+      statusIcon(banner, 'close'),
     ).toBeNull();
 
     // The prompt stays visible; the live controls stay neutral.

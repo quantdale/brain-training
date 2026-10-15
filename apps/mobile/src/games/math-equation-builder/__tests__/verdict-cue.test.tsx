@@ -79,9 +79,9 @@ describe('MathEquationBuilderScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
     const verdict = screen.getByTestId(testId(GAME_ID, 'verdict'));
     expect(verdict.props.accessibilityLabel).toMatch(/Wrong answer/);
-    expect(within(verdict).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(verdict).queryByText('✓', { includeHiddenElements: true })).toBeNull();
-    expect(screen.queryByText('✓ Correct!')).toBeNull();
+    expect(within(verdict).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(verdict).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByText('Correct!')).toBeNull();
     expect(screen.queryByLabelText(/Correct:/)).toBeNull();
 
     // The mechanic reveals the correct equation; the stem stays visible.
@@ -102,9 +102,9 @@ describe('MathEquationBuilderScreen verdict cue', () => {
     // Capture the fill before unmount; assert icon + label while mounted.
     const correctFill = StyleSheet.flatten(correctPanel.props.style).backgroundColor;
     expect(
-      within(correctVerdict).getByText('✓', { includeHiddenElements: true }),
+      within(correctVerdict).getByTestId('status-icon-check', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
-    expect(within(correctVerdict).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(correctVerdict).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
     expect(String(correctVerdict.props.accessibilityLabel)).toMatch(/Correct:/);
     await correctTree.unmount();
 
@@ -115,9 +115,9 @@ describe('MathEquationBuilderScreen verdict cue', () => {
     const wrongVerdict = wrongTree.getByTestId(testId(GAME_ID, 'verdict'));
     const wrongFill = StyleSheet.flatten(wrongPanel.props.style).backgroundColor;
     expect(
-      within(wrongVerdict).getByText('✕', { includeHiddenElements: true }),
+      within(wrongVerdict).getByTestId('status-icon-close', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
-    expect(within(wrongVerdict).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(wrongVerdict).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(String(wrongVerdict.props.accessibilityLabel)).toMatch(/Wrong answer/);
     await wrongTree.unmount();
 

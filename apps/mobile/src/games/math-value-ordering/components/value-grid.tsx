@@ -22,7 +22,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { GestureResponderEvent } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 
 import { testId } from '@/sdk';
 import { Spacing } from '@/constants/theme';
@@ -84,7 +84,7 @@ export function ValueGrid({
         // to read as locked. Live tiles keep the existing lock styling.
         const isMistake = outcome !== null && tile.id === mistakeTileId;
         const isCorrectPick = outcome !== null && locked && !isMistake;
-        const verdictGlyph = isCorrectPick ? '✓' : isMistake ? '✕' : null;
+        const verdictIcon = isCorrectPick ? 'check' : isMistake ? 'close' : null;
         const verdictFill =
           isCorrectPick ? theme.success : isMistake ? theme.danger : null;
         const verdictOn =
@@ -124,7 +124,7 @@ export function ValueGrid({
               {
                 width: `${tileColumns}%`,
                 borderColor,
-                borderWidth: verdictGlyph !== null ? 2 : 1,
+                borderWidth: verdictIcon !== null ? 2 : 1,
               },
               {
                 backgroundColor:
@@ -149,15 +149,13 @@ export function ValueGrid({
                 <Text style={[styles.rankText, { color: isCorrectPick ? theme.successOn : theme.mathOn }]}>{rank}</Text>
               </View>
             ) : null}
-            {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+            {verdictIcon !== null && verdictFill !== null && verdictOn !== null ? (
               <View
                 pointerEvents="none"
                 testID={`${tileTestID}.verdict`}
                 style={[styles.verdictBadge, { backgroundColor: verdictFill }]}
                 importantForAccessibility="no-hide-descendants">
-                <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
-                  {verdictGlyph}
-                </ThemedText>
+                <AppIcon name={verdictIcon} size={16} color={verdictOn} testID={`status-icon-${verdictIcon}`} />
               </View>
             ) : null}
           </Pressable>

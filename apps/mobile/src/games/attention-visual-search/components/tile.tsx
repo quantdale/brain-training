@@ -10,7 +10,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 
 import { testId } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
@@ -44,9 +44,9 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
   // with their paired glyph colour, so the icon reads on any tile behind it.
   const verdict =
     visual === 'selected'
-      ? { glyph: '✓', backgroundColor: theme.success, color: theme.successOn }
+      ? { icon: 'check' as const, backgroundColor: theme.success, color: theme.successOn }
       : visual === 'error'
-        ? { glyph: '✕', backgroundColor: theme.dangerOn, color: theme.danger }
+        ? { icon: 'close' as const, backgroundColor: theme.dangerOn, color: theme.danger }
         : null;
   // Describe the same visible feature a sighted player compares. Naming its
   // appearance is task content; announcing "target" would classify the answer.
@@ -72,9 +72,7 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
         <View
           style={[styles.verdict, { backgroundColor: verdict.backgroundColor }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: verdict.color }} allowFontScaling={false}>
-            {verdict.glyph}
-          </ThemedText>
+          <AppIcon name={verdict.icon} color={verdict.color} size={13} style={{ height: 18 }} />
         </View>
       ) : null}
     </Pressable>

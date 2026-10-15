@@ -18,6 +18,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
@@ -50,7 +51,7 @@ export const OptionButton = memo(function OptionButton({
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.borderStrong;
   const labelColor =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.text;
-  const badgeGlyph = highlight === 'correct' ? '✓' : highlight === 'wrong' ? '✕' : null;
+  const badgeIcon = highlight === 'correct' ? 'check' : highlight === 'wrong' ? 'close' : null;
   const badgeFill =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : null;
   const badgeOn =
@@ -85,14 +86,12 @@ export const OptionButton = memo(function OptionButton({
       <ThemedText type="bodyLarge" style={{ color: labelColor }}>
         {label}
       </ThemedText>
-      {badgeGlyph !== null && badgeFill !== null && badgeOn !== null ? (
+      {badgeIcon !== null && badgeFill !== null && badgeOn !== null ? (
         <View
           testID={`${testID}.verdict`}
           style={[styles.badge, { backgroundColor: badgeFill }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-            {badgeGlyph}
-          </ThemedText>
+          <AppIcon name={badgeIcon} size={16} color={badgeOn} testID={`status-icon-${badgeIcon}`} />
         </View>
       ) : null}
     </Pressable>

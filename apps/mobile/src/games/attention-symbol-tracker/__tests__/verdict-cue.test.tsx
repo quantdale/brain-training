@@ -19,6 +19,14 @@ import { SYMBOL_TRACKER_DIFFICULTY_PARAMS } from '../difficulty';
 import { GAME_ID } from '../types';
 import type { SessionPersistence } from '../session';
 
+/** Identify the actual decorative vector, while spoken verdicts stay on its owner. */
+function statusIcon(element: ReturnType<typeof screen.getByTestId>, name: 'check' | 'close' | 'time') {
+  const path = { check: 'M20 6 9 17l-5-5', close: 'M18 6 6 18', time: 'M12 6v6h4' }[name];
+  return element.queryAll((node) => node.type.startsWith('RNSVGSvgView')).find((svg) =>
+    svg.queryAll((node) => node.type === 'RNSVGPath' && node.props.d === path).length > 0,
+  ) ?? null;
+}
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
 }));
@@ -113,10 +121,10 @@ describe('SymbolTrackerScreen verdict cue', () => {
       testId(GAME_ID, 'cell-verdict', String(correctCell)),
       { includeHiddenElements: true },
     );
-    expect(wrongBadge).toHaveTextContent('✕');
-    expect(wrongBadge).not.toHaveTextContent('✓');
-    expect(correctBadge).toHaveTextContent('✓');
-    expect(correctBadge).not.toHaveTextContent('✕');
+    expect(statusIcon(wrongBadge, 'close')).not.toBeNull();
+    expect(statusIcon(wrongBadge, 'check')).toBeNull();
+    expect(statusIcon(correctBadge, 'check')).not.toBeNull();
+    expect(statusIcon(correctBadge, 'close')).toBeNull();
 
     // Distinct fills back the glyphs (never colour-alone, never identical).
     const wrongCellEl = screen.getByTestId(testId(GAME_ID, 'cell', String(wrongCell)));

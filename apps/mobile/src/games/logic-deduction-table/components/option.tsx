@@ -18,6 +18,7 @@
  * pick (post-scoring reveal), never for the underlying correct answer, so
  * the solution cannot be read off the accessibility tree.
  */
+import { AppIcon } from '@/components/ui/app-icon';
 import { memo } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import type { GestureResponderEvent } from "react-native";
@@ -87,9 +88,7 @@ export const Option = memo(function Option({
         },
       ]}>
       {isVerdict ? (
-        <ThemedText type="bodyLarge" style={{ color: foregroundColor }} allowFontScaling={false}>
-          {visual === "correct" ? "✓" : "✕"}
-        </ThemedText>
+        <AppIcon name={visual === "correct" ? 'check' : 'close'} color={foregroundColor} size={20} />
       ) : null}
       <ThemedText type="bodyLarge" style={{ color: foregroundColor, textAlign: "center" }}>
         {label}

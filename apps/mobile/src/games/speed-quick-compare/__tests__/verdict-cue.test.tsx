@@ -103,9 +103,9 @@ describe('QuickCompareScreen verdict cue', () => {
 
     const cue = screen.getByTestId(testId(GAME_ID, 'verdict-cue'));
     expect(cue.props.accessibilityLabel).toBe('Last pick: correct');
-    expect(within(cue).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(within(cue).getByText('Correct')).toBeOnTheScreen();
-    expect(within(cue).queryByText('✕', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).queryByTestId('status-icon-close', { includeHiddenElements: true })).toBeNull();
 
     // The prompt (question + both stimuli) stays mounted behind the verdict.
     expect(screen.getByTestId(testId(GAME_ID, 'comparison'))).toBeOnTheScreen();
@@ -115,7 +115,7 @@ describe('QuickCompareScreen verdict cue', () => {
 
     // The chosen option carries the same success cue as the strip.
     const correctOption = option(round.correctIndex);
-    expect(within(correctOption).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(correctOption).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(correctOption.props.accessibilityLabel).toMatch(/Correct/);
   });
 
@@ -129,19 +129,19 @@ describe('QuickCompareScreen verdict cue', () => {
 
     const cue = screen.getByTestId(testId(GAME_ID, 'verdict-cue'));
     expect(cue.props.accessibilityLabel).toBe('Last pick: wrong');
-    expect(within(cue).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
 
     const wrongOption = option(wrong);
     const correctOption = option(round.correctIndex);
     // Wrong cue on the tapped option …
-    expect(within(wrongOption).getByText('✕', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(wrongOption).getByTestId('status-icon-close', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(wrongOption.props.accessibilityLabel).toMatch(/Wrong pick/);
     // … correct cue alongside it on the true option …
-    expect(within(correctOption).getByText('✓', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(correctOption).getByTestId('status-icon-check', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(correctOption.props.accessibilityLabel).toMatch(/Correct/);
     // … and the wrong pick never reads as correct.
-    expect(within(wrongOption).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(wrongOption).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     expect(wrongOption.props.accessibilityLabel).not.toMatch(/Correct/);
 
     // Prompt still visible in the same frame.
@@ -174,11 +174,11 @@ describe('QuickCompareScreen verdict cue', () => {
     });
     const cue = screen.getByTestId(testId(GAME_ID, 'verdict-cue'));
     expect(cue.props.accessibilityLabel).toBe('Last pick: timed out');
-    expect(within(cue).getByText('⏱', { includeHiddenElements: true })).toBeOnTheScreen();
-    expect(within(cue).queryByText('✓', { includeHiddenElements: true })).toBeNull();
+    expect(within(cue).getByTestId('status-icon-time', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(within(cue).queryByTestId('status-icon-check', { includeHiddenElements: true })).toBeNull();
     // The true option is still revealed for the review.
     expect(
-      within(option(round.correctIndex)).getByText('✓', { includeHiddenElements: true }),
+      within(option(round.correctIndex)).getByTestId('status-icon-check', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(`${GAME_ID}.comparison-question`)).toBeOnTheScreen();
   });

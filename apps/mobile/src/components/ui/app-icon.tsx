@@ -15,6 +15,8 @@ import CircleHelp from 'lucide-react-native/icons/circle-question-mark';
 import Clock3 from 'lucide-react-native/icons/clock-3';
 import Coins from 'lucide-react-native/icons/coins';
 import Download from 'lucide-react-native/icons/download';
+import Delete from 'lucide-react-native/icons/delete';
+import Ellipsis from 'lucide-react-native/icons/ellipsis';
 import Flame from 'lucide-react-native/icons/flame';
 import Gamepad2 from 'lucide-react-native/icons/gamepad-2';
 import Heart from 'lucide-react-native/icons/heart';
@@ -57,7 +59,7 @@ const ICONS = {
   book: BookOpen, layers: Layers3, help: CircleHelp, info: Info, moon: Moon,
   sun: Sun, sound: Volume2, muted: VolumeX, audio: AudioLines, shield: ShieldCheck,
   download: Download, save: ArrowDownToLine, upload: Upload, delete: Trash2,
-  lock: LockKeyhole,
+  lock: LockKeyhole, backspace: Delete, more: Ellipsis,
 } as const;
 
 export type AppIconName = keyof typeof ICONS;

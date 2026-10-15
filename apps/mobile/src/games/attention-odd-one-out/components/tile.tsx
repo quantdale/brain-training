@@ -13,6 +13,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
@@ -91,18 +92,14 @@ export const ItemTile = memo(function ItemTile({
         <View
           style={[styles.verdict, { backgroundColor: theme.danger }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: theme.dangerOn }} allowFontScaling={false}>
-            ✕
-          </ThemedText>
+          <AppIcon name="close" color={theme.dangerOn} size={13} style={{ height: 18 }} />
         </View>
       ) : null}
       {revealed ? (
         <View
           style={[styles.verdict, { backgroundColor: theme.success }]}
           importantForAccessibility="no-hide-descendants">
-          <ThemedText type="label" style={{ color: theme.successOn }} allowFontScaling={false}>
-            ✓
-          </ThemedText>
+          <AppIcon name="check" color={theme.successOn} size={13} style={{ height: 18 }} />
         </View>
       ) : null}
     </Pressable>

@@ -19,6 +19,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
@@ -36,11 +37,11 @@ export interface VerdictCueProps {
 /** Verdict copy: visible label, glyph badge, accessible name. */
 const VERDICT_COPY: Record<
   CompareVerdict,
-  { readonly label: string; readonly glyph: string; readonly accessibilityLabel: string }
+  { readonly label: string; readonly icon: AppIconName; readonly accessibilityLabel: string }
 > = {
-  correct: { label: 'Correct', glyph: '✓', accessibilityLabel: 'Last pick: correct' },
-  incorrect: { label: 'Wrong pick', glyph: '✕', accessibilityLabel: 'Last pick: wrong' },
-  miss: { label: 'Timed out', glyph: '⏱', accessibilityLabel: 'Last pick: timed out' },
+  correct: { label: 'Correct', icon: 'check', accessibilityLabel: 'Last pick: correct' },
+  incorrect: { label: 'Wrong pick', icon: 'close', accessibilityLabel: 'Last pick: wrong' },
+  miss: { label: 'Timed out', icon: 'time', accessibilityLabel: 'Last pick: timed out' },
 };
 
 export function VerdictCue({ verdict }: VerdictCueProps) {
@@ -115,9 +116,7 @@ export function VerdictCue({ verdict }: VerdictCueProps) {
       <Animated.View
         style={[styles.badge, { backgroundColor: badgeFill, transform: [{ scale }] }]}
         importantForAccessibility="no-hide-descendants">
-        <ThemedText type="label" style={{ color: badgeOn }} allowFontScaling={false}>
-          {copy.glyph}
-        </ThemedText>
+        <AppIcon name={copy.icon} size={16} color={badgeOn} testID={`status-icon-${copy.icon}`} />
       </Animated.View>
       <ThemedText type="smallBold" style={{ color: labelColor }}>
         {copy.label}
