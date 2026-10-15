@@ -201,7 +201,7 @@ export default function ProgressGameScreen() {
           </ThemedText>
         </View>
         <ThemedText type="small" themeColor="textSecondary">
-          {insight.count} sessions · last played {formatDayLabel(insight.lastCompletedAt)} · since{' '}
+          {plural(insight.count, 'session')} · last played {formatDayLabel(insight.lastCompletedAt)} · since{' '}
           {formatDayLabel(insight.firstCompletedAt)}
         </ThemedText>
       </View>
@@ -236,7 +236,7 @@ export default function ProgressGameScreen() {
               {def?.primaryCategory ?? 'Game'}
             </ThemedText>
           </View>
-          <Badge label={`${insight.count} sessions`} tone="info" size="sm" />
+          <Badge label={plural(insight.count, 'session')} tone="info" size="sm" />
         </View>
         <View style={styles.heroMetric}>
           <ThemedText type="eyebrow" style={family ? { color: family.softText } : undefined}>

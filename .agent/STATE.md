@@ -37,15 +37,41 @@ malformed tool-message history with400 during finalization; diagnose ready5/5.
 Root stopped the paused task: terminal status CANCELLED, not completed/PASS.
 External notes and images retained; new-APK continuation still required.
 
-Pre-install exact SQLite preserved locally in native-preview04/
-sqlite-preserved-before-install03; separate working-copy integrityok/sessions8.
-Two initial access/path attempts failed validation and are not accepted backups.
-Native04 not built/installed yet. Current installed APK remains30fb56fc9b291d470270698a2f441626266eac898292b577e4ca5acd1a644723,
-source8d772c7b, now force-stopped for safe preservation. Emulator5570 is released
-from the cancelled task; no other device or host input used. Next: freeze/build/
-install new exact source, profile captures/independent critique, repaired actual
-workout continuation, data/offline/performance, actual clean checkout and ending
-SHA four workflows, final verified visible Home. Full original077 remains ACTIVE.
+Pushed source95e38eacdde6466b6f35fb2718d57fa05d9cfa9e is now built/installed as
+preview04:1106files exact committed inventory, zero differences,
+SHA2564dea5d339f2859b79b08c83f2715c35e7827818d4124a352b404ac84900f1962.
+Gradle532tasks PASS1m55s; APKf70da699b9a36e8e6943b6c1f326adc481abf8fe29fd4747a44c1c88e09c32fa,
+52,304,595B,x86_64/debug-signed,target36; permissions8entry allowlist PASS.
+Install-r/devicehash PASS; exact SQLite before/after unchanged, integrityok/
+sessions8; persistedSystem preference/settingshash retained. Initial backup
+access/path attempts failed and are not accepted backups. Cold launch3452ms
+under whole-test load observed, not final matched performance proof.
+
+Whole Jest05 PASS694 suites7885tests/5snapshots,5reviewedoptinskips,269.629s;
+signal classifierPASS, no forced-exit warning. Previous04 warning's cause remains
+unidentified, not claimed fixed. Web exportPASS22routes/exit0 with Expo forced-exit
+housekeeping diagnostic; dependency auditPASS10 accepted/no newmoderate+production.
+
+Flasha6b84b21 completed70.3s/7steps; root read logs/summary and viewed actual
+candidate/You'vegotit/Start/Home frames. Grid tutorial completed normally without
+QA skip, realgame notstarted, Home2/4/186XP/49coins retained at that checkpoint.
+Default capture34/34 passed; independent reviewer viewed everyframe/hash/witness,
+noP1. Source next corrects residual P2 performance labels, rating endpoints and
+<24h/today wording; singularcounts/duplicateHomecopy also corrected. Existing
+UTC bucketing/analytics/transactions unchanged. Fivefocused suites48tests and
+canary5tests/5snapshots PASS, currenttypes/lintPASS. Native05 next, not installed.
+
+The emulator's GMT day rolled between Flash and resumed capture: Oct15 Home now
+has a fresh0/4 (WordScramble,OrderPath,TaskSwitch,CueShift). Pre05 backup proves
+Oct14 active/index2 remains, Oct15 active/index0, sessions8/integrityok and
+settingsunchanged. Do not describe a new-day workout as the old2/4 continuation.
+Current APK remainsf70da699..., force-stopped for exact pre05 preservation.
+Next: freeze/build/native05 profiles/critique, current-day actual workout,
+data/offline/performance, actualcleancheckout/ending-SHA fourworkflows and visible
+Home. All077 scope remains ACTIVE. SeeNATIVE_PREVIEW04.md.
+
+At95e38eac allfour workflows SUCCESS: App38646019805, Integrity38646020047,
+Android38646020100, iOS38646019749. These are sourcecheckpoint runs, notfinalSHA.
 
 At5df95a3a App38642396926, Integrity38642396742 and Android38642396618 SUCCESS;
 iOS38642396880 still in progress at last poll. Prior8d iOS38639600766 CANCELLED.

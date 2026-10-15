@@ -27,4 +27,11 @@ The owner rejected the real previous app and authorizes complete redesign, actua
   remain required. Full original scope stays ACTIVE; source tests are not native
   acceptance. See evidence/PRESENTATION_RECOVERY.md.
 
+- Preview04: pushed95e38eac, whole694suites7885tests/5snapshots PASS; build/install/
+  data/hash/permissions PASS; allfour CI SUCCESS. Repaired Grid tutorial actual
+  Flash7steps PASS (root inspectedframes). Independent all34 default light/dark
+  frames noP1, small P2 metric/date clarity corrected in nextsource. New GMTday
+  plan0/4 is distinct from preservedprior2/4. Native05/fullprofiles/current-day
+  workout/data/offline/performance/cleancheckout/finalCI/handoff remain OPEN.
+
 One campaign active. Prior076 records stay in `.agent/history/pre-077-c7bbf0dd/`; parent14.3 remains open. Preserve data, versions, game identities, offline/economy/backup contracts. Lead owns shared/device/build surfaces; coders own disjoint packets. Target only visible braintraining-ui35/emulator-5570 with no host-input/focus automation.

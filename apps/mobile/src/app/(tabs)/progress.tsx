@@ -516,7 +516,7 @@ export default function ProgressScreen() {
               testID="progress-activity-heatmap"
             />
             <ThemedText type="caption" themeColor="textSecondary">
-              {calendar.activeDays} active days · {calendar.totalSessions} sessions in this
+              {plural(calendar.activeDays, 'active day')} · {plural(calendar.totalSessions, 'session')} in this
               view
             </ThemedText>
             {/* The full calendar is a deliberate drill-down from the compact view. */}

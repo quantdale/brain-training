@@ -279,3 +279,30 @@ persistence/Home report. It is ONLINE, no offline evidence. Full077 scope open.
   sessions8. Initial run-as access failed(non-debuggable release); first root
   attempt used nonexistent Android databases path. Both failed header checks,
   not backups. Correct inspected Expo files/SQLite path then passed.
+
+## Frozen source95e38eac / native04 installed
+
+Whole Jest05 PASS694 suites7885tests/5snapshots,5 reviewed opt-in skips,269.629s;
+JSON success=true,failed0; classifier PASS. No worker forced-exit/open-handle
+warning in05. Earlier04 warning is retained as unidentified, not claimed fixed.
+Native04 build/install/data/hash/permissions/cold-launch identity is in
+NATIVE_PREVIEW04.md; Flash repaired-tutorial smoke is running, no result yet.
+No profile/complete workout/offline/data/performance/clean-checkout/final CI PASS
+is inferred from the whole-unit-test result or installation.
+
+## Preview04 qualified default / critique convergence source
+
+Default capture34/34 PASS; independent all34 PNG/witness/hash review found noP1
+and residual P2 labels/rating endpoints/elapsed-date copy. Flash a6b84b21completed
+70.3s/7steps; root personally inspected actual allthree candidate/confirmation/
+Start/Home frames. Normal tutorial now reachable; no actual game started. Later
+GMTdayrollover createsnewOct15 workout0/4; pre05SQLite verifies previousOct14
+active/index2 retained, newOct15active/index0, sessions8/integrityok.
+Copy corrections final5suites48tests PASS, canary5tests/5snapshots PASS separately,
+globaltypes/currentlintPASS. Firstcopytest hadone old exact-range caption mismatch,
+corrected to explicitly expectUTC. Prior requestednonexistentvisualcanary path
+matched nothing; actualvisual-baselines suite run explicitly. No fake extra suite.
+Dependency auditPASS10accepted/no newmoderate+production; webexport22routes/exit0
+PASS with CLIforced-exit housekeepingmessage. Four95e CIworkflowsallSUCCESS exactIDs
+inNATIVE_PREVIEW04.md. Native05/profile/runtime/data/offline/performance/actualclean
+checkout/ending-SHA finalcertification remainopen.

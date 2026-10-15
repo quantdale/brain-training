@@ -123,7 +123,8 @@ export function activityFrequencyBuckets(calendar: ActivityCalendar): { perDay: 
 }
 
 /**
- * Whole days since the most recent completed session (`0` = today), or `null`
+ * Whole elapsed 24-hour days since the most recent completed session
+ * (`0` = less than 24 hours ago, even across midnight), or `null`
  * when there are no sessions at all. A staleness indicator derived only from
  * stored completion timestamps. Future-dated rows (import artifacts / clock
  * skew) are ignored, matching the windowed views' upper clamp — a corrupt

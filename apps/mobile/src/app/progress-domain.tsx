@@ -331,7 +331,7 @@ export default function ProgressDomainScreen() {
             {insight?.status === 'stale'
               ? `Stale — last trained ${insight.daysSinceUpdate} days ago.`
               : `Fresh — trained ${insight?.daysSinceUpdate} days ago.`}{' '}
-            {insight?.sessions ?? 0} sessions · {insight?.windowEntries ?? 0} updates in this window.
+            {plural(insight?.sessions ?? 0, 'session')} · {plural(insight?.windowEntries ?? 0, 'update')} in this window.
           </ThemedText>
           {insight?.bestRating !== null ? (
             <ThemedText
@@ -348,15 +348,18 @@ export default function ProgressDomainScreen() {
               value={String(windowedDomainSessions.length)}
             />
             <ReportRow
-              label={`Avg (${WINDOW_LABELS[windowKey]})`}
+              label={`Avg performance (${WINDOW_LABELS[windowKey]})`}
               value={windowAvg === null ? '—' : formatPercent(windowAvg)}
             />
             <ReportRow
-              label="Best ever"
+              label="Best session performance"
               value={lifetimeBest === null ? '—' : formatPercent(lifetimeBest)}
               divider={false}
             />
           </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Session performance follows each game’s scoring rules. Domain ratings combine results over time.
+          </ThemedText>
         </Card>
       )}
 
@@ -376,7 +379,7 @@ export default function ProgressDomainScreen() {
           }
         />
         <ThemedText type="caption" themeColor="textSecondary">
-          {chartCaption}{chartPoints.length > 0 ? ` ${formatDayLabel(chartPoints[0].t)} to ${formatDayLabel(chartPoints[chartPoints.length - 1].t)}, oldest to newest.` : ''}
+          {chartCaption}{chartPoints.length > 0 ? ` ${formatDayLabel(chartPoints[0].t)} to ${formatDayLabel(chartPoints[chartPoints.length - 1].t)}, oldest to newest. ${Math.round(chartPoints[0].value)} → ${Math.round(chartPoints[chartPoints.length - 1].value)} rating points.` : ''}
         </ThemedText>
       </Card>
 
@@ -508,7 +511,7 @@ export default function ProgressDomainScreen() {
         <CalendarHeatmap days={calendar.days} maxCount={calendar.busiest?.count ?? 0}
           testID="progress-domain-heatmap" />
         <ThemedText type="caption" themeColor="textSecondary">
-          {calendar.activeDays} active days · {calendar.totalSessions} sessions in this view{windowKey === 'all' ? ' · latest 84 days shown' : ''}.
+          {plural(calendar.activeDays, 'active day')} · {plural(calendar.totalSessions, 'session')} in this view{windowKey === 'all' ? ' · latest 84 days shown' : ''}.
         </ThemedText>
       </Card>
 

@@ -61,7 +61,7 @@ export default function BootstrapRecovery({
       testIDPrefix="bootstrap-recovery"
       title={copy.title}
       message={copy.message}
-      steps={routeOnly ? ['Return to Home to continue training.'] : STEPS}
+      steps={routeOnly ? [] : STEPS}
       detail={error ? error.message : null}
       retryLabel={routeOnly ? 'Go to Home' : 'Retry'}
       retryAccessibilityLabel={routeOnly ? 'Go to Home' : 'Retry app initialization'}

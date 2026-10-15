@@ -185,7 +185,7 @@ describe('CalendarHeatmap', () => {
 
   it('shows the visible date range and labels each week for assistive tech', async () => {
     await render(<CalendarHeatmap testID="cal" days={days} maxCount={2} />);
-    expect(screen.getByText('Sep 1 – Sep 7')).toBeOnTheScreen();
+    expect(screen.getByText('Sep 1 – Sep 7 · UTC')).toBeOnTheScreen();
     expect(screen.getByTestId('cal').props.accessibilityLabel).toBe(
       '2 of 7 days active, 3 sessions, Sep 1 – Sep 7',
     );

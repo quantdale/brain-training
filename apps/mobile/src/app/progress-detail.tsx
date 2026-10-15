@@ -170,7 +170,7 @@ export default function ProgressDetailScreen() {
           onPress={() => router.replace('/games')} />
       ) : null}
       <ThemedText type="caption" themeColor="textSecondary" testID="progress-detail-scope">
-        Latest {data.recent.length} sessions and {data.history.length} rating updates loaded, up to {ANALYTICS_WINDOW} of each. Game records are all-time.
+        Latest {plural(data.recent.length, 'session')} and {plural(data.history.length, 'rating update')} loaded, up to {ANALYTICS_WINDOW} of each. Game records are all-time.
       </ThemedText>
 
       {bestHistory.current !== null ? (

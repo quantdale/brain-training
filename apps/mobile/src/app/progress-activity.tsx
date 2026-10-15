@@ -46,7 +46,7 @@ import {
 import { Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
-import { formatDayLabel } from '@/analytics/format';
+import { formatDayLabel, plural } from '@/analytics/format';
 
 const CALENDAR_DAYS = 182; // ~26 weeks
 
@@ -136,7 +136,7 @@ export default function ProgressActivityScreen() {
         </View>
         <ThemedText type="caption" themeColor="textSecondary" testID="progress-activity-share">
           {calendar.activeDays} of {CALENDAR_DAYS} days active ({Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
-          {' '}Last session {daysSinceLast === 0 ? 'today' : `${daysSinceLast ?? '—'} ${daysSinceLast === 1 ? 'day' : 'days'} ago`}.
+          {' '}Last session {daysSinceLast === 0 ? 'within 24 hours' : `${daysSinceLast ?? '—'} ${daysSinceLast === 1 ? 'day' : 'days'} ago`}.
         </ThemedText>
       </Card>
 
@@ -153,7 +153,7 @@ export default function ProgressActivityScreen() {
         <ReportRow label="Current run of active days" value={`${runs.current}d`} divider />
         <ReportRow label="Longest run in this view" value={`${runs.longest}d`} />
         {calendar.busiest ? <ThemedText type="caption" themeColor="textSecondary">
-          Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} · {calendar.busiest.count} sessions.
+          Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} · {plural(calendar.busiest.count, 'session')}.
         </ThemedText> : null}
         <ThemedText type="caption" themeColor="textSecondary">{explainMetric('activity-runs')}</ThemedText>
       </Report>

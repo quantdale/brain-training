@@ -451,7 +451,7 @@ export function CalendarHeatmap({
         accessibilityRole="image"
         accessibilityLabel={summary ?? defaultSummary}>
         <ThemedText type="caption" themeColor="textSecondary">
-          {rangeLabel}
+          {rangeLabel} · UTC
         </ThemedText>
         <ThemedText
           type="caption"
@@ -476,8 +476,8 @@ export function CalendarHeatmap({
       accessible={false}
       accessibilityLabel={summary ?? defaultSummary}>
       <ThemedText type="caption" themeColor="textSecondary"
-        accessibilityLabel={summary ?? defaultSummary}>
-        {rangeLabel}
+        accessibilityLabel={`${summary ?? defaultSummary}. Calendar dates in UTC.`}>
+        {rangeLabel} · UTC
       </ThemedText>
       {firstWeek > 0 ? <ThemedText type="caption" themeColor="textSecondary">
         Latest {visibleWeeks.length} of {weeks.length} weeks shown
