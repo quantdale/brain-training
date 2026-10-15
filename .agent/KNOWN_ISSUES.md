@@ -2,6 +2,12 @@
 
 ## Fresh audit findings
 
+- Native06 loading Home falsely displayedLevel1/0XP/emptyhistory despite8saved
+  sessions. Source nowhidesunreadnumeric/historyclaims andsurfacesexistingretry
+  atprogressposition;2validbeforefailures/6suites32testsfivesnapshots afterPASS.
+  Native08proof remainsrequired. HOME_READ_AVAILABILITY.md. Thiswasareal loading
+  presentationdefect aswellasinvalidsettledcapture evidence.
+
 - Native07 quiet cold draw5425/3715/3258ms (initialpostinstall10681ms), with
   loadedretaineddata. Gfx64launch/Homeframes60janky/median150ms and skippedframe
   logs are unresolved performance evidence, notPASS. Needbounded no-dump/warm

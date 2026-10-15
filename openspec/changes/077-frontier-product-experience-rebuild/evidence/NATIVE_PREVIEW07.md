@@ -34,13 +34,29 @@ restart while a loading marker exists, still requires exact before/after XML
 equality, and aborts honestly at its deadline.11 capture/theme tests PASS. This
 changes readiness waiting, not acceptance thresholds; original failed run stays.
 
-The new focused run is RUNNING under `focused-font2-readiness02`. Root actually
-viewed light Home/Games/Profile/Progress/Activity. They show retained data and
+The new focused run completed14/14 under `focused-font2-readiness02`. Root actually
+viewed every frame:Home/Games/Profile/Progress/Activity/Data/Results in both
+light and dark2x. They show retained data and
 reachable Home/workout CTA; Profile preferences require scrolling. Shared
 headings render complete g/y descenders. Original pixel probes now PASS on Games
 "Suggested next", Activity "Training days" and title "Activity", with blank ink
 margin below the glyphs rather than an abrupt cutoff at the text-box edge.
-This accepts these specific light2x headings only, not the missing matrix.
+This accepts the specific reviewed2x heading appearances, not the missing full
+profile matrix. Backup automatic-name/storage explanation now wraps visibly in
+both themes; its last line/Export require scrolling at2x. No hidden-action PASS
+is inferred from the first viewport. Results remain honest0%/Keep training with
+reachable replay; Profile identity and System preference are visible. No newP1/P2
+found in these14 images. Exact before/after XML hashes, every PNG/XML hash and
+requested/observed theme checked; manifest SHA256
+`19808be25dc36db2aba5a362b759d5cf216e7b2e89fb0cd06069acdf9b9bc266`.
+
+Pro data07 `51d82686-3931-4f8e-ba80-6ecac2ce6839` is RUNNING with officialMCP
+40sec monitor. Checker deliberately OFF after the previous inconclusive checker
+timeouts; no automatic assertion PASS is claimed. Root independently viewed
+step3 actual screenshot: campaign077-data-proof is now readable on one fullwidth
+row and all three actions below it are legible/reachable; the long auto filename
+wraps to two lines. The wrapping backup hint is also visible. Successful writes,
+text-edit invalidation and post-task database proof remain OPEN until observed.
 
 ## CI canary recovery
 

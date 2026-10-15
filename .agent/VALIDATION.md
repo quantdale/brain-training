@@ -1,5 +1,21 @@
 # Validation — Campaign077
 
+## Home read-availability recovery
+
+Native06 fallbackimages showrealP2 Home falsezero/emptyclaims whileloading. New
+realcaller pending/error regressions:initialfixturemethoderrorinvalidatedfirst
+run; correctedbefore02 has2validfails/2controlsPASS. Sourceavailabilityguard and
+visibleexistingretry card fix; combined6suites32tests5snapshots PASS20.807s after,
+includingretry186XP andgenuineempty/existing controls. Types/scopedlintPASS.
+OnlyHome/integratedtabs canaryblocks intentionallychange,other3byteidentical;
+Home renamedaccuratelydb-unavailable recovery. Native08proof stillOPEN.
+
+c87f4d43 allfourCI SUCCESS: App38711583870,Integrity38711583738,
+Android38711583880,iOS38711583703. Oldactuald62composite FAIL5canariesonly,
+701suites7912testsPASS/5fail440.635s,allothergates/cleanstatusPASS. Finalsource
+composite/newendingCIrequired. Native07focused2x14/14exactbrackets/themes/hashes
+PASS/rootall14imageviews, Prodata07RUNNING/exclusive5570/40secMCPmonitor.
+
 ## Native07 correction checkpoint
 
 d62bbfc7 APKf1a7d86f...6347 build532tasks5m11s/install/exactdata/devicehash/

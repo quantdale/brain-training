@@ -3,7 +3,7 @@
  * hardening campaign).
  *
  * The canary set pins the SHELL screens' stable first-run/empty states:
- * Home (no games registered → workout empty state), Games (empty state),
+ * Home (db-unavailable recovery, no games registered), Games (empty state),
  * Progress (db-unavailable fallback) and Profile (db-unavailable fallback).
  *
  * Each of the four canary screens is ALSO rendered as a BARE route (no
@@ -73,7 +73,7 @@ beforeEach(() => {
 });
 
 describe('visual baselines (canary set)', () => {
-  it('Home — first-run dashboard snapshot', async () => {
+  it('Home — db-unavailable recovery snapshot', async () => {
     registerGameDefinitions([]);
     await scopeDbUnavailableNoise(async () => {
       await renderBare(HomeScreen, '/');

@@ -259,6 +259,9 @@ export default function HomeScreen() {
   );
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
   const { data, loaded, error } = useDbData(loadHome, [refreshKey], EMPTY_HOME);
+  // The fallback is an unread payload, not proof of a new/empty profile.
+  // In particular, cold launch must not briefly claim lost XP or history.
+  const progressAvailable = loaded && error == null;
   // Load-time clock (see HomeData.nowMs) for relative-day labels.
   const nowMs = data.nowMs;
 
@@ -785,8 +788,23 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Small habit context and one daily action before the detailed plan. */}
-      <View style={[styles.habitRail, { borderColor: theme.border }]} testID="home-context">
+      {loaded && error != null ? (
+        <Card tone="dangerSoft" testID="home-data-error">
+          <View style={styles.errorBody} testID="home-progress-unavailable">
+            <ThemedText type="label" themeColor="dangerSoftText">
+              Couldn&apos;t load your data
+            </ThemedText>
+            <ThemedText type="bodySmall" themeColor="dangerSoftText">
+              Your training data couldn&apos;t be read just now. Your progress
+              stays safely on disk — try again.
+            </ThemedText>
+            <Button variant="secondary" label="Retry" testID="home-data-retry" onPress={refresh} />
+          </View>
+        </Card>
+      ) : null}
+
+      {/* Only observed progress belongs in the habit rail. */}
+      {progressAvailable ? <View style={[styles.habitRail, { borderColor: theme.border }]} testID="home-context">
         <View style={styles.habitMetric} testID="home-streak-card">
           <AppIcon name="streak" tone="streak" size={18} />
           <ThemedText type="label" testID="home-stat-streak">{currentStreak}</ThemedText>
@@ -805,7 +823,7 @@ export default function HomeScreen() {
             <ThemedText type="label">{data.balance}</ThemedText>
           </View>
         ) : null}
-      </View>
+      </View> : null}
 
       <Entrance index={0}>
         <Card variant="outlined" padding="none" testID="home-workout-cta">
@@ -946,12 +964,12 @@ export default function HomeScreen() {
         ) : null}
       </Entrance>
 
-      {loaded && streak.atRisk ? (
+      {progressAvailable && streak.atRisk ? (
         <View style={[styles.atRisk, { backgroundColor: theme.warningSoft }]} testID="home-streak-at-risk">
           <ThemedText type="caption" themeColor="warningSoftText">Play today to keep your streak alive.</ThemedText>
         </View>
       ) : null}
-      <View style={styles.progressCopy} testID="home-streak-card-tracker">
+      {progressAvailable ? <View style={styles.progressCopy} testID="home-streak-card-tracker">
         <ProgressBar value={levelRatio} tone="xp" testID="home-level-progress"
           accessibilityLabel={`Level ${level}, ${xpToNext} XP to Level ${level + 1}`} />
         <ThemedText type="caption" themeColor="textSecondary">
@@ -960,7 +978,7 @@ export default function HomeScreen() {
         <ThemedText type="caption" themeColor="textMuted" testID="home-streak-card-next-milestone">
           {streakMilestoneLine}
         </ThemedText>
-      </View>
+      </View> : null}
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
@@ -1097,23 +1115,6 @@ export default function HomeScreen() {
         </Card>
       ) : null}
 
-      {/* Error state: recoverable read failure with an explicit retry.
-          `error != null` keeps the guard boolean so the JSX stays ReactNode. */}
-      {loaded && error != null && hasCatalog ? (
-        <Card tone="dangerSoft" testID="home-data-error">
-          <View style={styles.errorBody}>
-            <ThemedText type="label" themeColor="dangerSoftText">
-              Couldn&apos;t load your data
-            </ThemedText>
-            <ThemedText type="bodySmall" themeColor="dangerSoftText">
-              Your training data couldn&apos;t be read just now. Your progress
-              stays safely on disk — try again.
-            </ThemedText>
-            <Button variant="secondary" label="Retry" onPress={refresh} />
-          </View>
-        </Card>
-      ) : null}
-
       {/* Quick actions (constitution §13 order): drill-downs one tap away.
           Secondary buttons in an adaptive grid — stacked on phones,
           side-by-side on expanded widths. */}
@@ -1165,7 +1166,7 @@ export default function HomeScreen() {
       ) : null}
 
       {/* Recent games slot — task 9.6: real recent session/game data */}
-      <Card
+      {progressAvailable ? <Card
         padding="lg"
         style={styles.sectionCardGap}
         testID="home-recent-games"
@@ -1204,7 +1205,7 @@ export default function HomeScreen() {
             Your latest sessions will show up here after your first workout.
           </ThemedText>
         )}
-      </Card>
+      </Card> : null}
 
       {/* W24: compact workout-history feed over the engine's history API
           (daily + template workouts, newest first). Data-gated: hidden until

@@ -10,6 +10,26 @@
 
 ## Current checkpoint — native06 and actual final-source clean checkout
 
+Latest source wave fixes Home's observed false Level1/0XP/empty-history claims
+during loading/read failure. Two valid caller regressions fail before (initial
+fixture error preserved separately); four positive/negative controls nowpass,
+Retry recoversactual186XP. Combined6suites32tests5snapshots PASS20.807s, current
+types/scopedlintPASS. HOME_READ_AVAILABILITY.md. Native08 proof/fullprofiles still
+required; installed native07/data07 controller remains unchanged while running.
+
+Current pushed c87f4d43ac18d7416855881ba98837e282f9012c allfourCI SUCCESS:
+App38711583870,Integrity38711583738,Android38711583880,iOS38711583703. Not endingSHA.
+Actual old d62 clean composite terminal FAIL on the same5old canaries only:
+701suites7912tests pass/5fail,440.635s; allothercompositegates/cleanstatus PASS.
+SummarySHAfbbd4fdc2c819810a6eaee416dfcee15aedf708d21613fbfe81328dcc87303ba.
+Corrected/new Home source still needs actual clean-source full composite.
+
+Native07 focused2x14/14 PASS with exactbracket/theme/hash proof; rootactually
+viewedall14. Prodata07 51d82686-3931-4f8e-ba80-6ecac2ce6839 RUNNING,40sec MCPwatch
+active; exclusively owns5570. Actual backupname/actions and export/load observed;
+Merge/Replacewrite/textedit/post-taskDB notyetproven. Do notcapture/install/drive
+thedevice untilterminal. No credentialchanges; actualcontrolleraccess works.
+
 Native07 product source d62bbfc75cc7eb8ba2fabdf31a43666ef91bdcd8 is installed:
 APKf1a7d86fcc1920c5d14b9e61684f4a6919a697ca9b068232baadcb4255ac6347,
 52,312,459B;532tasks5m11s PASS,1107files exact/941mappedsourcefiles exact,
