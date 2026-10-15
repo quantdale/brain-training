@@ -8,7 +8,29 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native11 installed, final visual matrix running
+## Current checkpoint — native11 static visual qualification complete
+
+Currentmain/origin1da74ad0 has all four workflows SUCCESS: App38757594184,
+Integrity38757594254, Android38757594177, iOS38757594137. Installed application
+source remains93353ede/APK9aa17cda...12246; no product source changed.
+Remaining144 capture and separate compactdark18 are terminalPASS/exit0;
+combined with the explicit originalcompactlight18 subset they give180 unique
+accepted frames. Immutable verifiers pass all180; every actualPNG personally
+viewed, independent critique noP1P2. Extra domainart12/12 also passes and all
+nine original illustrations now have actual native proof. NATIVE_VISUAL11.md
+records hashes,180-row review,150 fresh077 baseline pairs/30 unmatched states,
+15 targeted independent before/after comparisons and P3/static limits. The
+original failed180 manifest stays failed/unchanged, not relabeled.
+
+Flashf4822ca9-54fd-4eaf-9d3b-e0e0acfaad05 exclusively owns5570 for non-writing
+search/keyboard/filters/Favorites/Rewards endpoints/Profile+Progress disclosures;
+40s official-MCP fallback watch running. PrimaryGemini live credentials pass;
+no environment change. Combinedcompact2x tutorials, real offline4game workout/
+restart/exactonce, completedHome/Results profiles, normal/reduced interaction,
+final perf/memory/logcat and visibleHome/endingCI/reportaudit remain required.
+Full original077 remainsACTIVE.
+
+## Earlier checkpoint — native11 installed, final visual matrix running
 
 Pushed product source93353ede4452fd51028da358bfe10892486d1531 passes an actual
 fresh full clean-checkout composite:705suites/7929tests/5snapshots,331.763s,

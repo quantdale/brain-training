@@ -72,14 +72,23 @@ was observed in process inventory; unrelated5594 remained untouched.
 The QA harness now force-stops before display provisioning, retaining its
 existing post-provision relaunch. This removes a live activity-recreation race
 as a precaution; the precise original routing cause is not proven. Syntax and
-eight existing capture-validator tests pass. A fresh remaining144-frame run
-is RUNNING, already qualifiedfont2Home/Games; compact/dark18 will be separate.
+eight existing capture-validator tests pass. The fresh remaining144-frame run
+is terminalPASS/exit0; separate compact/dark18 is terminalPASS/exit0.
 All captures still require matching settled bracketing; no acceptance weakened.
 This QA-only change does not alter the installed application source/APK.
 
-The combined180-frame bracketed major-surface acceptance remains OPEN. Actual
-visual critique/gallery, interactive branches, compact2x risk tutorials, full
+The combined180-frame bracketed static major-surface qualification and all180
+actual-image critiques now pass, noP1/P2. All nine native illustrations are
+covered by the matrix plus12 extra light/dark domain-detail captures, also
+independently viewed. [NATIVE_VISUAL11.md](NATIVE_VISUAL11.md) records original
+failure preservation, exact aggregate hashes,150 genuine fresh077 baseline
+pairs/30 additional states,15 targeted independent before/after comparisons,
+P3 tradeoffs and interaction limits. Interactive branches, compact2x risk tutorials, full
 current-day offline workout, final performance/memory/logcat and visible Home
 handoff remain OPEN. Source tests/build/source maps/CI do not close these.
 Native confirmation09 bounds/preservation are separately qualified in
 [RUNTIME_CONFIRMATION09.md](RUNTIME_CONFIRMATION09.md).
+
+All four later evidence/QA-only1da74ad0 workflows also SUCCESS: App38757594184,
+Integrity38757594254, Android38757594177, iOS38757594137. These are not yet the
+ending-SHA result because remaining authorized runtime/evidence work continues.

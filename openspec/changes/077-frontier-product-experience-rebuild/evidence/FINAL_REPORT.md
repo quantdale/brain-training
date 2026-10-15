@@ -15,9 +15,9 @@ visible Home handoff remain open. This is not a campaign completion claim.
 | Starting SHA | `c7bbf0ddfa184204027d8b6df14deab5abf87a6e` |
 | Current certified / installed application source | `93353ede4452fd51028da358bfe10892486d1531`, native11 |
 | Ending SHA | **PENDING — fill after all authorized implementation/evidence work and the final coherent commit.** Current source is an intermediate checkpoint. |
-| Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. At this audit, `HEAD` and `origin/main` both resolve to `93353ede4452fd51028da358bfe10892486d1531`. Evidence documentation is being updated; final clean/pushed ending-state verification is **PENDING**. |
+| Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Before this visual-evidence checkpoint, `HEAD` and `origin/main` both resolve to `1da74ad0b1e779a80ae77039e4383d539d63b0ad`; application source remains93353ede. Final clean/pushed ending-state verification is **PENDING**. |
 
-The fourteen campaign commits through the current application source are:
+The fifteen campaign commits through the latest pushed evidence checkpoint are:
 
 | Commit | Coherent progress |
 |---|---|
@@ -35,6 +35,7 @@ The fourteen campaign commits through the current application source are:
 | `624a5a77` | Keep armed restore confirmation in a stable full-width row |
 | `1ef4a587` | Make direct storage recovery honest and inventory product states |
 | `93353ede` | Release held control scale when motion policy changes |
+| `1da74ad0` | Qualify installed source and preserve native confirmation evidence |
 
 Independent certification clones and `D:/bt077`, the native build copy, are
 separate from linked Git worktrees. Their retained artifacts and cleanup limits
@@ -206,7 +207,7 @@ and [native11](NATIVE_PREVIEW11.md). Local PNG/XML/manifests are under
 independently viewed, with no new P1/P2 in those first viewports. Root also
 inspected the scrolled 988→945 Attention rating endpoints in the Data05 trace.
 
-**Current visual acceptance: PENDING.** Preview06's 180-frame structural matrix
+**Current static major-surface qualification: PASS; runtime states remain open.** Preview06's 180-frame structural matrix
 completed; all actual images were viewed (162 by an independent reviewer,
 18 by root). Nine entries were rejected or qualified as loading, stale-route or
 incomplete content. Four P2 families were repaired: Android 2× heading descenders,
@@ -221,12 +222,17 @@ compact/light frames. The original failed manifest remains unchanged. Its explic
 actual-image review, noP1/P2; minor composition tradeoffs remain recorded.
 Both root URI cold controls subsequently reached Home, so the exact routing cause
 is unproven. The QA harness now stops the activity before display provisioning;
-syntax/eight existing capture tests pass. A fresh remaining144-frame run is
-**RUNNING**, with compact/dark18 to follow separately. Complete profile acceptance
-and gallery remain pending; no full result is inferred. The historical local
+syntax/eight existing capture tests pass. A fresh remaining144-frame run and
+separatecompactdark18 are **terminalPASS/exit0**. With the explicitcompactlight18
+subset, all180 unique major-surface frames pass immutablebracketing/hash checks
+and actual personal image critique, noP1P2. [Native visual11](NATIVE_VISUAL11.md)
+records exact hashes and P3/static limits. The historical local
 `gallery-preview06/index.html` has 180 comparisons: 150 genuine fresh077 baseline
 pairs and 30 explicitly unmatched states. It is an intermediate gallery; the
-native11 comparison/gallery remains pending. Baseline compact360dp/expanded800dp
+native11 gallery now contains180 current records/150 genuinefreshbaselinepairs/
+30additionalstates, allwith actual perimageverdicts. An independent reviewer also
+personallycompared15defaultlight baseline originals withcurrent originals.
+Baseline compact360dp/expanded800dp
 and current compact320dp/expanded720dp support responsive-family comparisons,
 rather than matched pixel pairs. Baseline six sessions/completed4/4 and current
 eight sessions/new-day0/4 are different states and remain disclosed.
@@ -236,12 +242,17 @@ the previously intermittent Profile blank frame's unknown original cause
 (mitigated and absent in later default reviews), and the preview05 first-play
 sheet's thin blue seam (P3). The failed compact framebuffer-resize capture and
 blocked clipped tutorial evidence remain retained. The source fixes and later
-default/tutorial witnesses do not complete the new full-profile gate. Native
+default/tutorial witnesses alone did not complete the new full-profile gate;
+the actualnative11 180-framecritique above now does for those staticviewports. Native
 Home pending→populated has actual cold-control hierarchy evidence (unread numbers
 withheld, then186XP/49coins) and a root-viewed settled2x image; its loading pixels
 were not captured. Healthy storage-route Home navigation, interactive
-discovery/disclosures/scroll endpoints, all-domain artwork detail and current
-native motion qualification remain pending.
+discovery/disclosures/scroll endpoints and currentnative motion qualification
+remain pending. All-domain artwork now has actualnative proof:12 extra domain
+detail frames cover the sixremainingdomains inboth themes, all personallyviewed/
+immutableverified noP1P2, coherentfamily/no crop/stretch/alpha fringe. Together
+with Memory/Spatial/Home inregularmatrix thiscovers allnineillustrations.
+Processmemory and offlinecurrentbuildart remain separate runtime observations.
 
 ## Games
 

@@ -4,7 +4,7 @@
 - [x] 1.2 Establish 077's authoritative control plane, complete requirement-to-evidence matrix, ownership packets, baseline APK/source/device/data identity, and visible GUI verification.
 - [x] 1.3 Inspect complete navigation/component/token/icon/font/asset architecture and inventory every route/state with KEEP/REFINE/REDESIGN/REBUILD decisions and actionable severity/reproduction/correction. CURRENT_PRODUCT_INVENTORY.md records independent15-route/state/shared-seam audit, adopted decisions and new direct-storageP2; native acceptance is separate.
 - [x] 1.4 Assess all 42 games in six required dimensions, reconcile filed historical concerns, reproduce suspected defect families, and record source/test/runtime coverage separately.
-- [ ] 1.5 Capture fresh 077 baseline screenshots/hierarchies for affected major surfaces and representative game states, including directly witnessed themes and required profile provenance.
+- [x] 1.5 Capture fresh 077 baseline screenshots/hierarchies for affected major surfaces and representative game states, including directly witnessed themes and required profile provenance. Actual150 rows cover15 routes/two themes/five layout-sensory classes, including first-play help and weak saved Results. No pre-change active/pause baseline is claimed or fabricated; NATIVE_VISUAL11.md records comparison/state/geometry limits.
 
 ## 2. Wave B — Refero research and art direction
 
@@ -36,7 +36,7 @@
 - [x] 5.4 Redesign Progress summaries/domain/game/activity/detail with useful readable trends/domain identities and clear metric interpretation. PROGRESS_WAVE/PRESENTATION_RECOVERY plus later heading/metric corrections; final profiles open.
 - [x] 5.5 Redesign Rewards, quests, achievements, Profile/preferences/settings with purpose-based information architecture and polished states. Source/caller/disclosure and transaction contracts implemented; final native acceptance open.
 - [x] 5.6 Refine data management/export/import/backup/restore/recovery, keyboard/modal flows and honest empty/loading/error states; protect saved data and compatibility. RUNTIME_DATA07 qualifies actual writes/edit/restart; corrected confirmation and healthy-storage native proof remain open.
-- [ ] 5.7 Inspect every modified major screen in light/dark/2×/compact/larger/applicable reduced motion; record before/after judgments and independent wave critique, correct findings.
+- [x] 5.7 Inspect every modified major screen in light/dark/2×/compact/larger/applicable reduced motion; record before/after judgments and independent wave critique, correct findings. Corrected native11 actual180 static frames pass settled brackets/hash verification and personal critique/noP1P2;150 fresh077 baseline pairs plus15 targeted independent comparisons. NATIVE_VISUAL11.md retains P3 tradeoffs; completed-workout states and interactive boundaries remain9.4/8.3.
 
 ## 6. Wave F — Game presentation and correctness recovery
 
@@ -55,7 +55,7 @@
 ## 8. Wave H — Cross-product convergence
 
 - [ ] 8.1 Inspect the complete product including real data/empty/error/recovery and all game families; resolve conflicting tokens/layout/icons/copy/assets/interactions.
-- [ ] 8.2 Perform independent read-only design critique on actual screenshot evidence and reference lock, then fix genuine composition/quality weaknesses.
+- [x] 8.2 Perform independent read-only design critique on actual screenshot evidence and reference lock, then fix genuine composition/quality weaknesses. Successive native critiques/repairs culminate in all180 current static frames and12 additional domain-art frames personally reviewed; noP1P2 in capturedviewports, explicit P3 tradeoffs and separate interaction/owner-review boundaries in NATIVE_VISUAL11.md.
 - [ ] 8.3 Complete fresh matched before/after galleries with requested and observed themes separated, hashes/APK/profile/state provenance, six-profile coverage and per-surface verdicts.
 - [ ] 8.4 Reconcile every defect and requirement against current implementation/evidence; no partial tasks or unproven product-quality claims counted complete.
 

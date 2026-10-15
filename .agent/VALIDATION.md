@@ -1,5 +1,25 @@
 # Validation — Campaign077
 
+## Native11 static visual milestone
+
+Remaining144 andcompactdark18 terminalPASS/exit0, eachimmutableverifierPASS.
+Together with explicitcompactlight18 subset:180 unique APK-bound/staticframes,
+allactualPNGpersonalviews/independentcritique noP1P2. AggregatereviewSHA256
+e01d371a23e82c187239e8dfb85127292a86a5f08d8f1c9ec26b4782714fbfa3.
+Gallery180comparisons/150fresh077 baselinepairs/30additionalstates, actual
+perimageverdictsverified; comparisonsSHA256
+8f3c54551dc0a5da546bea9084a0cd9c17de5416e5688a27193c4129432f2d59.
+Independenttargeted15defaultlightbefore/afterpairreview recorded separately.
+Extraall-domain12/12immutableframes/actualreview noP1P2; artreviewSHA256
+9c050e136c82374e389160c6259c239f2eedc58ab1f9cd0151b7701f6fba13ba.
+NATIVE_VISUAL11.md preserves P3 findings, originalfailedmatrix and state/geometry/
+staticlimits. No motion/interactive/gameplay/perf acceptance inferred.
+
+Allfour1da74ad0 workflows SUCCESS: App38757594184,Integrity38757594254,
+Android38757594177,iOS38757594137. Flashf4822ca9 non-gameinteractive RUNNING,
+officialMCP40swatch. PrimaryGemini credentials valid; no secrets/envchanges.
+Remaining runtime/completed-state/perf/handoff/endingSHA gates stayOPEN.
+
 ## Native11 installed / current product source qualified
 
 93353ede actual fresh unflagged composite PASS/exit0:705suites/7929tests/

@@ -2,6 +2,14 @@
 
 ## Fresh audit findings
 
+- Currentnative11 all180major staticframes and12extradomainart frames now pass
+  actualpersonalimagecritique/noP1P2 and immutableverification. PreservedP3debt:
+  sparseMemoryemptycanvas, verbosehistory explanation, mutedsecondaryClaim,
+  irregularlowerchartcardwidths, thinfirstplayblueedge and Home `2 day` grammar.
+  NATIVE_VISUAL11.md records concretecomparison/state/geometrylimits. Interactive/
+  tutorial/offlineworkout/completedprofiles/motion/performance/handoff stayopen;
+  no staticPASS substitutesfor realuse. Originalfailed180manifest unchanged.
+
 - Armed Replace geometry is now actual-native-XML qualified in default/compact/
   font2 on native09. Compact also has visible armed-label PNG; default/font2 PNGs
   were taken after expiry and are not armed visual proof. Controller's four
