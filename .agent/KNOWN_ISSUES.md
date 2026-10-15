@@ -2,6 +2,11 @@
 
 ## Fresh audit findings
 
+- Independentrouteinventory P2healthy `/storage-unavailable` falsefailure/deadRetry
+  is sourcefixedwithGoHomefallback; actualfailedbootstrapretry retained.2redcaller
+  failures/5suites53after/globaltypes/scopedlintPASS. Native09excludesfix; final
+  native10healthyroute/visualproofrequired. STORAGE_ROUTE_RECOVERY.md.
+
 - ConfirmedP2 armedReplace label reflows toanotherrow/belowviewport: actualnative
   XML replayfails originaltapretention/origin stability. Sourcefullwidthrows and
   optionalConfirmButtonwidth now54tests/types/lintPASS; newnative09green proof

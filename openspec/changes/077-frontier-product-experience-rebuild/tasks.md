@@ -2,7 +2,7 @@
 
 - [x] 1.1 Read startup/governance/owner brief, synchronize clean main, inspect current source/history/remote, run repo-state validation, and preserve historical 076 records without changing acceptance.
 - [x] 1.2 Establish 077's authoritative control plane, complete requirement-to-evidence matrix, ownership packets, baseline APK/source/device/data identity, and visible GUI verification.
-- [ ] 1.3 Inspect complete navigation/component/token/icon/font/asset architecture and inventory every route/state with KEEP/REFINE/REDESIGN/REBUILD decisions and actionable severity/reproduction/correction.
+- [x] 1.3 Inspect complete navigation/component/token/icon/font/asset architecture and inventory every route/state with KEEP/REFINE/REDESIGN/REBUILD decisions and actionable severity/reproduction/correction. CURRENT_PRODUCT_INVENTORY.md records independent15-route/state/shared-seam audit, adopted decisions and new direct-storageP2; native acceptance is separate.
 - [x] 1.4 Assess all 42 games in six required dimensions, reconcile filed historical concerns, reproduce suspected defect families, and record source/test/runtime coverage separately.
 - [ ] 1.5 Capture fresh 077 baseline screenshots/hierarchies for affected major surfaces and representative game states, including directly witnessed themes and required profile provenance.
 

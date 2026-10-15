@@ -1,5 +1,20 @@
 # Validation — Campaign077
 
+## Native09 installed / storage healthy-route source recovery
+
+Native09 exact624a5a77 build532tasks4m56s/1107files/941mappedownfiles/bothchanged
+productionfiles/eightpermissions/9artwork/3fonts PASS. APK0afcb249...8487a9c,
+52,310,075B; install-r/devicehash/exactSQLitebeforeafter/integrity8sessions/
+settingsSystem PASS. Postinstallcold11637ms notquietacceptance. Pro872ded85
+nonwritinggeometryRUNNING/exclusive5570/40sMCPwatch; no nativegeometryPASSyet.
+
+Independentrouteinventoryfound P2healthy directStorageUnavailable deadRetry;
+2realcaller redfailures before35.485s. Sourcefallbackafter5suites53testsPASS20.057s;
+globalinitialTS2345fixeddefaultparameter, finaltypesexit0/2suites5testsPASS13.408s/
+scopedlint0. Newnative10proofrequired;09excludeslaterstoragefix. Separate native
+Settings/Home controls bothpoorjank atCPU37–63percent supportenvironmentcontribution,
+not60fps/appcostexoneration. NATIVE_PREVIEW09/STORAGE_ROUTE_RECOVERY recordlimits.
+
 ## Data07 independent qualification / confirmed native reflow
 
 Trace51d82686-3931-4f8e-ba80-6ecac2ce6839 terminalCANCELLED3816.6s because finalization

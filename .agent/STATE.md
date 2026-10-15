@@ -8,7 +8,26 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native08 staged; actual6c clean checkout PASS
+## Current checkpoint — native09 installed; bounded geometry qualification
+
+Native09 nowinstalled exact624a5a77:APK0afcb249...8487a9c/52,310,075B,
+532tasks4m56s/1107exactfiles/941mappedownfiles/bothchangedproductionfiles/eight
+permissions/9artworkpixels/3fonts PASS. Install-r/devicehash/exactSQLitebytes/
+integrity8sessions/settingsSystem PASS. Coldpostinstall11637ms isnotquietPASS.
+Pro872ded85-fcb7-471e-858c-fcf327b15a70 exclusively owns5570 forNON-WRITING
+default/compact/font2armedgeometry;40s MCPwatchactive. Native09doesnotinclude
+laterstoragefallbackrepair. Native08remainsstagedneverinstalled.
+
+Independent15-route/state/sharedarchitecture inventory complete; newP2 healthy
+storage-route falsefailure/no-opRetry repaired viaexistingBootstrapfallbackpattern.
+Two realcaller red failures, after5suites53PASS; initialglobalTS2345fixeddefault
+parameter, finaltypes/twofocused suites5tests/lintPASS. CURRENT_PRODUCT_INVENTORY
+and STORAGE_ROUTE_RECOVERY record coverage versus nativeboundaries. Finalnative10
+willinclude thisrepair. Nativeplatformcontrol nativeSettingsalso90–100percentjank
+at37–63percenthostCPU supportsenvironmentcontribution, notapp60fpsacceptance.
+NATIVE_PREVIEW09.md. Full077remainsACTIVE.
+
+## Earlier checkpoint — Data07 and current-source certification
 
 Data07 terminalCANCELLED3816.6s after all actualdevicechecks: provider400 malformed
 toolhistory duringfinalization; doctorready5/5, finalize-onlyresume didnotrecover.

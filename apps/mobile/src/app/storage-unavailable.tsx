@@ -12,13 +12,15 @@
  * the same recovery-safe treatment; this module keeps the storage-specific
  * copy and the historical `storage-unavailable*` testID contract.
  */
+import { router } from 'expo-router';
+
 import { RecoveryScreen } from '@/components/recovery-screen';
 
 export interface StorageUnavailableProps {
   /** The initialization error, surfaced as a diagnostic detail. */
-  error: Error | null;
+  error?: Error | null;
   /** Re-attempts database initialization. */
-  onRetry: () => void;
+  onRetry?: () => void;
 }
 
 const STEPS = [
@@ -27,18 +29,23 @@ const STEPS = [
   'Your data is stored safely on device; nothing is deleted by this error.',
 ];
 
-export default function StorageUnavailable({ error, onRetry }: StorageUnavailableProps) {
+export default function StorageUnavailable({ error = null, onRetry }: StorageUnavailableProps = {}) {
+  // The root shell supplies a retry only for a real storage failure. Direct
+  // route entry has no failed initialization to retry, so offer Home instead.
+  const routeOnly = !onRetry;
   return (
     <RecoveryScreen
       testIDPrefix="storage-unavailable"
-      title="Storage Unavailable"
-      message="Your local data store could not be opened. Until this is resolved, progress cannot be saved. Your data is not lost — retry to reconnect to the local store."
-      steps={STEPS}
+      title={routeOnly ? 'Ready to Train' : 'Storage Unavailable'}
+      message={routeOnly
+        ? 'No startup issue is active. Return to Home to continue training.'
+        : 'Your local data store could not be opened. Until this is resolved, progress cannot be saved. Your data is not lost — retry to reconnect to the local store.'}
+      steps={routeOnly ? [] : STEPS}
       detail={error ? error.message : null}
-      retryLabel="Retry"
-      retryAccessibilityLabel="Retry opening the local data store"
-      retryHint="Re-attempts the storage initialization that failed"
-      onRetry={onRetry}
+      retryLabel={routeOnly ? 'Go to Home' : 'Retry'}
+      retryAccessibilityLabel={routeOnly ? 'Go to Home' : 'Retry opening the local data store'}
+      retryHint={routeOnly ? 'Opens the training Home screen' : 'Re-attempts the storage initialization that failed'}
+      onRetry={onRetry ?? (() => router.replace('/'))}
     />
   );
 }
