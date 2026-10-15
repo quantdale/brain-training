@@ -95,6 +95,33 @@ not be read as physical GPU performance. AVD config has4cores/2GiB/hostGPU/60Hz,
 1080×2400; no unrelated emulator was touched. Local `startup-repeat/` retains all
 three cold logs/screens/hierarchies,meminfo,gfxinfo,app logcat and context.
 
+## Later bounded warm controls
+
+After Data07 ended,12 navigation observations ran with no build/Jest/lint/export
+or ARTEMIS task active. Each reset gfx stats, navigated normally, observed10s
+without any screenshot/hierarchy capture inside that window, then preserved
+gfx and a route-qualifying hierarchy. All12 observed their intended route and
+have no loading/skeleton IDs after the window. Six normal-motion observations
+contain119frames/108janky; six reduced-motion observations60frames/59janky.
+Per-window medians range129–450ms. These are poor measured navigation results,
+not a60fps acceptance or an actual-gameplay latency measurement.
+
+Host CPU points ranged41–100percent, with unrelated host processes active.
+No unrelated process was stopped. Reduced-motion host load differed from normal,
+so this does not isolate animation as a cause. WHPX reports installed/usable;
+actual SurfaceFlinger GLES identifies NVIDIA RTX4050 hardware translation.
+Read-only Win32 verification confirms this emulator visible/not minimized.
+These diagnostics rule out those particular fallback/minimized explanations;
+they do not establish why frames are slow or make them acceptable.
+
+Memory after the normal route sequence: PSS224102KiB/RSS339656KiB; after reduced:
+PSS245392KiB/RSS362200KiB. These two points are not a leak test. Motion scale
+was restored exactly1→0→1. Local `native-preview07/warm-render-control/` and
+`native07-warm-rendering-control.log` preserve all samples/host points/XML.
+Performance remains UNRESOLVED pending current-build comparison and a valid
+lower-contention control. [RUNTIME_DATA07.md](RUNTIME_DATA07.md) separately
+supersedes the old open Merge/Replace/text-edit acceptance below.
+
 ## Still required
 
 Full current-source profiles/independent critique and gallery, all-domain artwork

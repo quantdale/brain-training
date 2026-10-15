@@ -11,6 +11,14 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Data07 rootindependent Merge/Replace/text-edit/restart/SQLite preservation
+  qualified; terminaltraceCANCELLED onfinalization400, neverautomaticPASS.
+  NewarmedReplace reflow actualnativeXML FAIL; sourcefullwidthrepair54tests/
+  types/lintPASS, native09proofrequired. Native08staged/uninstalled. Native07
+  boundedwarm12controls completed; hostCPU41–100percent/framejank unresolved,
+  noperformancePASS assumed; no activecontroller.
+  RUNTIME_DATA07.md preserves exactsource/trace/projection/verifier boundaries.
+
 - Actual6c fresh clean-checkout composite PASS703suites7921tests5snapshots/
   all declared gates/cleanstatus; allfour6cCI SUCCESS. Native08 exact6c build/
   stage532tasks5m54s/APKcbb5aeb2...a4f2f/source/assets/permissionsPASS, notinstalled

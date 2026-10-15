@@ -38,12 +38,14 @@ native acceptance. The whole brief remains ACTIVE.
 | Assets and shared implementation | Original ImageGen sources/prompts/manifests, embedded fonts, all42 functional vector convergence, shared type/control/navigation/game/result roles; [STATUS_CONVERGENCE.md](STATUS_CONVERGENCE.md) | Final all-domain art/native layout review and measured runtime memory/performance |
 | Confirmed correctness defects | Per-game regressions, sibling/real-caller checks and versions in [GAME_AUDIT.md](GAME_AUDIT.md), [DEFECTS.md](DEFECTS.md), and [PRESENTATION_RECOVERY.md](PRESENTATION_RECOVERY.md); tasks6.1/6.2 source-complete | Actual current-day workout, interruption/restart, offline gameplay and selected input/tutorial risks |
 | Native visual corrections | [NATIVE_PREVIEW06.md](NATIVE_PREVIEW06.md) preserves all180 actual-image review and rejected stale/loading frames; [NATIVE_PREVIEW07.md](NATIVE_PREVIEW07.md) records14 corrected2x frames and root inspection | Full corrected-build matrix/gallery and remaining scroll/keyboard/modal/recovery states |
-| Home read availability | [HOME_READ_AVAILABILITY.md](HOME_READ_AVAILABILITY.md): valid red-before controls, six suites/32 tests/five snapshots after, pending/error/retry/genuine-empty/existing-data callers | Built native08 still awaits installation and observed Home loading/settled proof |
-| Data safety | Source49-test preview/consent contract and actual earlier export/load/validation checks; Data07 actual Merge completion and before/after text-edit screenshots independently inspected | Data07 Replace write/restart and independent post-task SQLite verification still pending at this checkpoint |
+| Home read availability | [HOME_READ_AVAILABILITY.md](HOME_READ_AVAILABILITY.md): valid red-before controls, six suites/32 tests/five snapshots after, pending/error/retry/genuine-empty/existing-data callers | Native08 remained staged; new native09 will include confirmation correction and needs observed Home loading/settled proof |
+| Data safety | [RUNTIME_DATA07.md](RUNTIME_DATA07.md): actual export/load/Merge/Replace/text-edit/restart images independently inspected and SQLite projections/settings/workouts/186XP49coins retained; trace CANCELLED only at provider400 finalization | New confirmed armed-button reflow has source54-test/type/lint repair; new-APK bounds proof and other workout/runtime obligations remain open |
 | Engineering | [NATIVE_PREVIEW08.md](NATIVE_PREVIEW08.md): actual fresh6c full composite PASS703suites7921tests5snapshots/all declared gates/cleanstatus and four6c workflows SUCCESS; historical failed d62 canaries/reused-clone preflight retained | Final source reconciliation and four required workflows at actual endingSHA; runtime acceptance separate |
 
-The current native08 APK is staged from `6c0829c8a7dd430773685739cdb842842672ca32`;
-native07 remains installed while the exclusive ARTEMIS Data07 task runs. This
-record does not borrow native08 acceptance from native07 or relabel the rejected
-native06 frames. Performance observations remain unresolved, as recorded in
-NATIVE_PREVIEW07; no60fps or leak-free claim is made.
+The native08 APK remains staged from `6c0829c8a7dd430773685739cdb842842672ca32`,
+never installed. Data07 is terminal CANCELLED after completed observed device
+checks; native07 remains installed while bounded warm controls run. Native09
+will include the additional confirmation-layout correction. This record does
+not borrow new-build acceptance from native07 or relabel rejected native06
+frames. Performance observations remain unresolved; current controls record
+host load explicitly. No60fps or leak-free claim is made.

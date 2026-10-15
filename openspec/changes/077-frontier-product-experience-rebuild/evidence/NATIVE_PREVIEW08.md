@@ -4,6 +4,11 @@ Status at this checkpoint: **BUILD/STAGING PASS; INSTALLATION AND DEVICE ACCEPTA
 ARTEMIS Data07 exclusively owns emulator-5570 while this record is written.
 No native08 screenshot, installation or runtime acceptance is inferred from native07.
 
+Later Data07 independently qualifies the actual restore journey, while exposing
+a confirmation-label reflow defect. [RUNTIME_DATA07.md](RUNTIME_DATA07.md) records
+the actual native failure and source followup. Native08 remains staged and never
+installed; native09 will supersede it with that additional layout correction.
+
 ## Exact source and APK
 
 Source `6c0829c8a7dd430773685739cdb842842672ca32` adds the Home read-availability

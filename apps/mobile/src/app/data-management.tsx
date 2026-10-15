@@ -1123,12 +1123,13 @@ export default function DataManagementScreen() {
               ))}
             </Card>
           ) : null}
-          <View style={styles.row}>
+          {/* Keep the armed Replace label in the same full-width row. A
+              wrapping action row moved the second tap below the viewport. */}
+          <View style={styles.rows}>
             <Button
               label="Merge Import"
               variant="primary"
               size="md"
-              fullWidth={false}
               testID="data-import-merge"
               accessibilityLabel="Apply merge import"
               disabled={busy || !canApplyImport("merge")}
@@ -1142,6 +1143,7 @@ export default function DataManagementScreen() {
               confirmLabel="Tap again to erase and restore"
               accessibilityLabel="Apply replace import"
               variant="danger"
+              fullWidth
               disabled={busy || !canApplyImport("replace")}
               onConfirm={() => void onImport("replace")}
             />

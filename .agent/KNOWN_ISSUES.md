@@ -2,6 +2,15 @@
 
 ## Fresh audit findings
 
+- ConfirmedP2 armedReplace label reflows toanotherrow/belowviewport: actualnative
+  XML replayfails originaltapretention/origin stability. Sourcefullwidthrows and
+  optionalConfirmButtonwidth now54tests/types/lintPASS; newnative09green proof
+  required. Native08stagedneverinstalled. RUNTIME_DATA07.md.
+- Data07 successful actualMerge/Replace/textedit/restart nowrootimage/SQLite
+  qualified. Its terminalstatusisCANCELLED because provider400 malformedtoolhistory
+  atfinalization; doctorready5/5. This isnot aninvalidcredential and isnot an
+  automaticcheckerPASS. Currentdayfullworkout/offlinegameplay remainopen.
+
 - Native06 loading Home falsely displayedLevel1/0XP/emptyhistory despite8saved
   sessions. Source nowhidesunreadnumeric/historyclaims andsurfacesexistingretry
   atprogressposition;2validbeforefailures/6suites32testsfivesnapshots afterPASS.
@@ -12,6 +21,11 @@
   loadedretaineddata. Gfx64launch/Homeframes60janky/median150ms and skippedframe
   logs are unresolved performance evidence, notPASS. Needbounded no-dump/warm
   interaction controls and actualgameplay; noleakclaim fromsinglePSS149372KiB.
+- Later warm12controls have no capture inside measuredwindows, but hostCPU
+  41–100percent; normal119frames108janky/reduced60frames59janky remainpoor.
+  PSS224102→245392KiB two points donotproveleak/no-leak. WHPX/hardwareNVIDIA/
+  visibleunminimized verified. Need current-build/lower-contention attribution;
+  do notlabel thisquiet or60fps. NATIVE_PREVIEW07.md.
 - d62AppCI's fivecanary failures were inactivefalse style entries. Corrected6c
   actual full fresh composite nowPASS703suites7921tests/fivesnapshots and allfour
   CI SUCCESS. Historical failed d62 run remains preserved. Final endingSHA CI

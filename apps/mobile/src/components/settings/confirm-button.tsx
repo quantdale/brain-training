@@ -45,6 +45,8 @@ interface ConfirmButtonProps {
   style?: StyleProp<ViewStyle>;
   /** Small pill sizing for dense rows (saved-backup list). */
   size?: "regular" | "small";
+  /** Reserve one full row when the longer confirmation label must not reflow. */
+  fullWidth?: boolean;
 }
 
 /** Resting kit variant per legacy variant; armed is always danger. */
@@ -64,6 +66,7 @@ export function ConfirmButton({
   accessibilityLabel,
   style,
   size = "regular",
+  fullWidth = false,
 }: ConfirmButtonProps) {
   const [armed, setArmed] = useState(false);
   const timerRef = useRef<ArmTimer | null>(null);
@@ -111,7 +114,7 @@ export function ConfirmButton({
       onPress={onPress}
       variant={armed ? "danger" : VARIANT_BUTTON[variant]}
       size={size === "small" ? "sm" : "md"}
-      fullWidth={false}
+      fullWidth={fullWidth}
       disabled={disabled}
       testID={testID}
       accessibilityLabel={

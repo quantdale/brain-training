@@ -10,6 +10,23 @@
 
 ## Current checkpoint — native08 staged; actual6c clean checkout PASS
 
+Data07 terminalCANCELLED3816.6s after all actualdevicechecks: provider400 malformed
+toolhistory duringfinalization; doctorready5/5, finalize-onlyresume didnotrecover.
+Rootactuallyviewed Merge38, preview/edit50/51, Replacecomplete63, retained8sessions67
+and Home69. IndependentSQLite integrityok/all8sessionrows+versions/exportedledger/
+ratings/XP/workouts/settings/186XP49coins retained. Initialverifier incorrectly
+compared regenerated internalIDs; correctedactualexport-projection verification
+passes onpreservedfiles. RUNTIME_DATA07.md; no automaticcheckerPASS claimed.
+
+NewrealP2 armedReplace reflows belowviewport. ActualnativeXML replay validFAIL
+origin/width/originaltapretention; preview origin unchanged. Sourcefullwidthrows/
+optionalConfirmButtonwidth correction54tests/types/scopedlintPASS; newnative09
+proofrequired. Native08 remainsstaged/uninstalled. Native07 warm12controls terminal
+exit0:normal119frames108janky/reduced60frames59janky, all12routes/no postwindow
+loadingIDs. HostCPU41–100percent; notquiet/60fpsacceptance. ActualWHPX/NVIDIA
+GPU/visibleunminimized verified, causeunresolved. No activecontroller. Full077
+remainsACTIVE; native09 build follows committed source freeze.
+
 Actual fresh independent6c0829c8 clone full unflagged composite terminalPASS,
 703suites7921tests5snapshots436.351s; four skipped suites/five classified opt-in
 tests, failed0; all declared composite gates/unchanged tracked status PASS.

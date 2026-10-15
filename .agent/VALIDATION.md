@@ -1,5 +1,21 @@
 # Validation — Campaign077
 
+## Data07 independent qualification / confirmed native reflow
+
+Trace51d82686-3931-4f8e-ba80-6ecac2ce6839 terminalCANCELLED3816.6s because finalization
+provider400 malformedtoolhistory; doctorready5/5. ActualMerge38/Replace63/textedit
+50–51/restart8sessions67/finalHome69 rootimages inspected. Independent preserved
+SQLite integrityok,8sessionrows/versions and exportedledger/rating/XP projections,
+workouts/settings/186XP49coins unchanged. Initial raw-ID verifier failure was an
+invalidassumption: sourceexport omits/regenerates three autoincrement IDs. Corrected
+projection passes onpreservedfiles; profile.updated_at differs, otherprofilefields
+match. RUNTIME_DATA07.md contains exactfacts/limits; no automaticcheckerPASS.
+
+Captured actual confirmationXML replay FAIL: resting458,2227→845,2353 becomes
+armed84,2374→769,2400; originaltapoutside, previeworiginunchanged. Fullwidthsource
+fix twoaffected suites54testsPASS54.744s/types/scopedlint exit0; actualnew-APK
+greenprobe remainsrequired. Native08stagedneverinstalled; native09build planned.
+
 ## Actual current-source composite and staged native08
 
 Fresh independent D:/bt077-cert-6c0829c8 full unflagged composite terminalPASS;
