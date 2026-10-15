@@ -1337,19 +1337,20 @@ const REACTION_BEST_FIELDS = [
  * the chosen CASE arm, so invalid JSON degrades to nulls exactly like the
  * JS-side `fromJson` fallback instead of erroring the whole scan.
  */
-function jsonNumberExpr(doc: string, path: string): string {
+function jsonNumberExpr(doc: string, path: string, positiveOnly = false): string {
   // Field candidates arrive as bare object key names ("score"); SQLite JSON
   // paths must start with "$", so normalize here. Paths that already carry
   // the "$" prefix ($.challengeRating) pass through untouched.
   const jsonPath = path.startsWith("$") ? path : `$.${path}`;
   return (
     `CASE WHEN json_type(${doc}, '${jsonPath}') IN ('integer','real') ` +
+    (positiveOnly ? `AND json_extract(${doc}, '${jsonPath}') > 0 ` : "") +
     `THEN json_extract(${doc}, '${jsonPath}') END`
   );
 }
 
-function coalescedJsonNumbers(doc: string, paths: readonly string[]): string {
-  const inner = paths.map((path) => jsonNumberExpr(doc, path));
+function coalescedJsonNumbers(doc: string, paths: readonly string[], positiveOnly = false): string {
+  const inner = paths.map((path) => jsonNumberExpr(doc, path, positiveOnly));
   // COALESCE needs ≥2 arguments in SQLite; single-path lists (e.g. the
   // difficulty `challengeRating` extraction) must skip it entirely or the
   // whole statement fails to prepare — which silently disabled the entire
@@ -1398,7 +1399,9 @@ const SESSION_PROGRESS_COLUMNS = [
   "duration_ms AS durationMs",
   coalescedJsonNumbers("raw_result_json", SCORE_FIELDS) + " AS mScore",
   coalescedJsonNumbers("raw_result_json", ACCURACY_FIELDS) + " AS mAccuracy",
-  coalescedJsonNumbers("raw_result_json", [...REACTION_MEAN_FIELDS, ...REACTION_BEST_FIELDS]) +
+  // Skip no-response sentinels before COALESCE so a later real mean/best is
+  // still available, exactly as the full-blob analytics adapter does.
+  coalescedJsonNumbers("raw_result_json", [...REACTION_MEAN_FIELDS, ...REACTION_BEST_FIELDS], true) +
     " AS mReactionMs",
   coalescedJsonNumbers("difficulty_json", ["$.challengeRating"]) + " AS mDifficultyRating",
   difficultyLevelExpr() + " AS mDifficultyLevel",

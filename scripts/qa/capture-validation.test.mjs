@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { captureIssues, contentColorCount, inspectPng, routeArrived } from './capture-validation.mjs';
+import { captureFramePair, captureIssues, contentColorCount, inspectPng, routeArrived, settledRoute } from './capture-validation.mjs';
 
 const { PNG } = createRequire(new URL('../../apps/mobile/package.json', import.meta.url))('pngjs');
 
@@ -67,6 +67,52 @@ test('matrix rejects missing, duplicated, skipped and invalid frames', () => {
   const aborted = manifest();
   aborted.aborted = 'display reset failed';
   assert.ok(captureIssues(aborted).some((issue) => issue.includes('capture aborted')));
+});
+
+test('capture checks a settled route before taking pixels', () => {
+  const calls = [];
+  const result = captureFramePair({
+    capture: () => { calls.push('pixels'); return { bytes: 1 }; },
+    readHierarchy: () => { calls.push('tree'); return xml; },
+    isReady: (tree) => settledRoute(tree, pkg, ['games-title']),
+  });
+  assert.equal(result.ready, false);
+  assert.deepEqual(calls, ['tree']);
+});
+
+test('capture rejects changed content between the two app hierarchies', () => {
+  const route = xml.replaceAll('bootstrap-recovery-title', 'games-title');
+  const trees = [route, route.replace('bootstrap-recovery-message', 'changed-message')];
+  const calls = [];
+  const result = captureFramePair({
+    capture: () => { calls.push('pixels'); return { bytes: 1 }; },
+    readHierarchy: () => { calls.push('tree'); return trees.shift(); },
+    isReady: (tree) => settledRoute(tree, pkg, ['games-title']),
+  });
+  assert.deepEqual(calls, ['tree', 'pixels', 'tree']);
+  assert.equal(result.ready, false);
+});
+
+test('settled routes exclude loading content despite a present title', () => {
+  const home = xml.replace('bootstrap-recovery-title', 'home-title');
+  assert.equal(settledRoute(home, pkg, ['home-title']), true);
+  assert.equal(settledRoute(home.replace('bootstrap-recovery-message', 'home-loading'), pkg, ['home-title']), false);
+});
+
+test('stable capture pairs retain matching before and after witnesses', () => {
+  const result = captureFramePair({
+    capture: () => ({ bytes: 1 }), readHierarchy: () => xml,
+    isReady: (tree) => settledRoute(tree, pkg, ['bootstrap-recovery-title']),
+  });
+  assert.equal(result.ready, true);
+  assert.equal(result.before, result.after);
+  assert.equal(result.shot.bytes, 1);
+  const current = { ...manifest(), captureProtocol: 'hierarchy-bracket-v1' };
+  assert.equal(captureIssues(current).filter((issue) => issue.includes('unbracketed')).length, 2);
+  current.surfaces.forEach((entry) => Object.assign(entry, { hierarchyBracketed: true, beforeXmlSha256: entry.xmlSha256 }));
+  assert.deepEqual(captureIssues(current), []);
+  current.surfaces[0].beforeXmlSha256 = 'different';
+  assert.equal(captureIssues(current).filter((issue) => issue.includes('unbracketed')).length, 1);
 });
 
 test('capture CLI refuses to overwrite an existing immutable run', () => {

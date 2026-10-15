@@ -121,6 +121,15 @@ describe('metrics-map extraction', () => {
     expect(extractAccuracy({ accuracy: -1 })).toBe(0);
   });
 
+  it('treats nonpositive mean timings as unavailable and keeps looking for a real sample', () => {
+    for (const field of ['avgResponseMs', 'meanReactionMs', 'avgReactionMs', 'averageAnswerMs', 'avgReactionTimeMs', 'medianReactionMs']) {
+      expect(extractReactionMs({ [field]: 0 })).toBeNull();
+      expect(extractReactionMs({ [field]: -1 })).toBeNull();
+    }
+    expect(extractReactionMs({ avgResponseMs: 0, medianReactionMs: 420, fastestResponseMs: 300 })).toBe(420);
+    expect(extractReactionMs({ avgResponseMs: 0, fastestResponseMs: 300 })).toBe(300);
+  });
+
   it('reads challengeRating from difficulty then named levels', () => {
     expect(extractDifficultyRating({ challengeRating: 0.7 })).toBe(0.7);
     expect(extractDifficultyRating({ level: 'hard' })).toBe(0.8);

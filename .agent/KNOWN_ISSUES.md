@@ -2,6 +2,14 @@
 
 ## Fresh audit findings
 
+- Native06 actual profile review found P2 Android2x heading descenders, truncated
+  automatic backup-name explanation, narrow populated backup filenames and
+  no-response mean0ms presented as performance. Source repairs/focused checks
+  pass; new native07 proof remains open. The old06 capture can file a stale or
+  loading PNG against a later hierarchy: identified invalid frames are preserved
+  in NATIVE_PREVIEW06.md. Bracketed settled capture repair passes11 tests; full
+  current-profile acceptance remains open, never inferred from structural PASS.
+
 - Preview03 High GridNavigator demo reachability: source repaired,2 valid
   red-before geometry failures/normal control all3 PASS. Preview04 Flasha6b84b21
   completes the normal tutorial through actual candidates/confirmation/Gotit to
@@ -36,6 +44,12 @@
 Historical controller observations are audit seeds, not fresh reproduced defects: SequenceMemory pause/quit,SymbolTrackerNext visibility,VisualSearch denominator,EquationBuilder/CardSort tap misses and below-fold continuation. Classify via source/tests/selective runtime.
 
 ## Preserved limits/debt
+
+- Automatic approval review rejected removal of the completed independent
+  clean-checkout directory `D:\bt077-cert-d164420d` as "blocked by policy" after
+  resolved-path/identity/clean-status checks. It remains; no alternative deletion
+  attempted. This is not a linked Git worktree or temporary branch. Current
+  `D:\bt077-cert-afabda3a` certification evidence is also retained for review.
 
 - Automatic approval review rejected nonrecursive removal of a verified-empty
   mistakenly created apps/mobile/qa-artifacts/campaign077 directory as "blocked

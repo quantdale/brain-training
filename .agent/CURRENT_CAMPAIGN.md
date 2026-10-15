@@ -11,6 +11,18 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Actual native06 profile critique found fourP2 families and stale/loading frame
+  evidence; source corrections and focused regressions pass. New settled-PNG
+  bracketing harness11tests PASS. Source freeze/build07 and affected native
+  reproof follow; no structural180-result can close rejected images.
+
+- Current source afabda3a installed as native06, exact1107 files/build532tasks
+  PASS/install/devicehash/data/permissions PASS. Actual full independent clean
+  checkout afabda3a PASS,702suites7903tests5snapshots382.226s/all declared composite
+  gates/clean status. Full180profile capture and independent review RUNNING;
+  actual restore/workout/offlinegameplay/quietperf/finalCI/visiblehandoff OPEN.
+  Details evidence/NATIVE_PREVIEW06.md. No complete-campaign verdict yet.
+
 - A: startup/control plane/history reconciliation and150-frame static baseline complete; source/product findings and the complete42-row six-dimension source/caller ledger recorded; runtime transition audit remains open.
 - B: real styles/mobile/flow research and three-direction comparison complete; Play Lab selected with independent critique. Full data/empty-state examples inspected and recorded.
 - C/D: initial original artwork optimized and bundled; embedded Manrope and Lucide/SVG/shared tokens/control/navigation foundation implemented; first native preview built/installed and independently critiqued; refined preview02 built from918c20ed and installed, current captures pending.

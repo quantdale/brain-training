@@ -43,6 +43,24 @@ export function routeArrived(xml, pkg, markers, requireAll = false) {
   return requireAll ? markers.every(hasId) : markers.some(hasId);
 }
 
+/** One screenshot/hierarchy transaction; callbacks keep actual ADB I/O in the CLI. */
+export function captureFramePair({ capture, readHierarchy, isReady }) {
+  // A later hierarchy cannot certify an earlier screenshot: native route
+  // delivery and React data loading can settle during uiautomator's dump.
+  const before = readHierarchy('before');
+  if (!isReady(before)) return { shot: null, before, after: before, ready: false };
+  const shot = capture();
+  const after = readHierarchy('after');
+  return { shot, before, after, ready: isReady(after) && before === after };
+}
+
+/** Loading routes are useful diagnostics, but cannot qualify settled surfaces. */
+export function settledRoute(xml, pkg, markers, requireAll = false, expectedText) {
+  return routeArrived(xml, pkg, markers, requireAll) &&
+    (!expectedText || xml.includes(`text="${expectedText}"`)) &&
+    !/resource-id="[^"]*(?:-loading|-skeleton)(?:-[^"]*)?"/.test(xml);
+}
+
 /** A requested matrix is complete only when EVERY unique key has valid content. */
 export function captureIssues(manifest) {
   if (!Array.isArray(manifest.profiles) || !Array.isArray(manifest.themes) ||
@@ -72,6 +90,10 @@ export function captureIssues(manifest) {
     if (!entry.routeVerified || entry.blank || !entry.foregroundVerified ||
         !entry.pngBytes || !entry.xmlBytes || !entry.pngSha256 || !entry.xmlSha256) {
       issues.push(`invalid screenshot or hierarchy: ${key}`);
+    }
+    if (manifest.captureProtocol === 'hierarchy-bracket-v1' &&
+        (!entry.hierarchyBracketed || !entry.beforeXmlSha256 || entry.beforeXmlSha256 !== entry.xmlSha256)) {
+      issues.push(`unbracketed screenshot: ${key}`);
     }
   }
   for (const key of expected) {

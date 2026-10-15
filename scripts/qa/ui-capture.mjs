@@ -33,7 +33,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
-import { captureIssues, contentColorCount, inspectPng, routeArrived } from './capture-validation.mjs';
+import { captureFramePair, captureIssues, contentColorCount, inspectPng, settledRoute } from './capture-validation.mjs';
 import { resolvedThemeWitness } from './resolved-theme-witness.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -52,7 +52,7 @@ const SURFACES = [
     settleMs: 2500,
     expects: ['game-detail-title', 'game-detail-loading', 'game-detail-error'],
   },
-  // Focused visual checks for four different still grammars; not part of the
+  // Focused visual checks for distinct game and domain artwork; not part of the
   // default 15-route matrix. The title prevents a stale Memory route from
   // masquerading as an individually reviewed game detail.
   ...[
@@ -60,6 +60,10 @@ const SURFACES = [
     ['number-line', 'math-number-line-estimation', 'Number Line'],
     ['coordinate-turn', 'spatial-coordinate-turn', 'Coordinate Turn'],
     ['equation-builder', 'math-equation-builder', 'Equation Builder'],
+    ['word-match', 'language-word-match', 'Word Match'],
+    ['tap-rush', 'speed-tap-rush', 'Tap Rush'],
+    ['card-sort', 'flexibility-card-sort', 'Card Sort'],
+    ['code-cracker', 'logic-code-cracker', 'Code Cracker'],
   ].map(([suffix, gameId, title]) => ({
     id: `game-detail-${suffix}`,
     route: `/game-detail/${gameId}`,
@@ -470,6 +474,7 @@ async function main() {
     capturedAt: new Date().toISOString(),
     device,
     package: options.pkg,
+    captureProtocol: 'hierarchy-bracket-v1',
     build: appBuildInfo(device, options.pkg),
     scheme: options.scheme,
     profiles: options.profiles,
@@ -513,6 +518,7 @@ async function main() {
         mkdirSync(dir, { recursive: true });
         const pngPath = join(dir, `${surface.id}.png`);
         const xmlPath = join(dir, `${surface.id}.xml`);
+        const beforeXmlPath = join(dir, `${surface.id}.before.xml`);
 
         const opened = openRoute(device, options.scheme, surface.route, options.pkg);
         await sleep(surface.settleMs + options.settleMs);
@@ -551,24 +557,35 @@ async function main() {
         let uniform = false;
         let corruptChrome = false;
         let routeVerified = false;
+        let hierarchyBracketed = false;
         let reopenedCold = false;
         const markers = surface.expects ?? [];
         for (let attempt = 0; attempt < 3; attempt += 1) {
-          const shot = capturePng(device, pngPath);
-          bytes = shot.bytes;
-          contentColors = shot.colors;
-          xmlBytes = dumpHierarchy(device, xmlPath);
-          xml = xmlBytes > 0 ? readFileSync(xmlPath, 'utf8') : '';
-          uniform = contentColors <= 2;
-          corruptChrome = shot.statusBarDiscontinuity;
+          const frame = captureFramePair({
+            capture: () => capturePng(device, pngPath),
+            readHierarchy: (stage) => {
+              const count = dumpHierarchy(device, xmlPath);
+              const tree = count > 0 ? readFileSync(xmlPath, 'utf8') : '';
+              if (stage === 'before') writeFileSync(beforeXmlPath, tree);
+              return tree;
+            },
+            isReady: (tree) => settledRoute(tree, options.pkg, markers, surface.expectAll, surface.expectedText),
+          });
+          const shot = frame.shot;
+          bytes = shot?.bytes ?? 0;
+          contentColors = shot?.colors ?? 0;
+          xml = frame.after;
+          xmlBytes = Buffer.byteLength(xml, 'utf8');
+          uniform = Boolean(shot) && contentColors <= 2;
+          corruptChrome = shot?.statusBarDiscontinuity ?? false;
           if (uniform || corruptChrome) {
             await sleep(4000);
             continue;
           }
           // A missing hierarchy dump is a dump failure, not route evidence:
           // only judge arrival when the dump actually produced a tree.
-          routeVerified = xmlBytes > 0 && routeArrived(xml, options.pkg, markers, surface.expectAll) &&
-            (!surface.expectedText || xml.includes(`text="${surface.expectedText}"`));
+          routeVerified = frame.ready;
+          hierarchyBracketed = frame.ready;
           if (routeVerified || attempt === 2) {
             break;
           }
@@ -616,8 +633,11 @@ async function main() {
           pngBytes: bytes,
           contentColors,
           xmlBytes,
-          pngSha256: fileSha256(pngPath),
+          pngSha256: bytes > 0 && existsSync(pngPath) ? fileSha256(pngPath) : null,
           xmlSha256: xmlBytes > 0 ? fileSha256(xmlPath) : null,
+          beforeXml: relative(ROOT, beforeXmlPath).replace(/\\/g, '/'),
+          beforeXmlSha256: existsSync(beforeXmlPath) ? fileSha256(beforeXmlPath) : null,
+          hierarchyBracketed,
           deepLinkStarted: opened,
           foregroundVerified,
           routeVerified,

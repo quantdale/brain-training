@@ -85,7 +85,10 @@ export function extractAccuracy(rawResult: unknown): number | null {
 export function extractReactionMs(rawResult: unknown): number | null {
   for (const field of REACTION_MEAN_FIELDS) {
     const value = readNumber(rawResult, field);
-    if (value !== null) {
+    // Timeout/no-response sessions can store zero for a mean as well as a
+    // best. Neither is observed reaction performance; keep looking for a
+    // real sample without changing the historical result payload.
+    if (value !== null && value > 0) {
       return value;
     }
   }

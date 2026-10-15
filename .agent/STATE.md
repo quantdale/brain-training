@@ -8,7 +8,44 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — status vectors and data feedback convergence
+## Current checkpoint — native06 and actual final-source clean checkout
+
+Actual independent06 review now rejects loading/stale profile frames despite
+the old structural capture gate. Source followup repairs confirmed2x heading
+descenders, backupname hint/filename layout and no-response0ms mean analytics;
+capture now brackets PNG with settled matching hierarchies. Source focused
+18heading/49data/9suites174analytics and11harness checks PASS; integrated types
+PASS, final lint in progress. Native07 build/proof follows after source freeze.
+NATIVE_PREVIEW06.md preserves exact initial failures and invalid screenshot list.
+
+Pushed main afabda3a74201d3bbd7da22da9d0ecbf99bf7878 is installed as native06:
+APK079b7e520e347c9856e40082177505da742ee27948527abccf4ebdca6d05ffad,
+52,309,219B. Build532tasks PASS2m36s,1107 committed app files match; independent
+source-map proof941 own files/all56 changed production files exact. Packaged
+9illustrations pixel-identical/3fonts byte-identical. Install/devicehash/8permissions
+PASS; exact SQLite files unchanged,8sessions/integrityok/settings preserved.
+Initial cold launch6668ms under load is NOT quiet performance acceptance.
+
+Actual independent clone D:/bt077-cert-afabda3a, fresh npmci/no inherited native
+folders, ran full unflagged certify-clean-checkout: PASS/exit0. All declared
+composite gates including current source types/lint/web22/strict62/security/
+real-parent provenance/full Jest/classifier/unchanged tracked files pass.
+702suites7903tests5snapshots,382.226s,4skippedsuites5reviewedopt-in tests,failed0.
+This includes the final inline-data feedback. NATIVE_PREVIEW06.md records hashes,
+build sequencing corroboration, initial probe mistakes and warning boundaries.
+
+180 native06 frames completed the structural gate,18surfaces×boththemes×fiveprofiles.
+Independent actual review rejects identified loading/stale entries; no all-state
+visual acceptance inferred. Source corrections now types/full lint PASS. Next:
+focused actual Merge/Replace/text-edit proof, risk tutorials atcompact/2x,
+current-day full workout/offline gameplay, quiet perf/logcat/memory, final ending
+SHA/four CI and visible Home handoff. Full original077 remains ACTIVE.
+Old completed certclone removal was rejected by automatic approval review as
+blocked by policy; retained safely, no alternate deletion. KNOWN_ISSUES.md.
+At afabda3a allfourCI SUCCESS: App38695294948,Integrity38695294961,
+Android38695294918,iOS38695294897. New-source/ending-SHA certification separate.
+
+## Earlier checkpoint — status vectors and data feedback convergence
 
 All42 game functional status markers now use existing AppIcon vectors; puzzle
 symbols/NO-GO/cosmetics remain. Three disjoint packets converged, source rules/

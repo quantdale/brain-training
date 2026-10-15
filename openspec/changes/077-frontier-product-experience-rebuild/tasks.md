@@ -18,13 +18,13 @@
 - [x] 3.1 Verify actual ImageGen capability and create asset locks with purposes, slots/crops, palette/material/lighting/shape/detail rules and reject criteria.
 - [x] 3.2 Actually generate and inspect a coherent useful original asset family, iterate rejected outputs, preserve source/prompt/provenance, and replace shipped Expo-template branding art.
 - [x] 3.3 Verify dimensions/transparency, optimize sizes, create deterministic local mappings/manifest, and integrate accepted assets through the app pipeline.
-- [ ] 3.4 Standardize functional icons in one vector family; verify small sizes and consistent geometry/states without raster substitutes.
+- [x] 3.4 Standardize functional icons in one vector family; verify small sizes and consistent geometry/states without raster substitutes.
 - [ ] 3.5 Verify artwork in React Native/emulator, both themes/applicable layouts, responsive crop/scaling and memory cost; independent asset critique.
 
 ## 4. Wave D — Shared design system
 
-- [ ] 4.1 Rebuild shared colors, type/spacing/radius/elevation and layout roles against the lock, preserving clear game semantics and disabled-control contrast.
-- [ ] 4.2 Reconstruct existing navigation/headers/cards/buttons/icons/badges/inputs/dialogs/progress/empty/loading/error primitives without duplicating a second library.
+- [x] 4.1 Rebuild shared colors, type/spacing/radius/elevation and layout roles against the lock, preserving clear game semantics and disabled-control contrast.
+- [x] 4.2 Reconstruct existing navigation/headers/cards/buttons/icons/badges/inputs/dialogs/progress/empty/loading/error primitives without duplicating a second library.
 - [ ] 4.3 Improve game HUD/stage/feedback/pause/results contracts and responsive board/control hierarchy while retaining IDs/external contracts.
 - [ ] 4.4 Integrate purposeful reduced-motion-safe native-friendly motion without gameplay timing bias or unnecessary rerenders; independently inspect canary screenshots.
 
@@ -40,8 +40,8 @@
 
 ## 6. Wave F — Game presentation and correctness recovery
 
-- [ ] 6.1 Repair confirmed High/Critical adaptive-state, board-geometry, timeout and hit-area defects before feature expansion; preserve fail-before/pass-after evidence.
-- [ ] 6.2 Repair every remaining confirmed mechanics/scoring/content/input/lifecycle defect, test the real caller pattern, assess siblings/shared causes and version changed rules.
+- [x] 6.1 Repair confirmed High/Critical adaptive-state, board-geometry, timeout and hit-area defects before feature expansion; preserve fail-before/pass-after evidence.
+- [x] 6.2 Repair every remaining confirmed mechanics/scoring/content/input/lifecycle defect, test the real caller pattern, assess siblings/shared causes and version changed rules.
 - [ ] 6.3 Bring all 42 game presentations into the shared language while preserving mechanic-specific identity, stimulus clarity, correct grids/touch geometry and readable instructions.
 - [ ] 6.4 Verify tutorials/start/active/feedback/pause/resume/quit/complete/restart/interruption and scoring/input/accessibility with deterministic tests/fixtures and selective actual interactions.
 - [ ] 6.5 Verify honest rounded feedback/results, normalization, session/XP/reward exactly-once effects, and historical provenance; finish all 42 assessment rows with explicit evidence/unvalidated boundaries.

@@ -164,6 +164,12 @@ function adversarialRows(baseMs: number): FixtureRow[] {
     // NULL / wrong-typed metric values inside otherwise valid objects.
     doc('speed-reaction-time', '{"challengeRating":null}', '{"score":null,"accuracy":null}', 8),
     doc('speed-reaction-time', '{}', '{"score":"320","accuracy":true,"avgResponseMs":[120]}', 9),
+    // No-response sentinels must be absent on both full-blob and JSON1 paths;
+    // skipping them must still allow a later real mean or best timing.
+    doc('attention-visual-search', '{}', '{"avgResponseMs":0,"fastestResponseMs":0}', 101),
+    doc('attention-visual-search', '{}', '{"avgResponseMs":0,"medianReactionMs":420,"fastestResponseMs":300}', 102),
+    doc('attention-visual-search', '{}', '{"avgResponseMs":0,"fastestResponseMs":300}', 103),
+    doc('attention-visual-search', '{}', '{"avgResponseMs":-1,"bestReactionMs":-5,"fastestResponseMs":500}', 104),
     // Old-version shapes: legacy field names the extractors must still find.
     doc('language-word-match', '"easy"', '{"points":42,"hitRate":0.6,"fastestReactionMs":300}', 10),
     doc('language-word-match', '{"level":"impossible"}', '{"totalScore":7,"precision":1.5,"medianReactionMs":480}', 11),

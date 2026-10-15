@@ -742,8 +742,8 @@ export default function DataManagementScreen() {
             label="Backup name"
             value={backupName}
             onChangeText={setBackupName}
-            placeholder="Leave blank to auto-name"
-            hint="Saved in this app's backups folder on your phone."
+            placeholder="Optional"
+            hint="Leave blank for an automatic name. Saved in this app's backups folder on your phone."
             onClear={() => setBackupName("")}
             testID="data-export-name"
           />
@@ -1294,16 +1294,18 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   backupRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    // Filenames need the full row; action labels grow with system text and
+    // wrap below instead of squeezing the name beside three controls.
+    flexDirection: "column",
+    alignItems: "stretch",
     gap: Spacing.two,
     paddingBottom: Spacing.twoHalf,
     marginBottom: Spacing.twoHalf,
     borderBottomWidth: HAIRLINE,
   },
   backupName: {
-    flex: 1,
+    alignSelf: "stretch",
+    minWidth: 0,
   },
   textArea: {
     minHeight: 120,

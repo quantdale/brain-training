@@ -1,5 +1,37 @@
 # Validation — Campaign077
 
+## Current certification checkpoint — native06 / afabda3a
+
+Subsequent actual profile review found4P2 families and7 currently identified
+loading/stale frames. Source fixes: heading2 red-before/18after tests; data2
+red-before/49after; metric2 valid red-before/analytics+repository9suites174after;
+capture2 old-order red-before/11after. Global current types PASS; current lint
+in progress. Native07/profile recapture still required. Exact failure boundaries,
+including invalid diagnostic invocations and overlapped red attempt, are in
+NATIVE_PREVIEW06.md. No all180 visual acceptance is claimed.
+
+Actual independent clean checkout PASS/exit0, fresh npmci/full unflagged composite,
+702suites7903tests5snapshots382.226s,4skippedsuites5reviewedtests,failed0; current
+types/full lint/strict62/provenance/registry/offline/security/web22 and every
+declared composite gate/unchanged tracked status PASS. Summary SHA256
+d81ef4c6c3414129f8dcf1d5c3724a69ce91927b097932b9ae4a389d27b93f31.
+This supersedes the earlier final-source full-run requirement, not runtime gates.
+
+Native06 exact1107file inventory9c920440a6ac82cfe3837de08b1d610d847c9859b6884fb56f6efdbdc72c9188;
+build532tasks2m36s PASS; APK079b7e520e347c9856e40082177505da742ee27948527abccf4ebdca6d05ffad,
+52,309,219B,install/devicehash/eightpermissions PASS. Exact SQLite bytes unchanged,
+verification integrityok/eight sessions/settings retained. Metro source-map941 own
+files/all56 changed production files match committed source; bundle inside APK
+equals generated bundle. Nine packaged illustrations pixel-identical,three fonts
+byte-identical;9MiB static decoded art footprint is not measured process memory.
+Initial virtual-context/font-metadata probe errors and preflight-copy overlap are
+explicitly reconciled in NATIVE_PREVIEW06.md; no failed probe is relabeled.
+
+180-frame native profile capture RUNNING; actual visual acceptance/restore writes/
+full workout/offline gameplay/quiet performance/ending-SHA CI/visible handoff OPEN.
+Cold6668ms under load is not accepted quiet performance. No physical/iOS runtime
+or store signing claim. Existing terminal traces and initial failures stay intact.
+
 ## Startup — 2026-10-14
 
 - Complete mandatory startup/history/owner brief reading: COMPLETE via lead/independent read-only auditor.

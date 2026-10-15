@@ -243,6 +243,18 @@ describe('Per-domain drill-down — W09 additions', () => {
     expect(screen.getByTestId('progress-domain-best')).toHaveTextContent(/1060/);
     expect(screen.getByTestId('progress-domain-stats')).toBeOnTheScreen();
   });
+
+  it('does not present a no-response zero sentinel as domain reaction performance', async () => {
+    mockDbState.db = makeFakeDb({
+      ratings: [{ domain: 'Memory', rating: 945, sessions: 1, updatedAt: NOW }],
+      recent: [makeSession({ rawResult: { score: 0, accuracy: 0, avgResponseMs: 0, fastestResponseMs: 0 }, normalizedResult: 0 })],
+    });
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+    expect(screen.getByTestId('progress-domain-stats')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-domain-accuracy')).toBeOnTheScreen();
+    expect(screen.queryByTestId('progress-domain-reaction')).toBeNull();
+    expect(screen.queryByText('0ms recent')).toBeNull();
+  });
 });
 
 describe('Activity calendar — W09 additions', () => {

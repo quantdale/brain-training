@@ -13,6 +13,7 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { act, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { expectConsoleNoise } from '@/test-utils';
 import { countLocalData ,
   applyImport,
@@ -303,16 +304,36 @@ describe('data-management UX contract', () => {
   });
 
   it('lists saved backups from earlier sessions on mount', async () => {
-    await transport.writeBackup('old.json', '{"older":true}');
+    const name = 'campaign077-data-proof';
+    const loadId = `data-backup-load-${name}`;
+    await transport.writeBackup(name, '{"older":true}');
     await renderScreen();
 
-    expect(
-      await screen.findByTestId('data-backup-load-old.json'),
-    ).toBeOnTheScreen();
+    const load = await screen.findByTestId(loadId);
+    expect(load).toBeOnTheScreen();
+    expect(load.props.accessibilityLabel).toBe(`Load backup ${name} into the import box`);
+    expect(screen.getByTestId(`data-backup-share-${name}`).props.accessibilityLabel).toBe(`Share saved backup ${name}`);
+    expect(screen.getByTestId(`data-backup-delete-${name}`).props.accessibilityLabel).toBe(`Delete saved backup ${name}`);
+    expect(screen.getByText(name).props.numberOfLines).toBeUndefined();
+    // The deepest owner of this filename and its actions must give them
+    // separate rows. Native06 squeezed the name into six-character lines
+    // when all three buttons competed for the same horizontal space.
+    const backupLayout = screen.getByTestId('data-saved-backups').queryAll((node) =>
+      node.queryAll((child) => child.props.testID === loadId).length > 0 &&
+      node.queryAll((child) => child.props.children === name).length > 0,
+    ).at(-1);
+    expect(StyleSheet.flatten(backupLayout?.props.style)).toMatchObject({
+      flexDirection: 'column', alignItems: 'stretch',
+    });
   });
 
   it('export saves to the transport, lists it, and offers Share', async () => {
     await renderScreen();
+
+    expect(screen.getByTestId('data-export-name').props.placeholder).toBe('Optional');
+    const nameHint = within(screen.getByTestId('data-export-card')).getByText(/Leave blank.*automatic/i);
+    expect(nameHint.props.numberOfLines).toBeUndefined();
+    expect(nameHint).toHaveTextContent(/Saved in this app's backups folder on your phone/);
 
     await fireEvent.press(await screen.findByTestId('data-export-button'));
 

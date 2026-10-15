@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
+import { Platform, StyleSheet, Text, useWindowDimensions, type TextProps, type TextStyle } from 'react-native';
 
 import { FONT_SCALE_CAP, MAX_FONT_SCALE } from '@/components/a11y/font-scale';
 import { Fonts, Typography, type ThemeColor, type TypographyName } from '@/constants/theme';
@@ -39,6 +39,10 @@ const LEGACY_TYPE_TOKEN: Partial<Record<ThemedTextType, TypographyName>> = {
   linkPrimary: 'bodySmall',
   code: 'caption',
 };
+
+const HEADING_TOKENS = new Set<TypographyName>([
+  'headline', 'title', 'display', 'gameTitle', 'resultHeadline',
+]);
 
 /** Typography token backing a caller-facing style name. */
 function resolveToken(type: ThemedTextType): TypographyName {
@@ -87,13 +91,27 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const theme = useTheme();
+  const { fontScale } = useWindowDimensions();
   const tokenName = resolveToken(type);
+  const fontScaleCap = maxFontSizeMultiplier ?? FONT_SCALE_CAP[tokenName] ?? MAX_FONT_SCALE;
+  // Android 14+ converts fontSize and lineHeight through separate nonlinear
+  // SP curves. A heading's larger nominal lineHeight can then grow less than
+  // its glyphs; RN's CustomLineHeightSpan clips Manrope's g/y descenders. Let
+  // enlarged word headings use native font metrics, while normal-size text,
+  // fixed board glyphs and explicit caller line heights keep their geometry.
+  const useNativeHeadingMetrics = Platform.OS === 'android'
+    && Number(Platform.Version) >= 34
+    && fontScale > 1
+    && allowFontScaling !== false
+    && fontScaleCap !== 1
+    && HEADING_TOKENS.has(tokenName);
 
   return (
     <Text
       style={[
         { color: theme[themeColor ?? 'text'] },
         styles[tokenName],
+        useNativeHeadingMetrics && styles.nativeHeadingMetrics,
         type === 'smallBold' && styles.smallBold,
         type === 'link' && styles.link,
         type === 'linkPrimary' && styles.linkPrimary,
@@ -101,13 +119,14 @@ export function ThemedText({
         style,
       ]}
       allowFontScaling={allowFontScaling}
-      maxFontSizeMultiplier={maxFontSizeMultiplier ?? FONT_SCALE_CAP[tokenName] ?? MAX_FONT_SCALE}
+      maxFontSizeMultiplier={fontScaleCap}
       {...rest}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  nativeHeadingMetrics: { lineHeight: undefined },
   eyebrow: styleForToken('eyebrow'),
   caption: styleForToken('caption'),
   label: styleForToken('label'),
