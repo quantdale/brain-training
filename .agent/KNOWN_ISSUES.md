@@ -2,6 +2,18 @@
 
 ## Fresh audit findings
 
+- Later actual scrolled critique supersedes initial native11 static acceptance:
+  Profile default-scale streak caption overflows the right edge; Per-game and
+  Recent-session Progress lists visibly overlap across multiple scroll/expand/
+  collapse frames (P2); Home's source `day streak` draws only `day` in8/10
+  profiles. Root and independent reviewers viewed original PNGs. Profile local
+  wrap/bounded-caption and Home day/days+full accessible phrase source fixes pass
+  focused35 tests/five unchanged snapshots; shared SectionGrid phone reflow fix
+  passes focused checks. Profile same-identity refresh retention now passes real
+  loader/hook tests; combined27suites197tests/globaltypes/lint PASS. New APK/native
+  proof remains required. Original180 captures,
+  gallery and reviews remain immutable, never relabeled as sufficient closure.
+
 - Currentnative11 all180major staticframes and12extradomainart frames now pass
   actualpersonalimagecritique/noP1P2 and immutableverification. PreservedP3debt:
   sparseMemoryemptycanvas, verbosehistory explanation, mutedsecondaryClaim,

@@ -551,6 +551,7 @@ export default function HomeScreen() {
     data.coveredDates,
   );
   const currentStreak = effectiveCurrent(streak, today);
+  const streakDayUnit = currentStreak === 1 ? "day" : "days";
   const level = levelForXp(data.totalXp);
   const levelRatio = levelProgress(data.totalXp);
   const nextLevelXp = xpForLevel(level + 1);
@@ -805,10 +806,11 @@ export default function HomeScreen() {
 
       {/* Only observed progress belongs in the habit rail. */}
       {progressAvailable ? <View style={[styles.habitRail, { borderColor: theme.border }]} testID="home-context">
-        <View style={styles.habitMetric} testID="home-streak-card">
+        <View style={styles.habitMetric} testID="home-streak-card" accessible
+          accessibilityLabel={`${currentStreak} ${streakDayUnit} streak`}>
           <AppIcon name="streak" tone="streak" size={18} />
           <ThemedText type="label" testID="home-stat-streak">{currentStreak}</ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">day streak</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">{streakDayUnit}</ThemedText>
         </View>
         <View style={styles.habitMetric} testID="home-level-card">
           <AppIcon name="layers" tone="xp" size={18} />

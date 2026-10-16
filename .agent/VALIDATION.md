@@ -1,5 +1,36 @@
 # Validation — Campaign077
 
+## Later scrolled critique / source repairs in progress
+
+SCROLLED_RECOVERY11.md supersedes earlier static noP1/P2 acceptance for real
+Profile overflow, Home missing-word native drawing, persistent Progress P2
+overlap and transient false-empty ProfileP2. Original screenshots/reviews retained.
+Profile before02 valid3FAIL/5controls, after2suites19PASS. Home before3FAIL/4controls,
+after5suites35tests/five unchanged snapshots PASS/lint0. Native actual-glyph probe
+defaultcaption FAIL0.342, font2controlPASS1.0; firstprobeXMLancestorassumptionfailed
+beforepixelassertion and is not validredproof. Sharedgridbefore5FAIL/7controls,
+after4suites34PASS/lint0, realReport/Row caller styleguards; no Yoga/nativeafterclaim.
+Profile opt-in retention after02 PASS6suites45tests/five snapshots13.296s;
+initial after animation act-warning failure retained. Integrated27suites197tests/
+five unchanged snapshots PASS39.328s, globaltypes/full-source zero-warninglint exit0.
+Independent four-fix review no concreteP1/P2, reportSHA256
+2a2748f6db54e5d081021f92518b3f63931a370b59e7a19db06eb592046a98c6.
+New native/current-source composite remainOPEN.
+
+Pro1e916e91 actualbranches/finalHome image-qualified with independent31reference/
+30uniqueimage review, terminalCANCELLED3176.2s on finalization400, doctorready5/5.
+No automaticcheckerPASS. Flashpreviousgeometryfailuresretained. All13DBtables
+identical across both non-game tasks, preservedbeforeworkout integrityok/8sessions/
+9ledgerrows/settingshasha508...2ec9 BEFORE gameplay. Pro5e04e218 terminalCOMPLETED
+1543.6s; root actualimages show opaquePause/sameRoundResume/correctfeedback/
+saved590/100%/+40XP8coins/1of4/restartedHome226XP57coins. Independent preserved
+SQLite integrityok/9sessions/10ledgerrows, exactone new non-forced WordScramble
+with provenance/versions/unique gameplay operation; old8sessions/ledger/settings/
+olderworkouts unchanged. Oct15 active1/4/zero skipped. Date rollover means full
+current-day workout remainsopen; motion clip missedpresses do not qualify latency.
+RUNTIME_WORKOUT11.md records limits. Allfour24f7bd78 workflowsSUCCESS
+(App38789837582,Integrity38789837751,Android38789837824,iOS38789837647).
+
 ## Native11 static visual milestone
 
 Remaining144 andcompactdark18 terminalPASS/exit0, eachimmutableverifierPASS.

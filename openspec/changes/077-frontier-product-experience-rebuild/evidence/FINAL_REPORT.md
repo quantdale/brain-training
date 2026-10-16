@@ -7,6 +7,19 @@ Data07 restore writes/text-edit safety and native09 confirmation geometry are
 independently qualified. Final device acceptance, actual ending-SHA CI and the
 visible Home handoff remain open. This is not a campaign completion claim.
 
+Later actual-use critique found Profile caption overflow, Home missing-word
+native drawing, persistent P2 Progress overprint and P2 false-empty Profile
+refresh. [SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md) supersedes affected
+initial static verdicts and records working source repairs. These changes still
+pass27 integrated suites197tests/five snapshots/globaltypes/full lint and an
+independent source review; they still need a rebuilt APK and scrolled after proof.
+Original180 screenshots and their reviews/gallery remain immutable. All13
+application tables are unchanged after the two non-game tasks. A bounded real
+offline workout leg1 completed; root images and independent preserved SQLite
+qualify pause/resume/feedback/save/restart1/4/226XP57coins. See
+[RUNTIME_WORKOUT11.md](RUNTIME_WORKOUT11.md). Date rollover leaves Oct15 active1/4;
+full current-day workout/completed-state/performance/final gates stay open.
+
 ## Repository
 
 | Field | Evidence at this draft |
@@ -223,15 +236,15 @@ actual-image review, noP1/P2; minor composition tradeoffs remain recorded.
 Both root URI cold controls subsequently reached Home, so the exact routing cause
 is unproven. The QA harness now stops the activity before display provisioning;
 syntax/eight existing capture tests pass. A fresh remaining144-frame run and
-separatecompactdark18 are **terminalPASS/exit0**. With the explicitcompactlight18
-subset, all180 unique major-surface frames pass immutablebracketing/hash checks
-and actual personal image critique, noP1P2. [Native visual11](NATIVE_VISUAL11.md)
+separate compact-dark18 are **terminalPASS/exit0**. With the explicit compact-light18
+subset, all180 unique major-surface frames pass immutable bracketing/hash checks
+and actual personal image critique, noP1/P2. [Native visual11](NATIVE_VISUAL11.md)
 records exact hashes and P3/static limits. The historical local
 `gallery-preview06/index.html` has 180 comparisons: 150 genuine fresh077 baseline
 pairs and 30 explicitly unmatched states. It is an intermediate gallery; the
-native11 gallery now contains180 current records/150 genuinefreshbaselinepairs/
-30additionalstates, allwith actual perimageverdicts. An independent reviewer also
-personallycompared15defaultlight baseline originals withcurrent originals.
+native11 gallery now contains180 current records:150 genuine fresh baseline pairs
+and30 additional states, all with actual per-image verdicts. An independent
+reviewer also personally compared15 default-light baseline originals with current originals.
 Baseline compact360dp/expanded800dp
 and current compact320dp/expanded720dp support responsive-family comparisons,
 rather than matched pixel pairs. Baseline six sessions/completed4/4 and current
@@ -243,16 +256,17 @@ the previously intermittent Profile blank frame's unknown original cause
 sheet's thin blue seam (P3). The failed compact framebuffer-resize capture and
 blocked clipped tutorial evidence remain retained. The source fixes and later
 default/tutorial witnesses alone did not complete the new full-profile gate;
-the actualnative11 180-framecritique above now does for those staticviewports. Native
+the actual native11 180-frame critique above now does for those static viewports. Native
 Home pending→populated has actual cold-control hierarchy evidence (unread numbers
 withheld, then186XP/49coins) and a root-viewed settled2x image; its loading pixels
 were not captured. Healthy storage-route Home navigation, interactive
-discovery/disclosures/scroll endpoints and currentnative motion qualification
-remain pending. All-domain artwork now has actualnative proof:12 extra domain
-detail frames cover the sixremainingdomains inboth themes, all personallyviewed/
-immutableverified noP1P2, coherentfamily/no crop/stretch/alpha fringe. Together
-with Memory/Spatial/Home inregularmatrix thiscovers allnineillustrations.
-Processmemory and offlinecurrentbuildart remain separate runtime observations.
+discovery/disclosures/scroll endpoints and current native motion qualification
+remain pending. All-domain artwork now has actual native proof:12 extra domain
+detail frames cover the six remaining domains in both themes, all personally
+viewed and immutably verified, no P1/P2. The family is coherent, with no observed
+crop, stretch or alpha fringe. Together with Memory/Spatial/Home in the regular
+matrix, this covers all nine illustrations. Process memory and offline artwork
+on the current build remain separate runtime observations.
 
 ## Games
 

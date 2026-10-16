@@ -26,7 +26,11 @@ function sameDeps(a: readonly unknown[], b: readonly unknown[]): boolean {
 export type DbDataStatus = 'loading' | 'success' | 'empty' | 'error';
 
 export interface DbDataResult<T> {
-  /** The loaded value, or the caller's fallback while loading / after failure. */
+  /**
+   * The loaded value, or the caller's fallback before success / after a default
+   * reset. `keepPreviousData` retains an observed value across refresh attempts;
+   * `status` still reports loading or failure rather than claiming it is fresh.
+   */
   data: T;
   /**
    * True once the attempt SETTLED, whether it succeeded or failed. Retained for
@@ -40,23 +44,29 @@ export interface DbDataResult<T> {
   status: DbDataStatus;
   /** Convenience: `status === 'error'`. */
   failed: boolean;
-  /** Re-run the load. Stable identity, safe to pass to a retry control. */
+  /** Re-run the load. Memoized for the current fallback/retention policy. */
   retry: () => void;
   /**
    * True once a load has SUCCEEDED at least once for the current mount.
    *
-   * Distinct from `status === 'loading'` on purpose. A refresh (focus, retry,
-   * a mutation bumping the deps) re-enters `loading` while the previously
-   * loaded data is still on screen and still valid. A screen that swapped to a
-   * full-screen skeleton on every refresh would tear down whatever the user
-   * was looking at — and, worse, tear down transient UI such as a celebration
-   * overlay that the refresh itself triggered. Screens should show a
-   * first-load skeleton only while `status === 'loading' && !hasData`.
+   * This mount-lifetime flag does not itself retain the payload: the default
+   * deps reset still drops old data so route-param changes cannot paint another
+   * entity's records. Same-identity refresh callers can opt into
+   * `keepPreviousData` and use `status === 'loading' && !hasData` for their
+   * first-load skeleton, keeping observed content / transient UI mounted during
+   * later refreshes without showing the fallback as an actual empty profile.
    */
   hasData: boolean;
 }
 
 export interface UseDbDataOptions<T> {
+  /**
+   * Retain the last successful payload across deps refreshes and retries.
+   * Defaults to false so a route-param change immediately drops the old entity.
+   * Opt in only when the deps refresh the SAME identity, such as a local-profile
+   * refresh counter. Loading / error status remains authoritative either way.
+   */
+  keepPreviousData?: boolean;
   /**
    * How to recognize a successful-but-empty result.
    *
@@ -79,9 +89,10 @@ export interface UseDbDataOptions<T> {
  * Load data from the app database into component state.
  *
  * The db may legitimately be unavailable (startup failed, tests without
- * sqlite): that is reported as `status: 'error'` with `data` left at the
- * caller's fallback, so a screen can render an explicit failure with a retry
- * instead of an empty state that looks like real data.
+ * sqlite): that is reported as `status: 'error'`, so a screen can render an
+ * explicit failure with a retry instead of an empty state that looks like real
+ * data. The payload is the fallback unless same-identity retention was requested
+ * and an earlier read succeeded.
  */
 export function useDbData<T>(
   load: (db: AppDatabase) => Promise<T>,
@@ -89,12 +100,13 @@ export function useDbData<T>(
   fallback: T,
   options: UseDbDataOptions<T> = {},
 ): DbDataResult<T> {
-  const { isEmpty, label = 'db-data' } = options;
+  const { isEmpty, label = 'db-data', keepPreviousData = false } = options;
   const [data, setData] = useState<T>(fallback);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<unknown>(null);
   // Never reset by a deps change or a retry: see `hasData` on the result.
   const [hasData, setHasData] = useState(false);
+  const retainData = keepPreviousData && hasData;
   // Bumping this re-runs the effect; `retry()` is its programmatic equivalent.
   const [attempt, setAttempt] = useState(0);
   // The deps snapshot the current state belongs to. Kept in state (not a ref)
@@ -115,13 +127,14 @@ export function useDbData<T>(
   const [empty, setEmpty] = useState(false);
 
   if (!sameDeps(trackedDeps, deps)) {
-    // Deps changed: drop the previous payload during the SAME render pass, so
-    // a same-route param change can never paint the old payload for even one
-    // tick. The effect below then loads the new payload; supersession still
-    // runs through seqRef, and the old effect's cleanup marks its in-flight
+    // Default deps changes drop the previous payload in the SAME render pass,
+    // so a route-param change cannot paint the old identity for even one tick.
+    // An explicit same-identity refresh can retain a successfully observed
+    // payload, while resetting the attempt flags. Supersession still runs
+    // through seqRef, and the old effect's cleanup marks its in-flight
     // load cancelled before any microtask can land it.
     setTrackedDeps(deps);
-    setData(fallback);
+    if (!retainData) setData(fallback);
     setLoaded(false);
     setError(null);
     setEmpty(false);
@@ -146,10 +159,9 @@ export function useDbData<T>(
       } catch (e) {
         if (!cancelled && seq === seqRef.current) {
           setError(e);
-          // The failure is the one event here that is invisible in production:
-          // the screen shows a fallback the user cannot distinguish from real
-          // data, and nothing is thrown. Logged once per failed attempt, with
-          // the caller's label, so the report names which screen broke.
+          // Log once per failed attempt, including retained-data refreshes: the
+          // old payload must not obscure a failed read in production diagnosis.
+          // The caller's label identifies which screen broke.
            
           console.error(
             `[useDbData] ${label} load failed`,
@@ -172,14 +184,14 @@ export function useDbData<T>(
   }, [...deps, attempt]);
 
   const retry = useCallback(() => {
-    // A retry must start from a clean slate: the previous fallback and the
-    // previous error are both stale once the user has asked to try again.
+    // Retry clears stale attempt flags. Only an explicit same-identity caller
+    // with a successful prior read keeps the observed payload while it runs.
     setError(null);
     setLoaded(false);
     setEmpty(false);
-    setData(fallback);
+    if (!retainData) setData(fallback);
     setAttempt((n) => n + 1);
-  }, [fallback]);
+  }, [fallback, retainData]);
 
   const status: DbDataStatus = error ? 'error' : !loaded ? 'loading' : empty ? 'empty' : 'success';
 

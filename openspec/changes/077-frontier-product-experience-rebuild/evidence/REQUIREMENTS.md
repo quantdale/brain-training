@@ -28,6 +28,19 @@ Each named gate/artifact/profile/game/state becomes an evidence row in the relev
 
 ## Current implementation reconciliation
 
+**Later actual-use correction:** [SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md)
+records native Profile caption overflow, Home missing-word drawing, persistent
+P2 Progress list overlap and P2 false-empty Profile refresh. These findings
+supersede the earlier static visual acceptance where affected. Working source
+repairs are being converged, not yet in an installed/certified new APK. Tasks5.7/
+8.2 are reopened. Original matrices/galleries/reviews remain unchanged evidence
+of their actual scope. Both non-game tasks preserve all13 database tables;
+normal offline leg1 is independently qualified at1/4/226XP57coins with exactly
+one saved session/economy effect. Oct15 remains partial after date rollover;
+full current-day workout remains open. Source convergence passes27suites197tests/
+five unchanged snapshots/globaltypes/lint and independent review. Full remaining
+scope is unchanged.
+
 Native11 static180 now COMPLETE:144 remaining + separatecompactdark18 terminal
 PASS andimmutableverifiers; originalcompactlight18 subset retained. All180 actual
 PNGs personally viewed/independentcritique noP1P2. Extra12domainart frames likewise

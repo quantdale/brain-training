@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen, waitFor, within } from 'expo-router/testing-library';
 
 import HomeScreen from '@/app/(tabs)/index';
 import type { AppDatabase } from '@/db';
@@ -16,13 +16,17 @@ jest.mock('@/progression', () => ({
   ...(jest.requireActual('@/progression') as Record<string, unknown>),
   refreshProgression: jest.fn(async () => ({ sessions: [], lifetime: { sessionCount: 0, totalXp: 0 } })),
 }));
+jest.mock('@/workout/today', () => ({
+  ...(jest.requireActual('@/workout/today') as Record<string, unknown>),
+  localDateString: () => '2026-10-15',
+}));
 
-function database(getTotalXp: () => Promise<number>, balance = 0): AppDatabase {
+function database(getTotalXp: () => Promise<number>, balance = 0, activityDates: readonly string[] = []): AppDatabase {
   return {
     ratings: { getRatings: async () => [] },
     sessions: {
       listRecent: async () => [], getTotalXp,
-      getDistinctActivityDates: async () => [], getAggregates: async () => [],
+      getDistinctActivityDates: async () => activityDates, getAggregates: async () => [],
       listSummaries: async () => [], getMasteryInputs: async () => [], countSessions: async () => 0,
     },
     ledger: { getBalance: async () => balance },
@@ -86,6 +90,26 @@ describe('Home distinguishes unread progress from genuine empty progress', () =>
     await waitFor(() => expect(screen.queryByTestId('home-loading')).toBeNull());
     expect(screen.getByTestId('home-stat-xp')).toHaveTextContent('186 XP');
     expect(screen.getByTestId('home-stat-level')).toHaveTextContent('Level 2');
+    expect(screen.getByTestId('home-stat-coins')).toHaveTextContent('49');
+  });
+
+  it.each([
+    { activityDates: [], count: 0, unit: 'days', label: '0 days streak' },
+    { activityDates: ['2026-10-15'], count: 1, unit: 'day', label: '1 day streak' },
+    { activityDates: ['2026-10-14', '2026-10-15'], count: 2, unit: 'days', label: '2 days streak' },
+  ])('keeps the $count-day streak compact visually and complete for assistive technology', async ({ activityDates, count, unit, label }) => {
+    mockDbState.db = database(async () => 186, 49, activityDates);
+    await renderRouter({ index: HomeScreen }, { initialUrl: '/' });
+    await waitFor(() => expect(screen.queryByTestId('home-loading')).toBeNull());
+    const metric = screen.getByTestId('home-streak-card');
+    expect(within(metric).getByTestId('home-stat-streak')).toHaveTextContent(String(count));
+    // The real Home reads and reconstructs the streak from these persisted
+    // activity dates. Its visible unit stays one word; the grouped accessible
+    // metric retains the full meaning without relying on the flame icon.
+    expect(within(metric).getByText(unit, { exact: true })).toBeOnTheScreen();
+    expect(metric.props.accessible).toBe(true);
+    expect(screen.getByLabelText(label)).toBe(metric);
+    expect(screen.getByTestId('home-stat-xp')).toHaveTextContent('186 XP');
     expect(screen.getByTestId('home-stat-coins')).toHaveTextContent('49');
   });
 });

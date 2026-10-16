@@ -68,6 +68,10 @@ const styles = StyleSheet.create({
   },
   stacked: {
     flexDirection: 'column',
+    // Phone reports fill the column; row wrapping can shrink/overlap unequal
+    // reports inside a scroll view. Stretch only their cross-axis width.
+    flexWrap: 'nowrap',
+    alignItems: 'stretch',
   },
   cell: {
     flexGrow: 1,

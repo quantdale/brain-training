@@ -48,6 +48,8 @@ describe('SectionGrid', () => {
       </SectionGrid>,
     );
     expect(rootStyle(tree).flexDirection).toBe('column');
+    expect(rootStyle(tree).flexWrap).toBe('nowrap');
+    expect(rootStyle(tree).alignItems).toBe('stretch');
     // Stacked children are rendered as-is: none of them is a wrapper cell
     // (the cell signature is the flexBasis the split path injects).
     for (const child of childStyles(tree)) {
@@ -67,6 +69,7 @@ describe('SectionGrid', () => {
     );
     expect(rootStyle(tree).flexDirection).toBe('row');
     expect(rootStyle(tree).flexWrap).toBe('wrap');
+    expect(rootStyle(tree).alignItems).toBe('flex-start');
     // One wrapper cell per child, each with the default basis.
     const cells = childStyles(tree);
     expect(cells).toHaveLength(3);

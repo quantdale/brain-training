@@ -422,6 +422,9 @@ export default function ProfileScreen() {
   // still in flight.
   const { data, status, retry, hasData } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE, {
     label: 'profile',
+    // refreshKey rereads the same local profile; keep its observed values and
+    // mounted disclosures / celebrations while that read is pending.
+    keepPreviousData: true,
   });
 
   // Re-sync progression each time the tab regains focus.
@@ -778,7 +781,8 @@ export default function ProfileScreen() {
         </View>
         <View style={[styles.railRow, stacked && styles.stack]}>
           <StreakStrip count={data.currentStreak} days={7} testID="profile-streak-week" />
-          <ThemedText type="caption" themeColor="textSecondary">
+          <ThemedText type="caption" themeColor="textSecondary"
+            testID="profile-streak-summary" style={styles.streakSummary}>
             {"Best " + data.longestStreak + " days · " + protectionCount + " protection items"}
           </ThemedText>
         </View>
@@ -829,7 +833,7 @@ export default function ProfileScreen() {
       <View style={styles.section} testID="profile-records">
         <ThemedText type="subtitle" accessibilityRole="header">Training goals</ThemedText>
         <ExpandableSection title="Streak milestones" testID="profile-milestones" icon="streak"
-          summary={nextMilestone ? nextMilestone.remaining + " days to " + nextMilestone.milestone.label : "Your streak milestones"}
+          summary={nextMilestone ? nextMilestone.remaining + (nextMilestone.remaining === 1 ? " day to " : " days to ") + nextMilestone.milestone.label : "Your streak milestones"}
           expanded={showMilestones} onToggle={() => setShowMilestones((shown) => !shown)}>
           {data.milestoneRows.map(({ milestone, reached, claimed, remaining }, index) => {
             const readout = formatGoalProgress(data.longestStreak, milestone.days) + " days";
@@ -839,7 +843,7 @@ export default function ProfileScreen() {
                   tone="streak" valueLabel={readout} accessibilityLabel={milestone.label + ", " + readout} />}
                 hint={milestone.description
                   + (milestone.rewardXp || milestone.rewardCurrency ? " · +" + (milestone.rewardXp ?? 0) + " XP / +" + (milestone.rewardCurrency ?? 0) + " coins" : "")
-                  + (!reached && remaining > 0 ? " · " + remaining + " days to go" : "")
+                  + (!reached && remaining > 0 ? " · " + remaining + (remaining === 1 ? " day to go" : " days to go") : "")
                   + (reached && !claimed ? " · Complete — available in Rewards" : "")
                   + (claimed ? " · Claimed" : "")}
                 badge={reached && !claimed ? <Badge tone="accent" label="In Rewards" size="sm" />
@@ -998,7 +1002,10 @@ const styles = StyleSheet.create({
   fullWidth: { width: "100%" },
   themeOption: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: Spacing.one, minHeight: MIN_TOUCH_TARGET, borderWidth: 1, borderRadius: Radii.pill, paddingHorizontal: Spacing.one, paddingVertical: Spacing.one },
   destination: { flexDirection: "row", alignItems: "center", gap: Spacing.two, minHeight: MIN_TOUCH_TARGET, borderWidth: HAIRLINE, borderRadius: Radii.medium, padding: Spacing.two },
-  railRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: Spacing.two },
+  // The strip and summary fit together on wider screens; let the complete
+  // summary move below it on phones, then wrap long counts within that line.
+  railRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: Spacing.two },
+  streakSummary: { maxWidth: "100%" },
   atRiskBand: { flexDirection: "row", alignItems: "center", gap: Spacing.one, borderRadius: Radii.small, padding: Spacing.two },
   protectionItem: { borderTopWidth: HAIRLINE, paddingTop: Spacing.two, gap: Spacing.two },
   itemHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.two },

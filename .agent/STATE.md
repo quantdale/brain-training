@@ -8,27 +8,77 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native11 static visual qualification complete
+## Current checkpoint — scrolled source convergence; offline leg1 verified
 
-Currentmain/origin1da74ad0 has all four workflows SUCCESS: App38757594184,
-Integrity38757594254, Android38757594177, iOS38757594137. Installed application
-source remains93353ede/APK9aa17cda...12246; no product source changed.
-Remaining144 capture and separate compactdark18 are terminalPASS/exit0;
-combined with the explicit originalcompactlight18 subset they give180 unique
-accepted frames. Immutable verifiers pass all180; every actualPNG personally
-viewed, independent critique noP1P2. Extra domainart12/12 also passes and all
-nine original illustrations now have actual native proof. NATIVE_VISUAL11.md
-records hashes,180-row review,150 fresh077 baseline pairs/30 unmatched states,
-15 targeted independent before/after comparisons and P3/static limits. The
-original failed180 manifest stays failed/unchanged, not relabeled.
+Pushedmain24f7bd7861e1e992c8a6973a1df551bec36242e9 has all four workflows
+SUCCESS: App38789837582,Integrity38789837751,Android38789837824,iOS38789837647.
+Installed native11 remains source933/APK9aa17cda...12246. No new install yet.
+Later actual scrolled critique supersedes initial static acceptance for four
+findings: Profile caption overflow; Home source`day streak` missing its second
+word in8/10 frames; persistent P2 Progress list overprint; transient P2 Profile
+false Level1/0XP/0coins during same-profile refresh. Root/independent reviewers
+viewed original images. SCROLLED_RECOVERY11.md records evidence and boundaries.
 
-Flashf4822ca9-54fd-4eaf-9d3b-e0e0acfaad05 exclusively owns5570 for non-writing
-search/keyboard/filters/Favorites/Rewards endpoints/Profile+Progress disclosures;
-40s official-MCP fallback watch running. PrimaryGemini live credentials pass;
-no environment change. Combinedcompact2x tutorials, real offline4game workout/
-restart/exactonce, completedHome/Results profiles, normal/reduced interaction,
-final perf/memory/logcat and visibleHome/endingCI/reportaudit remain required.
-Full original077 remainsACTIVE.
+Working source Profile wrap/max-width and Home day/days/full accessibility label
+pass5affected suites35tests/five unchanged snapshots. Shared SectionGrid stacked
+nowrap/stretch repair has5validred failures/7controls, after4suites34PASS/lint0.
+Profile opt-in same-profile retention is implemented; default reset and stale-load
+guards remain. Real-loader/hook after02 passes6 suites45 tests/five snapshots;
+integrated hook/shared UI/Home/Profile/Progress run passes27 suites197 tests/five
+unchanged snapshots. Global types/full-source zero-warning lint exit0. Independent
+four-fix read-only review finds no concrete P1/P2 source regression.
+No new APK/native after proof yet. Tasks5.7/8.2 reopened for discovered findings;
+old180 capture/gallery/reviews remain immutable, not enough for closure.
+
+Flashf4822ca9 terminalCANCELLED912.4s after repeated geometry misses; actual
+correct clear/floatingIME/Memory/reset only, no Rewards/disclosure/finalHomePASS.
+Pro1e916e91 terminalCANCELLED3176.2s after provider400 malformed tool history
+during finalization, doctorready5/5. Actual named default non-game branches and
+finalHome are independently image-qualified, with gesture-cap deviations and
+large-text disclosure limits. Independent31-reference/30-unique-image reviewSHA
+387daf1586b98f1c5f4c29a3266d7720be16824ea67cb730d9cc3135de4969db.
+All13 SQLite tables have identical full rows after both non-game tasks; integrity
+ok/eight sessions/186XP49coins/settingsSystem preserved before normalgameplay.
+
+Pro5e04e218-98e6-4e9d-997a-df87a0c609bc terminalCOMPLETED1543.6s, device released.
+Root viewed actual pause/resume/feedback/saved result/1of4/restarted Home images.
+Independent preserved SQLite integrityok/9sessions/226XP57coins: exactly one new
+non-forced WordScramble session, unique gameplay ledger operation, original8
+sessions/historical ledger/settings/older workouts unchanged. Oct15 active1/4,
+zero skipped. RUNTIME_WORKOUT11.md records exact limits; motion clips contain
+missed synthetic presses and do not qualify matched normal/reduced latency.
+Execution resumed after date rollover; do not call Oct15 today's plan or alter
+the clock. Full current-day four-played workout remains required.
+Root must finish source convergence/current-source clean checkout/native12,
+new-APK scrolled/profile proof, compact2x risky tutorials, full offline workout/
+exactonce/completed-state captures, finalmotion/perf/memory/logcat/GUI/endingCI/
+originalrequirement audit. Full077 remainsACTIVE.
+
+## Earlier checkpoint — native11 static visual qualification
+
+Pushed checkpoint `24f7bd78` records the completed static visual milestone.
+The preceding `1da74ad0` has four successful workflows: App38757594184,
+Integrity38757594254, Android38757594177 and iOS38757594137. Installed application
+source remains `93353ede`, APK `9aa17cda...12246`; no product source changed.
+The remaining144 capture and separate compact-dark18 both exited0/PASS.
+Together with the explicit original compact-light18 subset, they provide180
+unique accepted frames. Immutable verification passes all180; every actual PNG
+was personally viewed, with no P1/P2 independent critique finding. The12 extra
+domain-art frames also pass, giving all nine illustrations actual native proof.
+NATIVE_VISUAL11.md records hashes, the180-row review,150 fresh077 baseline pairs,
+30 unmatched states,15 targeted independent comparisons and P3/static limits.
+The original failed180 manifest remains failed and unchanged.
+
+Flash `f4822ca9-54fd-4eaf-9d3b-e0e0acfaad05` exclusively owns emulator-5570 for
+non-writing search/keyboard/filter, Rewards endpoint and Profile/Progress
+disclosure checks. The40s official MCP fallback watch is running. Actual runtime
+provider calls return200; no credentials or environment changed. Correct clear
+with the floating IME active and Memory filtering are image-qualified. Wrong
+rail gestures targeted headings and returned Home; root stopped further retries,
+so Favorites remains unqualified. Combined compact/2× tutorials, real offline
+four-game workout/restart/exactly-once effects, completed Home/Results profiles,
+normal/reduced interaction, performance/memory/logcat and final visible Home,
+ending-SHA workflows and completion audit remain required. Full077 is ACTIVE.
 
 ## Earlier checkpoint — native11 installed, final visual matrix running
 

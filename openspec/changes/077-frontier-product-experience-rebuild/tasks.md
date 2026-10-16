@@ -36,7 +36,7 @@
 - [x] 5.4 Redesign Progress summaries/domain/game/activity/detail with useful readable trends/domain identities and clear metric interpretation. PROGRESS_WAVE/PRESENTATION_RECOVERY plus later heading/metric corrections; final profiles open.
 - [x] 5.5 Redesign Rewards, quests, achievements, Profile/preferences/settings with purpose-based information architecture and polished states. Source/caller/disclosure and transaction contracts implemented; final native acceptance open.
 - [x] 5.6 Refine data management/export/import/backup/restore/recovery, keyboard/modal flows and honest empty/loading/error states; protect saved data and compatibility. RUNTIME_DATA07 qualifies actual writes/edit/restart; corrected confirmation and healthy-storage native proof remain open.
-- [x] 5.7 Inspect every modified major screen in light/dark/2×/compact/larger/applicable reduced motion; record before/after judgments and independent wave critique, correct findings. Corrected native11 actual180 static frames pass settled brackets/hash verification and personal critique/noP1P2;150 fresh077 baseline pairs plus15 targeted independent comparisons. NATIVE_VISUAL11.md retains P3 tradeoffs; completed-workout states and interactive boundaries remain9.4/8.3.
+- [ ] 5.7 Inspect every modified major screen in light/dark/2×/compact/larger/applicable reduced motion; record before/after judgments and independent wave critique, correct findings. Native11 actual180 static frames pass settled brackets/hash verification and personal review;150 fresh077 baseline pairs plus15 targeted comparisons. Later scrolled critique exposes Profile overflow/Progress P2 overlap and closer Home pixels reveal missing word8/10; initial acceptance is superseded for these issues. Source repairs/new-APK proof required; NATIVE_VISUAL11.md preserves original records and limits.
 
 ## 6. Wave F — Game presentation and correctness recovery
 
@@ -55,13 +55,13 @@
 ## 8. Wave H — Cross-product convergence
 
 - [ ] 8.1 Inspect the complete product including real data/empty/error/recovery and all game families; resolve conflicting tokens/layout/icons/copy/assets/interactions.
-- [x] 8.2 Perform independent read-only design critique on actual screenshot evidence and reference lock, then fix genuine composition/quality weaknesses. Successive native critiques/repairs culminate in all180 current static frames and12 additional domain-art frames personally reviewed; noP1P2 in capturedviewports, explicit P3 tradeoffs and separate interaction/owner-review boundaries in NATIVE_VISUAL11.md.
+- [ ] 8.2 Perform independent read-only design critique on actual screenshot evidence and reference lock, then fix genuine composition/quality weaknesses. All180 static frames/12 additional domain-art frames personally reviewed. Later scrolled independent critique found genuine Profile/Progress/Home rendering issues missed by initial top-frame review; source repairs and new-APK after proof are required. Original records/P3 tradeoffs remain in NATIVE_VISUAL11.md.
 - [ ] 8.3 Complete fresh matched before/after galleries with requested and observed themes separated, hashes/APK/profile/state provenance, six-profile coverage and per-surface verdicts.
 - [ ] 8.4 Reconcile every defect and requirement against current implementation/evidence; no partial tasks or unproven product-quality claims counted complete.
 
 ## 9. Wave I — Certification and hardening
 
-- [x] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Actual6c fresh composite703/7921/fivesnapshots and native08 permission allowlist PASS; ending-SHA and runtime gates remain separate (NATIVE_PREVIEW08.md).
+- [ ] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Actual933 fresh composite705/7929/five snapshots and native11 permission allowlist PASS; later scrolled-recovery source changes require renewed current-source convergence/composite. Ending-SHA and runtime gates remain separate.
 - [ ] 9.2 Verify migration compatibility, SQLite integrity, existing progress/session/workout/economy, export/import/merge/replace restore and exactly-once persistence under restart/recovery.
 - [ ] 9.3 Build native Android, record APK/source/hash/ABI/package/permissions, install and device-hash; verify cold launch without Metro and original assets offline.
 - [ ] 9.4 Verify navigation/themes/gameplay/scored feedback/results/workout continuation/force-stop/relaunch/settings/recovery/offline/memory/performance/logcat on the visible dedicated emulator; inspect selective ARTEMIS traces.

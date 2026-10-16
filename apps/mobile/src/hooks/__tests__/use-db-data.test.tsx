@@ -80,6 +80,60 @@ describe("useDbData deps-change reset (hardening)", () => {
   });
 });
 
+describe("useDbData same-identity refresh retention", () => {
+  it("retains an observed payload during an opted-in deps refresh, then accepts a genuinely empty result", async () => {
+    const pending: ((value: string) => void)[] = [];
+    const load = () => new Promise<string>((resolve) => { pending.push(resolve); });
+    const { result, rerender } = await renderHook(
+      ({ token }: { token: number }) => useDbData(load, [token], "fallback", {
+        keepPreviousData: true,
+        isEmpty: (value) => value.length === 0,
+      }),
+      { initialProps: { token: 0 } },
+    );
+    await act(async () => { pending[0]("observed"); });
+    expect(result.current.status).toBe("success");
+
+    await rerender({ token: 1 });
+    expect(pending).toHaveLength(2);
+    expect(result.current.status).toBe("loading");
+    expect(result.current.hasData).toBe(true);
+    expect(result.current.data).toBe("observed");
+
+    await act(async () => { pending[1](""); });
+    expect(result.current.data).toBe("");
+    expect(result.current.status).toBe("empty");
+  });
+
+  it("retains observed data on retry while clearing errors and still reports a failed refresh", async () => {
+    const pending: { resolve: (value: string) => void; reject: (error: Error) => void }[] = [];
+    const load = () => new Promise<string>((resolve, reject) => { pending.push({ resolve, reject }); });
+    const { result } = await renderHook(() => useDbData(load, [], "fallback", {
+      keepPreviousData: true,
+      label: "retained-retry",
+    }));
+    await act(async () => { pending[0].resolve("observed"); });
+
+    await act(async () => { result.current.retry(); });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.data).toBe("observed");
+    await expectConsoleNoise(/\[useDbData\] retained-retry load failed/, async () => {
+      await act(async () => { pending[1].reject(new Error("refresh unavailable")); });
+    });
+    expect(result.current.status).toBe("error");
+    expect(result.current.failed).toBe(true);
+    expect(result.current.data).toBe("observed");
+
+    await act(async () => { result.current.retry(); });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.error).toBeNull();
+    expect(result.current.data).toBe("observed");
+    await act(async () => { pending[2].resolve("fresh"); });
+    expect(result.current.status).toBe("success");
+    expect(result.current.data).toBe("fresh");
+  });
+});
+
 /**
  * 072: the seam must REPORT a failed read as a failure, not as an empty
  * success.

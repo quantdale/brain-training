@@ -8,6 +8,15 @@ viewed. Independent reviewers cover each group; root also viewed the18 expanded
 light originals. No P1/P2 presentation finding remains in these captured viewports.
 This qualifies static appearance, not all interactive states or owner approval.
 
+**Later critique correction:** the scrolled interactive diagnostic establishes
+real Profile caption overflow and persistent P2 Progress list overlap beyond the
+captured first viewports. A closer native-pixel check also finds that Home's
+`day streak` caption draws only `day` in eight normal-scale frames despite full
+XML text/bounds. The initial review missed this rendering defect. Its original
+review records and gallery remain immutable; their no-P1/P2 verdict does not
+close the newly established issues. Source repairs and changed-APK native proof
+are required. See the later scrolled-recovery record.
+
 ## Accepted evidence and preserved failure
 
 All paths below are ignored local evidence under `qa-artifacts/campaign077/`.
@@ -59,8 +68,10 @@ catalog entries; the activity calendar initially discloses8 of26weeks.
 
 Remaining P3 tradeoffs/debt: sparse lower Memory empty-state canvases, long history
 explanation, muted secondary Claim below Claim all, irregular widths of lower
-populated chart cards, thin blue first-play sheet edge, and singular Home `2 day`
-copy. None hides the captured primary action. Lower scroll endpoints, keyboard
+populated chart cards and thin blue first-play sheet edge. The initially
+misclassified Home `2 day` has source text `day streak`: its missing second word
+is now a confirmed native rendering defect, not merely grammar. None hides the
+captured primary action. Lower scroll endpoints, keyboard
 handling, expanded disclosures and selected tutorials require separate interaction.
 First-play Watch a demo frames do not prove background Start accessibility.
 

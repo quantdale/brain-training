@@ -7,6 +7,14 @@ import { ACHIEVEMENT_DEFINITIONS_V1 } from '@/achievements';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { QUEST_DEFINITIONS_V1 } from '@/quests';
 
+// Mock the actual hook module so both the route's named import and shared
+// primitives read the requested viewport, rather than spying on a namespace copy.
+const mockViewport = { width: 390, height: 844, scale: 1, fontScale: 1 };
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: () => mockViewport,
+}));
+
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
   router: { replace: (...args: unknown[]) => mockReplace(...args) },
@@ -42,10 +50,18 @@ async function renderProfile() {
   await render(<SettingsProvider><ProfileScreen /></SettingsProvider>);
 }
 
+function streakRail() {
+  const strip = screen.getByTestId('profile-streak-week');
+  return strip.parent;
+}
+
 describe('Profile purpose and progress presentation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
+    Object.assign(mockViewport, { width: 390, height: 844, scale: 1, fontScale: 1 });
+    mockData.currentStreak = 0;
+    mockData.longestStreak = 0;
+    mockData.inventory = { freeze: 1, shield: 0, recovery: 0 };
   });
   afterEach(() => { jest.restoreAllMocks(); });
 
@@ -93,11 +109,50 @@ describe('Profile purpose and progress presentation', () => {
   });
 
   it('reflows compact enlarged text without truncating player identity', async () => {
-    jest.mocked(ReactNative.useWindowDimensions).mockReturnValue({ width: 320, height: 640, scale: 1, fontScale: 2 });
+    Object.assign(mockViewport, { width: 320, height: 640, fontScale: 2 });
     await renderProfile();
     expect(screen.getByTestId('profile-name')).toHaveTextContent('Alex Rivera');
     expect(screen.getByTestId('profile-name').props.numberOfLines).toBeUndefined();
     expect(screen.getByTestId('profile-metrics')).toHaveStyle({ flexDirection: 'column' });
+    expect(streakRail()).toHaveStyle({ flexDirection: 'column', alignItems: 'stretch' });
+    expect(screen.getByText('Best 0 days · 1 protection items').props.numberOfLines).toBeUndefined();
     expect(screen.getByTestId('profile-settings-theme-system')).toBeEnabled();
+  });
+
+  it.each([
+    { width: 390, fontScale: 1, longest: 2, freeze: 0 },
+    { width: 411, fontScale: 1, longest: 2, freeze: 0 },
+    { width: 360, fontScale: 1.4, longest: 123456, freeze: 987654 },
+  ])('lets the complete streak caption reflow at $width dp / $fontScale text', async ({ width, fontScale, longest, freeze }) => {
+    Object.assign(mockViewport, { width, fontScale });
+    mockData.currentStreak = 2;
+    mockData.longestStreak = longest;
+    mockData.inventory = { freeze, shield: 0, recovery: 0 };
+    await renderProfile();
+    const caption = screen.getByText(`Best ${longest} days · ${freeze} protection items`);
+    const rail = streakRail();
+    expect(caption.parent).toBe(rail);
+    expect(rail).toHaveStyle({ flexDirection: 'row' });
+    expect(caption.props.numberOfLines).toBeUndefined();
+    expect(caption.props.ellipsizeMode).toBeUndefined();
+    // These ordinary widths bypass the explicit compact/2x stack. The real
+    // caller must let intrinsic-width siblings flow to separate lines, and
+    // bound the text itself when a long count exceeds even a complete line.
+    // RNTL does not run Yoga: native pixels remain a separate acceptance gate.
+    const railStyle = ReactNative.StyleSheet.flatten(rail?.props.style);
+    const captionStyle = ReactNative.StyleSheet.flatten(caption.props.style);
+    expect(railStyle.flexDirection === 'column' || railStyle.flexWrap === 'wrap').toBe(true);
+    expect(captionStyle.maxWidth === '100%' || captionStyle.width === '100%' || captionStyle.flexShrink === 1).toBe(true);
+  });
+
+  it('keeps the streak strip and caption eligible for one row on expanded screens', async () => {
+    Object.assign(mockViewport, { width: 720, height: 1280 });
+    await renderProfile();
+    const caption = screen.getByText('Best 0 days · 1 protection items');
+    expect(streakRail()).toHaveStyle({ flexDirection: 'row' });
+    const captionStyle = ReactNative.StyleSheet.flatten(caption.props.style);
+    expect(captionStyle.width).toBeUndefined();
+    expect(captionStyle.flexBasis).toBeUndefined();
+    expect(caption.props.numberOfLines).toBeUndefined();
   });
 });

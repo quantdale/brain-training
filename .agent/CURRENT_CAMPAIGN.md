@@ -11,14 +11,32 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
-- Native11 static180 qualification COMPLETE: freshremaining144 + compactdark18
-  terminalPASS/immutableverifiers, explicitcompactlight18 retained. Everyactual
-  PNG viewed/independentcritique noP1P2. Extra12domainart likewisePASS/allnineart
-  actualnativeproof. Gallery180/150freshbaselinepairs/30unmatched, targeted15pair
-  comparison and P3/staticlimits inNATIVE_VISUAL11.md. Four1daCIallSUCCESS.
-  Flashf4822ca9 exclusively5570/non-gamebranches/disclosures,40sMCPwatch. Real
-  tutorials/offlineworkout/exactonce/completed-stateprofiles/motion/perf/final
-  GUI/endingCI/fullreportaudit remainOPEN. Full077ACTIVE.
+- Later scrolled critique found Profile caption overflow, Home missing-word
+  native drawing, P2 Progress overprint and P2 false-empty Profile refresh.
+  Profile/Home source repairs35tests/five snapshotsPASS; sharedgrid5red/34afterPASS;
+  explicitProfile refresh retention now implemented. Integrated27suites197tests/
+  five unchanged snapshots/globaltypes/full lint PASS; independent source review
+  no concreteP1/P2. SCROLLED_RECOVERY11.md;
+  newAPK proofrequired, tasks5.7/8.2 reopened. Pro1e916e91 actualdefaultbranches/
+  finalHome independentlyqualified butCANCELLED finalization400;13DBtablesunchanged.
+  Pro5e04e218 terminalCOMPLETED1543.6s. Root actualimages/independentSQLite prove
+  offline WordScramble pause/resume/feedback/save/restart1of4/226XP57coins,
+  exactlyone new session/ledger effect and olddata/settings retained. Oct15 stays
+  active1/4 after date rollover; full current-day workout remains open. Motion
+  clips do not qualify matchedpress latency. RUNTIME_WORKOUT11.md.
+  Four24f7bd78 workflowsSUCCESS. Originalfullscope/current-sourceconvergence/
+  native12/runtimeworkout/tutorial/perf/GUI/endingCI/audit remainACTIVE.
+
+- Native11 static qualification COMPLETE:144 remaining +18 compact-dark frames
+  exited0/PASS; the explicit18 compact-light subset is retained. All180 actual
+  PNGs were viewed, with no P1/P2 independent critique finding. The12 extra
+  domain-art frames also pass. NATIVE_VISUAL11.md records all nine illustrations,
+  the180-row gallery/150 fresh baseline pairs/30 unmatched states,15 targeted
+  comparisons and P3/static limits. Four1da workflows succeed. Pushed24f7bd78
+  preserves this milestone. Flashf4822ca9 exclusively owns5570 for non-game
+  branches/disclosures, with40s MCP watch. Tutorials, offline workout/exactly-once
+  persistence, completed-state profiles, motion/performance and final GUI,
+  ending-SHA workflows and full audit remain OPEN. Full077 remains ACTIVE.
 
 - Native11 now installed from93353ede, exact build/source/assets/permissions/
   devicehash/SQLite8sessions/settings preservation PASS. Actual fresh composite
