@@ -2,6 +2,33 @@
 
 ## Fresh audit findings
 
+- Current native12 no-focused-window input ANRs occurred during two cold starts
+  in Flash59de5984, before Progress was reached. Launcher/Settings exhibit the
+  same class; sampled native/RN startup stacks do not identify app source cause.
+  Corrected static no-input controls recover focus on unchanged APK (Settings
+ 3914ms/app6699ms draw). First focus assay used an absent dumpsys field and is
+  INVALID, preserved separately. STARTUP_ANR12.md records exact facts, hypotheses
+  and remaining startup/performance boundary. Warm-state disclosure check runs
+  separately; no blind tap retry, source rewrite or ANR exoneration claimed.
+
+- Earlier native12 Progress disclosure observations remain INCONCLUSIVE: two centered
+  tap overlays were inside the visible More insights button, but sampled PNGs
+ 16–18 retain the original label while controller notes claimed open/close.
+  Do not dismiss this as a geometry miss or infer actual expanded Summary.
+  Current font2 Profile disclosure does visually open/close. A bounded idle
+  current-APK native-bounds check now qualifies one actual expansion: Pro d1133102
+  rawcenter540,2043, Summary2/226/9/57 and Training balance; root equalXML-bracketed
+  PNG and independent originals agree. No source repair or prior-observation cause
+  inferred. TerminalCANCELLED508.2s finalizer400/doctorready5/5; collapse pending.
+  Actual helper-derived lists retained original5:31/page-top while screenshots
+  advanced5:37–5:38/lower content. Root selected the documented external
+  uiautomator backend/all other.env bytes unchanged/supported no-browser daemon
+  restart. Optional Showcase auto-build failed Node-version requirement while
+  daemon became ready. Fresh Pro79f6d0e9 checks actual freshness before workout;
+  actual initial freshness/ordinary collapse now observed. Its generated overlay
+  misplacescrosshair despite correct dispatched tap/result; actual dispatch and
+  original pixels govern. This is not an ANR fix or full-workout acceptance.
+
 - Later actual scrolled critique supersedes initial native11 static acceptance:
   Profile default-scale streak caption overflows the right edge; Per-game and
   Recent-session Progress lists visibly overlap across multiple scroll/expand/

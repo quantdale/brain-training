@@ -10,75 +10,129 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 | 3 Every screen | All listed route/state/scroll/keyboard/modal/real/empty/loading/error/first-use profiles, actionable findings with severity/reproduction/correction | 1.3,1.5,5,8 | OPEN |
 | 4 Refero extensively | Actual tool calls/IDs/examples/lessons/adopted/rejected decisions for each interface family | 2.1–2.2 | COMPLETE — recorded research, full references and adopted/rejected lessons |
 | 5 Three art directions/system | Three different representative directions, nine-axis comparison, selected lock and complete visual roles | 2.3–2.4,4 | Direction/lock/source COMPLETE; native system acceptance OPEN |
-| 6 Actual ImageGen/assets/icons | Actual calls/inspected iterations/source/prompts/provenance/dimensions/alpha/optimization/local integration/emulator/theme/crop/memory; coherent crisp functional vectors | 3 | OPEN |
+| 6 Actual ImageGen/assets/icons | Actual calls/inspected iterations/source/prompts/provenance/dimensions/alpha/optimization/local integration/emulator/theme/crop/memory; coherent crisp functional vectors | 3 | Generation/local integration and native11 artwork review COMPLETE; native12 packaged assets match. Current layouts/process-memory acceptance OPEN |
 | 7 Complete experience | Home/discovery/intro/tutorial/active/feedback/results/rewards/progress/Profile/settings/supporting states redesigned where weak | 5,6.3 | OPEN |
-| 8 All42 mechanics | Forty-two rows × mechanics/scoring/input/lifecycle/presentation/accessibility; all identified defects reproduced/root-caused/fixed/regression/verified/siblings; selective runtime | 1.4,6 | 42/42 source/caller assessment and confirmed source repairs COMPLETE; selective native qualification OPEN |
+| 8 All 42 mechanics | Forty-two rows × mechanics/scoring/input/lifecycle/presentation/accessibility; all identified defects reproduced/root-caused/fixed/regression/verified/siblings; selective runtime | 1.4,6 | 42/42 source/caller assessment and confirmed source repairs COMPLETE; selective native qualification OPEN |
 | 9 Motion | Purposeful listed interactions, native friendly/reduced-motion-safe, measured practical latency, unbiased cognitive timing | 4.4,7 | OPEN |
-| 10 Shared system/offline | Consolidated existing tokens/primitives/HUD/stages/results/motion; IDs/contracts preserved; no duplicate library/cloud dependency | 4,8.1 | OPEN |
-| 11 Visual gates/critique | Actual six-profile screenshots for every major modified screen; direct observed theme separated; matched fresh077 baseline; independent each-wave critique/defect correction | 1.5,5.7,8 | OPEN |
+| 10 Shared system/offline | Consolidated existing tokens/primitives/HUD/stages/results/motion; IDs/contracts preserved; no duplicate library/cloud dependency | 4,8.1 | Shared implementation/source contracts COMPLETE; native motion/cross-product acceptance OPEN |
+| 11 Visual gates/critique | Actual six-profile screenshots for every major modified screen; direct observed theme separated; matched fresh 077 baseline; independent each-wave critique/defect correction | 1.5,5.7,8 | OPEN |
 | 12 Real runtime | VisibleGUI/currentbuild/cold launch/navigation/theme/game/feedback/result/workout/SQLite/force-stop/offline/recovery/settings/assets/memory/perf/logcat | 9.2–9.4,10.1 | OPEN |
-| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | OPEN |
+| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | Current af9 composite/native12 build/install and source CI PASS; remaining runtime/startup/data/ending-SHA boundaries OPEN |
 | 14 Ten waves | Implement through A–J; no research/asset-only ending | All | OPEN |
 | 15 Autonomy/efficiency/durable | Safe parallel packets/single shared owner, systemic fixes, wave checkpoints/tests/assets/issues/SHA/next, commits/push | All | IN PROGRESS |
-| 16 Acceptance | Distinct appealing coherent visuals/art/type/icons/layout/light-dark/reflow/motion; all42 correctness/inputs/tutorials/feedback/pause/persistence; tested build/clean/provenance/noHigh/finalSHA4CI; updated visibleHome | 8–10 | OPEN |
+| 16 Acceptance | Distinct appealing coherent visuals/art/type/icons/layout/light-dark/reflow/motion; all 42 correctness/inputs/tutorials/feedback/pause/persistence; tested build/clean/provenance/noHigh/finalSHA4CI; updated visibleHome | 8–10 | OPEN |
 | 17 Full final report | Starting/endingSHA/history/tree; actualRefero tools/references/adopted/rejected; ImageGen/calls/assets/icons/manifest/optimization; allUI classifications/before-after/openissues;42gamecounts/defects/tests/unvalidated; everyqualitygate;4CI/runIDs/exactSHA;GUI/AVD/serial/APKhash/package/foreground/screenshot;improvements/limits/release/ownerreview | 10.2 | OPEN |
 | 18 Complete better app | Original artwork+meaningful correctedUX/gameplay integrated and actually playable/inspectable; no superficial/reports-only completion | 10.3 | OPEN |
 
 Each named gate/artifact/profile/game/state becomes an evidence row in the relevant inventory and final report; uncertain or indirect proof stays OPEN. PHYSICAL_ANDROID and IOS_RUNTIME are NOT VALIDATED absent actual devices/platform evidence. This specified limitation does not authorize pretending ARM64/store readiness or owner taste approval.
 
-## Current implementation reconciliation
+## Current implementation reconciliation — af9 / native12
 
-**Later actual-use correction:** [SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md)
-records native Profile caption overflow, Home missing-word drawing, persistent
-P2 Progress list overlap and P2 false-empty Profile refresh. These findings
-supersede the earlier static visual acceptance where affected. Working source
-repairs are being converged, not yet in an installed/certified new APK. Tasks5.7/
-8.2 are reopened. Original matrices/galleries/reviews remain unchanged evidence
-of their actual scope. Both non-game tasks preserve all13 database tables;
-normal offline leg1 is independently qualified at1/4/226XP57coins with exactly
-one saved session/economy effect. Oct15 remains partial after date rollover;
-full current-day workout remains open. Source convergence passes27suites197tests/
-five unchanged snapshots/globaltypes/lint and independent review. Full remaining
-scope is unchanged.
+Application source `af9bd997c723195162570f13415f638ad31abcb3` is committed,
+pushed and installed as native12. [NATIVE_PREVIEW12.md](NATIVE_PREVIEW12.md)
+records APK SHA-256
+`949c13470c88bdc646e3458fa6764573b2f79de9d6b97cbb3db6fd19781ea459`,
+52,310,815 bytes, 1,107 exact inventoried files, 941 mapped own source files,
+packaged bundle/source agreement, nine pixel-identical illustrations, three
+byte-identical fonts and the eight-permission allowlist. Build/install/device
+hash and exact before/after SQLite files pass; integrity is `ok`, nine sessions
+and original System settings are preserved. This does not qualify startup or
+all runtime behavior.
 
-Native11 static180 now COMPLETE:144 remaining + separatecompactdark18 terminal
-PASS andimmutableverifiers; originalcompactlight18 subset retained. All180 actual
-PNGs personally viewed/independentcritique noP1P2. Extra12domainart frames likewise
-pass, allnineillustrationsnative-proven. NATIVE_VISUAL11.md records180-rowreview,
-150fresh077 baselinepairs/30additionalstates/targeted15paircomparison/P3limits.
-Original failed180 remains failed. Allfour1da74ad0 workflows SUCCESS; endingSHA
-stillseparate. Flashf4822ca9 nowruns realnon-gamebranches/disclosures. Current
-offlineworkout/finish/exactonce, completed-stateprofiles, riskycompact2xtutorials,
-normal/reduced interaction/perf/memory/logcat and finalGUI/reportaudit remainOPEN.
-No further missing implementation feature was established by the independent
-remaining-requirement audit; that finding does not replace required runtime proof.
+The actual fresh independent af9 checkout ran the full unflagged certification
+command to terminal exit 0: **707 suites / 7,948 tests / five unchanged snapshots
+PASS**, 250.875s; four suites/five classified opt-in tests skipped, zero failures.
+All declared composite gates and independent tracked/untracked Git cleanliness
+pass. All four source-af9 workflows succeed: App CI `38848398321`, Repository
+Integrity `38848398236`, Android `38848398214`, iOS `38848398238`. These qualify
+the current source checkpoint, not an eventual ending SHA or native acceptance.
 
-Current product source93353ede is installed as native11 and passes a fresh
-unflagged full composite705suites7929tests/five snapshots/all declared gates/
-unchanged Git, plus all four exact933 workflows. [NATIVE_PREVIEW11.md](NATIVE_PREVIEW11.md)
-records source/APK/install/data/asset identity. [RUNTIME_CONFIRMATION09.md](RUNTIME_CONFIRMATION09.md)
-qualifies actual native armed geometry3/3 via XML, compact armed visual evidence,
-and full13-table preservation. Default/font2 expired after PNGs remain invalid
-as armed visual proof. Original180 native11 matrix failed atfont2Home after18valid
-compactlight. That explicit subset is verified/independently viewed; remaining144
-capture is running after safer profile sequencing, compactdark18 separately.
-No full result is inferred.
-Final interactive/tutorial/offline workout/performance/gallery/handoff remain open.
+[SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md) preserves the actual native11
+Profile caption overflow, Home missing-word drawing, Progress overprint and
+false-empty Profile refresh. Their source repairs are included in af9; the
+27-suite/197-test convergence, global types/lint and independent source review
+precede the full af9 composite. Native12's independent original-image review
+qualifies the complete sampled default caption, distinct full-width Per-game/
+Recent-session lists, complete font2 Profile headings, and actual Quests open/
+close. Settled Profile values do not prove every pending-refresh frame. The
+initial native11 static no-P1/P2 verdict remains historical and is superseded
+where these later defects were found. Current profile acceptance stays open.
 
-[CURRENT_IMPLEMENTATION.md](CURRENT_IMPLEMENTATION.md) credits the implemented
-source and15-route inventory separately from native acceptance. Actualfresh1ef
-composite PASS704suites7923tests/fivesnapshots/alldeclaredgates/cleanGit; native10
-is stagedonly. Later [PRESS_POLICY_RECOVERY.md](PRESS_POLICY_RECOVERY.md) adds
-the confirmed heldscale repair with4red/42after/globaltypes/lint/strictPASS.
-Pro872ded85 stillowns installednative09 fornonwritinggeometry. Reporteddefault
-bounds are not accepted until root checks actualfiles; otherprofiles/runtimeopen.
-The original fullscope remainsACTIVE. Laterrecords supersede stale pending
-observations below without rewriting their historical evidence.
+Earlier Progress **More insights samples remain INCONCLUSIVE**. Native12 Pro originals 16–18 do
+not show the claimed expansion despite centered inside-button overlays. Flash
+`59de5984` failed before reaching the disclosure during real no-focused-window
+ANRs. Warm Flash `698816ed` then tapped the Target Count row instead; that actual
+geometry error does not resolve the earlier inside-button observations. The
+later Pro `d1133102-5187-4290-86fa-c0a8cee1c562` read fresh native bounds and
+used one raw-center540,2043 tap. Actual expanded Summary2/226/9/57 and Training
+balance are personally viewed by root/independent, with root post-terminal
+equal-XML-bracketed PNG/focus/exactAPK corroboration. TerminalCANCELLED508.2s
+after finalizer400, doctorready5/5; no automatic PASS/collapse proof. Actual stale
+helper lists prompted the documented external uiautomator backend selection;
+no credential/provider/model/app change. Pro79f6d0e9 now uses UIAutomator2 for
+freshness/optional collapse/current-day offline workout. No live outcome is PASS.
+[STARTUP_ANR12.md](STARTUP_ANR12.md) preserves the Android exit-info/stacks,
+invalid first focus-parser readings and corrected no-input focus controls.
+Settings/launcher ANRs support a device-wide hypothesis, but do not establish
+an app-specific cause, source fix or environment exoneration. Later Settings/
+app cold draws of 3,914/6,699ms do not erase the original failures or close final
+startup/performance acceptance.
+
+[RUNTIME_WORKOUT11.md](RUNTIME_WORKOUT11.md) independently qualifies actual
+normal offline Word Scramble leg 1 on native11: opaque pause/same-round resume,
+text/check feedback, saved 590 / 100% / +40 XP / +8 coins, actual next Order Path, Home 1/4
+and the same offline force-stop/relaunch state. Preserved SQLite proves one new
+non-forced versioned session/unique gameplay operation, nine total sessions,
+226XP/57coins and unchanged prior sessions/ledger/settings/workouts. Healthy
+storage fallback→Go to Home is also observed. This is representative offline
+gameplay and exactly-once checkpoint proof, not a full workout. Oct15 remains
+active 1/4 after date rollover. Native12's preserved Oct16 baseline is active 0/4:
+Number Line→Transform Match→Sequence Memory→Running Order. Full current-day
+completion, normal Finish/restart and its independent effects remain open.
+
+[CURRENT_IMPLEMENTATION.md](CURRENT_IMPLEMENTATION.md) separates implemented
+source, established observations and remaining acceptance. The read-only local
+`qa-artifacts/campaign077/remaining-requirements-audit12.json` (SHA-256
+`cf43eb93ed9c868593c056d062cb62b4d20c31f2554e01311cca4ef046aed29c`)
+retains the full original scope and ordered remaining gates. Its prior live-task
+observations are superseded by the startup/disclosure record above. Required
+work remains: optional actual disclosure collapse and startup diagnosis; full current-day
+four-played offline workout; current-source profiles/scrolled critique/gallery
+and real completed Home/Results; combined compact2x risky tutorials; normal/
+reduced-motion interactions and practical latency/startup/frame/memory/logcat;
+final coherent clean/pushed main, ending-SHA four-workflow results, visible Home
+handoff and every section 17 report field/original-brief completion audit.
+
+## Historical native11 visual and data boundaries
+
+Native11 ultimately produced 180 unique settled static frames through its
+remaining 144 run, separate compact-dark 18 and explicit valid compact-light 18
+subset. Original failed 180 capture remains FAILED. All 180 actual images and12
+additional domain-art frames were reviewed; [NATIVE_VISUAL11.md](NATIVE_VISUAL11.md)
+records the original verdicts, later superseding findings, 150 genuine fresh 077
+baseline pairs / 30 additional states, 15 targeted comparisons and P3 limits.
+Baseline task 1.5 covers 150 route/profile frames including first-play help and
+weak saved Results; no pre-change active/pause baseline is claimed. Different
+workout/session states and compact/expanded geometry remain disclosed. Native12
+packaged pixel equality preserves asset identity, but does not make native11's
+old whole-layout verdict current native12 acceptance.
+
+[RUNTIME_DATA07.md](RUNTIME_DATA07.md) already qualifies actual Merge/Replace
+writes, real text-edit consent invalidation, restart and data preservation.
+[RUNTIME_CONFIRMATION09.md](RUNTIME_CONFIRMATION09.md) qualifies armed geometry
+in default/compact/font2 native XML; only compact has an actual armed-label PNG.
+Default/font2 expired PNGs remain excluded as armed visual proof. These journeys
+must not be repeated merely to clear stale pending text. Native08/native10 were
+staged and never installed; their historical source gates remain in their own
+records. Earlier failed captures, tests, controller deviations and provider
+finalization failures are retained, not relabeled green.
 
 ## Earlier evidence reconciliation — before native09
 
-This checkpoint credits completed implementation without treating source tests as
-native acceptance. The whole brief remains ACTIVE.
+The following is a retained historical snapshot. Its then-current installed
+builds, planned actions and pending outcomes are not the current execution state;
+the af9/native12 reconciliation above governs. This checkpoint credited source
+implementation without granting native acceptance.
 
 | Area | Evidence already established | Remaining boundary |
 |---|---|---|

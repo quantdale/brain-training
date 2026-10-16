@@ -10,6 +10,58 @@
 
 ## Current checkpoint — scrolled source convergence; offline leg1 verified
 
+Product source af9bd997c723195162570f13415f638ad31abcb3 is committed/pushed and
+installed as native12/APK949c1347...ea459. Exact source/map/assets/eight permissions/
+device hash and exact SQLite preservation PASS, nine sessions/settings retained.
+Build532tasks/4m39s. Initial loaded-checkout cold start timed out19153ms; later
+actual original screenshot shows loaded Home226XP57coins/newOct16plan0/4 and
+complete '3 days' unit. Performance remains unresolved. Fresh independent af9
+full unflagged composite terminalPASS:707suites/
+7948tests/five unchanged snapshots250.875s, all declared gates/clean Git PASS.
+NATIVE_PREVIEW12.md records exact hashes; all four sourceaf9 workflows SUCCESS:
+App38848398321,Integrity38848398236,Android38848398214,iOS38848398238.
+Ending-SHA remains a separate gate.
+
+Later scrolled12 Pro terminalCANCELLED1011.8s on finalization400 malformed tool
+history, doctorready5/5; all actual device branches/restoration had finished.
+Independent15originals/two overlays qualify default caption/full-width separate
+Progress lists/font2 headings/actual Quests openclose/restoredHome22657/Oct16plan0of4.
+Moreinsights remainsINCONCLUSIVE despite inside-button taps. Flash59de5984 later
+terminalFAILED182.7s before reaching disclosure; actual Android exit-info shows
+two no-focused-window input ANRs, also present in launcher/Settings. Not a proven
+coordinate miss. STARTUP_ANR12.md records preserved stacks/logs, invalid first
+focus-parser assay and corrected static no-input focus recovery: Settings3914ms/
+app6699ms cold draw. No source cause/fix or60FPS acceptance inferred. Root actual
+settled Progress screenshot/equal XML/focus verified. Flash698816ed thenFAILED:
+actual overlay lands on TargetCount21% row aboveMoreinsights, openingResults;
+wrong-row controllergeometry, not appdisclosurefailure. SettledResults captured
+independently/equalXML/focus. Pro d1133102 then qualified one raw-native-center
+tap and actual expanded Summary2/226/9/57 plus Training balance. Root's static
+post-terminal PNG has equal settled XML brackets/focus/exactAPK; independent
+reviewSHA4651ce16...3efc9. TerminalCANCELLED508.2s after finalizer400, doctorready5/5;
+no collapse/automaticPASS. Actual helper hierarchies stayed at5:31/page-top while
+screenshots advanced5:37–5:38/lower content. Root selected the documented external
+ARTEMIS hierarchy setting uiautomator, all other.env bytes unchanged, and used
+supported idle-daemon restart/no-browser. Optional Showcase Node-version build
+failed, daemon nevertheless ready5/5. No credential/provider/model/app change.
+Fresh Pro79f6d0e9 exclusively owns5570/40s officialwatch for hierarchy-freshness/
+optional collapse and actual full offline workout; official backend UIAutomator2,
+actual initial hierarchy/screenshot freshness and ordinary disclosure collapse
+are now image-qualified (root viewed original2 More insights/no Summary).
+Generated overlay1 misplaces its crosshair despite correct rawdispatch540,729;
+use dispatch+actual originals for geometry. Full workout/offline effects pending.
+Before-workout preserved SQLite integrityok/9oldsessionrows/ledger/settings/older
+workouts unchanged; Oct16active0of4. VerifierSQLNULLskip-field TypeError corrected
+against actual repository parser on same preserved copies only, no DB edit.
+
+Next: finish live workout/collapse/freshness proof, compact2x ordinary spatial tutorials,
+full Oct16 offline workout NumberLine→TransformMatch→SequenceMemory→RunningOrder
+with4played0skipped/Finish/restart/exactuniqueeffects, current-profile captures/
+critique/gallery/completedstates, final motion/performance/logcat/memory and
+visible Home/endingSHAfourCI/full original requirement audit. Full scope ACTIVE.
+
+## Earlier checkpoint — scrolled source recovery before native12
+
 Pushedmain24f7bd7861e1e992c8a6973a1df551bec36242e9 has all four workflows
 SUCCESS: App38789837582,Integrity38789837751,Android38789837824,iOS38789837647.
 Installed native11 remains source933/APK9aa17cda...12246. No new install yet.

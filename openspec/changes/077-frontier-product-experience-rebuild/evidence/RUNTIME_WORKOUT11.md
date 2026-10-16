@@ -3,6 +3,9 @@
 Pro trace `5e04e218-98e6-4e9d-997a-df87a0c609bc` completed1543.6s on
 emulator-5570, installed93353ede/APK9aa17cda21dfe8a479ba4deb8fb5f442efbd40ac56b1e2810b75b03ffb612246.
 Checker was OFF. External notes and original trace images remain external.
+Independent reviewer personally viewed14 originals and audited the preserved DB;
+report runtime-workout11-independent-review.json SHA256
+8f0876235472d217e7c26218e6c4cc63e39ec56a71e24399b870390d81378aa6.
 
 Root personally viewed original before images20,21,22,24,34,35,36,39. These show
 the Round1 scramble, opaque Paused overlay hiding it, the same resumed Round1,

@@ -1,5 +1,44 @@
 # Validation — Campaign077
 
+## Native12 current-source qualification in progress
+
+af9bd997 native12 build532tasks/4m39s; exact1107files/941mappedown/fourchanged
+production files/source-map/bundle/assets/eight permissions PASS. APK949c1347...ea459
+52,310,815B, device hash/install-r/exactSQLite beforeafter/integrity9sessions/
+settingsSystem retained. Initial cold timeout19153ms under certload remains
+unresolved; actual root-viewed ARTEMIS original initial Home loaded226XP57coins/
+Oct16newplan0of4/full3daysunit. Pro43e4906c terminalCANCELLED1011.8s on finalization
+400, doctorready5/5; independent15originals/twooverlays qualify defaultcaption/
+separateProgresslists/font2headings/actualQuestsopenclose/restoredHome. Moreinsights
+stillINCONCLUSIVE. Flash59failed182.7s beforedisclosure, actual2nofocusANRs plus
+launcher/SettingsANRs; static correctedfocuscontrol Settings3914/app6699ms cold
+draw, actualfocusedwindows observed. Firstwrongdumpsysfield assayINVALID preserved.
+No sourcecause/fixclaim. Warm settledProgress/equalPNGXML verified; Flash698816ed
+thenFAILED onwrongrowtap(actualoverlayTargetCount21%→Results), no disclosure
+activation. RootsettledResultscapture/equalXML/focusPASS. Pro d1133102 then
+used one rawcenter540,2043 tap at freshbounds[42,1980][1038,2106]; actual expanded
+Summary2/226/9/57 and Training balance personally viewed by root/independent.
+Post-terminal root equalXML/PNG/focus/exactAPK proof passes; independent review
+SHA4651ce165acfa8f28dc8fd9d153c5885f49e6534c9147d44a0ae56c2e6c3efc9.
+TerminalCANCELLED508.2s finalizer400, doctorready5/5, no collapse/automaticPASS.
+Actual stale helper lists led to official external uiautomator backend setting,
+all other.env bytes unchanged/supported idle-daemon restart/no-browser. Optional
+Showcase build Node-version failure retained; daemonready5/5. Pro79f6d0e9 now
+exclusively5570/40swatch/backendUIAutomator2 for freshness/full offline workout;
+actual initial screenshot/hierarchy freshness and ordinary collapse qualified
+(rawdispatch540,729/actualoriginal2, root personally viewed); generated overlay1
+misplacescrosshair and is not independent geometry proof. Full workout results
+pending. STARTUP_ANR12/NATIVE_PREVIEW12.md retain limits.
+Fresh independent af9 full unflagged composite terminalPASS/
+exit0,707suites7948tests/five unchanged snapshots250.875s;4skipped suites/
+5classified opt-ins/zero failures, all declared gates and Git clean PASS.
+SummarySHAb4370f6ead135d2e9f0d7e61b8aa14842b01ccaf68d0da3c9b683e551bbe669b;
+logSHA2896c1f4af9cb147a643bb94aafc21c7faf14bd43b8f6f2507115be43e683c0b.
+No observed Jest worker forced-exit warning; original warnings retained.
+NATIVE_PREVIEW12.md records full evidence boundaries; ending-SHA still separate.
+All four sourceaf9 workflows SUCCESS: App38848398321,Integrity38848398236,
+Android38848398214,iOS38848398238.
+
 ## Later scrolled critique / source repairs in progress
 
 SCROLLED_RECOVERY11.md supersedes earlier static noP1/P2 acceptance for real

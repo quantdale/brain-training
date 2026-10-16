@@ -11,6 +11,30 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Sourceaf9bd997 now pushed/installed native12, exact source/map/assets/eight
+  permissions/devicehash/SQLite9sessions/settings preserved,532tasks4m39s.
+  Initialcold timeout19153ms notperformancePASS; actual laterHome22657/newOct16
+  plan0of4/full3daysunit personallyviewed. Pro43e4906c terminalCANCELLED finalization
+  400; independent actual defaultcaption/cleanProgresslists/font2headings/Quests
+  openclose/restoredHome qualified. Moreinsights remainsINCONCLUSIVE. Flash59
+  terminalFAILED on actualstartupnofocusANRs beforedisclosure; corrected static
+  nativeSettings/app controls show focusrecovery withoutsourcechange. Fresh
+  Flash698816ed thenFAILEDactualwrongTargetCountrow tap; no disclosureactivation.
+  Root actualoverlay/settledResultscapture confirmscontrollergeometry. Pro
+  d1133102 one rawcenter540,2043 tap genuinely expands Summary2/226/9/57 and
+  Training balance; root independent equalXML/PNG/focus/APK proof and reviewer
+  actual images agree. TerminalCANCELLED508.2s on finalizer400, no collapsePASS.
+  Actual stale helper lists prompted documented external uiautomator selection
+  (other.env bytes unchanged) and supported idle-daemon restart/no-browser.
+  Optional Showcase Node-version build failed; daemonready5/5. NewPro79f6d0e9
+  exclusively owns5570/40swatch, backendUIAutomator2, freshness/full offline
+  workout results pending. Initial actual freshness/ordinary collapse qualified;
+  generated overlay1 misleading, actual dispatch540,729+original2 govern.
+  No credential/provider/model/source change.
+  STARTUP_ANR12.md preserves exactfacts/limits. Fresh af9 full unflagged
+  clean-checkout composite terminalPASS707suites7948tests/five snapshots/all
+  declared gates/clean Git. NATIVE_PREVIEW12.md; full scope staysACTIVE.
+
 - Later scrolled critique found Profile caption overflow, Home missing-word
   native drawing, P2 Progress overprint and P2 false-empty Profile refresh.
   Profile/Home source repairs35tests/five snapshotsPASS; sharedgrid5red/34afterPASS;
