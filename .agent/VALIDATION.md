@@ -1,5 +1,72 @@
 # Validation — Campaign077
 
+## Native13 saved full-workout boundary — 2026-10-17 PH
+
+Pro4300 terminalCOMPLETED11743.6s/sevenINCONCLUSIVE/finalizer400. Root personally
+viewed actual R4feedback, completedResults, offline restartedHome and fresh
+post-terminal staticHome. StaticPNG4da94349ffbd4528e8a9b4a1a509cf3091f0fdbe14968bfa34067196194bbe22;
+equalXML16bc58128cd707a6c8f6a5a6db6754740a466937c19826a72e4ba9ceaf878652;
+currentAPK/focus. ActualHome286XP68coins/4days/allfourDone. NormalFinish and
+successful recovered restart observed; firstrestart ANR remains a failure.
+
+Fresh after-workout-4 capture/SQLite verification PASS/integrityok/13sessions/
+14ledger/old9andprevious11sessions unchanged/four matching provenance/versioned
+nonforcedlegrecords/four unique gameplay effects/actualpipelineXPcurrency formula/
+sameplan/Oct16completed4played0skip/settings/olderworkouts unchanged. Source2cdb/
+APK797d0309...53dd6. SequenceMemory ordinarytimeout0/0%/+8XP1coin; RunningOrder
+220/25%accuracy/21%normalized/+15XP3coins. Missed/guessed cues and oldNumberLine
+contamination preserved; no source-answer/fixture/clock/data changes.
+
+Black postrebootPNG c35bacdb...af514 rejected; later normalSettings and unchanged
+warmHome fcf7d3ba...da1c8 viewed. Wrongscreen-home marker retainsstructuralFAIL;
+equalXML/focus/APK/actualpixels separately qualify recovery, not oldblackcause.
+One30s schedulingtrace SHA6f5d4e45a7e789c9cdef0554c83ccd8de45c3ec1c040474b75930b47ee120048
+draw10826ms/hostCPU36→48; nativegraphics+shader/JIT/JS/runnablecost/delayedftrace
+coverage55setupnotices. MeasurementONLY/noquiet60fpsPASS. Final180matrix terminal
+FAIL firstcompactHome/SQLite diskI/O. Root guestdf98%/138MiB and systemSQLITE_FULL/
+ENOSPC; independent trace attribution identifies3.38GiB of task4300rawframes.
+Archive02 in progress after original180s prehash timeout/no deletion. Independent
+workoutreviewf301a355...66f2 closes originalledger/workout-chain/hash coverage gap.
+Currentmatrix/broader motion/performance/finalgatesOPEN.
+
+## Frozen2cdb source certified / native13 installed
+
+Actual independent full-history no-hardlinks checkout local02/freshnpmci/full
+unflagged composite terminalPASS;708suites7967tests/fiveunchanged snapshots
+367.479s/four skippedsuitesfiveclassifiedoptins/zero failures/alldeclaredgates/
+tracked-untrackedclean. Summary874b8ae8b6a781d4586b4db97731838f2471b60ee55aa0df26c8e35b4242b40c;
+logdbc80699be30a5c2e3273d747a21d65614ad7da37f57b48b9ee3d2b48659b35c.
+Original stalledGitHubclone cancelledbeforecert/partialretained, newindependent
+objects/nonshallow728commits verified. Allfour2cdbCI SUCCESS exact38883436658/
+38883436576/38883436566/38883436562. EndingSHA remains separate.
+Native13 build576tasks68executed508uptodate/11m6s/maxworkers1; exact1107files/
+941mappedown/onechangedproduction/packagedbundle/assets/fonts/eightpermissions
+PASS. APK797d0309a5204c0ba77df18a3c15a63c61ef1491decd918df9045e8edc553dd6,
+52,311,435B/install-r/devicehash/exactSQLitebytes11sessions/settingsPASS.
+Initialcoldtimeout15146ms; fresh startuphelperfailedsecondcold15835ms, first
+draw7758/loadedHome29907ms/hostCPU70→100; notquiet/perfPASS. Diagnostics retained.
+Same secondPID laterdraw48747ms/47372ms beforeRunningmain/no newANR; independent
+source/diagnostics review identifies nofirstpartyloop/stack. Hostfree439MiB.
+Exactall13table rows/sessions11/26364/2of4 preserved before guest-onlyreboot,
+sameGUIprocess/config/APK/RAM/no wipe. NewbootID/ADBseen, boot1/dataafterpending;
+initialprematurepmqueryexit20 failedbeforeoutputcreation, retainedseparately.
+Afterboot1 protectedcopyfailedheader(permissiondenied/adbdnonroot), INVALIDbytes
+retained; targeted5570adbdroot restored/freshrooted02 all13table rows unchanged
+PASS/integrityok11sessions26364/2of4/sameAPK. Singlepostrebootnativecontrol:
+Settingstimeout→focus18204ms; appCOLDdraw12197ms/focus13259ms. Samehostfree477MiB,
+noquietPASS orsourcecausality/exoneration. No extra reboot/config/RAM/wipe/input.
+
+Native12 sameleg2 recovery45eCOMPLETED521.4s actual300/75%/3of4/+25XP5coins/
+nextSequence, Home26364/2of4 rootviewed. SeparatepreservedSQLite integrityok/
+11sessions12ledger/2newnonforcedversionedlegprovenance+uniquegameplayeffects,
+old9/ledger/settings/XPawards/olderworkouts unchanged/zero skipped. Independent
+fourimage review88a4b773...ff7a82. R3visible source; R1R2R4guesses/NumberLine
+contamination retained. WiFi1 correctedexact2/1/airplane0afterterminal.
+ExternalARTEMISoperator repairrealofflinebeforeFAIL/afterPASS/11controls/
+independent7actualmethodcases; newlivebatch2screenshots+nextprovider200/no400.
+No credential/provider/envchange, noexternalcodeinGit. RUNTIME_WORKOUT12 and
+NATIVE_PREVIEW13/ARTEMIS_HISTORY_RECOVERY13 recordscope; full077ACTIVE.
+
 ## Shared Button convergence and settled native pause sample
 
 Full-source zero-warning lint exit0. Fresh types02 failed TS2352 in test-only

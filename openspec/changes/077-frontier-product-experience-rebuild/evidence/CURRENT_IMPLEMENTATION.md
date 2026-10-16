@@ -1,19 +1,33 @@
 # Implementation and acceptance reconciliation
 
-## New source convergence after native12
+## Current source and actual saved-workout checkpoint
 
 Actual NumberLine Submit shrinks after enabling on installed native12. The
 shared Button cell repair now preserves caller sizing and stable disabled/
 enabled layout, with real caller fail-before/pass-after coverage, final global
 types/full lint and independent review. See BUTTON_LAYOUT_RECOVERY12.md. This
-new application change requires fresh frozen-source certification/native13 and
-actual geometry/profile proof; the af9 qualification below remains historical
-for the currently installed APK. One settled TransformMatch pause capture is
+new application change now passes fresh frozen-source certification/native13
+installation; actual geometry/profile proof remains open. The af9 qualification
+below is historical for native12. One settled TransformMatch pause capture is
 independently qualified; RUNTIME_WORKOUT12.md preserves narrower limits.
 
-Current application source `af9bd997c723195162570f13415f638ad31abcb3` is pushed
-and installed as native12, including the [press-policy repair](PRESS_POLICY_RECOVERY.md)
-and [scrolled recovery](SCROLLED_RECOVERY11.md). Campaign077 remains ACTIVE.
+Current application source `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5` is pushed
+and installed as native13, including the shared Button cell-layout repair.
+[NATIVE_PREVIEW13.md](NATIVE_PREVIEW13.md) records full fresh certification,
+708suites7967tests/five unchanged snapshots/all gates/clean Git and four green
+workflows, exact native source/build/assets/permissions/install/data preservation.
+Current saved state is13sessions/286XP68coins/Oct16completed4of4/zero skipped.
+Actual native13 legs3/4 finish through ordinary controls offline; root original
+pixels/equalXML/APK/focus plus independent immutable SQLite review qualify the
+completed persistence boundary. RUNTIME_WORKOUT13.md preserves guessed/timeout
+play, the earlier NumberLine cue contamination, firstrestartANR and seven
+INCONCLUSIVE automatic checks/finalizer400. Finalmatrix then fails firstcompact
+Home with SQLite disk I/O errors; guest98%full/systemENOSPC and terminal-task
+multiGiB rawframes require artifact archive/cleanup/recovery before recapture.
+Cold startup is slow under material host pressure; recorded timeouts and native
+Settings comparison do not close performance acceptance. Actual new button
+geometry/current profiles/motion/performance/handoff remain open.
+The af9 qualification below is historical for native12. Campaign077 remains ACTIVE.
 Implemented source and deterministic checks are credited separately from actual
 native/runtime acceptance. Prior bounded source audits found no additional
 missing redesign feature; this does not resolve the current startup ANRs

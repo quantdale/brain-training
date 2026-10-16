@@ -8,7 +8,95 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — shared button source ready; paused native tree qualified
+## Current checkpoint — completed offline workout; native13 visual convergence
+
+Installed application remains frozen source `2cdb9ed6`, native13 APK
+`797d0309...53dd6`; full fresh-checkout certification and all four source CI
+workflows pass as recorded below. No application source changed afterward.
+
+Pro `4300edb1-f7be-4c98-8b8e-4cecf2df2fe1` is terminal COMPLETED, 11743.6s.
+Its seven automatic checks are INCONCLUSIVE and finalization has another
+provider400 tool-history error; this is not automatic runtime PASS. Root actual
+originals show Running Order220/25% accuracy/21% normalized/+15XP3coins, normal
+Finish, and restarted completed Home286XP68coins/4days/allfourDone. First cold
+restart ANR'd before the successful second launch. Missed reveals/guessed
+answers and earlier NumberLine unavailable paused cue remain explicit.
+
+Post-terminal root static Home has matching compressed XML/currentAPK/focus and
+personally viewed PNG4da94349...bbe22. Separate immutable SQLite after-workout-4
+verification PASS: integrityok/13sessions/14ledger, original9 and earlier11
+session rows unchanged, four matching non-forced/versioned leg records/four
+unique gameplay effects matching XP/currency formula, same plan/Oct16completed/
+index4/fourplayed/zero skipped, 286XP68coins/settings/olderworkouts unchanged.
+Device calendar remains Oct16; host is Oct17 PH. Independent reviewf301a355...66f2
+personally views four originals and checks all baseline file/table hashes,
+original10→prior12→current14ledger rows and all three older workouts. These
+direct row checks close the initial helper's narrower chained-baseline gap.
+
+Post-reboot first Home screenshot was BLACK despite matching XML/ready=true;
+original visual rejection retained. Later Settings PNG is normal, then warm
+Settings→same app restores normalHome26364/2of4 without source/data change.
+That capture's wrong `screen-home` marker fails structurally; actual pixels,
+equal XML/currentAPK/focus qualify warm recovery separately. Cause unresolved.
+
+One bounded30s Perfetto cold-launch capture completed: draw10826ms, hostCPU
+36→48%/free924072→1347228KiB. Trace6f5d4e45...20048 records native/graphics/
+shader/JIT/JS work and runnable waits; initial ftrace setup errors/delayed event
+coverage retained. No quiet/60fps/app-source exoneration inferred. Final180
+capture76749 is terminalFAIL firstcompactHome: SQLite PRAGMA diskI/O errors,
+guest98%full/138MiB free and systemSQLiteFullException/ENOSPC. External task4300
+attributiond7f8179a...3bc5f proves rc3/rc4a/b/c/rp rawframes consume3.38GiB;
+bt/t are older/unattributed and must remain. Root archives only attributed
+rawframes+rc4metadata tohost before scopedcleanup. First hash preflight times
+out180s/noarchive/deletion; newarchive02 streams partial hashes with bounded900s
+budget. No sampler process observed in root post-task process dump. Remain:
+actual-frame review/independent critique/gallery, nativeButton geometry,
+compact2x ordinary tutorials, matched motion/latency/frame/PSS/logcat attribution,
+final endingSHA CI/visibleHome/original audit. Full077 scope remains ACTIVE.
+
+## Earlier checkpoint — shared button source ready; paused native tree qualified
+
+Source2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5 is now pushed and installed13.
+Full actual fresh independent checkout composite PASS708suites7967tests/five
+unchanged snapshots367.479s/all declared gates/clean Git. Four2cdb workflows
+SUCCESS App38883436658/Integrity38883436576/Android38883436566/iOS38883436562.
+Native13 exact1107files/941mappedown/onechangedproduction/assets/eightpermissions/
+devicehash PASS;576tasks11m6s,APK797d0309...53dd6/52,311,435B.
+ExactSQLiteunchangedacrossinstall/integrityok/11sessions/settingsretained.
+
+Native12 same TransformMatchleg2 recovered after midround protocol400:
+efb6e256 CANCELLED1370.23s, same liveRound4 preserved. External ARTEMIS operator
+ToolMessage/image-carrier ordering defect has real offline red/green, independent
+seven-case review; reversible external fix/no provider or credential change.
+Fresh45e4dc33 COMPLETED521.4s saves300/75%/+25XP5coins and loadedHome26364/2of4;
+root actualimages and separate SQLite prove11sessions/two newuniqueeffects,
+old9/history/settings/olderworkouts retained/zero skipped. R3 sourcevisible;
+other3 Transform answers honest guesses, NumberLine contamination retained.
+Two screenshottools samebatch plus subsequent provider200 qualify narrow live
+protocol fix. Root corrects networkwifi1→original2/1/airplane0 afterterminal.
+
+Initial13cold timeout15146ms. Fresh startup repeat failed on secondcold15835ms;
+firstdraw7758ms/loadedHomeobservation29907ms/CPU70→100, not quietPASS. Current
+diagnostics show guestgraphics/sensors/kernel pressure; no new sourcecause or
+environmentexoneration inferred. No activeARTEMIS; root owns static diagnostics.
+Independent13diagnosis finds seconddraw48747ms/47372ms beforeRunningmain,
+no firstpartyloop/stack. Hostfree449560KiB (~439MiB) ismaterialconfound. Root
+preserved all13table rows/11sessions/26364/2of4 then requested one guest-only
+adb reboot ofsameGUI/PID44452; noAPK/RAM/config/wipe/hostinput change. NewbootID
+37bc0e1c...a237a6 observed; ADBconnected while sys.boot_completedstillempty.
+An early postbootpmqueryfailedbeforeoutputcreation (exit20); original logretained,
+waitforactualboot1 beforedataquery. Otherdevices5578/5594 remainuntouched.
+Guestboot1 nowobserved. The next protectedcopyfailedheaderguard because reboot
+restoredadbd shell permissions; permission-denied bytes retained asINVALIDcopy.
+Root re-establishedtargeted5570adbdroot and freshrooted02capturePASS: all13table
+rows unchanged/integrityok/11sessions/26364/2of4/same13APK. No wipe/replay/dataedit.
+Single postreboot Settings/app no-input focuscontrol completed: Settingstimeout/
+focus18.204s, appCOLDdraw12.197s/focus13.259s/sameAPK. Hostfree477MiB remains
+materialconfound; noquietPASS/noappcostexoneration. ActualwarmHomeproof next,
+then ordinary13remainingtwolegs before broaderstatic/motion/performance gates.
+Next: startup attribution/ordinary13leg3+4/Finish/offlinerestart, actualButton
+geometry/compact2xtutorials, final180profiles/critique/gallery, motion/memory/
+logcat and visibleHome/endingSHA/audit. FullscopeACTIVE.
 
 Shared Button cell repair is ready for a committed native13 source freeze.
 Full-source zero-warning lint and final global TypeScript03 PASS. Types02

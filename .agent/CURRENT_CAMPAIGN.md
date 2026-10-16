@@ -11,6 +11,32 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Native13 continuation4300 is terminalCOMPLETED11743.6s but7automatic checks
+  INCONCLUSIVE/finalizer400. Actual original screenshots/root post-terminal
+  bracketed Home qualify normal Finish/recovered restart/286XP68coins/allfour
+  Done. First restart ANR and missed/guessed reveals remain explicit. Immutable
+  after-workout-4 SQLite PASS:13sessions/14ledger/old9and11unchanged/fourleg
+  provenance/unique formula-correct gameplayeffects/Oct16completed4played0skip/
+  sameplan/settings/olderworkouts. RUNTIME_WORKOUT13.md records exact bounds.
+  Black postreboot frame rejected; later unchanged warmHome visibly recovers.
+  One30s schedulingtrace draw10826ms/nativegraphics+JIT/JS/runnablewait/hostCPU
+ 36→48 retains performanceOPEN. Final180 matrix terminalFAIL firstcompactHome/
+  SQLite diskI/O; guest98%full/systemENOSPC and attributed3.38GiB rawframes.
+  Rootarchive02 verifies host copies before narrowcleanup, leaving unrelated
+  bt/t untouched. Geometry/tutorial/motion/currentmatrix/finalhandoff remainOPEN.
+
+- Pushed2cdb source nowinstalled13/APK797d0309...53dd6/52,311,435B. Full fresh
+  composite708suites7967tests/fiveunchangedsnapshots367.479s/allgatescleanPASS;
+  allfour2cdbCI SUCCESS. Build576tasks11m6s/exact1107files/941maps/assets/eight
+  permissions/install/devicehash/exactSQLite11sessions/settingsPASS. Native12
+  sameleg2saved300/75%/25XP5coins afterexternalARTEMIShistoryorderingfix; real
+  offline red/green+independentreview/live2screenshotbatchfollowing200 qualified.
+  ActualHome26364/2of4 and separateSQLite two newuniqueeffects/old9/history/older
+  workouts/zero skipped PASS. Otherguesses/NumberLinecontamination retained.
+  Initial13coldtimeout15146ms; repeat2failed15835ms/first7758ms/CPU70→100, quiet
+  startup remains unresolved. Root static diagnostics/no activecontroller.
+  Actual13button/profile/workout/tutorial/motion/finalhandoff/fullscopeOPEN.
+
 - Shared Button repair now full lint/finaltypes03 PASS; test-only TS2352 caught
   and corrected without weaker assertions, final3suites27PASS. Prior integrated
   9suites52/five unchanged canaries PASS; follow-up independent review noP1/P2.

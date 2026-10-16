@@ -85,6 +85,50 @@ official status watch to resume and save this SAME leg2 offline, then stop at
 saved Results. No game reset/replay/install or concurrent root device operation.
 Its eventual outcome and independent post-game SQLite remain pending.
 
+## Saved leg2 and independent preservation
+
+Proefb6e256 is terminal CANCELLED1370.23s after malformed tool-history400
+mid-round4. It had resumed the SAME session, correctly scored two honest
+guesses and one response derived from an actually captured round3 source.
+Root personally viewed the round3 source and correct feedback/score300.
+The transform rule was inferred from prior visible feedback, not a label in
+the source image. No source code or opaque-pause answer supplied that response.
+The task's video attempt was unhelpful and not decoding/latency evidence.
+
+Root's post-terminal matching compressedXML/PNG proves the live game remained
+Round4/4 Score300. No reset/force-stop/install occurred. After the external
+ARTEMIS history ordering repair, fresh Pro45e4dc33-c519-406d-88f7-7eaa20eb6814
+continued that same round and ended terminal COMPLETED521.4s. Its first tap
+missed empty space; a fresh corrected ordinary candidate tap was an honest
+guess and received Wrong!/redX, with the correct option marked by a greencheck.
+No invented recall is credited. Normal See results saved the session once.
+
+Root personally viewed actual Results: Solid work52%, score300, accuracy75%,
+rounds3/4, beststreak3, +25XP/+5coins, Progress saved, nextSequenceMemory/Game3of4.
+Done reaches loaded Home263XP64coins/fourdays/2of4. Root's independent static
+Home has matching XML brackets/focus/exact12APK, PNG SHA256
+`113d586f5cd9b28e3f5b8df83b3677918a1fb4979c51c88e1cb0f8f4b4987431`;
+XML SHA256 `b7b1e5f5407c43f25fb9b6378fce53983a4458315fb2f56cf0914e1bf6fff9b9`.
+Independent four-image review SHA256
+`88a4b7730aaef48fee783b51ab8876ad586a9bceb65f2db4fbd161ba54ff7a82`.
+
+The recovery's stale /sdcard/ui.xml from a failed dump is explicitly excluded;
+its old Profile186/49 values are not current state. Network was connected but
+wifi_on ended1 rather than original2; root restored exact2/1/airplane0 after
+terminal, with active default network191. These deviations are retained.
+Its two stored screenshot tools in one batch and following provider200 also
+qualify the repaired protocol path; ARTEMIS_HISTORY_RECOVERY13.md keeps limits.
+
+After terminal at the safe saved boundary, root preserved exact SQLite files
+and verified separate copies. Integrityok/11sessions/12ledgerrows/263XP64coins;
+Oct16 active/index2/two played/zero skipped, original four-game plan retained.
+The original9session rows, historical ledger, XP awards, settings hash
+`a50813e8b2f4cf43007e4974865a96f85f080e8db3b32d006edee347b9cc2ec9`
+and older workouts are unchanged. Exactly two new non-forced/versioned sessions
+have matching workout leg provenance and unique gameplay ledger operations.
+The non-forced flag does not erase NumberLine's contaminated hit. Native13
+install subsequently preserves every SQLite db/wal/shm byte and all11sessions.
+
 The full current-day four-played/zero-skipped workout, unique effects, Finish/
 offline restart, clean selected gameplay/input proof, final profiles/motion/
 startup/memory/logcat/ending-SHA CI and visible Home handoff remain required.

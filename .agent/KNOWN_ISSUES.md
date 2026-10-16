@@ -2,6 +2,45 @@
 
 ## Fresh audit findings
 
+- First native13 final180matrix terminalFAIL: compactHome is actualStorage
+  Unavailable with PRAGMA diskI/O error, notacceptedHome. Guest98%full/138MiBfree,
+  systemSQLITE_FULL/ENOSPC and independent4300trace attribution identify3.38GiB
+  rawframes in rc3/rc4a/b/c/rp, plus rc4metadata. Rootarchives+hashverifies before
+  narrowcleanup/recovery; olderbt/t remainunattributed. First prehash timedout180s
+  with noarchive/deletion; fresharchive02 streams progress under900s cap. This
+  is not an appsource/data-corruption diagnosis; currentapp/datarecovery pending.
+
+- Native13 actual full Oct16 workout now saved/restarted/independently SQLite
+  verified4played0skipped/13sessions/286XP68coins. This does not close startup:
+  first task restart ANR'd, next cold start recovered. Another finalizer400
+  leaves7automatic checks INCONCLUSIVE despite terminalCOMPLETED; root original
+  pixels/data govern. Earlier NumberLine unavailable cue and missed/guessed
+  timed reveals remain explicit. No claim of clean solves across all four.
+- First postreboot13 Home PNG is entirely BLACK despite equalXML/ready=true;
+  rejected separately. Later Settings renders normally; warm return to same
+  unchanged app restores normalHome. Cause remains unresolved; displayON probes
+  occurred after the rejected capture and cannot establish its momentary state.
+  The recovery capture used a wrong marker and retains structuralFAIL; actual
+  pixels/equalXML/currentAPK/focus qualify recovery separately.
+- Current30s native13 Perfetto cold control draws10826ms/hostCPU36→48 with
+  0.88→1.28GiB free. Native graphics/shader/JIT initialization and JS/runnable
+  costs are visible, but 55ftrace setup notices/delayed event coverage limit
+  attribution. No60fps/quietPASS or firstpartyexoneration. Matrix/runtime and
+  bounded performance work continue; no speculative source patch.
+
+- Native13 installed2cdb source passes fullcert/allfourCI/build/source/assets/
+  permissions/exactSQLite11sessions. Initialcoldtimeout15146ms and secondfresh
+  cold15835ms remain unresolved; firstdraw7758ms atCPU70→100 is notquietPASS.
+  Static13startup diagnostics retained; noappsourcecauseorblanketenvironment
+  exoneration. ActualButtongeometry/fullprofiles/current4of4 stillopen.
+
+- RepeatedexternalARTEMIS400 has reproduced operator image-carrier ordering
+  cause: all toolIDs present but Humanimage interrupts siblingToolMessages.
+  Minimal reversible external stable-order fix/offline redgreen+independent
+  seven-case review and live two-imagebatchfollowing200 qualify that seam.
+  Earlier failedtraces stayfailed/cancelled; otherpathsnotblanketfixed. No
+  provider/credential/envchange or ARTEMIS source copied into this repository.
+
 - A settled native12 TransformMatch pause sample now prunes underlying content
   in compressed native XML. Root/independent actual opaque PNG and all11 nodes
   qualify this state; prior NumberLine mixed ARTEMIS tree cause remains open,

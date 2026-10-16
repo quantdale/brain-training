@@ -1,35 +1,39 @@
 # CAMPAIGN 077 — FRONTIER PRODUCT REBUILD REPORT
 
-**Status: ACTIVE — factual checkpoint draft, 2026-10-16.** Application source
-`af9bd997c723195162570f13415f638ad31abcb3` passes actual fresh-checkout
-certification and all four required workflows, and is installed as native12.
-Data07 restore writes/text-edit safety and native09 confirmation geometry are
-independently qualified. Final device acceptance, actual ending-SHA CI and the
-visible Home handoff remain open. This is not a campaign completion claim.
+**Status: ACTIVE — factual checkpoint draft, 2026-10-17 PH.** Installed product
+source is `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5`, native13 APK
+`797d0309a5204c0ba77df18a3c15a63c61ef1491decd918df9045e8edc553dd6`,52,311,435B.
+Full independent clean-checkout certification passes708suites/7967tests/five
+unchanged snapshots/all declared gates/clean Git; all four source workflows
+succeed. [NATIVE_PREVIEW13.md](NATIVE_PREVIEW13.md) records exact build/source/
+assets/permissions/install/preservation evidence. This is not the ending SHA.
 
-Later actual-use critique found Profile caption overflow, Home missing-word
-native drawing, persistent P2 Progress overprint and P2 false-empty Profile
-refresh. [SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md) supersedes affected
-initial static verdicts and records working source repairs. These changes still
-pass27 integrated suites197tests/five snapshots/globaltypes/full lint and an
-independent source review. Native12 now personally qualifies the complete default
-Profile caption and separated Progress lists, plus font2 headings/Quests disclosure.
-The current complete profile matrix, motion and full-workout gates remain open.
-Original180 screenshots and their reviews/gallery remain immutable. All13
-application tables are unchanged after the two non-game tasks. A bounded real
-offline workout leg1 completed; root images and independent preserved SQLite
-qualify pause/resume/feedback/save/restart1/4/226XP57coins. See
-[RUNTIME_WORKOUT11.md](RUNTIME_WORKOUT11.md). Date rollover leaves Oct15 active1/4;
-full current-day workout/completed-state/performance/final gates stay open.
+The ordinary offline Oct16 workout is now saved/completed:13sessions/286XP/
+68coins/fourplayed/zero skipped. Actual normalFinish and recovered restart Home
+are personally reviewed; independent immutable SQLite review confirms original
+history/settings/olderworkouts, all four leg records/provenance and unique
+formula-correct rewards. [RUNTIME_WORKOUT13.md](RUNTIME_WORKOUT13.md) separates
+native12 firsttwo legs from native13 lasttwo, missed/guessed reveals, earlier
+NumberLine cue contamination, sevenINCONCLUSIVE automatic checks/finalizer400
+and the first cold restart ANR before successful recovery. It is not clean-solve
+or reliable-startup acceptance.
 
-Later bounded native-bounds Pro d1133102 genuinely opens More insights with one
-raw-center tap. Root and independent originals plus the settled post-terminal
-PNG/XML qualify Summary2/226/9/57 and Training balance. It is terminalCANCELLED
-508.2s after report-finalizer400, not automatic PASS. Actual stale helper lists
-prompted ARTEMIS's documented external uiautomator backend selection; fresh
-Pro79f6d0e9 checks hierarchy/screenshot alignment, optional collapse and the full
-current-day offline workout. No credential/provider/model/app change occurred.
-See [native12](NATIVE_PREVIEW12.md) for hashes and retained tool limitations.
+The shared Button repair in2cdb addresses a real enabled-sizing defect with
+caller red/green checks and independent review; actual disabled/enabled native
+geometry is still open. Earlier scrolled Profile/Progress/Home source repairs
+and sampled native12 after-proof remain in
+[SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md). Historical native11's180frames
+and gallery are preserved; they do not replace the current final matrix.
+
+Cold launch/motion/performance/current-profile acceptance remain open. A black
+post-reboot Home frame is rejected; unchanged warmHome later recovers. One30s
+scheduling trace records10826ms cold draw and material native/graphics/JIT/JS
+costs with limited initial event coverage. Finalmatrix's firstcompactHome then
+fails with real SQLite disk I/O errors; guest98%full/systemENOSPC and multiGiB
+terminal-task rawframes require archive/cleanup and recovery before recapture.
+Data07 restore-write/text-edit and native09 confirmation proofs remain qualified.
+Final current visual critique, geometry/tutorial/motion/performance, actual
+endingSHA CI, visibleHome handoff and original-brief audit are incomplete.
 
 ## Repository
 
@@ -37,11 +41,11 @@ See [native12](NATIVE_PREVIEW12.md) for hashes and retained tool limitations.
 |---|---|
 | Repository / canonical branch | `quantdale/brain-training`, `main` |
 | Starting SHA | `c7bbf0ddfa184204027d8b6df14deab5abf87a6e` |
-| Current certified / installed application source | `af9bd997c723195162570f13415f638ad31abcb3`, native12; [exact evidence](NATIVE_PREVIEW12.md) |
+| Current certified / installed application source | `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5`, native13; [exact evidence](NATIVE_PREVIEW13.md) |
 | Ending SHA | **PENDING — fill after all authorized implementation/evidence work and the final coherent commit.** Current source is an intermediate checkpoint. |
-| Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Product source `af9bd997` is pushed; later evidence changes are being converged. Final clean/pushed ending-state verification is **PENDING**. |
+| Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Product source `2cdb9ed6` is pushed; later evidence changes are being converged. Final clean/pushed ending-state verification is **PENDING**. |
 
-The seventeen campaign commits through the latest pushed source checkpoint are:
+The nineteen campaign commits through the latest pushed source checkpoint are:
 
 | Commit | Coherent progress |
 |---|---|
@@ -62,6 +66,8 @@ The seventeen campaign commits through the latest pushed source checkpoint are:
 | `1da74ad0` | Qualify installed source and preserve native confirmation evidence |
 | `24f7bd78` | Qualify native profile matrix and original artwork |
 | `af9bd997` | Repair scrolled reports and preserve Profile refresh data |
+| `1da9b524` | Qualify current source and diagnose runtime controller evidence |
+| `2cdb9ed6` | Preserve filled button sizing across actionable states |
 
 Independent certification clones and `D:/bt077`, the native build copy, are
 separate from linked Git worktrees. Their retained artifacts and cleanup limits

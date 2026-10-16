@@ -17,7 +17,7 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 | 10 Shared system/offline | Consolidated existing tokens/primitives/HUD/stages/results/motion; IDs/contracts preserved; no duplicate library/cloud dependency | 4,8.1 | Shared implementation/source contracts COMPLETE; native motion/cross-product acceptance OPEN |
 | 11 Visual gates/critique | Actual six-profile screenshots for every major modified screen; direct observed theme separated; matched fresh 077 baseline; independent each-wave critique/defect correction | 1.5,5.7,8 | OPEN |
 | 12 Real runtime | VisibleGUI/currentbuild/cold launch/navigation/theme/game/feedback/result/workout/SQLite/force-stop/offline/recovery/settings/assets/memory/perf/logcat | 9.2–9.4,10.1 | OPEN |
-| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | Current af9 composite/native12 build/install and source CI PASS; remaining runtime/startup/data/ending-SHA boundaries OPEN |
+| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | Current2cdb composite/native13 build/install/source CI and full-workout saved-data preservation PASS; runtime/startup/storage-recovery/ending-SHA boundaries OPEN |
 | 14 Ten waves | Implement through A–J; no research/asset-only ending | All | OPEN |
 | 15 Autonomy/efficiency/durable | Safe parallel packets/single shared owner, systemic fixes, wave checkpoints/tests/assets/issues/SHA/next, commits/push | All | IN PROGRESS |
 | 16 Acceptance | Distinct appealing coherent visuals/art/type/icons/layout/light-dark/reflow/motion; all 42 correctness/inputs/tutorials/feedback/pause/persistence; tested build/clean/provenance/noHigh/finalSHA4CI; updated visibleHome | 8–10 | OPEN |
@@ -26,7 +26,23 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 
 Each named gate/artifact/profile/game/state becomes an evidence row in the relevant inventory and final report; uncertain or indirect proof stays OPEN. PHYSICAL_ANDROID and IOS_RUNTIME are NOT VALIDATED absent actual devices/platform evidence. This specified limitation does not authorize pretending ARM64/store readiness or owner taste approval.
 
-## Current implementation reconciliation — af9 / native12
+## Current implementation reconciliation — 2cdb / native13
+
+Later source checkpoint `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5` repairs a
+real shared Button parent-sizing defect observed in native12. Full independent
+unflagged certification708suites7967tests/fiveunchangedsnapshots/allgatesclean
+and allfour2cdb workflows PASS. Native13 exactsource/map/assets/permissions/
+devicehash/install/exactSQLite11sessions PASS; task9.1 is requalified. Native
+geometry/profile/motion/startup acceptance remains OPEN. The
+historical af9 results below apply to prior installed12.
+RUNTIME_WORKOUT12.md records actual firsttwo legs and settled TransformMatch
+pause proof. RUNTIME_WORKOUT13.md now records remaining native13legs/offline
+normalFinish/recovered restart and independently verified completed4played0skip/
+13sessions/286XP68coins/four unique formula-correct rewards/history/settings.
+Contaminated/guessed play, firstcoldANR and7INCONCLUSIVE checks/finalizer400 remain
+explicit. Finalmatrix fails firstcompactHome at real disk I/O errors with
+guest98%full/systemENOSPC/multiGiB rawframes; recovery/currentmatrix/finalruntime
+remain open. No source-test or sampled-pause result closes the broader brief.
 
 Application source `af9bd997c723195162570f13415f638ad31abcb3` is committed,
 pushed and installed as native12. [NATIVE_PREVIEW12.md](NATIVE_PREVIEW12.md)
