@@ -132,6 +132,9 @@ correct dispatched tap and result, so overlays alone are insufficient geometry
 proof. Prior Pro43 actual rawtaps540,2042 were also inside the then-visible button;
 those unchanged-label samples remain inconclusive. Warm Flash698 actual dispatch
 541,1682 hits the Target Count row; its wrong-row conclusion is independently
-supported without relying on its overlay. Current Home baseline226XP57coins/
-Oct16plan0of4 matches preservation; full workout/offline effects remain pending.
+supported without relying on its overlay. Current Progress baseline226XP57coins/
+nine sessions matches preservation. The first Home next-perception image still
+has top-stat skeletons and is not settled Home totals proof, despite the task
+plan's baseline claim; root injected an explicit observation reminder. Full
+workout/offline effects require the subsequent actual evidence.
 Full campaign remainsACTIVE.

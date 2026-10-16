@@ -2,6 +2,29 @@
 
 ## Fresh audit findings
 
+- A settled native12 TransformMatch pause sample now prunes underlying content
+  in compressed native XML. Root/independent actual opaque PNG and all11 nodes
+  qualify this state; prior NumberLine mixed ARTEMIS tree cause remains open,
+  not a demonstrated missing source property. No hiding patch inferred.
+  Proefb6e256 resumes SAME unsaved leg2; wait for terminal saved Results before
+  install/force-stop. RUNTIME_WORKOUT12.md preserves exact boundaries.
+
+- Native12 actual NumberLine Submit shrinks from full-row disabled to left-half
+  enabled after selection. Shared Button's conditional lip wrapper leaves caller
+  flex/width/margins on inner face. Source repair now preserves parent-cell
+  ownership/stable filled wrapper; valid8red/12controls, after20PASS/integrated
+  9suites52PASS/fiveunchangedcanaries/types/scopedlintPASS, independentreviewnoP1P2.
+  Installedaf9 stillhasdefect; newsource/APK/actualnativeafterrequired.
+  BUTTON_LAYOUT_RECOVERY12.md. No mechanic/economy/version change.
+
+- Actual opaquePause screenshot's stored automationtree also exposes disabled
+  challenge plus fresh pause controls. Source already hides ancestor with
+  no-hide-descendants/accessibilityElementsHidden; native cause unproven.
+  Pro79f6's one hit read that unavailable cue and is not clean gameplay evidence.
+  Saved session/rewards are preserved honestly. Freshcf3530df prepares actual
+  pausedleg2 for root important-only nativeXML/PNG brackets afterterminal;
+  do not infer source failure solely from stored mixed tree or bypass opaquepause.
+
 - Current native12 no-focused-window input ANRs occurred during two cold starts
   in Flash59de5984, before Progress was reached. Launcher/Settings exhibit the
   same class; sampled native/RN startup stacks do not identify app source cause.

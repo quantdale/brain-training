@@ -159,6 +159,30 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
 const DISABLED_FILL = 'backgroundElement';
 const DISABLED_LABEL = 'textSecondary';
 
+// A filled button has two native boxes: the parent-facing cell and its face.
+// Keep caller layout on the cell. Applying flex/width/margins only to the face
+// makes the enabled lip wrapper shrink-wrap inside a wrapping row (NumberLine's
+// Submit moved away from its disabled-state tap position after choosing a point).
+const CELL_STYLE_KEYS = new Set<keyof ViewStyle>([
+  'alignSelf', 'aspectRatio', 'display', 'position', 'top', 'right', 'bottom', 'left',
+  'start', 'end', 'inset', 'insetBlock', 'insetBlockEnd', 'insetBlockStart',
+  'insetInline', 'insetInlineEnd', 'insetInlineStart', 'zIndex',
+  'flex', 'flexBasis', 'flexGrow', 'flexShrink',
+  'width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight',
+  'margin', 'marginBottom', 'marginEnd', 'marginHorizontal', 'marginLeft',
+  'marginRight', 'marginStart', 'marginTop', 'marginVertical',
+]);
+
+function splitCellStyle(style: StyleProp<ViewStyle>): [ViewStyle, ViewStyle] {
+  const cell: ViewStyle = {};
+  const face: ViewStyle = {};
+  for (const [key, value] of Object.entries(StyleSheet.flatten(style) ?? {})) {
+    const destination = CELL_STYLE_KEYS.has(key as keyof ViewStyle) ? cell : face;
+    Object.assign(destination, { [key]: value });
+  }
+  return [cell, face];
+}
+
 /** Colour slots for a disabled button, per variant. */
 function resolveDisabled(variant: ButtonVariant, theme: ColorTheme) {
   // `ghost` is already borderless/transparent, so it keeps no fill and simply
@@ -209,10 +233,10 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
   const background = inactive ? disabledColors.background : colors.background;
   const labelColor = inactive ? disabledColors.label : colors.label;
   const hasLip = variant === 'primary' || variant === 'danger' || variant === 'success';
-  // A disabled filled button drops its 4 dp lip: that shadow is the pressed-key
-  // affordance and belongs to an actionable control, so keeping it would make an
-  // unavailable button read as pressable. Sizing and layout are unchanged.
+  // Hide the disabled shadow while retaining the same native layout cell and
+  // four-dp face clearance. Becoming actionable must not move the tap target.
   const showLip = hasLip && !inactive;
+  const [cellStyle, faceStyle] = hasLip ? splitCellStyle(style) : [{}, style];
 
   const body = (
     <Tappable
@@ -228,7 +252,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
       hitSlop={EDGE_HIT_SLOP}
       style={[
         styles.base,
-        fullWidth && styles.fullWidth,
+        !hasLip && fullWidth && styles.fullWidth,
         {
           // minHeight (not height) so a 2x system font scale grows the button
           // instead of clipping its label.
@@ -238,8 +262,8 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
           borderRadius: Radii.pill,
         },
         variant === 'ghost' && styles.outlined,
-        showLip && styles.lipInner,
-        style,
+        hasLip && styles.lipInner,
+        faceStyle,
       ]}
       pressedStyle={variant === 'primary' ? { backgroundColor: theme.accentStrong } : { opacity: 0.86 }}
       {...rest}>
@@ -267,13 +291,14 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
     </Tappable>
   );
 
-  if (!showLip) {
+  if (!hasLip) {
     return body;
   }
   // The lip wrapper keeps the testID, ref and accessibility contract on the
   // inner pressable; automation traverses one extra layout View per filled
   // button and nothing else changes.
-  return <View style={[fullWidth && styles.fullWidth, styles.lipOuter]}>{body}</View>;
+  return <View style={[fullWidth && styles.fullWidth, styles.lipOuter,
+    !showLip && { backgroundColor: 'transparent' }, cellStyle]}>{body}</View>;
 });
 
 const styles = StyleSheet.create({
@@ -301,6 +326,8 @@ const styles = StyleSheet.create({
     backgroundColor: Depth.lip,
   },
   lipInner: {
+    alignSelf: 'stretch',
+    flexGrow: 1,
     marginBottom: 4,
   },
   icon: {

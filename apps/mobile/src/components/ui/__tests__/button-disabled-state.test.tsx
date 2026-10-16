@@ -22,7 +22,7 @@
  * runs in. Both palettes are also measured directly for the contrast floor.
  */
 import { describe, expect, it } from '@jest/globals';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type ViewStyle } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 
 import { Button } from '@/components/ui';
@@ -186,10 +186,19 @@ describe('Button disabled treatment (076-f D3)', () => {
     expect(btn.props.accessibilityState?.busy).toBe(true);
   });
 
-  it('drops the pressed-key lip only while disabled', async () => {
-    await render(<Button label="GO" testID="lip-off" disabled />);
-    expect(flatten('lip-off').marginBottom).toBeUndefined();
-    await render(<Button label="GO" testID="lip-on" onPress={() => {}} />);
-    expect(flatten('lip-on').marginBottom).toBe(4);
+  it('hides the disabled shadow while preserving the filled button layout cell', async () => {
+    const tree = await render(<Button label="GO" testID="lip" disabled />);
+    const outer = () => {
+      const root = tree.toJSON();
+      if (root === null) throw new Error('Expected the filled button layout cell');
+      return StyleSheet.flatten<ViewStyle>(root.props.style);
+    };
+    const before = outer();
+    expect(before.backgroundColor).toBe('transparent');
+    expect(flatten('lip').marginBottom).toBe(4);
+    await tree.rerender(<Button label="GO" testID="lip" onPress={() => {}} />);
+    expect(outer().backgroundColor).not.toBe('transparent');
+    expect(outer().borderRadius).toBe(before.borderRadius);
+    expect(flatten('lip').marginBottom).toBe(4);
   });
 });

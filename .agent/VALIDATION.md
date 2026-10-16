@@ -1,5 +1,47 @@
 # Validation — Campaign077
 
+## Shared Button convergence and settled native pause sample
+
+Full-source zero-warning lint exit0. Fresh types02 failed TS2352 in test-only
+JsonElement cast; corrected real null guard/typed flatten, globaltypes03 exit0.
+Final affected3suites27tests PASS13.929s, no snapshots; earlier integrated9/52
+and five unchanged canaries retained. Independent review02 SHA256
+61f4f5cc271865983cf61625f813a94a02ea21fadebe1aca8974703c79085601, no weaker
+assertions/newP1P2. New-source full certification/native13/current profiles open.
+
+Procf3530df terminalCOMPLETED891.2s, normal tutorial/start/Pause/no answer.
+Post-terminal actual opaque PNG66d953...a1b2, identical compressed XML brackets
+4565d4...8988, installed12APK/focus PASS. Independent all11-node/unprefixed-content
+review finds only pause copy; SHA261eb695538effb80fb6be2eaa54fafea33db98312e823345de8ef22a8c02a7d.
+One static TransformMatch sample qualified; NumberLine tree cause/timer/resume/
+all-game states not inferred. FreshProefb6e256 exclusively5570/40s watch resumes
+SAME liveleg2 offline to saved Results before root preservation/install.
+RUNTIME_WORKOUT12.md records exact hashes and remaining scope.
+
+## Native12 actual-use button finding / bounded workout checkpoint
+
+Evidence1da9b524 allfourCI SUCCESS App38857644412/Integrity38857644748/
+Android38857644818/iOS38857644847. Native12/af9 remainsinstalled. Pro79f6
+terminalCOMPLETED1716.3s at savedNumberLine leg1 (150/1of10/12XP2coins), current
+workout1of4/nextTransformMatch. Actual laterHome238XP59coins/4days independently
+rootviewed. One hit used unavailable paused-hierarchy cue; no clean solve/full
+workoutPASS. Root mistaken paused-state capture was actualResults/equalXML/focus/
+APK, originalexpectedpauseFAILretained; RUNTIME_WORKOUT12.md records limits.
+
+ActualenabledSubmit geometrychange has shared Button sourcecause. Before2suites
+8FAIL12controls47.495s; after20PASS16.342s. Integrated01 one obsolete disabledlip
+assertionfails/51pass; correctedshadow+stablegeometryassertion, integrated02
+9suites52PASS20.159s. Visualcanary5/fiveunchangedsnapshotsPASS9.398s. Globaltypes/
+scopedzerowarninglintPASS. IndepreviewSHA37efed087d0efc093425a4338d1ce4d025848f6574b63f2fa52228d57500562a
+no concreteP1P2; JestownershipguardsarenotYoga/nativeafterproof. Fullcurrent
+sourcecertification/newAPK/nativeafter/profilegates remainrequired.
+
+Pausedsourcehidepropspresent/7filesexactaf9; storedmixedtreeexposureunresolved,
+diagnosisSHAd8b4710363fc9df02b49045f18a101dc6a289d5360f1d64e5bc2de18412dc711.
+Procf3530df live/exclusive5570/40swatch forbaseline/offlineleg2/tutorial/normal
+pause, leavinglivepausedstate forrootstaticcaptureafterterminal. No competing
+device actions or install/force-stop during unsaved game. Full077ACTIVE.
+
 ## Native12 current-source qualification in progress
 
 af9bd997 native12 build532tasks/4m39s; exact1107files/941mappedown/fourchanged

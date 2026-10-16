@@ -1,5 +1,16 @@
 # Implementation and acceptance reconciliation
 
+## New source convergence after native12
+
+Actual NumberLine Submit shrinks after enabling on installed native12. The
+shared Button cell repair now preserves caller sizing and stable disabled/
+enabled layout, with real caller fail-before/pass-after coverage, final global
+types/full lint and independent review. See BUTTON_LAYOUT_RECOVERY12.md. This
+new application change requires fresh frozen-source certification/native13 and
+actual geometry/profile proof; the af9 qualification below remains historical
+for the currently installed APK. One settled TransformMatch pause capture is
+independently qualified; RUNTIME_WORKOUT12.md preserves narrower limits.
+
 Current application source `af9bd997c723195162570f13415f638ad31abcb3` is pushed
 and installed as native12, including the [press-policy repair](PRESS_POLICY_RECOVERY.md)
 and [scrolled recovery](SCROLLED_RECOVERY11.md). Campaign077 remains ACTIVE.

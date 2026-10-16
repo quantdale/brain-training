@@ -61,7 +61,7 @@
 
 ## 9. Wave I — Certification and hardening
 
-- [x] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Current product sourceaf9bd997 actual fresh unflagged composite707suites7948tests/five unchanged snapshots250.875s/all declared gates/clean Git PASS; native12 eight-permission allowlist/source/assets PASS. NATIVE_PREVIEW12.md records exact hashes. Ending-SHA and runtime gates remain separate.
+- [ ] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Historical installed af9 composite707suites7948tests/five unchanged snapshots/all declared gates PASS. New shared Button cell repair has focused52/integrated and27 final affected tests, five unchanged snapshots, global types/full lint/strict specs PASS; a fresh full certification at the new frozen source is required. BUTTON_LAYOUT_RECOVERY12.md and NATIVE_PREVIEW12.md retain exact boundaries.
 - [ ] 9.2 Verify migration compatibility, SQLite integrity, existing progress/session/workout/economy, export/import/merge/replace restore and exactly-once persistence under restart/recovery.
 - [ ] 9.3 Build native Android, record APK/source/hash/ABI/package/permissions, install and device-hash; verify cold launch without Metro and original assets offline.
 - [ ] 9.4 Verify navigation/themes/gameplay/scored feedback/results/workout continuation/force-stop/relaunch/settings/recovery/offline/memory/performance/logcat on the visible dedicated emulator; inspect selective ARTEMIS traces.

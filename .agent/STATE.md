@@ -8,7 +8,54 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — scrolled source convergence; offline leg1 verified
+## Current checkpoint — shared button source ready; paused native tree qualified
+
+Shared Button cell repair is ready for a committed native13 source freeze.
+Full-source zero-warning lint and final global TypeScript03 PASS. Types02
+caught TS2352 in a test cast; corrected null guard preserves assertions, final
+three affected suites27tests PASS13.929s. Earlier integrated9suites52tests/five
+unchanged visual canaries remain PASS. Independent follow-up review SHA
+61f4f5cc...85601 finds no weakened assertions or new P1/P2. Full new-source
+clean-checkout/native build/actual button bounds/profile proof remain required.
+
+Procf3530df terminalCOMPLETED891.2s at genuine paused TransformMatch leg2;
+normal tutorial/start/Pause, no challenge answer. Root post-terminal static
+compressedXML→PNG→XML matches, exact installed12APK/focus corroborated. Actual
+opaque PNG personally viewed; independent review of all11 XML nodes including
+unprefixed content finds only pause copy, no underlying game/header/stimulus.
+PNG66d953...a1b2/XML4565d4...8988; review261eb695...2a7d. This is one settled
+TransformMatch sample, not NumberLine stored-tree causality or all-game proof.
+No speculative hiding-source change. Same live unsaved leg2 is preserved.
+Proefb6e256 exclusively owns5570/40s watch to resume/save SAME leg2 offline,
+restore network and stop at saved Results before root data preservation/install.
+No competing capture/force-stop/install. Full original077 remains ACTIVE.
+
+## Previous checkpoint — scrolled source convergence; offline leg1 verified
+
+Pushed evidence checkpoint1da9b5246ea7715d27f3957b47f178834224b018 has all four
+CI workflows SUCCESS: App38857644412,Integrity38857644748,Android38857644818,
+iOS38857644847. Installed product source staysaf9/native12. Later real workout
+79f6d0e9 terminalCOMPLETED1716.3s at saved Oct16 NumberLine leg1:150/1hit/12XP2coins,
+nextTransformMatchGame2of4. One hit used an unavailable paused-hierarchy cue;
+NOT clean gameplay qualification. Root personally viewed savedResults and later
+fresh actualHome238XP59coins/4days/1of4. RUNTIME_WORKOUT12.md preserves the failed
+paused-state static request (actual savedResults/equalXML), latency/geometry and
+controller limits. Post-game SQLite not yet independently checked.
+
+Actual enabled NumberLine Submit shrinks left after selection: shared Button
+lip wrapper dropped caller flex/width/margins from parent-facing layout. Root
+source repair keeps stable filled-cell layout/splits layout versus face styles.
+Valid before8FAIL/12controls; after20PASS; integrated9suites52PASS; five canaries/
+unchanged snapshotsPASS. Globaltypes/scopedlintPASS, full lint/gates converging;
+independent source review noP1/P2. BUTTON_LAYOUT_RECOVERY12.md. New committed
+source/full certification/APK/nativeafter/profile proof still required.
+
+Paused pixels opaque but stored automationtree includes disabled challenge+fresh
+pause controls. Existing source hide props present, diagnosisSHA d8b47103...dc711;
+no source cause established. Procf3530df exclusively5570/40s officialwatch for
+actualloadedHomebaseline/offline leg2 Easy/tutorial/firstvisiblePause, then leaves
+live session paused for root static compressedXML/PNG brackets AFTERterminal.
+Do not force-stop/install or compete while live/unsaved. Fullscope ACTIVE.
 
 Product source af9bd997c723195162570f13415f638ad31abcb3 is committed/pushed and
 installed as native12/APK949c1347...ea459. Exact source/map/assets/eight permissions/

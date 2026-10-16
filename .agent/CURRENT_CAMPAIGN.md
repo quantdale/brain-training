@@ -11,6 +11,28 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Shared Button repair now full lint/finaltypes03 PASS; test-only TS2352 caught
+  and corrected without weaker assertions, final3suites27PASS. Prior integrated
+  9suites52/five unchanged canaries PASS; follow-up independent review noP1/P2.
+  New frozen-source full certification/native13/actual geometry still required.
+  Procf3530df terminalCOMPLETED891.2s at normal opaquePause. Root/independent
+  actual PNG+matching compressedXML/all11 nodes qualify underlying-content
+  pruning for this TransformMatch sample only. Earlier NumberLine mixed stored
+  tree cause remains unresolved; no speculative source patch. FreshProefb6e256
+  exclusively5570/40s watch continues SAME liveleg2 offline to saved Results;
+  root install waits for terminal saved boundary. Full077 scope stays ACTIVE.
+
+- Evidencecheckpoint1da9b524 pushed/allfourCI SUCCESS. Later real native12
+  NumberLine leg1 saved150/12XP2coins/nextTransformMatch; terminal79f6COMPLETED
+  1716.3s. One hit used unavailable paused-tree cue, NOT clean gameplay proof.
+  Root actualsavedResults/freshHome238XP59coins/1of4 viewed; postgameSQLitepending.
+  Real shared Button P2 enabledSubmit geometry reproduced8red/12controls;
+  stablelayoutcell/source repair20after/9suites52integrated/five canaries allPASS,
+  globaltypes/scopedlintPASS/independentreviewnoP1P2, finalsource/nativeafteropen.
+  Pausedtreeexposure needs independent native diagnosis; sourcehidepropsalready
+  present. Procf3530df exclusively5570/40swatch foractual leg2Pausecheckpoint.
+  BUTTON_LAYOUT_RECOVERY12/RUNTIME_WORKOUT12.md retainlimits. FullscopeACTIVE.
+
 - Sourceaf9bd997 now pushed/installed native12, exact source/map/assets/eight
   permissions/devicehash/SQLite9sessions/settings preserved,532tasks4m39s.
   Initialcold timeout19153ms notperformancePASS; actual laterHome22657/newOct16
