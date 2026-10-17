@@ -2,6 +2,32 @@
 
 ## Fresh audit findings
 
+- Native13 feedback height source cause/repair now qualified independently:
+  unconditional inner growth operates on column HEIGHT. Bounded explicit-height
+  growth preserves intrinsic controls/caller floors/Submit width; actual Yoga
+ 1438.1→48dp,13 current cases PASS,7suites65tests/fiveunchangedsnapshots/types/lint
+  PASS, independent source review noP1P2. Installed13 still has the defect.
+  Native14/fullcert/actualafter remain OPEN; BUTTON_HEIGHT_RECOVERY13.md.
+
+- Confirmed native13 feedback P2: ordinary NumberLine timeout renders Next round
+  as a huge vertical blue pill, with its label below viewport. Root personally
+  viewed original4fbfcc5c...6f10; independent reviewer sees the same defect at
+  actual encoded PTS126.236/128.466/166.031s. Normal disabledSubmit at120.265s
+  is a control. Shared Button default-column wrapper/unconditional inner growth
+  is under exact installed Yoga diagnosis; no source/native-after repair yet.
+  a410 misses enabledSubmit proof because first estimate occurs52s afterStart;
+  geometry INCONCLUSIVE, no completed standalone session intended. Recording
+  is valid compressed video; nominal10fps is not application frame performance.
+
+- Storage saturation below is RECOVERED, preserving the initial failure record.
+  All358 attributed files are host-archived/SHA-verified before scoped cleanup;
+  only six proved task folders deleted, unrelated bt/t retained. Guest40%used,
+  real normalRetry once recovers Home28668/allfourDone. Fresh13-table complete
+  row hashes exactly match pre-failure snapshot/integrityok. No data restore.
+  Fully armed postcleanup cold draw6331ms improves measured draw but remains slow
+  and host-confounded; late work shifts, no60fps acceptance. See
+  RUNTIME_ENV_RECOVERY13.md. Future tasks must avoid raw-frame loops.
+
 - First native13 final180matrix terminalFAIL: compactHome is actualStorage
   Unavailable with PRAGMA diskI/O error, notacceptedHome. Guest98%full/138MiBfree,
   systemSQLITE_FULL/ENOSPC and independent4300trace attribution identify3.38GiB

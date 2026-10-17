@@ -7,7 +7,13 @@ completion/normalFinish/recovered restart, with timeout/guessed play and first
 cold-restart ANR explicit. [RUNTIME_WORKOUT13.md](RUNTIME_WORKOUT13.md) records
 the exact proof. The first final180 matrix attempt subsequently fails at compact
 Home with SQLite disk I/O errors; gueststorage98%used/systemENOSPC and multiple
-GiB of terminal-task rawframes require recovery. No matrix acceptance inferred.
+GiB of terminal-task rawframes require recovery. That recovery is now qualified
+by [RUNTIME_ENV_RECOVERY13.md](RUNTIME_ENV_RECOVERY13.md): all358 attributed files
+are hash-archived, only verified temporary folders removed, normalRetry once
+restores Home and all13 table-row hashes exactly. The failed matrix stays failed.
+Later ordinary feedback exposes a persistent tall Next button; its source/Yoga
+repair is in [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md), requiring
+new native14/actual after-proof. Installed native13 is not relabeled repaired.
 
 Native13 installs application source `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5`
 on the dedicated `braintraining-ui35` / `emulator-5570`. Its APK is
@@ -96,8 +102,9 @@ does not isolate host pressure, native framework, caching or app execution cost,
 and no quiet-performance PASS or absence of app contribution is inferred.
 Original failed probes are retained. Native13 geometry,
 combined compact/2× ordinary tutorials, full current-source profiles and critique,
-remaining offline workout legs/Finish/restart/exact effects, motion, quiet
-startup/frame/memory/logcat and visible handoff remain OPEN.
+motion, startup/frame/memory/logcat and visible handoff remain OPEN. The remaining
+workout legs/Finish/recovered restart/exact effects are subsequently qualified
+in RUNTIME_WORKOUT13.md, with first-restart ANR and guessed/timeout play explicit.
 
 Actual independent clean-checkout certification at the same source passed in
 `D:/bt077-cert-2cdb9ed6-local02`. The earlier GitHub clone stayed pending with a

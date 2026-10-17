@@ -11,6 +11,26 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Feedback Button source repair now passes actual installed Yoga red/green:
+ 1438.1→48dp face, same intrinsicwidth, explicit72dp cell fill and stable320×48dp
+  Submit.13 current cases PASS/root independently compiled19 Yoga units. Valid
+  Jestbefore9FAIL20controls; integrated7suites65tests/five unchangedsnapshots/
+  finaltypes/scopedlint PASS; independent source review noP1P2. Newsourcefreeze/
+  fullcert/native14/actualafter required; BUTTON_HEIGHT_RECOVERY13.md. No need
+  replay qualifiedOct16fullworkout merely because device calendar advances.
+
+- Storage recovery qualified:358 attributed files hash-archived/compressed;
+  only six verified task folders removed, older bt/t retained. Guest40%used;
+  actual normalRetry once returns Home28668/allfourDone, all13 SQLite table-row
+  hashes exactly unchanged. Fully armed postcleanuptrace draw6331ms retains
+  host/load/late-work limits; not quiet60fps PASS. RUNTIME_ENV_RECOVERY13.md.
+  Allfour6b4dc1dc workflows SUCCESS (Android attempt1 NDK archive failure retained,
+  attempt2 succeeds). New Flasha410 recording works but52s inference gap misses
+  enabledSubmit proof. Root/independent encoded frames expose persistent huge
+  vertical Next-round pill in timeoutfeedback. Shared Button task reopened;
+  exact installed Yoga repro/repair comes before more gameplay or finalmatrix.
+  Original fullscope ACTIVE; no current-source/native-after claim yet.
+
 - Native13 continuation4300 is terminalCOMPLETED11743.6s but7automatic checks
   INCONCLUSIVE/finalizer400. Actual original screenshots/root post-terminal
   bracketed Home qualify normal Finish/recovered restart/286XP68coins/allfour

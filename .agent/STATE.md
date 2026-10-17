@@ -8,7 +8,64 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — completed offline workout; native13 visual convergence
+## Current checkpoint — native13 storage recovered; feedback button regression
+
+Oct18 source convergence: exact installed Yoga reproduction is red before
+(face1438.1dp/label below fixture viewport), green after bounded-height growth
+(face48dp/cell52.1905dp/same intrinsic width). Caller explicit72dp floors still
+fill; wrappedSubmit remains320×48 logical dp in both states. Root independently
+compiles all19 Yoga units/all50 outputs match;13 current-source cases PASS.
+Nine valid Jest regressions fail before/20controls; integrated after7suites65tests/
+five unchanged snapshots PASS31.627s, finalglobaltypes02/scopedlint PASS.
+Independent review661277d0...04d72 no concreteP1P2/weakened assertions.
+BUTTON_HEIGHT_RECOVERY13.md. New source freeze/fullcert/native14/actual native
+after-proof are next; installed native13 remains unchanged. Source hashes and
+historical failures retained. Calendar rollover does not require replaying the
+qualified completed Oct16 workout; newHome must record its actual current date.
+
+All four workflows at pushed6b4dc1dc SUCCESS: App38942552773,
+Integrity38942552651, Android38942552800 (attempt2), iOS38942552626.
+Android attempt1 failed downloading/unpacking NDK before app build; the original
+log remains and one evidence-based failed-job rerun succeeds. No gate weakened.
+Installed app remains2cdb/native13; full Campaign077 is ACTIVE.
+
+Real storage saturation is recovered. Compressed archive03 preserves all358
+attributed sampler files/3,628,817,474 payload bytes in27,804,435 bytes with every
+SHA matching device originals; archiveSHAf7663dc2...12646. Separate current-path/
+metadata/no-symlink/no-helper preflight precedes scoped deletion of only rc3,
+rc4a/b/c, rc4 and rp. Older unattributed bt/t remain untouched. Guest recovers to
+40%used/3,686,620KiB available. Flashce889327 normal Retry ONCE reaches actual
+Home286XP68coins/allfourDone; root personally views original and settled bracketed
+PNG. Fresh SQLite integrityok/13sessions/14ledger and ALL13 table-row hashes equal
+the completed-workout snapshot. No app data restore/edit. Initial archive failures
+and failed180matrix remain immutable. RUNTIME_ENV_RECOVERY13.md records hashes.
+
+Fully armed post-cleanup30s Perfetto trace5943934c...f75be covers the whole launch:
+draw6331ms versus earlier10826ms with missing3.388s prefix. Independent review
+ff1cfc8a...e66f4 finds lower early native costs but some CPU work shifts later;
+host contention remains. No fast/quiet/60fps PASS or speculative source patch.
+
+Process-scoped executable PATH fixes actual external scrcpy spawn without env,
+credential/provider or external-source edits. Terminal Flasha4105fb9 (260.3s)
+produces valid compressed recording. It misses the12s answer budget (52s between
+Start and estimate); enabled Submit/original-center geometry stays INCONCLUSIVE.
+More importantly, root and independent actual encoded-frame review confirm a
+persistent huge vertical Next-round pill with label below viewport in ordinary
+NumberLine timeout feedback. Shared-control repair is reopened before further
+runtime/visual expansion. Exact installed Yoga reproduction and independent
+frame review are in progress; no production fix or native-after PASS yet.
+
+On resumption same qemu44452/braintraining-ui35/5570 and boot37bc0e1c...a237a6
+remain. Doctor reports degraded daemon/device summary; independent exact-serial
+ADB confirms target and44%guest storage. Port8000 is actual ARTEMIS admin server
+88456 (child of earlier launcher78256), responding running=true; no unrelated
+process is stopped. Do not trust the doctor's5578 summary as target selection.
+
+Remaining: repair/reprove shared button, combinedcompact2x ordinary spatial
+tutorials, finalcurrent180matrix/critique/gallery/scrolledstates, matched motion/
+latency/frame/PSS/logcat, original audit and finalSHA CI/visibleHome handoff.
+
+## Previous checkpoint — completed offline workout; native13 visual convergence
 
 Installed application remains frozen source `2cdb9ed6`, native13 APK
 `797d0309...53dd6`; full fresh-checkout certification and all four source CI

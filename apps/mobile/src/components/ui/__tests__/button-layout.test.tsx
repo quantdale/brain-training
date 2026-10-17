@@ -80,4 +80,38 @@ describe('Button parent-facing layout', () => {
     expect(outerStyle(tree).flexGrow).toBeUndefined();
     expect(StyleSheet.flatten(screen.getByTestId('pause').props.style).minHeight).toBeGreaterThanOrEqual(44);
   });
+
+  it.each((['primary', 'danger', 'success'] as const).flatMap((variant) =>
+    (['enabled', 'disabled', 'loading'] as const).map((state) => ({ variant, state }))))(
+    'keeps the $variant / $state feedback face intrinsically tall',
+    async ({ variant, state }) => {
+      await render(<View style={{ alignItems: 'center', gap: 16 }}>
+        <Button label="Next round" testID="next" fullWidth={false} variant={variant}
+          disabled={state === 'disabled'} loading={state === 'loading'} />
+      </View>);
+      // Native13/Yoga reproduced a >1400dp face: growth in this column consumes
+      // the stage's available height and centres the label below the viewport.
+      // This pins the offending layout input; actual Yoga/pixel proof is separate.
+      const face = StyleSheet.flatten(screen.getByTestId('next').props.style);
+      expect(face.flexGrow ?? 0).toBe(0);
+      expect(face.minHeight).toBeGreaterThanOrEqual(48);
+    },
+  );
+
+  it.each(['height', 'minHeight'] as const)('fills an explicitly sized %s cell', async (dimension) => {
+    const tree = await render(<View><Button label="Continue" testID="sized"
+      style={{ [dimension]: 72 }} /></View>);
+    expect(outerStyle(tree)[dimension]).toBe(72);
+    expect(StyleSheet.flatten(screen.getByTestId('sized').props.style).flexGrow).toBe(1);
+  });
+
+  it('keeps automatic height intrinsic for a real feedback GameButton', async () => {
+    const tree = await render(<View style={{ alignItems: 'center' }}>
+      <GameButton label="Next round" testID="game-next" onPress={jest.fn()} style={{ height: 'auto' }} />
+    </View>);
+    expect(outerStyle(tree).minWidth).toBe(120);
+    const face = StyleSheet.flatten(screen.getByTestId('game-next').props.style);
+    expect(face.flexGrow ?? 0).toBe(0);
+    expect(face.paddingHorizontal).toBe(24);
+  });
 });

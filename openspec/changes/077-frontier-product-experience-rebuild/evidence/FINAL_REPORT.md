@@ -1,12 +1,20 @@
 # CAMPAIGN 077 — FRONTIER PRODUCT REBUILD REPORT
 
-**Status: ACTIVE — factual checkpoint draft, 2026-10-17 PH.** Installed product
+**Status: ACTIVE — factual checkpoint draft, 2026-10-18 PH.** Installed product
 source is `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5`, native13 APK
 `797d0309a5204c0ba77df18a3c15a63c61ef1491decd918df9045e8edc553dd6`,52,311,435B.
 Full independent clean-checkout certification passes708suites/7967tests/five
 unchanged snapshots/all declared gates/clean Git; all four source workflows
 succeed. [NATIVE_PREVIEW13.md](NATIVE_PREVIEW13.md) records exact build/source/
 assets/permissions/install/preservation evidence. This is not the ending SHA.
+
+New source now repairs the subsequently observed native13 tall feedback Button.
+Actual installed-Yoga red/green and independent source review qualify the change:
+intrinsic face1438.1→48dp with width/explicit-height contracts preserved;
+integrated7suites65tests/five unchanged snapshots/globaltypes/lint PASS.
+[BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md) records cause, rejected
+alternatives and limits. New source freeze/full composite/native14/actual-after
+are still required. The current installed APK retains the original defect.
 
 The ordinary offline Oct16 workout is now saved/completed:13sessions/286XP/
 68coins/fourplayed/zero skipped. Actual normalFinish and recovered restart Home
@@ -30,7 +38,11 @@ post-reboot Home frame is rejected; unchanged warmHome later recovers. One30s
 scheduling trace records10826ms cold draw and material native/graphics/JIT/JS
 costs with limited initial event coverage. Finalmatrix's firstcompactHome then
 fails with real SQLite disk I/O errors; guest98%full/systemENOSPC and multiGiB
-terminal-task rawframes require archive/cleanup and recovery before recapture.
+terminal-task rawframes required archive/cleanup. Recovery is now qualified:
+all358 attributed files hash-archived, six verified temporary folders removed,
+normalRetry once recovers Home and all13 complete table-row hashes unchanged.
+[RUNTIME_ENV_RECOVERY13.md](RUNTIME_ENV_RECOVERY13.md) records the proof and fully
+armed postcleanup6331ms cold trace with host/late-work limits, not quiet60fps PASS.
 Data07 restore-write/text-edit and native09 confirmation proofs remain qualified.
 Final current visual critique, geometry/tutorial/motion/performance, actual
 endingSHA CI, visibleHome handoff and original-brief audit are incomplete.
@@ -45,7 +57,7 @@ endingSHA CI, visibleHome handoff and original-brief audit are incomplete.
 | Ending SHA | **PENDING — fill after all authorized implementation/evidence work and the final coherent commit.** Current source is an intermediate checkpoint. |
 | Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Product source `2cdb9ed6` is pushed; later evidence changes are being converged. Final clean/pushed ending-state verification is **PENDING**. |
 
-The nineteen campaign commits through the latest pushed source checkpoint are:
+The twenty campaign commits through the last pushed checkpoint are:
 
 | Commit | Coherent progress |
 |---|---|
@@ -68,6 +80,7 @@ The nineteen campaign commits through the latest pushed source checkpoint are:
 | `af9bd997` | Repair scrolled reports and preserve Profile refresh data |
 | `1da9b524` | Qualify current source and diagnose runtime controller evidence |
 | `2cdb9ed6` | Preserve filled button sizing across actionable states |
+| `6b4dc1dc` | Certify native13 and preserve completed offline workout evidence |
 
 Independent certification clones and `D:/bt077`, the native build copy, are
 separate from linked Git worktrees. Their retained artifacts and cleanup limits

@@ -24,7 +24,7 @@
 ## 4. Wave D — Shared design system
 
 - [x] 4.1 Rebuild shared colors, type/spacing/radius/elevation and layout roles against the lock, preserving clear game semantics and disabled-control contrast.
-- [x] 4.2 Reconstruct existing navigation/headers/cards/buttons/icons/badges/inputs/dialogs/progress/empty/loading/error primitives without duplicating a second library.
+- [ ] 4.2 Reconstruct existing navigation/headers/cards/buttons/icons/badges/inputs/dialogs/progress/empty/loading/error primitives without duplicating a second library. Reopened: native13 ordinary NumberLine timeout feedback persistently stretches Next round below viewport; root/independent actual encoded-frame review requires shared Button repair and native after proof. Existing source certification does not close this runtime regression.
 - [x] 4.3 Improve game HUD/stage/feedback/pause/results contracts and responsive board/control hierarchy while retaining IDs/external contracts. CURRENT_IMPLEMENTATION.md credits integrated source; native state acceptance remains in5.7/6.4/9.4.
 - [ ] 4.4 Integrate purposeful reduced-motion-safe native-friendly motion without gameplay timing bias or unnecessary rerenders; independently inspect canary screenshots.
 
@@ -61,8 +61,8 @@
 
 ## 9. Wave I — Certification and hardening
 
-- [x] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Frozen2cdb actual fresh independent unflagged composite708suites7967tests/five unchanged snapshots367.479s/all declared gates/clean Git PASS. Native13 eight-permission allowlist/source/assets PASS. NATIVE_PREVIEW13.md records exact hashes. Ending-SHA and runtime/performance gates remain separate.
-- [ ] 9.2 Verify migration compatibility, SQLite integrity, existing progress/session/workout/economy, export/import/merge/replace restore and exactly-once persistence under restart/recovery.
+- [ ] 9.1 Run full relevant Jest, TypeScript, lint, strict OpenSpec, game registry, provenance, dependency/security, offline/secrets/permission boundaries and all declared applicable repository gates. Reopened for bounded-height Button repair: focused7suites65tests/five unchanged snapshots/globaltypes/lint/installed-Yoga controls PASS; new frozen-source full composite required. Frozen2cdb historical708suites7967tests/full gates and native13 permission/source/assets qualification remain in NATIVE_PREVIEW13.md. Ending-SHA and runtime/performance gates remain separate.
+- [x] 9.2 Verify migration compatibility, SQLite integrity, existing progress/session/workout/economy, export/import/merge/replace restore and exactly-once persistence under restart/recovery. Full current-source composite includes migration/persistence coverage; RUNTIME_DATA07 records actual merge/replace/edit/restart, RUNTIME_WORKOUT13 records preserved full-workout unique effects, and RUNTIME_ENV_RECOVERY13 proves all13 table rows unchanged after real disk saturation/cleanup/normalRetry. Physical/iOS and broader runtime/performance boundaries remain open.
 - [ ] 9.3 Build native Android, record APK/source/hash/ABI/package/permissions, install and device-hash; verify cold launch without Metro and original assets offline.
 - [ ] 9.4 Verify navigation/themes/gameplay/scored feedback/results/workout continuation/force-stop/relaunch/settings/recovery/offline/memory/performance/logcat on the visible dedicated emulator; inspect selective ARTEMIS traces.
 - [ ] 9.5 Execute actual clean-checkout composite from a disposable clean checkout; integrate/remove temporary worktrees/branches, leave clean buildable main, commit and push coherent waves.

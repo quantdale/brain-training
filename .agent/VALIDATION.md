@@ -1,5 +1,45 @@
 # Validation — Campaign077
 
+## Feedback height source repair — 2026-10-18 PH
+
+Actual installed RN0.86.3 Yoga C++ red: feedback face1438.1dp/labely1171.05 in
+840dp fixture. Root compiled19 actual Yoga units; all50 emitted outputs equal
+the runner. After conditional explicit-height growth:13 current cases PASS,
+48dp face/52.1905cell/same131.81width, explicit72cell68.1905face, font48→face64,
+Submit320×48 logical dp identical disabled/enabled. Native text/pixels separate.
+Jestbefore02 valid9FAIL20controls49.499s; afterfocused29PASS13.542s; finalintegrated
+7suites65tests/fiveunchanged snapshots31.627s PASS. Initialinvalid Jestflags and
+empty compilefailure retained, no greenclaim. Finalglobaltypes02/scopedlint exit0.
+Independentreview661277d03b025eb66f912909fe3c7ef2879cf2bcb6c54c510aa603805c404d72
+no concreteP1P2/weakened assertions. Newfullsourcecert/native14/actualafter OPEN.
+
+## Storage recovery and native13 feedback regression — resumed2026-10-17 PH
+
+Compressed sampler archive358files/3,628,817,474 payloadB/27,804,435 archiveB,
+SHAf7663dc2afc9a962eb373a6971fe1fc55f4950e2e81e47515110854eca412646;
+allmember hashes match device originals. Separate current-path/metadata/symlink/
+process/AVD preflight PASS; scoped six-folder cleanup restores40%used. Actual
+Flashce889327 Retry once and root settled PNG1fb1949a...8dace/equalXML16bc5812...8652
+qualify Home28668/completed4; fresh SQLite integrityok/13sessions/14ledger and
+all13 complete table-row hashes unchanged. Original failed captures/archives
+retained. RUNTIME_ENV_RECOVERY13.md records exact paths/hashes/limits.
+
+Postcleanup30s trace5943934c...f75be covers startup prefix and draw6331ms;
+independentff1cfc8a...e66f4 clips clocks/phases and finds later shifted CPU work.
+Initial10826ms trace lacks3.388s prefix; no aggregate clean CPU comparison or
+quiet/60fps PASS. Stop identical trace retries; continue actual visual/motion.
+
+Allfour6b4dc1dc CI SUCCESS App38942552773/Integrity38942552651/
+Android38942552800/iOS38942552626. Android attempt1 NDK zip failure before build
+retained; one failed-job rerun attempt2 succeeds. EndingSHA remains separate.
+
+Flash a4105fb9 terminalCOMPLETED260.3s, actual recording valid h2641080x2400/
+242.817s/3,381,589B. First estimate52s afterStart exceeds12s budget; enabledSubmit
+geometry INCONCLUSIVE. Actual timeout feedback instead exposes persistent P2
+huge vertical Next button/no visible label. Root original4fbfcc5c...6f10 viewed;
+independent encoded PTS126.236/128.466/166.031 corroborate, disabledSubmit120.265
+control. Installed-Yoga red-capable repro/fix/native-after remain OPEN.
+
 ## Native13 saved full-workout boundary — 2026-10-17 PH
 
 Pro4300 terminalCOMPLETED11743.6s/sevenINCONCLUSIVE/finalizer400. Root personally

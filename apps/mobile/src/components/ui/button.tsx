@@ -237,6 +237,12 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
   // four-dp face clearance. Becoming actionable must not move the tap target.
   const showLip = hasLip && !inactive;
   const [cellStyle, faceStyle] = hasLip ? splitCellStyle(style) : [{}, style];
+  // The wrapper is a column: unbounded inner growth consumes the stage's
+  // available HEIGHT, even for an intrinsic Next-round control. Horizontal
+  // filling already comes from alignSelf:stretch. Grow vertically only when
+  // the caller deliberately supplies a height floor or a fixed height.
+  const fillCellHeight = [cellStyle.height, cellStyle.minHeight]
+    .some((value) => value != null && value !== 'auto');
 
   const body = (
     <Tappable
@@ -263,6 +269,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
         },
         variant === 'ghost' && styles.outlined,
         hasLip && styles.lipInner,
+        hasLip && fillCellHeight && styles.lipFillHeight,
         faceStyle,
       ]}
       pressedStyle={variant === 'primary' ? { backgroundColor: theme.accentStrong } : { opacity: 0.86 }}
@@ -327,8 +334,10 @@ const styles = StyleSheet.create({
   },
   lipInner: {
     alignSelf: 'stretch',
-    flexGrow: 1,
     marginBottom: 4,
+  },
+  lipFillHeight: {
+    flexGrow: 1,
   },
   icon: {
     alignItems: 'center',

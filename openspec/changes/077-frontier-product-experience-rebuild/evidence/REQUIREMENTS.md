@@ -28,6 +28,16 @@ Each named gate/artifact/profile/game/state becomes an evidence row in the relev
 
 ## Current implementation reconciliation — 2cdb / native13
 
+Superseding Oct18: real storage recovery/all13 table-row preservation and completed
+Oct16offline4played0skip/exact unique effects are qualified in
+RUNTIME_ENV_RECOVERY13/RUNTIME_WORKOUT13. Independent42-row audit verifies passing
+game suites for every ID in the actual2cdb Jest record (436 game suites/4829 game
+assertions, a subset of708/7967). Selective native boundaries remain explicit;
+the owner does not require42 repetitive journeys or a new full workout each
+calendar day. Shared Button feedback-height regression is now source/Yoga fixed
+and reviewed in BUTTON_HEIGHT_RECOVERY13; new fullcert/native14/actualinputafter
+are required. Current motion/profiles/performance/ending-SHA/handoff remain OPEN.
+
 Later source checkpoint `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5` repairs a
 real shared Button parent-sizing defect observed in native12. Full independent
 unflagged certification708suites7967tests/fiveunchangedsnapshots/allgatesclean

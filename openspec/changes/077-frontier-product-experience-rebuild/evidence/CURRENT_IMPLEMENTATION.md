@@ -2,6 +2,20 @@
 
 ## Current source and actual saved-workout checkpoint
 
+Superseding Oct18 source state: installed native13 exposes a persistent tall
+Next-round control. [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md)
+proves the shared column-growth cause with installed Yoga and repairs it while
+preserving width/explicit-height contracts. Integrated7suites65tests/five unchanged
+snapshots/types/lint and independent review pass; new full composite/native14/
+actual native-after remain required. This is a new source change beyond2cdb.
+The real storage saturation below is RECOVERED: verified attributed artifact
+archive/scoped cleanup/normalRetry once restores saved28668/completed4 and every
+one of13 complete table-row hashes exactly. Post-a410 probe retains the same
+rows. [RUNTIME_ENV_RECOVERY13.md](RUNTIME_ENV_RECOVERY13.md) records proof and a
+fully armed6331ms cold trace with contention/late-work limits, not quiet60fps PASS.
+The completed offline Oct16 workout remains qualified across calendar rollover;
+future current-day Home captures must record their actual new-plan state.
+
 Actual NumberLine Submit shrinks after enabling on installed native12. The
 shared Button cell repair now preserves caller sizing and stable disabled/
 enabled layout, with real caller fail-before/pass-after coverage, final global
