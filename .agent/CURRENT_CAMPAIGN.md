@@ -1,24 +1,11 @@
-# Campaign077 â€” terminal record
+# Campaign078 — game-cover visual identities
 
-**Campaign id:** `077-frontier-product-experience-rebuild`
-**Status:** VALIDATED
+**Campaign id:** `078-game-cover-visual-identities`
+**Status:** ACTIVE
 **Mode:** day
-**Starting SHA:** `c7bbf0ddfa184204027d8b6df14deab5abf87a6e`
-**Change:** `openspec/changes/077-frontier-product-experience-rebuild`
-**Verdict:** CAMPAIGN_077_EMULATOR_REVIEW_READY_WITH_LIMITATIONS
+**Starting SHA:** `e7885b6d`
+**Change:** `openspec/changes/078-game-cover-visual-identities`
 
-All waves A-J are implemented and qualified within the original brief's selected
-native/runtime and explicit platform scope. Current report, original-brief
-matrix, completion audit, native15 static/runtime/live handoff records name
-exact proof and limits. This is a completion candidate until its exact-SHA four
-CI runs succeed; main advances only after that check, and final delivery records
-the ending SHA/run IDs. No new campaign is activated.
+Execute stagesA–G of owner brief. Exit:42 intentional accurate identities integrated offline; independent title-hidden review; all42 native cover inspection/light-dark/large text/responsive/nav/perf checks; currentAPK/source hashes and preserved history; source/repository/security gates; allfour workflows green at actual finalSHA; visible braintraining-ui35 open on Games. Root owns integration, generated outputs, shared files and device.
 
-Meaningful result: coherent Play Lab/real Refero/17ImageGen calls/optimized local
-art/Manrope/Lucide, clearer major surfaces and all42 source/caller assessment/
-versioned correctness repairs. Current708/7981/five snapshots/full fresh clean
-composite, native15 source/build/install/data/hash,180 original-image critique/
-150genuine baseline pairs, selected gameplay/workout/restore/tutorial/feedback/
-motion and actual visible restored Home are qualified. Owner approval, smooth
-60fps, physical/ARM64/iOS runtime and store signing are not claimed. Known minor
-debt/environment limits remain explicit in KNOWN_ISSUES/BACKLOG/FINAL_REPORT.
+Progress: startup/reconciliation and parallel42-mechanic audit complete. Pilot and baseline underway. This is presentation-only and does not reopen076/077.

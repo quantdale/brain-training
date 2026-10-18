@@ -40,9 +40,10 @@ function makeGame(
   };
 }
 
-const TOP = makeGame('memory-alpha', 'Memory Alpha', 'Memory');
-const SECOND = makeGame('attention-evo', 'Attention Evo', 'Attention');
-const THIRD = makeGame('logic-prime', 'Logic Prime', 'Logic & Problem Solving');
+// Exercise real cover IDs: unregistered fixtures intentionally have no artwork.
+const TOP = makeGame('memory', 'Memory Alpha', 'Memory');
+const SECOND = makeGame('attention-odd-one-out', 'Attention Evo', 'Attention');
+const THIRD = makeGame('logic-code-cracker', 'Logic Prime', 'Logic & Problem Solving');
 
 const SNAPSHOT: DiscoverySnapshot = {
   recommended: [

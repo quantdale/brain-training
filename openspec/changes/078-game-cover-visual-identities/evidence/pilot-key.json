@@ -1,0 +1,205 @@
+[
+  {
+    "index": 1,
+    "id": "attention-odd-one-out",
+    "name": "Odd One Out",
+    "domain": "attention",
+    "concept": "One sideways triangle stands apart from an otherwise identical upright group."
+  },
+  {
+    "index": 2,
+    "id": "attention-sustained-vigilance",
+    "name": "Signal Watch",
+    "domain": "attention",
+    "concept": "A stream of digits meets a central stop-digit boundary and a withheld response."
+  },
+  {
+    "index": 3,
+    "id": "attention-symbol-tracker",
+    "name": "Symbol Tracker",
+    "domain": "attention",
+    "concept": "The same ringed star changes position between two boards while decoys surround it."
+  },
+  {
+    "index": 4,
+    "id": "attention-target-count",
+    "name": "Target Count",
+    "domain": "attention",
+    "concept": "Three obvious target stars among subdued distractors lead to a numerical total."
+  },
+  {
+    "index": 5,
+    "id": "attention-visual-search",
+    "name": "Visual Search",
+    "domain": "attention",
+    "concept": "A large magnifying lens isolates the single filled tile in a pale tile field."
+  },
+  {
+    "index": 6,
+    "id": "flexibility-card-sort",
+    "name": "Card Sort",
+    "domain": "flexibility",
+    "concept": "An oversized triangle card sorts to a lifted triangle in a four-card fan with color lures."
+  },
+  {
+    "index": 7,
+    "id": "flexibility-color-stroop",
+    "name": "Color Stroop",
+    "domain": "flexibility",
+    "concept": "A large color word conflicts with its ink; a curved arrow selects the ink-color answer."
+  },
+  {
+    "index": 8,
+    "id": "flexibility-cue-shift",
+    "name": "Cue Shift",
+    "domain": "flexibility",
+    "concept": "A shape cue selects matching triangles while native numbers and colors disagree."
+  },
+  {
+    "index": 9,
+    "id": "flexibility-rule-flip",
+    "name": "Rule Flip",
+    "domain": "flexibility",
+    "concept": "A large raised shape face pivots over the number-rule face with a single flip arrow."
+  },
+  {
+    "index": 10,
+    "id": "flexibility-task-switch",
+    "name": "Task Switch",
+    "domain": "flexibility",
+    "concept": "A large seven has two task branches showing its parity and magnitude classifications."
+  },
+  {
+    "index": 11,
+    "id": "language-word-chain",
+    "name": "Word Chain",
+    "domain": "language",
+    "concept": "Follow CAT → TREE → EAGLE, joining each final letter to the next initial letter."
+  },
+  {
+    "index": 12,
+    "id": "math-missing-operator",
+    "name": "Missing Operator",
+    "domain": "math",
+    "concept": "Choose the multiplication tile that fills the operator gap in 8 × 2 = 16."
+  },
+  {
+    "index": 13,
+    "id": "memory",
+    "name": "Memory",
+    "domain": "memory",
+    "concept": "Scattered flashing positions carry an ordered 1–2–3 recall sequence."
+  },
+  {
+    "index": 14,
+    "id": "memory-grid-recall",
+    "name": "Grid Recall",
+    "domain": "memory",
+    "concept": "A whole illuminated cell pattern is echoed as an empty remembered arrangement."
+  },
+  {
+    "index": 15,
+    "id": "memory-pair-recall",
+    "name": "Pair Recall",
+    "domain": "memory",
+    "concept": "A shape card is linked to its letter partner, with a recall loop beneath."
+  },
+  {
+    "index": 16,
+    "id": "memory-pattern-tap-back",
+    "name": "Pattern Tap Back",
+    "domain": "memory",
+    "concept": "A connected trail of neighboring tactile tiles ends at a tap ripple."
+  },
+  {
+    "index": 17,
+    "id": "memory-prospective-cue",
+    "name": "Cue Keeper",
+    "domain": "memory",
+    "concept": "A held star intention recognizes an arriving star and activates a signal response."
+  },
+  {
+    "index": 18,
+    "id": "memory-running-order",
+    "name": "Running Order",
+    "domain": "memory",
+    "concept": "Faded earlier symbols leave a crisp last-three window, then a recall arrow returns to three empty slots."
+  },
+  {
+    "index": 19,
+    "id": "memory-sequence-memory",
+    "name": "Sequence Memory",
+    "domain": "memory",
+    "concept": "Four colored tactile Simon pads form one console, with one pad actively pulsing."
+  },
+  {
+    "index": 20,
+    "id": "spatial-coordinate-turn",
+    "name": "Coordinate Turn",
+    "domain": "spatial",
+    "concept": "A large compass with a ghost north needle, solid east needle and clockwise turn arc."
+  },
+  {
+    "index": 21,
+    "id": "spatial-fold-match",
+    "name": "Fold Match",
+    "domain": "spatial",
+    "concept": "One raised paper flap casts a trapezoid shadow; exact mirrored marks merge onto the kept half."
+  },
+  {
+    "index": 22,
+    "id": "spatial-grid-nav",
+    "name": "Grid Navigator",
+    "domain": "spatial",
+    "concept": "A five-by-five navigation board carries one bold continuous two-turn route."
+  },
+  {
+    "index": 23,
+    "id": "spatial-mental-rotation",
+    "name": "Mental Rotation",
+    "domain": "spatial",
+    "concept": "Two identical asymmetric colored polyominoes related by an exact clockwise quarter-turn."
+  },
+  {
+    "index": 24,
+    "id": "spatial-transform-match",
+    "name": "Transform Match",
+    "domain": "spatial",
+    "concept": "Two sparse asymmetric patterns reflect exactly across a visible vertical mirror axis."
+  },
+  {
+    "index": 25,
+    "id": "speed-color-match",
+    "name": "Color Match",
+    "domain": "speed",
+    "concept": "A blue swatch and conflicting ink cue connect to its matching blue response chip."
+  },
+  {
+    "index": 26,
+    "id": "speed-order-sweep",
+    "name": "Order Sweep",
+    "domain": "speed",
+    "concept": "A sweeping stroke links scattered number tokens from 2 to 5 to 9."
+  },
+  {
+    "index": 27,
+    "id": "speed-quick-compare",
+    "name": "Quick Compare",
+    "domain": "speed",
+    "concept": "Two large numerical cards face one another across a bold comparison sign."
+  },
+  {
+    "index": 28,
+    "id": "speed-reaction-time",
+    "name": "Reaction Time",
+    "domain": "speed",
+    "concept": "One stationary green signal button: wait, then react."
+  },
+  {
+    "index": 29,
+    "id": "speed-tap-rush",
+    "name": "Tap Rush",
+    "domain": "speed",
+    "concept": "One active circular target bursts with a tap ripple while prior positions fade across open space."
+  }
+]

@@ -1,12 +1,11 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "COMPLETED",
-  "change": "077-frontier-product-experience-rebuild",
-  "description": "Campaign077 converged; no active coder packet. Historical ownership/evidence retained; owner personal review/platform limits remain explicit.",
+  "lifecycleStatus": "IN_PROGRESS",
+  "change": "078-game-cover-visual-identities",
+  "description": "Focused game-cover identity initiative; root owns shared integration and runtime QA.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
-    "scripts/**",
     "docs/**",
     ".github/**",
     "README.md",
@@ -44,613 +43,79 @@
   ],
   "parallelPackets": [
     {
-      "id": "remaining-math-language-input",
-      "objective": "Repair remaining demonstrated arithmetic/word/deduction caller ownership, optimistic late feedback and component contrast defects",
-      "dependencies": [
-        "paused-round-continuation"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/math-fast-math/__tests__/difficulty.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/generator.templates.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/generator.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/hooks.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/input-ownership.test.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/late-tap-feedback.test.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/paused-continuation.test.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/reducer.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/scoring.test.ts",
-        "apps/mobile/src/games/math-fast-math/__tests__/screen.test.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/session.test.ts",
-        "apps/mobile/src/games/math-fast-math/components/button.tsx",
-        "apps/mobile/src/games/math-fast-math/components/feedback.tsx",
-        "apps/mobile/src/games/math-fast-math/components/number-pad.tsx",
-        "apps/mobile/src/games/math-fast-math/components/problem.tsx",
-        "apps/mobile/src/games/math-fast-math/components/qa-panel.tsx",
-        "apps/mobile/src/games/math-fast-math/difficulty.ts",
-        "apps/mobile/src/games/math-fast-math/game-definition.ts",
-        "apps/mobile/src/games/math-fast-math/game.json",
-        "apps/mobile/src/games/math-fast-math/generator.ts",
-        "apps/mobile/src/games/math-fast-math/hooks.ts",
-        "apps/mobile/src/games/math-fast-math/index.ts",
-        "apps/mobile/src/games/math-fast-math/reducer.ts",
-        "apps/mobile/src/games/math-fast-math/scoring.ts",
-        "apps/mobile/src/games/math-fast-math/screen.tsx",
-        "apps/mobile/src/games/math-fast-math/session.ts",
-        "apps/mobile/src/games/math-fast-math/types.ts",
-        "apps/mobile/src/games/math-fast-math/versions.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/difficulty.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/game-definition.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/generator.templates.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/generator.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/hooks.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/input-ownership.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/__tests__/paused-continuation.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/__tests__/reducer.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/scoring.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/screen.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/__tests__/session.test.ts",
-        "apps/mobile/src/games/math-missing-operator/__tests__/verdict-cue.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/button.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/equation-display.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/operator-button.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/qa-panel.tsx",
-        "apps/mobile/src/games/math-missing-operator/difficulty.ts",
-        "apps/mobile/src/games/math-missing-operator/game-definition.ts",
-        "apps/mobile/src/games/math-missing-operator/game.json",
-        "apps/mobile/src/games/math-missing-operator/generator.ts",
-        "apps/mobile/src/games/math-missing-operator/hooks.ts",
-        "apps/mobile/src/games/math-missing-operator/index.ts",
-        "apps/mobile/src/games/math-missing-operator/reducer.ts",
-        "apps/mobile/src/games/math-missing-operator/scoring.ts",
-        "apps/mobile/src/games/math-missing-operator/screen.tsx",
-        "apps/mobile/src/games/math-missing-operator/session.ts",
-        "apps/mobile/src/games/math-missing-operator/types.ts",
-        "apps/mobile/src/games/math-missing-operator/versions.ts",
-        "apps/mobile/src/games/math-value-ordering/__tests__/difficulty.adversarial.test.ts",
-        "apps/mobile/src/games/math-value-ordering/__tests__/generator.adversarial.test.ts",
-        "apps/mobile/src/games/math-value-ordering/__tests__/input-ownership.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/__tests__/paused-continuation.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/__tests__/screen.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/__tests__/value-ordering.test.ts",
-        "apps/mobile/src/games/math-value-ordering/__tests__/verdict-cue.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/components/button.tsx",
-        "apps/mobile/src/games/math-value-ordering/components/qa-panel.tsx",
-        "apps/mobile/src/games/math-value-ordering/components/value-grid.tsx",
-        "apps/mobile/src/games/math-value-ordering/difficulty.ts",
-        "apps/mobile/src/games/math-value-ordering/game-definition.ts",
-        "apps/mobile/src/games/math-value-ordering/game.json",
-        "apps/mobile/src/games/math-value-ordering/generator.ts",
-        "apps/mobile/src/games/math-value-ordering/hooks.ts",
-        "apps/mobile/src/games/math-value-ordering/index.ts",
-        "apps/mobile/src/games/math-value-ordering/reducer.ts",
-        "apps/mobile/src/games/math-value-ordering/scoring.ts",
-        "apps/mobile/src/games/math-value-ordering/screen.tsx",
-        "apps/mobile/src/games/math-value-ordering/session.ts",
-        "apps/mobile/src/games/math-value-ordering/types.ts",
-        "apps/mobile/src/games/math-value-ordering/versions.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/content-validation.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/difficulty.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/generator-correctness.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/generator.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/hooks.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/input-ownership.test.tsx",
-        "apps/mobile/src/games/language-word-scramble/__tests__/paused-continuation.test.tsx",
-        "apps/mobile/src/games/language-word-scramble/__tests__/reducer.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/scoring.test.ts",
-        "apps/mobile/src/games/language-word-scramble/__tests__/screen.test.tsx",
-        "apps/mobile/src/games/language-word-scramble/__tests__/session.test.ts",
-        "apps/mobile/src/games/language-word-scramble/components/button.tsx",
-        "apps/mobile/src/games/language-word-scramble/components/option-button.tsx",
-        "apps/mobile/src/games/language-word-scramble/components/qa-panel.tsx",
-        "apps/mobile/src/games/language-word-scramble/components/scrambled-display.tsx",
-        "apps/mobile/src/games/language-word-scramble/content/word-bank.ts",
-        "apps/mobile/src/games/language-word-scramble/content-validation.ts",
-        "apps/mobile/src/games/language-word-scramble/difficulty.ts",
-        "apps/mobile/src/games/language-word-scramble/game-definition.ts",
-        "apps/mobile/src/games/language-word-scramble/game.json",
-        "apps/mobile/src/games/language-word-scramble/generator.ts",
-        "apps/mobile/src/games/language-word-scramble/hooks.ts",
-        "apps/mobile/src/games/language-word-scramble/index.ts",
-        "apps/mobile/src/games/language-word-scramble/reducer.ts",
-        "apps/mobile/src/games/language-word-scramble/scoring.ts",
-        "apps/mobile/src/games/language-word-scramble/screen.tsx",
-        "apps/mobile/src/games/language-word-scramble/session.ts",
-        "apps/mobile/src/games/language-word-scramble/types.ts",
-        "apps/mobile/src/games/language-word-scramble/versions.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/difficulty.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/generator.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/hooks.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/input-ownership.test.tsx",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/reducer.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/scoring.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/screen.test.tsx",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/session.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/solver-uniqueness.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/solver.test.ts",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/verdict-language.test.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/button.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/clue-table.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/option.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/qa-panel.tsx",
-        "apps/mobile/src/games/logic-deduction-table/difficulty.ts",
-        "apps/mobile/src/games/logic-deduction-table/game-definition.ts",
-        "apps/mobile/src/games/logic-deduction-table/game.json",
-        "apps/mobile/src/games/logic-deduction-table/generator.ts",
-        "apps/mobile/src/games/logic-deduction-table/hooks.ts",
-        "apps/mobile/src/games/logic-deduction-table/index.ts",
-        "apps/mobile/src/games/logic-deduction-table/reducer.ts",
-        "apps/mobile/src/games/logic-deduction-table/scoring.ts",
-        "apps/mobile/src/games/logic-deduction-table/screen.tsx",
-        "apps/mobile/src/games/logic-deduction-table/session.ts",
-        "apps/mobile/src/games/logic-deduction-table/solver.ts",
-        "apps/mobile/src/games/logic-deduction-table/types.ts",
-        "apps/mobile/src/games/logic-deduction-table/versions.ts"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real caller red-before regressions repaired; stale/session/pause/cancelled timers and duplicate physical deliveries silent, legitimate distinct known-input batches retained, deadline feedback truthful, essential component ink readable without changing stimulus/task semantics; completed Next guards and historical versions preserved",
-      "validation": "Full assigned modules Jest maxWorkers1, owned zero-warning lint/type/diff; no broad/native/device/Git",
-      "integrationRequirements": "Root owns generated registry/provenance/shared helpers/native critique; report remaining risks and version changes",
-      "transferredTutorialSurfaces": [
-        "apps/mobile/src/games/math-fast-math/components/tutorial.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/tutorial.tsx",
-        "apps/mobile/src/games/math-missing-operator/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/components/tutorial.tsx",
-        "apps/mobile/src/games/math-value-ordering/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/language-word-scramble/components/tutorial.tsx",
-        "apps/mobile/src/games/language-word-scramble/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/tutorial.tsx",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/tutorial-input.test.tsx"
-      ],
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
-    },
-    {
-      "id": "remaining-memory-attention-input",
-      "objective": "Repair remaining demonstrated memory/search rendered-cue, physical duplicate, reveal timer and tutorial batching defects",
-      "dependencies": [
-        "paused-round-continuation"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/memory-grid-recall/**",
-        "apps/mobile/src/games/memory-running-order/**",
-        "apps/mobile/src/games/attention-visual-search/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real caller red-before regressions repaired; stale/session/pause/cancelled timers and duplicate physical deliveries silent, legitimate distinct known-input batches retained, deadline feedback truthful, essential component ink readable without changing stimulus/task semantics; completed Next guards and historical versions preserved",
-      "validation": "Full assigned modules Jest maxWorkers1, owned zero-warning lint/type/diff; no broad/native/device/Git",
-      "integrationRequirements": "Root owns generated registry/provenance/shared helpers/native critique; report remaining risks and version changes",
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
-    },
-    {
-      "id": "flexibility-input-accessibility",
-      "objective": "Repair demonstrated old-cue/duplicate sensory callers, silent RuleFlip readiness and contrast/target semantics in four flexibility modules",
-      "dependencies": [
-        "paused-round-continuation"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/flexibility-card-sort/**",
-        "apps/mobile/src/games/flexibility-cue-shift/**",
-        "apps/mobile/src/games/flexibility-rule-flip/**",
-        "apps/mobile/src/games/flexibility-task-switch/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real rendered caller regressions fail before and pass after; stale/session/pause/native duplicate actions remain silent, legitimate new choices work; arm-window readiness visible/disabled, target glyphs named and contrast correct without changing stimulus semantics; historical versions preserved",
-      "validation": "Full four modules Jest maxWorkers1, owned zero-warning ESLint/type/diff; no broad/native/device/Git",
-      "integrationRequirements": "Lead owns shared helpers/generated versions/native critique; preserve completed paused Next repair",
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
-    },
-    {
-      "id": "progress-presentation-redesign",
-      "objective": "Rebuild Progress summary and detail hierarchy with Play Lab while preserving analytic queries and scoring contracts",
-      "dependencies": [
-        "remaining-observation-clock"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/app/(tabs)/progress.tsx",
-        "apps/mobile/src/app/progress-detail.tsx",
-        "apps/mobile/src/app/progress-domain.tsx",
-        "apps/mobile/src/app/progress-game.tsx",
-        "apps/mobile/src/app/progress-activity.tsx",
-        "apps/mobile/src/app/__tests__/progress-detail.test.tsx",
-        "apps/mobile/src/app/__tests__/progress-insights.test.tsx",
-        "apps/mobile/src/app/__tests__/progress-focus-throttle.test.ts",
-        "apps/mobile/src/app/__tests__/progression-focus-sync.test.tsx",
-        "apps/mobile/src/analytics/__tests__/progress-screens.test.tsx"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/analytics/**",
-        "apps/mobile/src/rating/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Answer-first overall/domain summary and readable trends/activity, compact honest empty/error/loading states, purposeful details one tap away, essential labels reflow at compact/2x; preserve queries/IDs/focus/refresh/history contracts",
-      "validation": "Focused owned Jest maxWorkers1 and zero-warning owned ESLint/type/diff; no native/device/build/full suites/Git",
-      "integrationRequirements": "Read-only plan until High repair convergence and lead authorization; lead supplies shared needs and owns native captures/critique",
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
-    },
-    {
-      "id": "remaining-observation-clock",
-      "objective": "Repair observed-item clock and input ownership in Cue Keeper and Symbol Tracker",
-      "dependencies": [
-        "paused-round-continuation"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/memory-prospective-cue/**",
-        "apps/mobile/src/games/attention-symbol-tracker/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real stalled-JS/late answer and rendered-cue replay regressions fail before and pass after; measured active clock replaces fixed tick accumulation without penalizing unseen stimuli; pause fair and duplicate/stale actions silent; preserved historical generator/results",
-      "validation": "Full affected modules Jest maxWorkers1, owned zero-warning lint/type/diff; no native/build/device/Git",
-      "integrationRequirements": "Root converges shared/generated metadata; retain completed paused Next guards",
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
-    },
-    {
-      "id": "paused-round-continuation",
-      "objective": "Repair actual queued result continuation while paused across thirteen audited modules",
-      "dependencies": [
-        "base-memory-correctness"
-      ],
-      "coderWriteSurfaces": [],
-      "completedTransferredSurfaces": [
-        "apps/mobile/src/games/memory-prospective-cue/**",
-        "apps/mobile/src/games/attention-symbol-tracker/**",
-        "apps/mobile/src/games/flexibility-card-sort/**",
-        "apps/mobile/src/games/flexibility-cue-shift/**",
-        "apps/mobile/src/games/flexibility-rule-flip/**",
-        "apps/mobile/src/games/flexibility-task-switch/**",
-        "apps/mobile/src/games/memory-grid-recall/**",
-        "apps/mobile/src/games/memory-running-order/**",
-        "apps/mobile/src/games/attention-visual-search/**",
-        "apps/mobile/src/games/math-fast-math/**",
-        "apps/mobile/src/games/math-missing-operator/**",
-        "apps/mobile/src/games/math-value-ordering/**",
-        "apps/mobile/src/games/language-word-scramble/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Valid actual result/pause/replayed-Next regressions fail before and pass after, including reducer and rendered callback guards; no paused round advancement or SDK/game phase divergence; stale actions remain silent; preserved scoring and historical versions",
-      "validation": "Affected Jest maxWorkers1, owned ESLint/diff; no native/build/emulator/Git",
-      "integrationRequirements": "Root regenerates registry/provenance and integrates; shared helpers require root coordination",
-      "status": "COMPLETED"
-    },
-    {
-      "id": "vigilance-clock-fairness",
-      "objective": "Repair demonstrated unseen-stimulus omissions after a JavaScript stall in Sustained Vigilance",
+      "id": "covers-memory-attention-speed",
+      "objective": "Audit mechanics and author bounded static cover scene module",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/attention-sustained-vigilance/**"
+        "scripts/artwork/memory-attention-speed.mjs"
       ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
+      "prohibitedSurfaces": [
         "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Actual caller regression proves displayed cue receives its real exposure after stall and stale/pause ticks cannot penalize unseen cues; session time remains authoritative; meaningful deadline boundaries and correctly versioned scoring",
-      "validation": "Focused full module Jest maxWorkers1 and owned lint/diff; no native/build/emulator/Git",
-      "integrationRequirements": "Root owns native/runtime and shared/generated integration"
-    },
-    {
-      "id": "remaining-cue-input",
-      "objective": "Repair confirmed early/stale expiry in QuickCompare/OrderSweep and unseen-step replay in WordChain",
-      "dependencies": [
-        "spatial-clock-presentation"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/speed-quick-compare/**",
-        "apps/mobile/src/games/speed-order-sweep/**",
-        "apps/mobile/src/games/language-word-chain/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Actual caller red-before regressions repaired with absolute deadline/stale round/session/pause guards and rendered WordChain step identity; meaningful full owned tests and proper versioning",
-      "validation": "Owned Jest maxWorkers1, ESLint/diff/typecheck; no native/build/emulator/Git",
-      "integrationRequirements": "Root owns shared helpers/registry/provenance and runtime integration"
-    },
-    {
-      "id": "base-memory-correctness",
-      "objective": "Repair base Memory live/tutorial shown sequence mismatch and related actual input/lifecycle boundaries",
-      "dependencies": [
-        "remaining-input-timing",
-        "lifecycle-score-recovery"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/memory/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real rendered-sequence red-before regression passes after correction; same native duplicate and valid known-sequence rapid input/lifecycle boundaries tested; versioned historical records preserved",
-      "validation": "Focused module Jest maxWorkers1, owned ESLint/diff; no native/emulator/build/Git",
-      "integrationRequirements": "Lead owns shared/generated metadata and selective native verification"
-    },
-    {
-      "id": "profile-rewards-redesign",
-      "objective": "Rebuild Profile and Rewards information hierarchy using Play Lab foundation and verified baseline findings",
-      "dependencies": [
-        "content-feedback-recovery"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/app/(tabs)/profile.tsx",
-        "apps/mobile/src/app/rewards.tsx",
-        "apps/mobile/src/app/__tests__/profile-purchases.test.tsx",
-        "apps/mobile/src/app/__tests__/rewards.test.tsx",
-        "apps/mobile/src/app/__tests__/settings-persist-toast.test.tsx",
-        "apps/mobile/src/app/__tests__/settings-persist-concurrency.test.tsx",
-        "apps/mobile/src/app/__tests__/profile-layout.test.tsx"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/quests/**",
-        "apps/mobile/src/cosmetics/**",
         "apps/mobile/src/sdk/**",
         "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
+        "apps/mobile/package-lock.json"
       ],
-      "completionCriteria": "Appearance/sensory/data controls reachable before long progression lists; compact identity, purposeful responsive earned collections, honest rounded progress; all transactions/consent/economy behavior preserved",
-      "validation": "Focused owned route tests maxWorkers1, ESLint/diff; no native/build/emulator/Git",
-      "integrationRequirements": "Lead owns shared component needs/assets/tests and later native critique; report any requested shared helper"
+      "completionCriteria": [
+        "Assigned registered games represented accurately",
+        "Pilot inspected before scaling"
+      ],
+      "cheapValidation": [
+        "node --check on owned module"
+      ],
+      "integrationRequirements": [
+        "Root generates assets and integrates manifest"
+      ],
+      "validation": "node --check scripts/artwork/memory-attention-speed.mjs"
     },
     {
-      "id": "spatial-clock-presentation",
-      "objective": "Repair demonstrated spatial active-clock, deadline, instruction, score formatting and choice semantics defects",
-      "dependencies": [
-        "math-correctness"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/spatial-coordinate-turn/**",
-        "apps/mobile/src/games/spatial-grid-nav/**",
-        "apps/mobile/src/games/spatial-mental-rotation/**",
-        "apps/mobile/src/games/spatial-fold-match/**",
-        "apps/mobile/src/games/spatial-transform-match/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Fail-before caller evidence repaired with fair active timing, deadline boundaries, honest rounded display, clear direction instructions and accessible figure choices; preserved historical versions",
-      "validation": "Affected Jest maxWorkers1 and owned ESLint/diff check; no emulator/build/broad suites",
-      "integrationRequirements": "Lead owns shared needs, generated metadata and native integration; no coder commits/push"
-    },
-    {
-      "id": "remaining-input-timing",
-      "objective": "Repair proven stale/late/batched input and active pause-time defects in PairRecall, OddOneOut, TargetCount and ColorStroop",
-      "dependencies": [
-        "high-input-timing"
-      ],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/memory-pair-recall/**",
-        "apps/mobile/src/games/attention-odd-one-out/**",
-        "apps/mobile/src/games/attention-target-count/**",
-        "apps/mobile/src/games/flexibility-color-stroop/**"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Real caller regressions fail before and pass after; absolute deadlines, pause fairness and fresh-cue identity hold; report version changes and unresolved sibling risks",
-      "validation": "Focused Jest maxWorkers1, owned ESLint and diff check; no emulator/build/broad suites",
-      "integrationRequirements": "Lead owns shared needs, generated versions and integration; no coder commits/push"
-    },
-    {
-      "id": "lifecycle-score-recovery",
-      "objective": "Repair paused timeout mutation and order-dependent response averages in ReactionTime, SequenceMemory and ColorMatch",
+      "id": "covers-math-language-logic",
+      "objective": "Audit mechanics and author bounded static cover scene module",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/speed-reaction-time/**",
-        "apps/mobile/src/games/memory-sequence-memory/**",
-        "apps/mobile/src/games/speed-color-match/**"
+        "scripts/artwork/math-language-logic.mjs"
       ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
+      "prohibitedSurfaces": [
         "apps/mobile/src/registry/**",
+        "apps/mobile/src/sdk/**",
         "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
+        "apps/mobile/package-lock.json"
       ],
-      "completionCriteria": "Reproduce actual queued callback/pause and correct-average caller defects; fix and test stale/deadline boundaries, preserve intentional semantics and historical provenance",
-      "validation": "Focused Jest maxWorkers1 and owned ESLint; no emulator/build/broad suites",
-      "integrationRequirements": "Report shared needs and metadata changes; lead regenerates and integrates; no coder commits/push"
+      "completionCriteria": [
+        "Assigned registered games represented accurately",
+        "Pilot inspected before scaling"
+      ],
+      "cheapValidation": [
+        "node --check on owned module"
+      ],
+      "integrationRequirements": [
+        "Root generates assets and integrates manifest"
+      ],
+      "validation": "node --check scripts/artwork/math-language-logic.mjs"
     },
     {
-      "id": "content-feedback-recovery",
-      "objective": "Repair ambiguous language items, misleading NextSequence explanation, dishonest SentenceBuilder partial feedback and repeated OrderPath input",
+      "id": "covers-spatial-flexibility",
+      "objective": "Audit mechanics and author bounded static cover scene module",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/language-context-fit/**",
-        "apps/mobile/src/games/language-word-match/**",
-        "apps/mobile/src/games/language-sentence-builder/**",
-        "apps/mobile/src/games/logic-next-sequence/**",
-        "apps/mobile/src/games/logic-order-path/**"
+        "scripts/artwork/spatial-flexibility.mjs"
       ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
+      "prohibitedSurfaces": [
         "apps/mobile/src/registry/**",
+        "apps/mobile/src/sdk/**",
         "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
+        "apps/mobile/package-lock.json"
       ],
-      "completionCriteria": "Actual content/caller regressions fail before and pass after; honest partial outcome, unambiguous keyed content and no duplicate-placement penalties; correctly version changed content/rules",
-      "validation": "Focused Jest maxWorkers1 and owned ESLint; no emulator/build/broad suites",
-      "integrationRequirements": "Lead integrates versions/provenance/shared needs; no coder commits/push"
-    },
-    {
-      "integrationRequirements": "Lead integrates shared needs and regenerates registry/provenance; no commits/push by coder",
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/speed-tap-rush/**",
-        "apps/mobile/src/games/memory-pattern-tap-back/**"
+      "completionCriteria": [
+        "Assigned registered games represented accurately",
+        "Pilot inspected before scaling"
       ],
-      "cheapValidation": "Affected Jest maxWorkers1 and game/source checks; no emulator/build",
-      "id": "high-input-timing",
-      "completionCriteria": "Reproduced High defects fixed, meaningful tests pass, full module coverage checked, sibling risks reported",
-      "dependencies": [],
-      "objective": "Repair TapRush timer/hit/input identity and PatternTapBack live/tutorial displayed sequence with fail-before/pass-after coverage",
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/game-host/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
+      "cheapValidation": [
+        "node --check on owned module"
       ],
-      "validation": "Affected Jest maxWorkers1 and game/source checks; no emulator/build"
-    },
-    {
-      "integrationRequirements": "Lead converges generated registry/provenance/shared styling; no coder commits/push",
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/logic-code-cracker/**",
-        "apps/mobile/src/games/logic-rule-grid/**"
+      "integrationRequirements": [
+        "Root generates assets and integrates manifest"
       ],
-      "cheapValidation": "Affected Jest maxWorkers1, no emulator/build",
-      "id": "high-logic",
-      "completionCriteria": "High crash and puzzle readability/row invariants fixed; actual second-round and presented-target tests pass; version requirements reported",
-      "dependencies": [],
-      "objective": "Repair AdaptiveCodeCracker next-round crash and RuleGrid board/asked-cell/tutorial correctness with fail-before/pass-after coverage",
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/game-host/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "validation": "Affected Jest maxWorkers1, no emulator/build"
-    },
-    {
-      "id": "restore-preview-safety",
-      "coderWriteSurfaces": [
-        "apps/mobile/src/app/data-management.tsx",
-        "apps/mobile/src/app/__tests__/data-management.test.tsx"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/data-portability/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/package.json",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "dependencies": [],
-      "completionCriteria": "Stale preview invalidated; matching preview and explicit current lossy acknowledgment required before apply; regression proves actual callers",
-      "objective": "Bind restore preview and lossy acknowledgment to exact current text and mode; preserve portability engines",
-      "validation": "Focused data-management Jest maxWorkers1; no native/emulator/broad suites",
-      "integrationRequirements": "Lead owns shared/core needs and later visual redesign; no commits/push"
-    },
-    {
-      "completionCriteria": "Correct actual presented arithmetic and estimation task with meaningful red-before green-after tests, stable legacy provenance",
-      "validation": "Focused Jest maxWorkers1 and owned lint; no native/emulator/broad suites",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/math-equation-builder/**",
-        "apps/mobile/src/games/math-number-line-estimation/**"
-      ],
-      "id": "math-correctness",
-      "integrationRequirements": "Lead regenerates registries/provenance and owns shared needs, no coder commits/push",
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/src/components/**",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "objective": "Repair EquationBuilder arithmetic/activeclock and NumberLine answer-reveal interaction"
-    },
-    {
-      "id": "math-word-tutorial-input",
-      "objective": "Repair demonstrated tutorial duplicate/stale/batched controls in the five arithmetic, word and deduction demos",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/math-fast-math/components/tutorial.tsx",
-        "apps/mobile/src/games/math-fast-math/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/math-missing-operator/components/tutorial.tsx",
-        "apps/mobile/src/games/math-missing-operator/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/math-value-ordering/components/tutorial.tsx",
-        "apps/mobile/src/games/math-value-ordering/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/language-word-scramble/components/tutorial.tsx",
-        "apps/mobile/src/games/language-word-scramble/__tests__/tutorial-input.test.tsx",
-        "apps/mobile/src/games/logic-deduction-table/components/tutorial.tsx",
-        "apps/mobile/src/games/logic-deduction-table/__tests__/tutorial-input.test.tsx"
-      ],
-      "prohibitedSharedSurfaces": [
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/registry/**",
-        ".agent/**",
-        "openspec/**",
-        "apps/mobile/package.json"
-      ],
-      "completionCriteria": "Real public tutorial/native caller regressions fail before and pass after; stage distinct rapid input; prevent stale or duplicate demo actions and repeat completion/retry; preserve all demo content and gameplay semantics",
-      "validation": "Owned tutorial caller tests maxWorkers1 and scoped ESLint; no broad suites/build/emulator",
-      "integrationRequirements": "Root owns screens, leaf event forwarding, versions and convergence; coder no Git commits/push",
-      "status": "COMPLETED",
-      "sourceCompletionNote": "Source/caller checks complete; root owns native integration and final campaign acceptance."
+      "validation": "node --check scripts/artwork/spatial-flexibility.mjs"
     }
   ]
 }

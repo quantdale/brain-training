@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "078-game-cover-visual-identities",
   "lastCampaign": "077-frontier-product-experience-rebuild",
   "lastCampaignStatus": "VALIDATED",
   "lastCampaignVerdict": "CAMPAIGN_077_EMULATOR_REVIEW_READY_WITH_LIMITATIONS",

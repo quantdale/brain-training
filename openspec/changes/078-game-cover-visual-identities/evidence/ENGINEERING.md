@@ -1,0 +1,15 @@
+# Engineering scope and verification
+
+Changed production surfaces: GameWorldArt delegates its existing size/testID API to one memoized GameCoverArtwork; exact42 generated mappings use local literal requires; static PNG geometry and nativeSVG text share1.6 aspect/viewBox. Removed obsolete repeated board-still renderer. Cards/navigation/filters/favorites/mastery/routes/titlelabels remain owned by unchanged callers. No game, SDK, persistence, scoring, registry or economy implementation changes.
+
+Authoring: scripts/artwork/primitives.mjs plus three independently owned scene modules; generate-covers.mjs compiles with pinned build-only @resvg/resvg-js2.6.2, supplied Manropefont/no systemfont dependency. Runtime receives no renderer dependency. Deterministic check includes runtime bytes, labelmap, inventory, contact sheets and mechanicmatrix; CI Jest exercises it.
+
+Final42PNG size569529B; every512×320 transparent,42uniqueSHA256, largest under100KB. Hypothetical fullydecoded RGBA27525120B(26.25MiB), not measuredPSS. Existing9domain/workoutPNG remain1084784B for other callers; prior cardcovers wereViews withzero per-gamePNG. Newscreens retain112dp artworkslot/contain fitting/no fade/animation/blur, fixedaspect/native captions and pointerEventsnone/decorative accessibility. All42assets are statically packaged offline.
+
+Independent source review found oneP3 unknownID inherited-property lookup; Object.hasOwn guard and regressioninputs constructor/toString/__proto__ repaired. No other concretechangedsource regression identified. Nativefontbaseline/perf are separate devicechecks.
+
+InitialfullJest FAIL707passedsuites/1failed/4skipped: two recommendation tests used fictional IDs and expectedgenericfallbackart. Corrected fixtures to real registeredIDs; no productionfallback added. Originalfailure log retained. Full rerun pending in current record.
+
+Fulltypecheck/lint, focusedGames/detail/covertests, strict63OpenSpecitems, registry/provenance/ownership/repository/offline/secrets/runtimeQA/Expoalignment/workflow/impact gates PASS. Productiondependency audit10accepted/no new unallowlisted moderate+ PASS. Web22route exportPASS; ordinarywarnings retained. Final aggregate/native/APK/CI outcomes are appended after observation.
+
+ARTEMIS environment: stale daemon409 admission mismatch recovered with supported idle restart; oldcustomprovider401 and Gemini3.8timeouts retained as failedattempts. Actuallyqualified3.5FlashLite routes used for runtime; external configuration only, existingcredential unchanged. Probenchmark fdae endedafter3actions with pendingledger and was NOTaccepted. Fixedbounded16ADBlibraryswipes provide measuredcomparison; ARTEMIS still controls naturalnavigation. PreliminaryFlash1936 falselyclaimedfullcoverage frommiddle; actualscreens and correctedboundedcaptures outrank its summary.

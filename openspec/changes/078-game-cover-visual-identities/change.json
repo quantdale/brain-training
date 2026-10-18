@@ -1,0 +1,11 @@
+{
+  "id": "078-game-cover-visual-identities",
+  "status": "ACTIVE",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "specOrder": [
+    "game-cover-identities"
+  ],
+  "fullHardening": false,
+  "baselineAuditCommit": "e7885b6d"
+}

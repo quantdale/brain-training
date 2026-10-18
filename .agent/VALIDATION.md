@@ -1,3 +1,7 @@
+# Campaign078 — current qualification
+
+42cover generation/check, mapping/dimensions/hashes/unique42/assetbudget, focused4suites20tests, fulltypecheck/lint, strict63OpenSpecitems, registry/provenance/ownership/repo/offline/secrets/runtimeQA/Expo/workflow/impact gates PASS. Productionaudit10accepted/no new unallowlisted moderate+ PASS. Independent titlehidden pilot/fullreview and informed finalcorrections complete. FullJest708passedsuites7979passedtests5classifiedskips/fiveunchangedsnapshots347.671s PASS; web22routesPASS. Additional determinism regression focused4testsPASS after fullrun. Native/APK/install/all42device/profile/perf/finalCI still inprogress, not claimedPASS. Baseline fixed16swipe captures retained; ARTEMIS preliminarypartialcoverage and unexecutedProbenchmark not accepted.
+
 # Terminal candidate qualification â€” Campaign077
 
 NATIVE_VISUAL15:180actual originals/121staticPASS59P3/noP1P2/144independent+36root,

@@ -1,0 +1,296 @@
+[
+  {
+    "index": 1,
+    "id": "attention-odd-one-out",
+    "name": "Odd One Out",
+    "domain": "attention",
+    "concept": "One sideways triangle stands apart from an otherwise identical upright group."
+  },
+  {
+    "index": 2,
+    "id": "attention-sustained-vigilance",
+    "name": "Signal Watch",
+    "domain": "attention",
+    "concept": "A stream of digits meets a central stop-digit boundary and a withheld response."
+  },
+  {
+    "index": 3,
+    "id": "attention-symbol-tracker",
+    "name": "Symbol Tracker",
+    "domain": "attention",
+    "concept": "The same ringed star changes position between two boards while decoys surround it."
+  },
+  {
+    "index": 4,
+    "id": "attention-target-count",
+    "name": "Target Count",
+    "domain": "attention",
+    "concept": "Three obvious target stars among subdued distractors lead to a numerical total."
+  },
+  {
+    "index": 5,
+    "id": "attention-visual-search",
+    "name": "Visual Search",
+    "domain": "attention",
+    "concept": "A large magnifying lens isolates the single filled tile in a pale tile field."
+  },
+  {
+    "index": 6,
+    "id": "flexibility-card-sort",
+    "name": "Card Sort",
+    "domain": "flexibility",
+    "concept": "An oversized triangle card sorts to a lifted triangle in a four-card fan with color lures."
+  },
+  {
+    "index": 7,
+    "id": "flexibility-color-stroop",
+    "name": "Color Stroop",
+    "domain": "flexibility",
+    "concept": "A large color word conflicts with its ink; a curved arrow selects the ink-color answer."
+  },
+  {
+    "index": 8,
+    "id": "flexibility-cue-shift",
+    "name": "Cue Shift",
+    "domain": "flexibility",
+    "concept": "A shape cue selects matching triangles while native numbers and colors disagree."
+  },
+  {
+    "index": 9,
+    "id": "flexibility-rule-flip",
+    "name": "Rule Flip",
+    "domain": "flexibility",
+    "concept": "A large raised shape face pivots over the number-rule face with a single flip arrow."
+  },
+  {
+    "index": 10,
+    "id": "flexibility-task-switch",
+    "name": "Task Switch",
+    "domain": "flexibility",
+    "concept": "A large seven has two task branches showing its parity and magnitude classifications."
+  },
+  {
+    "index": 11,
+    "id": "language-context-fit",
+    "name": "Context Fit",
+    "domain": "language",
+    "concept": "A sentence sheet says Birds build their ? while a nests word card approaches the blank."
+  },
+  {
+    "index": 12,
+    "id": "language-sentence-builder",
+    "name": "Sentence Builder",
+    "domain": "language",
+    "concept": "Multiple shuffled whole-word chips fly, Birds, can reorder into the complete Birds can fly sentence rail."
+  },
+  {
+    "index": 13,
+    "id": "language-word-chain",
+    "name": "Word Chain",
+    "domain": "language",
+    "concept": "Follow CAT → TREE → EAGLE, joining each final letter to the next initial letter."
+  },
+  {
+    "index": 14,
+    "id": "language-word-match",
+    "name": "Word Match",
+    "domain": "language",
+    "concept": "Two facing speech bubbles pair happy and glad across an equivalence sign."
+  },
+  {
+    "index": 15,
+    "id": "language-word-scramble",
+    "name": "Word Scramble",
+    "domain": "language",
+    "concept": "Loose V R R E I letter pieces resolve to one intact RIVER word-choice card."
+  },
+  {
+    "index": 16,
+    "id": "logic-code-cracker",
+    "name": "Code Cracker",
+    "domain": "logic",
+    "concept": "A concealed four-peg code sits above a colored guess and filled versus outline feedback pegs."
+  },
+  {
+    "index": 17,
+    "id": "logic-deduction-table",
+    "name": "Deduction Table",
+    "domain": "logic",
+    "concept": "A labeled entity-by-attribute table carries one asked cell and an attached A-not-triangle clue slip."
+  },
+  {
+    "index": 18,
+    "id": "logic-next-sequence",
+    "name": "Next in Sequence",
+    "domain": "logic",
+    "concept": "A numeric progression 2, 4, 8, ? follows repeated curved continuation arrows."
+  },
+  {
+    "index": 19,
+    "id": "logic-order-path",
+    "name": "Order Path",
+    "domain": "logic",
+    "concept": "Directed A → B → C precedence nodes feed an ordered A, B, ? slot rail."
+  },
+  {
+    "index": 20,
+    "id": "logic-rule-grid",
+    "name": "Rule Grid",
+    "domain": "logic",
+    "concept": "A valid 3×3 Latin grid highlights the row and column that force its central missing 3."
+  },
+  {
+    "index": 21,
+    "id": "math-equation-builder",
+    "name": "Equation Builder",
+    "domain": "math",
+    "concept": "Assemble 3 + 4 + 5 on a construction rail to reach the separate target 12."
+  },
+  {
+    "index": 22,
+    "id": "math-fast-math",
+    "name": "Fast Math",
+    "domain": "math",
+    "concept": "A calculator face presents 7 + 5 = ? above number-entry keys, accompanied by a small stopwatch."
+  },
+  {
+    "index": 23,
+    "id": "math-missing-operator",
+    "name": "Missing Operator",
+    "domain": "math",
+    "concept": "Choose the multiplication tile that fills the operator gap in 8 × 2 = 16."
+  },
+  {
+    "index": 24,
+    "id": "math-number-line-estimation",
+    "name": "Number Line",
+    "domain": "math",
+    "concept": "Place a movable marker for 40 on a calibrated 0–100 ruler."
+  },
+  {
+    "index": 25,
+    "id": "math-value-ordering",
+    "name": "Value Order",
+    "domain": "math",
+    "concept": "Ascending magnitude steps read 3, 2 × 4, and 12 under a rising ordering arrow."
+  },
+  {
+    "index": 26,
+    "id": "memory",
+    "name": "Memory",
+    "domain": "memory",
+    "concept": "Scattered flashing positions carry an ordered 1–2–3 recall sequence."
+  },
+  {
+    "index": 27,
+    "id": "memory-grid-recall",
+    "name": "Grid Recall",
+    "domain": "memory",
+    "concept": "A whole illuminated cell pattern is echoed as an empty remembered arrangement."
+  },
+  {
+    "index": 28,
+    "id": "memory-pair-recall",
+    "name": "Pair Recall",
+    "domain": "memory",
+    "concept": "A shape card is linked to its letter partner, with a recall loop beneath."
+  },
+  {
+    "index": 29,
+    "id": "memory-pattern-tap-back",
+    "name": "Pattern Tap Back",
+    "domain": "memory",
+    "concept": "A connected trail of neighboring tactile tiles ends at a tap ripple."
+  },
+  {
+    "index": 30,
+    "id": "memory-prospective-cue",
+    "name": "Cue Keeper",
+    "domain": "memory",
+    "concept": "A pinned symbol watchlist is retained while an arriving matching star calls for the explicit SIGNAL response."
+  },
+  {
+    "index": 31,
+    "id": "memory-running-order",
+    "name": "Running Order",
+    "domain": "memory",
+    "concept": "Faded earlier symbols leave a crisp last-three window, then a recall arrow returns to three empty slots."
+  },
+  {
+    "index": 32,
+    "id": "memory-sequence-memory",
+    "name": "Sequence Memory",
+    "domain": "memory",
+    "concept": "Four colored tactile Simon pads form one console, with one pad actively pulsing."
+  },
+  {
+    "index": 33,
+    "id": "spatial-coordinate-turn",
+    "name": "Coordinate Turn",
+    "domain": "spatial",
+    "concept": "A large compass with a ghost north needle, solid east needle and clockwise turn arc."
+  },
+  {
+    "index": 34,
+    "id": "spatial-fold-match",
+    "name": "Fold Match",
+    "domain": "spatial",
+    "concept": "One raised paper flap casts a trapezoid shadow; exact mirrored marks merge onto the kept half."
+  },
+  {
+    "index": 35,
+    "id": "spatial-grid-nav",
+    "name": "Grid Navigator",
+    "domain": "spatial",
+    "concept": "A five-by-five navigation board carries one bold continuous two-turn route."
+  },
+  {
+    "index": 36,
+    "id": "spatial-mental-rotation",
+    "name": "Mental Rotation",
+    "domain": "spatial",
+    "concept": "Two identical asymmetric polyominoes preserve three distinct block colors through an exact clockwise quarter-turn."
+  },
+  {
+    "index": 37,
+    "id": "spatial-transform-match",
+    "name": "Transform Match",
+    "domain": "spatial",
+    "concept": "Two sparse asymmetric patterns reflect exactly across a visible vertical mirror axis."
+  },
+  {
+    "index": 38,
+    "id": "speed-color-match",
+    "name": "Color Match",
+    "domain": "speed",
+    "concept": "A large physical blue swatch connects directly to its matching blue response chip."
+  },
+  {
+    "index": 39,
+    "id": "speed-order-sweep",
+    "name": "Order Sweep",
+    "domain": "speed",
+    "concept": "A sweeping stroke links scattered number tokens from 2 to 5 to 9."
+  },
+  {
+    "index": 40,
+    "id": "speed-quick-compare",
+    "name": "Quick Compare",
+    "domain": "speed",
+    "concept": "Two large numerical cards face one another across a bold comparison sign."
+  },
+  {
+    "index": 41,
+    "id": "speed-reaction-time",
+    "name": "Reaction Time",
+    "domain": "speed",
+    "concept": "One stationary green signal button: wait, then react."
+  },
+  {
+    "index": 42,
+    "id": "speed-tap-rush",
+    "name": "Tap Rush",
+    "domain": "speed",
+    "concept": "One active circular target bursts with a tap ripple while prior positions fade across open space."
+  }
+]

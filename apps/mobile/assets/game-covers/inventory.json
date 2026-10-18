@@ -1,0 +1,1124 @@
+{
+  "schemaVersion": 1,
+  "width": 512,
+  "height": 320,
+  "entries": [
+    {
+      "id": "attention-odd-one-out",
+      "name": "Odd One Out",
+      "domain": "attention",
+      "concept": "One sideways triangle stands apart from an otherwise identical upright group.",
+      "labels": [],
+      "bytes": 11760,
+      "sha256": "1f673c84c8fe31c3a9012be355a653cb637dfae054686e5e6c6ad8807358bbce"
+    },
+    {
+      "id": "attention-sustained-vigilance",
+      "name": "Signal Watch",
+      "domain": "attention",
+      "concept": "A stream of digits meets a central stop-digit boundary and a withheld response.",
+      "labels": [
+        {
+          "x": 61,
+          "y": 101,
+          "text": "2",
+          "size": 27,
+          "color": "#A44C24"
+        },
+        {
+          "x": 161,
+          "y": 95,
+          "text": "3",
+          "size": 47,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 262,
+          "y": 101,
+          "text": "5",
+          "size": 27,
+          "color": "#A44C24"
+        }
+      ],
+      "bytes": 6730,
+      "sha256": "0128086d793de28c926eecfdcd757488b99be0067a00537489ddf5ed9adf3961"
+    },
+    {
+      "id": "attention-symbol-tracker",
+      "name": "Symbol Tracker",
+      "domain": "attention",
+      "concept": "The same ringed star changes position between two boards while decoys surround it.",
+      "labels": [],
+      "bytes": 15227,
+      "sha256": "0c4128ad8b1480a6b0a21fd1054c9ee90e8c1db5c2bbbe8b66b12acdcc2d6f93"
+    },
+    {
+      "id": "attention-target-count",
+      "name": "Target Count",
+      "domain": "attention",
+      "concept": "Three obvious target stars among subdued distractors lead to a numerical total.",
+      "labels": [
+        {
+          "x": 238.5,
+          "y": 105,
+          "text": "3",
+          "size": 47,
+          "color": "#A44C24"
+        }
+      ],
+      "bytes": 9220,
+      "sha256": "0086129a503394ff290e2a5c4708055b4b7cae78619110d33595e3355e55d398"
+    },
+    {
+      "id": "attention-visual-search",
+      "name": "Visual Search",
+      "domain": "attention",
+      "concept": "A large magnifying lens isolates the single filled tile in a pale tile field.",
+      "labels": [],
+      "bytes": 14346,
+      "sha256": "e80f9b8e8131a8007dfd393f85e32e04b79badcc134d6b3127629bb542e66e06"
+    },
+    {
+      "id": "flexibility-card-sort",
+      "name": "Card Sort",
+      "domain": "flexibility",
+      "concept": "An oversized triangle card sorts to a lifted triangle in a four-card fan with color lures.",
+      "labels": [],
+      "bytes": 16126,
+      "sha256": "f4896c18b0302cb77a6b45d82230260f1cfa1ca9f64843c2631735f295127bc9"
+    },
+    {
+      "id": "flexibility-color-stroop",
+      "name": "Color Stroop",
+      "domain": "flexibility",
+      "concept": "A large color word conflicts with its ink; a curved arrow selects the ink-color answer.",
+      "labels": [
+        {
+          "x": 160,
+          "y": 82,
+          "text": "RED",
+          "size": 49,
+          "color": "#326FDA"
+        },
+        {
+          "x": 86,
+          "y": 155,
+          "text": "RED",
+          "size": 22,
+          "color": "#6B2330"
+        },
+        {
+          "x": 233,
+          "y": 155,
+          "text": "BLUE",
+          "size": 22,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 8550,
+      "sha256": "b1b2f5a22abf8ab3c08b7f124fb7d4f0bb9173514019b439ca1215aaa98a499f"
+    },
+    {
+      "id": "flexibility-cue-shift",
+      "name": "Cue Shift",
+      "domain": "flexibility",
+      "concept": "A shape cue selects matching triangles while native numbers and colors disagree.",
+      "labels": [
+        {
+          "x": 209,
+          "y": 47,
+          "text": "#",
+          "size": 25,
+          "color": "#653D99"
+        },
+        {
+          "x": 94,
+          "y": 134,
+          "text": "3",
+          "size": 24,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 226,
+          "y": 134,
+          "text": "7",
+          "size": 24,
+          "color": "#17243B"
+        }
+      ],
+      "bytes": 16691,
+      "sha256": "3ddd178ceb894ed388715ad106f926345dd1fbafd1dcc74cfc0069de9df07be4"
+    },
+    {
+      "id": "flexibility-rule-flip",
+      "name": "Rule Flip",
+      "domain": "flexibility",
+      "concept": "A large raised shape face pivots over the number-rule face with a single flip arrow.",
+      "labels": [
+        {
+          "x": 160,
+          "y": 132,
+          "text": "#",
+          "size": 43,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 11863,
+      "sha256": "a1831175d5da458f4e04c815a6bc19018c51bc5b38252c6e8b13978f349c476a"
+    },
+    {
+      "id": "flexibility-task-switch",
+      "name": "Task Switch",
+      "domain": "flexibility",
+      "concept": "A large seven has two task branches showing its parity and magnitude classifications.",
+      "labels": [
+        {
+          "x": 160,
+          "y": 66,
+          "text": "7",
+          "size": 43,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 91,
+          "y": 156,
+          "text": "ODD",
+          "size": 23,
+          "color": "#653D99"
+        },
+        {
+          "x": 229,
+          "y": 156,
+          "text": "HIGH",
+          "size": 23,
+          "color": "#653D99"
+        }
+      ],
+      "bytes": 12195,
+      "sha256": "41ae9fc9f565695e3fd9f738bb109301e87bef33f4aa8d737e0c5970ff14a521"
+    },
+    {
+      "id": "language-context-fit",
+      "name": "Context Fit",
+      "domain": "language",
+      "concept": "A sentence sheet says Birds build their ? while a nests word card approaches the blank.",
+      "labels": [
+        {
+          "x": 140,
+          "y": 47,
+          "text": "Birds build",
+          "size": 27,
+          "color": "#17243B"
+        },
+        {
+          "x": 74,
+          "y": 94,
+          "text": "their",
+          "size": 26,
+          "color": "#17243B"
+        },
+        {
+          "x": 174,
+          "y": 94,
+          "text": "?",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 224,
+          "y": 153,
+          "text": "nests",
+          "size": 25,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 7181,
+      "sha256": "cd062c5fb4d22f07e65e303f8628f0637aaa3d59c1d1e8acc73ef5be7bffa112"
+    },
+    {
+      "id": "language-sentence-builder",
+      "name": "Sentence Builder",
+      "domain": "language",
+      "concept": "Multiple shuffled whole-word chips fly, Birds, can reorder into the complete Birds can fly sentence rail.",
+      "labels": [
+        {
+          "x": 62,
+          "y": 48,
+          "text": "fly",
+          "size": 25,
+          "color": "#17243B"
+        },
+        {
+          "x": 157,
+          "y": 48,
+          "text": "Birds",
+          "size": 25,
+          "color": "#17748D"
+        },
+        {
+          "x": 256,
+          "y": 48,
+          "text": "can",
+          "size": 25,
+          "color": "#17243B"
+        },
+        {
+          "x": 72,
+          "y": 145,
+          "text": "Birds",
+          "size": 25,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 166,
+          "y": 145,
+          "text": "can",
+          "size": 25,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 252,
+          "y": 145,
+          "text": "fly",
+          "size": 25,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 15509,
+      "sha256": "631068e397b09d834eb4a8a893cd4c9aa6c71e3333b900fcdb9c069d3aeb664f"
+    },
+    {
+      "id": "language-word-chain",
+      "name": "Word Chain",
+      "domain": "language",
+      "concept": "Follow CAT → TREE → EAGLE, joining each final letter to the next initial letter.",
+      "labels": [
+        {
+          "x": 66,
+          "y": 48,
+          "text": "CAT",
+          "size": 26,
+          "color": "#17243B"
+        },
+        {
+          "x": 163,
+          "y": 99,
+          "text": "TREE",
+          "size": 24,
+          "color": "#17748D"
+        },
+        {
+          "x": 250,
+          "y": 150,
+          "text": "EAGLE",
+          "size": 22,
+          "color": "#17243B"
+        }
+      ],
+      "bytes": 8777,
+      "sha256": "c9b651ebaa0dc0094df3d62d07d78fa01019cd1a6850bd7e22e1cad940dbf012"
+    },
+    {
+      "id": "language-word-match",
+      "name": "Word Match",
+      "domain": "language",
+      "concept": "Two facing speech bubbles pair happy and glad across an equivalence sign.",
+      "labels": [
+        {
+          "x": 83,
+          "y": 89,
+          "text": "happy",
+          "size": 27,
+          "color": "#17748D"
+        },
+        {
+          "x": 160,
+          "y": 89,
+          "text": "=",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 236,
+          "y": 89,
+          "text": "glad",
+          "size": 29,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 7317,
+      "sha256": "68e1bb98e6a8b9b72a03bd4b5f5839a0dcde63137d963ad293c27a91b1979a82"
+    },
+    {
+      "id": "language-word-scramble",
+      "name": "Word Scramble",
+      "domain": "language",
+      "concept": "Loose V R R E I letter pieces resolve to one intact RIVER word-choice card.",
+      "labels": [
+        {
+          "x": 51,
+          "y": 57,
+          "text": "V",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 105,
+          "y": 71,
+          "text": "R",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 160,
+          "y": 51,
+          "text": "R",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 215,
+          "y": 70,
+          "text": "E",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 269,
+          "y": 58,
+          "text": "I",
+          "size": 28,
+          "color": "#17748D"
+        },
+        {
+          "x": 160,
+          "y": 148,
+          "text": "RIVER",
+          "size": 29,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 9833,
+      "sha256": "a73041276c4d63f9d380b59dd9a38c73886e2b469501a78045f8b261720345b2"
+    },
+    {
+      "id": "logic-code-cracker",
+      "name": "Code Cracker",
+      "domain": "logic",
+      "concept": "A concealed four-peg code sits above a colored guess and filled versus outline feedback pegs.",
+      "labels": [],
+      "bytes": 14699,
+      "sha256": "6f99005afb740873ef42d8f12ee752f3724d7c01828a66835fe1c6be6884b04c"
+    },
+    {
+      "id": "logic-deduction-table",
+      "name": "Deduction Table",
+      "domain": "logic",
+      "concept": "A labeled entity-by-attribute table carries one asked cell and an attached A-not-triangle clue slip.",
+      "labels": [
+        {
+          "x": 50,
+          "y": 79,
+          "text": "A",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 50,
+          "y": 115,
+          "text": "B",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 50,
+          "y": 151,
+          "text": "C",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 109,
+          "y": 79,
+          "text": "?",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 179,
+          "y": 79,
+          "text": "?",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 109,
+          "y": 115,
+          "text": "?",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 179,
+          "y": 115,
+          "text": "?",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 109,
+          "y": 151,
+          "text": "?",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 179,
+          "y": 151,
+          "text": "?",
+          "size": 26,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 258,
+          "y": 84,
+          "text": "A",
+          "size": 24,
+          "color": "#13786E"
+        }
+      ],
+      "bytes": 9898,
+      "sha256": "49939f0278f4161d1da2e205542703882ac93bc9c6f9ab60e21d604f6e6efd3c"
+    },
+    {
+      "id": "logic-next-sequence",
+      "name": "Next in Sequence",
+      "domain": "logic",
+      "concept": "A numeric progression 2, 4, 8, ? follows repeated curved continuation arrows.",
+      "labels": [
+        {
+          "x": 47.5,
+          "y": 108,
+          "text": "2",
+          "size": 34,
+          "color": "#13786E"
+        },
+        {
+          "x": 122.5,
+          "y": 108,
+          "text": "4",
+          "size": 34,
+          "color": "#13786E"
+        },
+        {
+          "x": 197.5,
+          "y": 108,
+          "text": "8",
+          "size": 34,
+          "color": "#13786E"
+        },
+        {
+          "x": 272.5,
+          "y": 108,
+          "text": "?",
+          "size": 34,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 8975,
+      "sha256": "49087683485e4c1afe57b195f3b3533a3ba312796779d1ac097cb480f6c42205"
+    },
+    {
+      "id": "logic-order-path",
+      "name": "Order Path",
+      "domain": "logic",
+      "concept": "Directed A → B → C precedence nodes feed an ordered A, B, ? slot rail.",
+      "labels": [
+        {
+          "x": 64,
+          "y": 46,
+          "text": "A",
+          "size": 29,
+          "color": "#13786E"
+        },
+        {
+          "x": 160,
+          "y": 97,
+          "text": "B",
+          "size": 29,
+          "color": "#13786E"
+        },
+        {
+          "x": 257,
+          "y": 46,
+          "text": "C",
+          "size": 29,
+          "color": "#13786E"
+        },
+        {
+          "x": 76,
+          "y": 157,
+          "text": "A",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 160,
+          "y": 157,
+          "text": "B",
+          "size": 23,
+          "color": "#13786E"
+        },
+        {
+          "x": 244,
+          "y": 157,
+          "text": "?",
+          "size": 25,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 14915,
+      "sha256": "30b6b5f12aa33fd755d5a0c422247a4afc16f759588d00a272a5d806d97ee327"
+    },
+    {
+      "id": "logic-rule-grid",
+      "name": "Rule Grid",
+      "domain": "logic",
+      "concept": "A valid 3×3 Latin grid highlights the row and column that force its central missing 3.",
+      "labels": [
+        {
+          "x": 101,
+          "y": 45,
+          "text": "1",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 160,
+          "y": 45,
+          "text": "2",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 219,
+          "y": 45,
+          "text": "3",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 101,
+          "y": 96,
+          "text": "2",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 160,
+          "y": 96,
+          "text": "?",
+          "size": 32,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 219,
+          "y": 96,
+          "text": "1",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 101,
+          "y": 147,
+          "text": "3",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 160,
+          "y": 147,
+          "text": "1",
+          "size": 28,
+          "color": "#13786E"
+        },
+        {
+          "x": 219,
+          "y": 147,
+          "text": "2",
+          "size": 28,
+          "color": "#13786E"
+        }
+      ],
+      "bytes": 12104,
+      "sha256": "6a06a096b2bee12a091f1d9d8e2d0dfe58164e5959a6d317873ec102e4f18e0e"
+    },
+    {
+      "id": "math-equation-builder",
+      "name": "Equation Builder",
+      "domain": "math",
+      "concept": "Assemble 3 + 4 + 5 on a construction rail to reach the separate target 12.",
+      "labels": [
+        {
+          "x": 160,
+          "y": 47,
+          "text": "12",
+          "size": 32,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 62,
+          "y": 138,
+          "text": "3",
+          "size": 30,
+          "color": "#17243B"
+        },
+        {
+          "x": 111,
+          "y": 138,
+          "text": "+",
+          "size": 27,
+          "color": "#285CAA"
+        },
+        {
+          "x": 160,
+          "y": 138,
+          "text": "4",
+          "size": 30,
+          "color": "#17243B"
+        },
+        {
+          "x": 209,
+          "y": 138,
+          "text": "+",
+          "size": 27,
+          "color": "#285CAA"
+        },
+        {
+          "x": 257,
+          "y": 138,
+          "text": "5",
+          "size": 30,
+          "color": "#17243B"
+        }
+      ],
+      "bytes": 9421,
+      "sha256": "fd2f52afd2e98b82ba8b52a71c787825366335fac4d0334a75bcc11dd1557018"
+    },
+    {
+      "id": "math-fast-math",
+      "name": "Fast Math",
+      "domain": "math",
+      "concept": "A calculator face presents 7 + 5 = ? above number-entry keys, accompanied by a small stopwatch.",
+      "labels": [
+        {
+          "x": 160,
+          "y": 64,
+          "text": "7 + 5 = ?",
+          "size": 27,
+          "color": "#17243B"
+        },
+        {
+          "x": 110,
+          "y": 116,
+          "text": "1",
+          "size": 20,
+          "color": "#285CAA"
+        },
+        {
+          "x": 160,
+          "y": 116,
+          "text": "2",
+          "size": 20,
+          "color": "#285CAA"
+        },
+        {
+          "x": 210,
+          "y": 116,
+          "text": "3",
+          "size": 20,
+          "color": "#285CAA"
+        },
+        {
+          "x": 110,
+          "y": 150,
+          "text": "4",
+          "size": 20,
+          "color": "#285CAA"
+        },
+        {
+          "x": 160,
+          "y": 150,
+          "text": "5",
+          "size": 20,
+          "color": "#285CAA"
+        },
+        {
+          "x": 210,
+          "y": 150,
+          "text": "6",
+          "size": 20,
+          "color": "#285CAA"
+        }
+      ],
+      "bytes": 11474,
+      "sha256": "ff553469163768091fddbd381c62b9bb3c026e7d0e25eeeb126163d1aebe0438"
+    },
+    {
+      "id": "math-missing-operator",
+      "name": "Missing Operator",
+      "domain": "math",
+      "concept": "Choose the multiplication tile that fills the operator gap in 8 × 2 = 16.",
+      "labels": [
+        {
+          "x": 48,
+          "y": 88,
+          "text": "8",
+          "size": 34,
+          "color": "#17243B"
+        },
+        {
+          "x": 99,
+          "y": 88,
+          "text": "?",
+          "size": 30,
+          "color": "#285CAA"
+        },
+        {
+          "x": 149,
+          "y": 88,
+          "text": "2",
+          "size": 34,
+          "color": "#17243B"
+        },
+        {
+          "x": 184,
+          "y": 88,
+          "text": "=",
+          "size": 28,
+          "color": "#17243B"
+        },
+        {
+          "x": 247,
+          "y": 88,
+          "text": "16",
+          "size": 34,
+          "color": "#17243B"
+        },
+        {
+          "x": 99,
+          "y": 157,
+          "text": "×",
+          "size": 29,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 7287,
+      "sha256": "c648ceeaef84db512857eebcf44bf497f43ea93f59cd1142d98191411cc7ed10"
+    },
+    {
+      "id": "math-number-line-estimation",
+      "name": "Number Line",
+      "domain": "math",
+      "concept": "Place a movable marker for 40 on a calibrated 0–100 ruler.",
+      "labels": [
+        {
+          "x": 137,
+          "y": 43,
+          "text": "40",
+          "size": 28,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 43,
+          "y": 150,
+          "text": "0",
+          "size": 22,
+          "color": "#285CAA"
+        },
+        {
+          "x": 278,
+          "y": 150,
+          "text": "100",
+          "size": 22,
+          "color": "#285CAA"
+        }
+      ],
+      "bytes": 9580,
+      "sha256": "7fba9fa1a502b806d1208b3a2b72c5f03c8f4090eb5dc6652905ad6aa6db505a"
+    },
+    {
+      "id": "math-value-ordering",
+      "name": "Value Order",
+      "domain": "math",
+      "concept": "Ascending magnitude steps read 3, 2 × 4, and 12 under a rising ordering arrow.",
+      "labels": [
+        {
+          "x": 65,
+          "y": 148,
+          "text": "3",
+          "size": 31,
+          "color": "#285CAA"
+        },
+        {
+          "x": 160,
+          "y": 129,
+          "text": "2 × 4",
+          "size": 25,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 255,
+          "y": 89,
+          "text": "12",
+          "size": 33,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 9831,
+      "sha256": "dc4f17400fd525cf4394316dd2c65005479ed50fd7c65d51b2bbea60f69ffa4d"
+    },
+    {
+      "id": "memory",
+      "name": "Memory",
+      "domain": "memory",
+      "concept": "Scattered flashing positions carry an ordered 1–2–3 recall sequence.",
+      "labels": [
+        {
+          "x": 116.5,
+          "y": 44.5,
+          "text": "1",
+          "size": 24,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 200.5,
+          "y": 86.5,
+          "text": "2",
+          "size": 24,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 116.5,
+          "y": 128.5,
+          "text": "3",
+          "size": 24,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 12317,
+      "sha256": "3e821eb9be055c0742490fd17d492e5ef5eda65b39a5af0433fb3863a506dd2d"
+    },
+    {
+      "id": "memory-grid-recall",
+      "name": "Grid Recall",
+      "domain": "memory",
+      "concept": "A whole illuminated cell pattern is echoed as an empty remembered arrangement.",
+      "labels": [],
+      "bytes": 17610,
+      "sha256": "b8b52e77e636d882932727d976bd1ee248d370d2112293be7a3b72ff654d7748"
+    },
+    {
+      "id": "memory-pair-recall",
+      "name": "Pair Recall",
+      "domain": "memory",
+      "concept": "A shape card is linked to its letter partner, with a recall loop beneath.",
+      "labels": [
+        {
+          "x": 233,
+          "y": 95,
+          "text": "K",
+          "size": 46,
+          "color": "#8C2755"
+        }
+      ],
+      "bytes": 11454,
+      "sha256": "443b71a1a524469f7db3601796930693a82bd9b3e095c645b7bcd4fc3d69c652"
+    },
+    {
+      "id": "memory-pattern-tap-back",
+      "name": "Pattern Tap Back",
+      "domain": "memory",
+      "concept": "A connected trail of neighboring tactile tiles ends at a tap ripple.",
+      "labels": [],
+      "bytes": 15333,
+      "sha256": "ca4f045356f614d647ec21000856723289063ff93c931f508c43b6af07f6b35b"
+    },
+    {
+      "id": "memory-prospective-cue",
+      "name": "Cue Keeper",
+      "domain": "memory",
+      "concept": "A pinned symbol watchlist is retained while an arriving matching star calls for the explicit SIGNAL response.",
+      "labels": [
+        {
+          "x": 228,
+          "y": 154.5,
+          "text": "SIGNAL",
+          "size": 22,
+          "color": "#F8FBFF"
+        },
+        {
+          "x": 136,
+          "y": 156.5,
+          "text": "GO",
+          "size": 20,
+          "color": "#8C2755"
+        }
+      ],
+      "bytes": 15149,
+      "sha256": "3d8c1908ac7c5a7833eabb461d2107a34b08a86e9918f977009f3794807d7960"
+    },
+    {
+      "id": "memory-running-order",
+      "name": "Running Order",
+      "domain": "memory",
+      "concept": "Faded earlier symbols leave a crisp last-three window, then a recall arrow returns to three empty slots.",
+      "labels": [],
+      "bytes": 18041,
+      "sha256": "39f1c1eff9e7555987dd1498f934ad522386556f9d3eb6d1e71fb0981b106d85"
+    },
+    {
+      "id": "memory-sequence-memory",
+      "name": "Sequence Memory",
+      "domain": "memory",
+      "concept": "Four colored tactile Simon pads form one console, with one pad actively pulsing.",
+      "labels": [],
+      "bytes": 13805,
+      "sha256": "d83294483adafd0819883c8cac88a5148c67b96374be58082b760a2ab5877c37"
+    },
+    {
+      "id": "spatial-coordinate-turn",
+      "name": "Coordinate Turn",
+      "domain": "spatial",
+      "concept": "A large compass with a ghost north needle, solid east needle and clockwise turn arc.",
+      "labels": [],
+      "bytes": 17902,
+      "sha256": "82eaa43ff0ff5b479a3f1c4fcdc1c5124f3812a1afec8727a880c740fdbc0851"
+    },
+    {
+      "id": "spatial-fold-match",
+      "name": "Fold Match",
+      "domain": "spatial",
+      "concept": "One raised paper flap casts a trapezoid shadow; exact mirrored marks merge onto the kept half.",
+      "labels": [],
+      "bytes": 16329,
+      "sha256": "6cb3ba864b9d44a4a3035d5886ed9b4ca742de6b65550fb239924e54dad7fe10"
+    },
+    {
+      "id": "spatial-grid-nav",
+      "name": "Grid Navigator",
+      "domain": "spatial",
+      "concept": "A five-by-five navigation board carries one bold continuous two-turn route.",
+      "labels": [],
+      "bytes": 7827,
+      "sha256": "63fed22d4dca0ed8a7af9179931e82b67d470634793186ec71e0dd22dab5da27"
+    },
+    {
+      "id": "spatial-mental-rotation",
+      "name": "Mental Rotation",
+      "domain": "spatial",
+      "concept": "Two identical asymmetric polyominoes preserve three distinct block colors through an exact clockwise quarter-turn.",
+      "labels": [],
+      "bytes": 12834,
+      "sha256": "381eec06eeba412cb93887d066e757cfb473471761e411e8efeafe9a6d5cc622"
+    },
+    {
+      "id": "spatial-transform-match",
+      "name": "Transform Match",
+      "domain": "spatial",
+      "concept": "Two sparse asymmetric patterns reflect exactly across a visible vertical mirror axis.",
+      "labels": [],
+      "bytes": 12762,
+      "sha256": "b27726cbf820621ebd9ee76c0b9ae4a07b1440bf3cb70e935b6268b653708b02"
+    },
+    {
+      "id": "speed-color-match",
+      "name": "Color Match",
+      "domain": "speed",
+      "concept": "A large physical blue swatch connects directly to its matching blue response chip.",
+      "labels": [],
+      "bytes": 14833,
+      "sha256": "a7d7499db30fee43a022648facbc8b44787e3f6facd5bbf50ba69a874d2e84c2"
+    },
+    {
+      "id": "speed-order-sweep",
+      "name": "Order Sweep",
+      "domain": "speed",
+      "concept": "A sweeping stroke links scattered number tokens from 2 to 5 to 9.",
+      "labels": [
+        {
+          "x": 67,
+          "y": 119,
+          "text": "2",
+          "size": 32,
+          "color": "#A57512"
+        },
+        {
+          "x": 159,
+          "y": 62,
+          "text": "5",
+          "size": 32,
+          "color": "#A57512"
+        },
+        {
+          "x": 254,
+          "y": 130,
+          "text": "9",
+          "size": 32,
+          "color": "#17243B"
+        }
+      ],
+      "bytes": 14106,
+      "sha256": "18e82adf5c00621e2fc257bb7e6bdf2b8468012873f124227662e93648109194"
+    },
+    {
+      "id": "speed-quick-compare",
+      "name": "Quick Compare",
+      "domain": "speed",
+      "concept": "Two large numerical cards face one another across a bold comparison sign.",
+      "labels": [
+        {
+          "x": 87.5,
+          "y": 99,
+          "text": "8",
+          "size": 42,
+          "color": "#A57512"
+        },
+        {
+          "x": 235.5,
+          "y": 99,
+          "text": "12",
+          "size": 42,
+          "color": "#A57512"
+        },
+        {
+          "x": 161,
+          "y": 99,
+          "text": "<",
+          "size": 37,
+          "color": "#F8FBFF"
+        }
+      ],
+      "bytes": 9300,
+      "sha256": "d2f564e2f70f043ecc353ad6a49fcf96699657d199170fdefe1b2eb5b1b70704"
+    },
+    {
+      "id": "speed-reaction-time",
+      "name": "Reaction Time",
+      "domain": "speed",
+      "concept": "One stationary green signal button: wait, then react.",
+      "labels": [],
+      "bytes": 55798,
+      "sha256": "c47b72e9470c07b3231eddd78d701ec7576f104ca9c6d45de2bfd7c2ecd8e5d2"
+    },
+    {
+      "id": "speed-tap-rush",
+      "name": "Tap Rush",
+      "domain": "speed",
+      "concept": "One active circular target bursts with a tap ripple while prior positions fade across open space.",
+      "labels": [],
+      "bytes": 24620,
+      "sha256": "2930bcf72c9505b560426186dbaca5f55a4ca46d2683f461012237aa193084c7"
+    }
+  ]
+}
