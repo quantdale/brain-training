@@ -1,156 +1,54 @@
 # CAMPAIGN 077 — FRONTIER PRODUCT REBUILD REPORT
 
-**Status: ACTIVE — factual checkpoint draft, 2026-10-18 PH.** Frozen source
-`0c8794ddbcaa743cc9ed202da047b54da2792b8b` passes the actual independent,
-unflagged clean-checkout composite: **708 suites / 7,979 tests / five unchanged
-snapshots**, all declared gates and clean tracked/untracked Git. All four
-workflows succeed at that source. This source checkpoint is not the ending SHA.
-
-A subsequent native14 combined320dp/font2 offline check finds a real Grid
-Navigator tutorial scrolling defect. The shorter Transform Match demo completes
-normally. A shared nested-scroll candidate passes six affected suites45tests,
-final types/lint and independent source review; rebuilt APK verification and
-fresh source certification remain pending. The campaign stays ACTIVE.
-[TUTORIAL_SCROLL_RECOVERY15.md](TUTORIAL_SCROLL_RECOVERY15.md) records the original
-failure, diagnosis limits and required native-after outcome.
-
-Native14 builds from that exact source. Its staged APK is
-`c0d3c1462ebbcb0e75fc719046c7576ff1f1f696605cdd92fc95679bdb95c4ad`,
-52,311,495 bytes, with matching source, bundle, assets, permissions, host ZIP
-CRCs and signature. **Its first installation FAILED**: Android received
-5,912,007 bytes fewer than expected, then rejected the incomplete staged APK.
-The input-pipe failure's upstream cause is unresolved. Later system-server
-watchdog termination is separate evidence of pre-existing guest instability.
-[NATIVE_PREVIEW14.md](NATIVE_PREVIEW14.md) records these boundaries; host build
-and source certification do not establish installation or runtime acceptance.
-
-**Installation is subsequently recovered.** After preserving the stopped AVD
-and its backing images, the same AVD cold-starts without Quick Boot state.
-Actual boot completion/package service and new kernel ID
-`5d0b4626-0079-4acb-a0b0-31fde15b124e` are observed. All three protected SQLite
-files and all 13 table-row hashes match before the update. A complete,
-device-SHA-verified transfer of the same 52,311,495-byte APK precedes normal
-`pm install -r` Success/exit0; installed APK SHA matches and the three SQLite
-files remain exact, integrityok/13sessions/settings retained. First cold launch
-returns Statusok/COLD/6102ms. Root personally views the settled native14 Home
-at 286XP/68coins/0days/new Oct18 plan0/4; the completed Oct16 record is retained.
-This qualifies installation, preservation and that initial Home, not quiet
-performance or the live Button journey. Pro `984a122b` is live; no result is inferred.
-
-The preceding qualified installed product was native13, source
-`2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5`, APK
-`797d0309a5204c0ba77df18a3c15a63c61ef1491decd918df9045e8edc553dd6`,
-52,311,435 bytes. Its persistent tall feedback Button has a qualified source
-repair in 0c: offline red/green using the installed React Native Yoga engine gives an intrinsic
-face of 1438.1→48 logical dp while preserving width and explicit-height
-contracts; seven focused suites / 65 tests / five unchanged snapshots, types,
-lint and independent review pass. [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md)
-records cause and limits. [BUTTON_NATIVE14.md](BUTTON_NATIVE14.md) subsequently
-qualifies actual labeled horizontal Next and identical948×126px disabled/enabled
-Submit painted bounds/original-center activation in1.73s. Normal opaquePause/
-Quit discards the attempt and returns Home; fresh SQLite verifies all13 sessions,
-economy/ratings/settings/olderworkouts unchanged. The arbitrary input happens to
-Hit and is not a clean solve. Optionalfinalizer400 causes terminalCANCELLED after
-UI completion; no checkerPASS. A real P3 gray backing rectangle spans at least
-650ms in actual video; cause/scope remain under investigation, not dismissed.
-[NATIVE_PREVIEW13.md](NATIVE_PREVIEW13.md) retains the prior install proof and
-its actual defect; the later successful native14 update is independently qualified.
-
-The ordinary offline Oct16 workout is now saved/completed:13sessions/286XP/
-68coins/fourplayed/zero skipped. Actual normalFinish and recovered restart Home
-are personally reviewed; independent immutable SQLite review confirms original
-history/settings/olderworkouts, all four leg records/provenance and unique
-formula-correct rewards. [RUNTIME_WORKOUT13.md](RUNTIME_WORKOUT13.md) separates
-native12 firsttwo legs from native13 lasttwo, missed/guessed reveals, earlier
-NumberLine cue contamination, sevenINCONCLUSIVE automatic checks/finalizer400
-and the first cold restart ANR before successful recovery. It is not clean-solve
-or reliable-startup acceptance.
-
-The shared Button repair in2cdb addresses a real enabled-sizing defect with
-caller red/green checks and independent review; the sampled native14 disabled/
-enabled painted geometry and original-center registration now qualify as above.
-Earlier scrolled Profile/Progress/Home source repairs
-and sampled native12 after-proof remain in
-[SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md). Historical native11's180frames
-and gallery are preserved; they do not replace the current final matrix.
-
-Cold launch/motion/performance/current-profile acceptance remain open. A black
-post-reboot Home frame is rejected; unchanged warmHome later recovers. One30s
-scheduling trace records10826ms cold draw and material native/graphics/JIT/JS
-costs with limited initial event coverage. Finalmatrix's firstcompactHome then
-fails with real SQLite disk I/O errors; guest98%full/systemENOSPC and multiGiB
-terminal-task rawframes required archive/cleanup. Recovery is now qualified:
-all358 attributed files hash-archived, six verified temporary folders removed,
-normalRetry once recovers Home and all13 complete table-row hashes unchanged.
-[RUNTIME_ENV_RECOVERY13.md](RUNTIME_ENV_RECOVERY13.md) records the proof and fully
-armed postcleanup6331ms cold trace with host/late-work limits, not quiet60fps PASS.
-Data07 restore-write/text-edit and native09 confirmation proofs remain qualified.
-Final current visual critique, geometry/tutorial/motion/performance, actual
-endingSHA CI, visibleHome handoff and original-brief audit are incomplete.
-
-Before one guest-only reboot, all three protected SQLite files and all 13
-table-row hashes remain equal to the completed-workout snapshot. The request's
-30-second client timeout is not treated as an unsent request. After a prolonged
-offline interval, the same AVD returns ADB `device` at 00:21:34 UTC with new
-kernel boot ID `4d1a6461-f1f3-45ea-af7c-f23e78d0e2cd`; root reports unchanged
-qemu PID 44452. Observation04 has no boot-completed value, package service or
-system-server PID. Subsequent logs show another watchdog kill during framework
-initialization. A premature 98-byte protected-CE copy is error text, explicitly
-`INVALID_NOT_A_BACKUP`; it does not replace the verified pre-reboot data.
-
-Root then requests supported console shutdown and separately observes the old
-process exit before copying the entire stopped AVD. All 42 files / 9,226,994,882
-bytes, including qcow backing chains, are independently rehashed equal. Backup
-proof SHA256 is `d30a8e5ce535ca547b2ea7eb12143ffb966c147c2e67809617648316916b4be8`.
-The same AVD/port starts with `-no-snapshot`, qemu PID108764, without wipe,
-restore, RAM/GPU/config changes or another emulator. Its boot, protected data,
-successful native14 installation and initial launch qualify the recovery above.
-The original offline interval, incomplete boot and failed install remain retained;
-process recovery does not establish their root cause or final runtime acceptance.
+**Status: ACTIVE — final evidence convergence, 2026-10-18 PH.** Implementation,
+native15 tutorial repair and fresh full-source certification are qualified.
+Current180-frame review, matched motion/performance, final Git/CI and live
+handoff are still being completed. Owner visual approval is not claimed.
 
 ## Repository
 
-| Field | Evidence at this draft |
+| Field | Actual boundary |
 |---|---|
-| Repository / canonical branch | `quantdale/brain-training`, `main` |
+| Repository / branch | `quantdale/brain-training`, canonical `main` |
 | Starting SHA | `c7bbf0ddfa184204027d8b6df14deab5abf87a6e` |
-| Current certified application source | `0c8794ddbcaa743cc9ed202da047b54da2792b8b`; full composite and all four source workflows PASS; [native14 host evidence](NATIVE_PREVIEW14.md) |
-| Installed application boundary | Native14/source `0c8794dd`, APK `c0d3c146…5c4ad`, verified-file install Success/device-hash match/exact SQLite preservation; first truncated attempt remains FAILED. Initial Home qualified; broader runtime acceptance OPEN. |
-| Ending SHA | **PENDING — fill after all authorized implementation/evidence work and the final coherent commit.** Current source is an intermediate checkpoint. |
-| Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Product source `0c8794dd` is pushed; later evidence changes are being converged. Final clean/pushed ending-state verification is **PENDING**. |
+| Certified application source | `9e5b2a1bf3df5fac3ecd9d410846d9b379145246` |
+| Ending SHA | Final delivery records the exact ending commit and its four CI run IDs after the documentation commit. A committed file cannot contain its own Git hash. |
+| Worktree | One canonical worktree, no temporary branches/worktrees; final clean/pushed verification pending |
 
-The twenty-two campaign commits through evidence checkpoint29d70a45 are:
+Application-source identity is frozen at9e5b; later evidence/control-plane-only
+commits must preserve those exact build inputs. These are the campaign commits
+through that source checkpoint; the final delivery adds subsequent evidence commits.
 
-| Commit | Coherent progress |
+| Commit | Progress |
 |---|---|
-| `918c20ed` | Establish Play Lab and repair game correctness |
-| `ebcb45e8` | Record integrated gates and committed-source Android preview |
-| `8d772c7b` | Converge measured game input and readable Progress |
-| `5df95a3a` | Align UI smoke contracts and record native preview03 |
-| `95e38eac` | Simplify saved results and repair clipped spatial tutorials |
-| `d164420d` | Clarify Progress metrics and qualify the repaired native tutorial |
-| `afabda3a` | Unify game status vectors and expose operation feedback |
-| `d62bbfc7` | Repair native text and backup reflow with reliable captures |
-| `c87f4d43` | Qualify native heading repair and wait for settled captures |
-| `6c0829c8` | Keep unread Home progress distinct from an empty profile |
-| `017d0dd3` | Qualify current source with fresh checkout and four green workflows |
-| `624a5a77` | Keep armed restore confirmation in a stable full-width row |
-| `1ef4a587` | Make direct storage recovery honest and inventory product states |
-| `93353ede` | Release held control scale when motion policy changes |
-| `1da74ad0` | Qualify installed source and preserve native confirmation evidence |
-| `24f7bd78` | Qualify native profile matrix and original artwork |
-| `af9bd997` | Repair scrolled reports and preserve Profile refresh data |
-| `1da9b524` | Qualify current source and diagnose runtime controller evidence |
-| `2cdb9ed6` | Preserve filled button sizing across actionable states |
-| `6b4dc1dc` | Certify native13 and preserve completed offline workout evidence |
-| `0c8794dd` | Bound feedback button height and qualify storage recovery |
-| `29d70a45` | Qualify native14 recovery and reconcile current game evidence |
+| `918c20ed` | 077: establish Play Lab and repair game correctness |
+| `ebcb45e8` | 077: record integrated gates and committed-source Android preview |
+| `8d772c7b` | 077: converge measured game input and readable Progress |
+| `5df95a3a` | 077: align UI smoke contracts and record native preview03 |
+| `95e38eac` | 077: simplify saved results and repair clipped spatial tutorials |
+| `d164420d` | 077: clarify Progress metrics and qualify repaired native tutorial |
+| `afabda3a` | 077: unify game status vectors and expose operation feedback |
+| `d62bbfc7` | 077: repair native text and backup reflow with reliable captures |
+| `c87f4d43` | 077: qualify native heading repair and wait for settled captures |
+| `6c0829c8` | 077: keep unread Home progress distinct from an empty profile |
+| `017d0dd3` | 077: qualify current source with fresh checkout and four green workflows |
+| `624a5a77` | 077: keep armed restore confirmation in a stable full-width row |
+| `1ef4a587` | 077: make direct storage recovery honest and inventory product states |
+| `93353ede` | 077: release held control scale when motion policy changes |
+| `1da74ad0` | 077: qualify installed source and preserve native confirmation evidence |
+| `24f7bd78` | 077: qualify native profile matrix and original artwork |
+| `af9bd997` | 077: repair scrolled reports and preserve Profile refresh data |
+| `1da9b524` | 077: qualify current source and diagnose runtime controller evidence |
+| `2cdb9ed6` | 077: preserve filled button sizing across actionable states |
+| `6b4dc1dc` | 077: certify native13 and preserve completed offline workout evidence |
+| `0c8794dd` | 077: bound feedback button height and qualify storage recovery |
+| `29d70a45` | 077: qualify native14 recovery and reconcile current game evidence |
+| `9e5b2a1b` | 077: enable nested tutorial scrolling and preserve native14 evidence |
 
-Independent certification clones and `D:/bt077`, the native build copy, are
-separate from linked Git worktrees. Their retained artifacts and cleanup limits
-are recorded in the repository state. Pre-077 control-plane files remain
-byte-preserved under `.agent/history/pre-077-c7bbf0dd/`. Campaign 076's historical
-blocked verdict and open parent 14.3 are retained.
+Independent certification clones and `D:/bt077` are retained external build/
+verification copies, not abandoned linked worktrees. Pre077 records remain
+under `.agent/history/pre-077-c7bbf0dd/`; historical076 blocked acceptance and
+parent14.3 are not rewritten.
 
 ## Research
 
@@ -245,13 +143,13 @@ derivatives total 528,416 bytes; all 14 bundled image outputs total
 source, rather than generated by ImageGen. Initial light/dark composites were
 inspected; the manifest's initial acceptance wording is not a final native gate.
 
-Native14's packaged-asset check confirms all nine illustrations are
+Native15's packaged-asset check confirms all nine illustrations are
 pixel-identical after Android resource processing and all three fonts are
 byte-identical. Their combined decoded RGBA footprint is 9,437,184 bytes if all
-nine images were resident; actual process memory still requires measurement.
-The staged 52,311,495-byte APK is larger than the 48,888,528-byte baseline;
+nine images were resident; actual process memory is assessed separately in the final runtime record.
+The staged 52,311,479-byte APK is larger than the 48,888,528-byte baseline;
 image optimization does not establish an overall APK-size or performance win.
-See [native14](NATIVE_PREVIEW14.md) and its APK-bound host asset proof. The separate
+See [native15](NATIVE_PREVIEW15.md) and its APK-bound host asset proof. The separate
 install and initial Home proofs qualify their own boundaries; the host asset
 check alone does not establish complete native rendering or profile acceptance.
 
@@ -265,11 +163,11 @@ was introduced. Details and initial fixture failures are preserved in
 
 ## UI/UX
 
-The product audit inspected all **15 shipping leaf routes**, the development
-prototype and their shared components. Fresh baseline evidence contains 150
-structural frames: 15 routes in two directly witnessed themes, with default,
-compact, font-scale-2, expanded and reduced-motion profiles. This establishes
-the recorded routes/states; it does not cover every game transition.
+The product audit covers15 shipping leaf routes, development prototype and
+their shared systems; CURRENT_PRODUCT_INVENTORY records state-specific
+KEEP/REFINE/REDESIGN/REBUILD decisions. Screenshots are joined with actual
+navigation, scrolling, help, pause, feedback, keyboard, consent, restore,
+workout, offline and recovery evidence rather than treated as full journeys.
 
 | Screen/family | Classification and resulting treatment |
 |---|---|
@@ -289,87 +187,34 @@ the recorded routes/states; it does not cover every game transition.
 | Storage unavailable | REFINE: retain real failed-bootstrap diagnostics/Retry and readable action hierarchy; healthy direct links now offer an honest working Go to Home fallback |
 | Bootstrap recovery | REFINE: retain classified failures/retry; make provider-free recovery scrollable at large text |
 
-Preserved strengths include atomic SQLite/session/economy/workout contracts,
-offline local loading, safe back fallbacks, opaque fair pause, seeded game
-identity/provenance, existing records, transparent performance bands,
-calendar/frequency visualization and shared press feedback. No entire unchanged
-screen is claimed as a redesign deliverable.
+Preserved strengths include atomic SQLite/economy/workout writes, offline local
+loading, opaque fair pause, seeded identity/provenance, records, transparent
+performance bands and the useful calendar. Shared reconstruction covers semantic
+colors, Manrope/type roles, spacing/radii, four tabs, cards/rows/controls, HUD/
+stage/results, original media and recovery/tutorial/operation presentation.
 
-Shared work includes palette/contrast/type tokens and `ThemedText`, buttons and
-rows, four-tab navigation, original discovery media/game identity, GameHost
-stage/HUD/results presentation, bounded recovery/tutorial layouts and operation
-icons/feedback. Existing press, entrance, verdict, progress and earned-result
-cues retain reduced-motion gates. The latest shared press-policy repair stops
-the driver and releases a held scale if the control becomes disabled or reduced
-motion changes; four valid red-before caller cases and affected controls pass.
-See [press-policy recovery](PRESS_POLICY_RECOVERY.md). Level numerals remain
-stable while the existing XP bar animates; immediate timed-game start is
-preserved. Native motion and performance acceptance remain pending.
+The native12 sampled scrolled Profile caption/headings and Progress per-game/
+Recent Sessions repairs remain qualified where their source is unchanged.
+SCROLLED_RECOVERY11 preserves the earlier failures and caller-level protection
+against false-empty refresh. Static top frames do not prove every pending read.
+Data07 qualifies actual keyboard/edit/Merge/Replace/restart; Confirmation09
+separates armed XML geometry from expired default/font2 PNGs. Storage13 qualifies
+real failed-bootstrap Retry and preservation; healthy recovery deep links alone
+are not failed-storage proof.
 
-Before/after evidence is indexed by [product audit](PRODUCT_AUDIT.md),
-[Progress wave](PROGRESS_WAVE.md), [presentation recovery](PRESENTATION_RECOVERY.md)
-and previews [01](NATIVE_PREVIEW01.md), [02](NATIVE_PREVIEW02.md),
-[03](NATIVE_PREVIEW03.md), [04](NATIVE_PREVIEW04.md), [05](NATIVE_PREVIEW05.md)
-and [06](NATIVE_PREVIEW06.md), with corrective evidence in
-[07](NATIVE_PREVIEW07.md), [Home availability](HOME_READ_AVAILABILITY.md),
-[storage recovery](STORAGE_ROUTE_RECOVERY.md), [confirmation geometry](RUNTIME_CONFIRMATION09.md)
-and [native11](NATIVE_PREVIEW11.md). Local PNG/XML/manifests are under
-`qa-artifacts/campaign077/`. Preview05's 36 default-theme frames were all
-independently viewed, with no new P1/P2 in those first viewports. Root also
-inspected the scrolled 988→945 Attention rating endpoints in the Data05 trace.
+Native15 current180-frame matrix/critique/gallery is pending. The baseline is
+the genuine fresh077150-frame collection, never076. Current compact320 vs
+baseline360dp and expanded720 vs800dp are responsive-family comparisons;
+day/session/workout states differ. Thirty added states have no fabricated before
+image. Native11 all-nine-illustration/both-theme review and exact native15
+packaged pixels retain artwork identity; current layouts get separate review.
 
-**Current full-profile acceptance remains OPEN.** Native11's initial static verdict
-missed later scrolled Profile/Progress/Home defects. Native12 repairs have actual
-bounded after proof, but a complete native14 profile matrix remains required.
-Original matrices/reviews remain immutable historical evidence. Preview06's 180-frame structural matrix
-completed; all actual images were viewed (162 by an independent reviewer,
-18 by root). Nine entries were rejected or qualified as loading, stale-route or
-incomplete content. Four P2 families were repaired: Android 2× heading descenders,
-truncated automatic-name guidance, compressed saved-backup filenames and
-no-response means displayed as 0ms performance. Native07's corrected bracketed
-14-frame 2× set passed and root viewed every image; the original three heading
-pixel probes passed. These bounded checks do not accept the rejected full matrix.
-
-Native11's first180-frame run **FAILED** at the firstfont2Home after18 valid
-compact/light frames. The original failed manifest remains unchanged. Its explicit
-18-frame compact/light subset passes immutable verification and independent
-actual-image review, noP1/P2; minor composition tradeoffs remain recorded.
-Both root URI cold controls subsequently reached Home, so the exact routing cause
-is unproven. The QA harness now stops the activity before display provisioning;
-syntax/eight existing capture tests pass. A fresh remaining144-frame run and
-separate compact-dark18 are **terminalPASS/exit0**. With the explicit compact-light18
-subset, all180 unique major-surface frames pass immutable bracketing/hash checks
-and actual personal image critique, noP1/P2. [Native visual11](NATIVE_VISUAL11.md)
-records exact hashes and P3/static limits. The historical local
-`gallery-preview06/index.html` has 180 comparisons: 150 genuine fresh077 baseline
-pairs and 30 explicitly unmatched states. It is an intermediate gallery; the
-native11 gallery now contains180 current records:150 genuine fresh baseline pairs
-and30 additional states, all with actual per-image verdicts. An independent
-reviewer also personally compared15 default-light baseline originals with current originals.
-Baseline compact360dp/expanded800dp
-and current compact320dp/expanded720dp support responsive-family comparisons,
-rather than matched pixel pairs. Baseline six sessions/completed4/4 and current
-eight sessions/new-day0/4 are different states and remain disclosed.
-
-Remaining visual risks include current compact/2× tutorial/feedback acceptance,
-the previously intermittent Profile blank frame's unknown original cause
-(mitigated and absent in later default reviews), and the preview05 first-play
-sheet's thin blue seam (P3). The failed compact framebuffer-resize capture and
-blocked clipped tutorial evidence remain retained. The source fixes and later
-default/tutorial witnesses alone did not complete the new full-profile gate;
-the actual native11 180-frame critique above now does for those static viewports. Native
-Home pending→populated has actual cold-control hierarchy evidence (unread numbers
-withheld, then186XP/49coins) and a root-viewed settled2x image; its loading pixels
-were not captured. Healthy storage-route Home navigation and named discovery/
-scroll branches have actual native11 observations in RUNTIME_WORKOUT11 and
-SCROLLED_RECOVERY11. Native12 qualifies sampled scrolled repairs and actual
-Progress expansion; native14 full profiles/completed states and dynamic motion
-qualification remain pending. All-domain artwork has native proof:12 extra domain
-detail frames cover the six remaining domains in both themes, all personally
-viewed and immutably verified, no P1/P2. The family is coherent, with no observed
-crop, stretch or alpha fringe. Together with Memory/Spatial/Home in the regular
-matrix, this covers all nine illustrations. Process memory and offline artwork
-on the current build remain separate runtime observations.
+Motion keeps the useful existing engine. SOURCE_DISPOSITION's explicit mapping
+covers native-driver press/entrance/verdict/results/reward cues, progress bars
+(JS driver), stable level numerals and immediate game start. Decorative motion
+does not gate cognitive timers or grant rewards. PRESS_POLICY_RECOVERY records
+the genuine held-scale/disabled/reduced-motion correction and red/green callers.
+Current matched native motion and practical measurements remain pending.
 
 ## Games
 
@@ -383,10 +228,10 @@ correction. The confirmed correctness findings vary in kind and severity;
 these source/caller findings do not assert 42 native failures or playthroughs.
 
 [GAME_ACCEPTANCE.md](GAME_ACCEPTANCE.md) reconciles every current ID, version,
-source/caller disposition and selective native boundary. The actual 0c full Jest
+source/caller disposition and selective native boundary. The actual9e5b full Jest
 JSON contains **436 game suites / 4,829 assertions across all 42 IDs**; each
 per-game count matches the independently reviewed 2cdb ledger. No game module
-changed through 0c. This records source/test coverage, not 42 native journeys.
+changed through9e5b. This records source/test coverage, not 42 native journeys.
 
 | Confirmed defect family / affected examples | Implemented correction |
 |---|---|
@@ -424,9 +269,12 @@ coverage must not be presented as 42/42 reproduced native gameplay failures.
 
 Unvalidated states remain explicit: comprehensive current-APK 42-game journeys,
 all games at enlarged text, full TalkBack/VoiceOver and all interruption cases
-are not claimed. Required selective checks still include native14 labeled
-feedback/original-center Submit and normal Grid Navigator/Transform Match
-tutorials at combined 320dp/font2. Actual offline Word Scramble leg1 with opaque
+are not claimed. The selected native14 labeled Next/original-center Submit and combined320dp/font2
+Transform Match tutorial are qualified in BUTTON_NATIVE14 and
+TUTORIAL_SCROLL_RECOVERY15. Native15 qualifies the previously failing Grid
+Navigator scroll path at that same combined profile: all four commands and
+three choices, ordinary answer, completion/Got it and visible unpressed Start.
+Actual offline Word Scramble leg1 with opaque
 pause/resume/feedback/save/restart is qualified in RUNTIME_WORKOUT11. The normal
 Oct16 four-played, zero-skipped workout, Finish, recovered restart and unique
 persisted rewards are qualified in [RUNTIME_WORKOUT13.md](RUNTIME_WORKOUT13.md),
@@ -437,282 +285,111 @@ completed test produced 0/12. It is not reported as a newly fixed bug.
 
 ## Quality
 
-The current-source results below are bound to
-`0c8794ddbcaa743cc9ed202da047b54da2792b8b`, including the scrolled Profile/
-Home/Progress repairs and bounded feedback Button growth. Final ending-SHA
-reconciliation remains **PENDING**, including later evidence-only commits.
-
-| Check | Current evidence and limit |
+| Gate | Current evidence |
 |---|---|
-| Typecheck | PASS in the actual independent 0c8794dd clean-checkout composite |
-| Lint | PASS, full-source zero-warning ESLint in that composite |
-| Jest | **708 suites / 7,979 tests / 5 snapshots PASS**, 358.934s; four suites/five classified opt-in tests skipped, zero failures, zero runtime-error suites and no snapshot updates; classifier PASS |
-| Clean checkout | PASS, independent 730-commit full-history `D:/bt077-cert-0c8794dd`, local clone with no hardlinks/alternates, fresh dependencies, no inherited native folders, unflagged `node scripts/certification/certify-clean-checkout.mjs`, clean tracked/untracked state after execution |
-| OpenSpec | Strict 62-item validation PASS; artifact validity does not close unfinished campaign acceptance tasks |
-| Repository contracts | Registry/provenance, ownership, offline/secrets, runtime-QA, Expo alignment, workflow and affected-map gates PASS in the composite |
-| Dependency/security | Production audit PASS with ten accepted advisories and no new unallowlisted moderate-or-higher production finding; existing debt remains disclosed |
-| Web | 22-route export exits 0; retained Expo forced-exit housekeeping message is not evidence of clean process teardown |
-| Android build | Native14 Gradle release PASS, 532 tasks (24 executed/508 up-to-date), 7m03s; x86_64/debug-signed, eight packaged permissions match the allowlist; source/map/assets/host CRC/signature proof PASS |
-| Installation | Native14 recovery PASS: full device-file SHA, `pm install -r` Success/exit0, installed hash match and exact three SQLite files/integrityok/13sessions/settings. Initial truncated attempt and intervening guest failures remain retained. |
-| Emulator runtime | **PARTIAL / PENDING current final acceptance** — native14 first cold launch6102ms and settled initial Home qualified; live Button test has no result, broader checks below remain open |
+| TypeScript / lint | Full-source PASS in the independent fresh unflagged composite; zero-warning ESLint |
+| Jest |708suites7981tests/five unchanged snapshots PASS,362.801s; four suites/five classified opt-in skips, zero failures |
+| Clean checkout | PASS/exit0 at exact9e5b, independent732-commit no-hardlink clone `D:/bt077-cert-9e5b2a1b`, fresh npm ci/no inherited native folders, clean tracked/untracked Git after full command |
+| OpenSpec / repository | Strict62 items, registry, real-parent provenance, ownership, offline/secrets, runtime-QA, Expo alignment, workflow/impact-map gates PASS |
+| Dependencies / permissions | Production audit PASS, ten accepted advisories/no new unallowlisted moderate+ finding; eight packaged permissions match allowlist |
+| Web |22-route export exit0; retained forced-exit housekeeping is not clean-teardown proof |
+| Native Android | Native15 exact1107-file snapshot/941mapped own sources/bundle/nine art/three fonts PASS; Gradle532tasks7m14s, one worker/no daemon |
+| Install / data | Full device file hash before normal install-r SUCCESS; installed hash match; all three SQLite files exact/integrityok13sessions/settings retained |
+| Cold / offline | Actual absent-process firstCOLD1797ms/ADB1.881s; settled Home and Grid tutorial/locally rendered art while wifi0/data0/active networkNONE |
+| Current motion / frame / memory / logs | Pending final bounded measurement; no60fps/physical-latency/leak-free claim |
 
-The independent clean-checkout identity and copied Jest summary are retained
-locally under `qa-artifacts/campaign077/` as
-`clean-checkout-0c8794dd-identity.json`, `clean-checkout-0c8794dd-result.json`,
-`clean-checkout-0c8794dd.log` and `clean-checkout-0c8794dd-jest-summary.json`.
-The result and actual recorded Jest JSON agree; their counters and the
-436-game-suite/4,829-assertion/42-ID subset agree. Summary SHA-256:
-`b4ee11152a7855560ed81b5f681bb0815849a745c940795a9c2732ccb9434556`;
-full log SHA-256:
-`ee946b60f9e55ad362522c437be81bf2b214746505b19530d3caaccea45c9ea6`.
-The prepared identity's initial pending status is superseded by the terminal
-exit0 result and log. See [native14](NATIVE_PREVIEW14.md) for the composite and
-distinct installation boundary. Earlier af9/2cdb certificates remain historical.
+Full cert summarySHA256
+`1173a12f337c4da1e18d655208422e5c7f5ef85bbae609151cac672c9a6e410c`;
+logSHA256 `7edc2bbb8d78c2616c61d6a6e73fc9120f617f6f08a1a8133b670dcc2ff4e7b7`.
+No Jest worker forced-exit warning appears in this run. Historical warnings and
+failed runs remain retained: npm deprecations, Expo housekeeping, Gradle/CSS/
+NodeDEP0190, old forced-exit and invalid fixtures are not relabeled clean.
+Production audit acceptance is governed by `.agent/DEPENDENCY_AUDIT.md`.
 
-Initial failures are retained: stale guide/metadata/layout fixtures, C's
-unsupported RNTL query APIs, route-call signature and motion-table tuple typing,
-and unused imports were repaired and rerun. Those fixture/type failures are not
-app-bug reproductions. The older whole-run worker forced-exit warning remains
-unexplained; it was absent in the current clean-checkout log. npm deprecations,
-Expo forced-exit housekeeping, CSS font warnings, Gradle deprecations and Node
-DEP0190 remain recorded; no clean-process-teardown claim follows from test PASS.
-The broad npm install advisory count is not a zero-vulnerability claim or a
-substitute for the classified production audit. Existing dependency debt,
-including the accepted runtime decoder advisory, is governed by
-[the dependency record](../../../../.agent/DEPENDENCY_AUDIT.md).
+Qualified runtime is selective, with explicit limits:
 
-Runtime evidence has narrower boundaries:
+- RUNTIME_WORKOUT11/12/13: ordinary offline gameplay, opaque pause/same-round
+  resume, feedback, saved results, continuation and one full Oct16 four-played/
+  zero-skipped workout/normal Finish/recovered restart. Immutable copies verify
+  13sessions286XP68coins, original history/settings/old workouts and four unique
+  formula-correct versioned effects. Missed/guessed stimuli, contaminated
+  Number Line cue, seven INCONCLUSIVE checks, finalizer400 and first cold ANR
+  remain disclosed; this is not four clean solves or reliable-startup proof.
+- RUNTIME_DATA07/RUNTIME_CONFIRMATION09: actual Merge/Replace writes, text-edit
+  consent invalidation, preserved restart and armed geometry. Regenerated
+  internal autoincrement IDs follow the actual export contract; the over-strict
+  first verifier failure remains retained. No manual system-picker consent claim.
+- BUTTON_NATIVE14: unchanged948×126px disabled/enabled Submit face and original
+  center activation in1.73s, horizontal readable Next, normal Pause/Quit discard
+  and preserved history/economy. Arbitrary estimate coincidentally Hit; a real
+  gray backing P3 spans≥650ms/cause unproven. Optional Outputter400 after UI
+  completion caused CANCELLED, not a checker PASS.
+- TUTORIAL_SCROLL_RECOVERY15: real native14 Grid four-swipe failure and native15
+  same-profile two-swipe/normal-completion green; Transform native14 sibling
+  control. Native15 taskCOMPLETED356.3s/checkerOFF; actual original images and
+  copied SQLite supply proof, not the zero-image web recording.
+- RUNTIME_ENV_RECOVERY13/NATIVE_PREVIEW14: real disk saturation and truncated
+  native14 transfer/framework watchdog failures are retained. Hash archive/
+  narrowly scoped cleanup/normalRetry preserves all13 tables; stopped-AVD
+  backup and same-AVD cold process/full verified-file install recover the guest
+  without wipe/restore. Upstream causes are not claimed repaired by app code.
 
-- The earlier actual online Pro workout saved two games and returned Home at
-  2/4, 186 XP/49 coins. A clipped Grid Navigator tutorial blocked leg 3; the
-  provider later returned a malformed-history 400 and the task was stopped
-  CANCELLED. It is not a completed workout.
-- On preview04, Flash completed the repaired Grid Navigator tutorial through
-  normal choices/Done without QA skip. Root inspected the actual frames; the
-  real game was not started in that smoke.
-- [Data05](RUNTIME_DATA05.md) completed 107 steps, but all nine automated
-  assertions were INCONCLUSIVE. It established keyboard/validation/preview and
-  scrolled endpoint observations; it did not prove the actual restore write.
-- [Data07](RUNTIME_DATA07.md) independently qualifies fresh export/load,
-  **actual Merge and Replace writes**, real TextInput-change preview/consent
-  invalidation, force-stop/relaunch and retained eight sessions/186XP/49coins.
-  Root viewed the concrete completion messages and before/after edit/restart
-  frames. Separate preserved SQLite copies have integrity `ok`, matching session
-  rows/versions, exported ledger/rating/XP projections, workouts and settings.
-  Three internal autoincrement IDs regenerate by the real export contract;
-  the first over-strict raw-ID verifier failed and was corrected against that
-  contract without changing data. This evidence closes the earlier restore/edit
-  gap. The task itself is **CANCELLED**, 3816.6s, after provider malformed-tool-
-  history400 during finalization; checker OFF and no automatic PASS/output.md.
-- [Confirmation09](RUNTIME_CONFIRMATION09.md), Pro trace
-  `872ded85-fcb7-471e-858c-fcf327b15a70`, is terminal **COMPLETED**, 4800.4s,
-  checker OFF. Root replayed the original red-capable geometry probe on actual
-  native XML: default, compact320dp and font2 all preserve origin/width and the
-  resting tap center when Replace arms. Bounds are respectively
-  `[84,244][996,370]` unchanged,
-  `[108,1568][972,1730]`→`[108,1568][972,1784]`, and
-  `[84,2114][996,2251]`→`[84,2114][996,2346]`.
-  Root viewed all six PNGs: only compact's after PNG shows the armed label;
-  default/font2 after PNGs had already expired and are rejected as armed-image
-  proof. The XML qualifies geometry in all three profiles. Four default attempts
-  (including stale-position misses) exceeded the planned two-attempt cap;
-  compact/font2 used one each. No armed second tap applied a restore. Independent
-  preserved SQLite comparison finds all 13 application tables' full rows exact.
-  There is no `notes/output.md`; actual notes are external
-  `notes/replace_geometry_proof.md`. No automatic checker PASS is claimed.
-- Network-off relaunch/navigation retained local artwork and saved screens in
-  Data05. Later RUNTIME_WORKOUT11 qualifies actual offline Word Scramble gameplay,
-  opaque pause/resume, saved590/100%/+40XP8coins and restarted1/4/226XP57coins.
-  Exactly one new non-forced session/ledger effect is independently preserved;
-  original eight sessions/historical ledger/settings/older workouts unchanged.
-- [Workout13](RUNTIME_WORKOUT13.md) qualifies the normal offline Oct16 workout:
-  native12 Number Line/Transform Match followed by native13 Sequence Memory/
-  Running Order, all four played/zero skipped, normal Finish and recovered
-  restart Home at 13 sessions/286XP/68coins/four days. Independent immutable
-  review verifies original history/settings/older workouts, all four versioned
-  leg records, one ledger effect each and formula-correct rewards. Number Line's
-  unavailable paused-tree cue is disqualified as clean solving; missed/guessed
-  reveals remain explicit. The task ends COMPLETED with seven INCONCLUSIVE
-  checks and a finalizer400; first cold restart ANRs before recovery. This is
-  qualified persistence/workout evidence, not four clean solves or reliable
-  cold-start acceptance.
-- Historical native11 install-r succeeds, device APK hash matches, and exact SQLite
-  db/wal/shm bytes are unchanged across installation. Separate copies verify
-  integrity `ok`, eight sessions and the unchanged default-System settings hash
-  `a50813e8b2f4cf43007e4974865a96f85f080e8db3b32d006edee347b9cc2ec9`.
-  Oct15 workout was then active/index0; Oct14 active/index2 is retained. This is
-  install preservation; Data07 separately proves restore writes.
-- Historical native12 exact install-r/devicehash/SQLite files preservation has
-  integrityok/nine sessions/settings retained; all941 mapped own sources/four
-  changed production files match af9. See NATIVE_PREVIEW12.md. NewOct16 workout
-  was then active0/4; oldOct15 active1/4 was retained separately. Native13's later
-  exact APK/install preservation and completed-workout proof are in
-  NATIVE_PREVIEW13/RUNTIME_WORKOUT13; no native14 install success is inferred.
-- [Runtime environment recovery13](RUNTIME_ENV_RECOVERY13.md) preserves the
-  failed final-matrix attempt: real guest98%-full storage caused SQLite disk I/O
-  errors. All358 attributed raw capture files were SHA-archived before only six
-  verified temporary folders were removed. Normal Retry once recovers Home;
-  all13 complete table-row hashes remain exactly equal. This qualifies that
-  saturation/recovery event. The later one-round Button probe creates no saved
-  session/reward; separate post-task table hashes remain exact. Its timeout
-  reveals the persistent Next-height defect; enabled Submit/original-center
-  geometry remains INCONCLUSIVE. Source/Yoga repair passes at 0c, actual native
-  after-proof remains open.
-- Native14's failed transfer is followed by documented recurrent Android
-  framework loss. Before one guest reboot, all13 table rows and the protected
-  files remain equal, integrityok/13sessions/286XP68coins/Oct16completed4. ADB
-  later returns on the same AVD with a new kernel boot ID; observation04 at
-  00:21:34–00:21:40 UTC still has no package service/system-server PID or
-  boot-completed value. Another watchdog kill follows; a premature 98-byte CE
-  error copy is retained as INVALID_NOT_A_BACKUP. The reviewer independently verifies all three host backup
-  hashes and opens the retained verification database immutable: integrityok,
-  13sessions/four workout rows. After supported shutdown and actual process exit,
-  root backs up all42 AVD files/9,226,994,882 bytes, independently rehashes them
-  and includes every qcow backing chain before a same-AVD/port `-no-snapshot`
-  cold start. No wipe, restore, RAM/GPU/config edit or other-AVD action occurs.
-- The new `5d0b4626…124e` boot reaches boot1/packagefound. Its retained after-boot
-  proof verifies the old native13 APK and all3 raw SQLite files/all13 table-row
-  hashes exact. One changed-transport install transfers all52,311,495 native14
-  bytes with matching device SHA, returns PackageManager Success/exit0, then
-  verifies installed SHA and unchanged SQLite files/integrityok/13sessions/
-  settings at00:35:12UTC. The first actual cold launch at01:13:29 returns
-  Statusok/COLD/TotalTime6102ms/Wait6126ms. The helper's original deferred-launch
-  reason repeats an older live-cert explanation after cert ended; that stale
-  text is retained and superseded by `cold-launch18/launch.json`.
-- Root personally views actual `initial-home18/screen.png`, SHA256
-  `95bb43276264fd20ffd5e566bc237241d18682a156e07c6480c15a34758a8fdf`, with
-  equal before/after XML SHA256
-  `b8c50c087b512bf4973074bac1df27968758948e12bcd715fb1c34a700ad718c`, native14
-  APK identity and MainActivity focus. Home shows286XP/68coins/0days and the new
-  Oct18 plan0/4; this calendar state does not erase or replay the preserved
-  Oct16completed4. Pro984a122b now owns one native Button input/feedback probe,
-  checkerOFF; no result or broad runtime PASS is inferred.
-- Native14 startup/input/motion/memory/frame/logcat qualification remains
-  **PENDING**. Historical native12 first cold launch timed out19153ms. Later two actual
-  no-focused-window ANRs terminated cold-started app processes; launcher/Settings
-  also show this ANR class. Corrected static no-input cold draw Settings3914ms/
-  app6699ms recovered focus without a source change. STARTUP_ANR12.md preserves
-  facts and invalid first focus-parser assay; no root cause or fix claimed.
-  Historical native11 initial cold draw11,166ms (Wait11,285ms) is not a
-  quiet-startup performance PASS. Native07's three planned repeat cold draws
-  were 5425/3715/3258ms; sampled launch/Home frames were 60/64 janky. Twelve later
-  warm controls remained poor (108/119 normal and 59/60 reduced frames janky)
-  with host CPU41–100%. Alternating native Android Settings/Home controls also
-  show jank in the system app at host CPU37–63%, supporting an environment
-  contribution without proving no app cost or 60fps. PSS149372KiB, later
-  224102→245392KiB, are point samples, not leak/no-leak proof. Scoped older logs
-  had no observed fatal/ANR/OOM, but later actual ANRs supersede any blanket
-  no-ANR interpretation. They do not certify native14 logs.
-  See [native07](NATIVE_PREVIEW07.md) and [native09 controls](NATIVE_PREVIEW09.md).
-  Native13's saturated-storage trace measures10.826s cold draw with an incomplete
-  prefix; one fully armed postcleanup trace measures6.331s. Independent review
-  retains native/graphics/JIT/JS costs, scheduling waits, changed host load and
-  later-shifted work. These bounded measurements establish neither a first-party
-  loop nor source exoneration, quiet startup, physical tap latency or 60fps.
-
-ARTEMIS provider access was restored by loading the authorized external `.env`
-before inherited settings, without changing the provider/model or exposing
-credentials. External traces remain under `D:/Tools/artemis` and are not copied
-into Git. Doctor/configuration readiness alone is not runtime task acceptance.
+Historical cold11/12 ANRs/draws and host-confounded jank/PSS/Perfetto observations
+remain in STARTUP_ANR12/NATIVE_PREVIEW07/09/RUNTIME_ENV_RECOVERY13. Current1797ms
+is one observation, not a guarantee. Final scoped measurement must be assessed
+separately. ARTEMIS access works; external credentials/traces remain external.
 
 ## GitHub Actions
 
-**Exact ending SHA: PENDING. Ending-SHA run IDs/results: PENDING.** All four
-required workflows are recorded terminal SUCCESS at the same current
-application source, `0c8794ddbcaa743cc9ed202da047b54da2792b8b`. The lead must
-verify them again against the actual ending commit after ongoing evidence work;
-the current green checkpoint does not replace that final gate.
+All four workflows SUCCESS at the frozen application source9e5b:
 
-| Required workflow | Current 0c8794dd run / result | Actual ending-SHA run / result |
-|---|---|---|
-| App CI | [39080473302 — SUCCESS](https://github.com/quantdale/brain-training/actions/runs/39080473302) | **PENDING** |
-| Repository Integrity | [39080473387 — SUCCESS](https://github.com/quantdale/brain-training/actions/runs/39080473387) | **PENDING** |
-| Android Build Smoke | [39080473193 — SUCCESS, attempt2](https://github.com/quantdale/brain-training/actions/runs/39080473193) | **PENDING** |
-| iOS Build Smoke | [39080473273 — SUCCESS](https://github.com/quantdale/brain-training/actions/runs/39080473273) | **PENDING** |
+| Workflow | Source checkpoint run |
+|---|---|
+| App CI |[39087739520](https://github.com/quantdale/brain-training/actions/runs/39087739520) |
+| Repository Integrity |[39087739481](https://github.com/quantdale/brain-training/actions/runs/39087739481) |
+| Android Build Smoke |[39087739454](https://github.com/quantdale/brain-training/actions/runs/39087739454) |
+| iOS Build Smoke |[39087739469](https://github.com/quantdale/brain-training/actions/runs/39087739469) |
 
-Earlier checkpoint IDs remain in their historical preview records. iOS compile
-success does not establish iOS runtime evidence. Android attempt1 failed resolving
-the existing Foojay1.0.0 plugin before app compilation; its log is retained.
-One failed-job rerun succeeds at attempt2, without changing that dependency.
+Exact ending-SHA outcomes remain pending; final delivery supplies the actual
+ending commit plus four run IDs after the final commit. iOS compilation does
+not prove iOS runtime. Historical0c Android attempt1 Foojay resolution failure
+and no-source-change attempt2 success remain retained.
 
 ## Device handoff
 
-| Field | Current identity / final handoff status |
+| Field | Qualified identity / remaining final witness |
 |---|---|
-| Visible GUI | Same dedicated AVD cold-started after backed-up shutdown; current qemu PID108764, launcher103744. Initial Home screenshot qualified; fresh final visible/unminimized and Home-at-top witness **PENDING**. |
-| AVD / serial | `braintraining-ui35` / `emulator-5570` |
-| Certified source | `0c8794ddbcaa743cc9ed202da047b54da2792b8b`; native14 host build and full source composite PASS |
-| Installed source | `0c8794ddbcaa743cc9ed202da047b54da2792b8b`, native14; verified update from native13 after guest recovery. Native08/native10 were staged and never installed. |
-| Installed APK SHA-256 | `c0d3c1462ebbcb0e75fc719046c7576ff1f1f696605cdd92fc95679bdb95c4ad`, 52,311,495 bytes; complete transfer and installed hash match. The original streaming attempt remains **FAILED**. |
-| Prior installed APK | Native13 `797d0309a5204c0ba77df18a3c15a63c61ef1491decd918df9045e8edc553dd6`, 52,311,435 bytes, verified again after cold boot before the successful update. |
-| Package / version | Installed APK matches qualified host native14: `com.braintraining.app` 0.1.0 / 1000; x86_64; min SDK24 / target SDK36; debug-signed release. |
-| Native14 build inventory | 1,107 exact committed files; SHA-256 `4b00d4174c6d0e59dc837ef5f48dab58e5f1ec06fe4f8d8a12253efe56d3aafd`; zero source differences |
-| Packaged-source corroboration | 941 mapped own source files, including the one production file changed since native13, match 0c bytes; packaged/generated Hermes bundle SHA-256 `3492147feccf2a91054e1f27585e44c10f8d878e8dad4579fbb37638a14dde24` |
-| Guest readiness | Current cold-process boot `5d0b4626-0079-4acb-a0b0-31fde15b124e` reaches boot1/packagefound; all3 protected files/all13 table rows exact before install. Earlier incomplete `4d1a6461` boot/watchdog and invalid CE copy remain retained. |
-| App foreground state | Native14 MainActivity/settled initial Home qualified after first cold6102ms launch. Pro984a122b is live for one Button probe; **final Home-at-top witness after runtime work remains PENDING**. |
-| Screenshot evidence | Native14 `initial-home18` PNG95bb4327…a8fdf/equalXMLb8c50c08…718c/root-personal review/current APK/focus qualifies286XP68coins/newOct18plan0/4. Historical baseline/native11 matrix/domain-art and native12/13 samples remain retained; native14 full matrix/final Home **PENDING**. Console probes with no output file prove no framebuffer state. |
+| GUI / target | Same visible dedicated braintraining-ui35/emulator-5570, qemu108764; final visible/unminimized check pending |
+| Installed APK |`8919b11bb3f5eb4b0baea73773c12a4676b59c94c79a0f4e2dfac053d9bb6502`,52,311,479bytes |
+| Package/version |`com.braintraining.app`0.1.0/code1000, x86_64, min24/target36, debug-signed release |
+| Source |`9e5b2a1bf3df5fac3ecd9d410846d9b379145246`; snapshotSHA6ccef1ba…3ce, mapSHA1c6c517e…591, packaged bundle0a377d5b…ce21; full hashes in NATIVE_PREVIEW15 |
+| Guest |Current kernel5d0b4626-0079-4acb-a0b0-31fde15b124e, one AVD, no wipe/restore |
+| Home/data |Initial/default and post-tutorial286XP68coins/Oct18zeroof4 personally viewed; completedOct16 retained |
+| Final restoration |Original density420/font1/motion1/night:no/rotation1,0/network1,1,0 and final Home-at-top witness pending |
 
-Current host build/source-map/asset/permission and failed/successful-install/recovery proofs
-are indexed in [native14](NATIVE_PREVIEW14.md), local
-`qa-artifacts/campaign077/native-preview14/`, the independent install diagnosis
-`native14-install-independent-diagnosis.json` and `guest18-recovery-review.json`.
-The early independent recovery review ends at observation04; it is superseded
-by retained `after-boot/proof.json`, `verified-install-transfer.json`,
-`verified-install-command.json`, `after-install-preservation.json`,
-`cold-launch18/launch.json` and `progress-disclosure-diagnostic/initial-home18/`.
-The report reconciliation checks those record identities and matching file/table
-hashes directly. Prior native12/native13 install proofs remain historical successes.
-Runtime automation stays emulator-local; no host mouse/keyboard/focus automation
-is used. One dedicated AVD remains the target.
+No host mouse/keyboard/focus automation is used. Current build/install/cold/
+initial Home/tutor/data identities are in NATIVE_PREVIEW15; final screenshot
+and GUI/foreground witness must be added after exclusive runtime work finishes.
 
 ## Final assessment
 
-The product has a coherent original visual system, useful daily-action and
-discovery hierarchy, readable progress/records, truthful saved results,
-purpose-grouped preferences/data, bounded original local assets and one
-functional icon family. Concrete game correctness and input/timing defects,
-stale restore consent, workout advance recovery and native tutorial clipping
-have corresponding source/caller repairs and versioned evidence.
+The changes materially improve action hierarchy, original local illustration,
+type/icons, readable progress, game presentation/tutorial reachability, truthful
+feedback and data operations, while repairing shared input/timing/state defects.
+No confirmed unresolved Critical/High source defect is identified by the current
+42-game reconciliation; final native review/performance assessment remains open.
 
-No remaining confirmed High/Critical **source** defect is identified by the
-latest 42-game reconciliation. The tall Next control is repaired in certified
-0c source and installed native14 but still needs actual native after-proof;
-the prior native13 failure is not relabeled visually fixed. Installation/data/
-initial Home recovery is qualified; the live Button task and broader runtime
-acceptance remain incomplete. The unknown original Profile blank-frame cause,
-old teardown warning, unresolved performance observations and current profile/
-tutorial/interactive-state risks remain explicit. The restore-write/text-edit gap and original confirmation
-geometry defect have qualified evidence above; they are not still pending.
-The owner still needs to review the rebuilt application personally; tests and
-generated artwork cannot supply taste
-approval.
+Known lower-severity debt includes repeated covers/sparse one-point analytics,
+singular-day copy, truncated secondary Bronze Ring unlock caption, distinction
+between primary-category balance and multi-domain rating wording, thin tutorial
+seam/competing background CTA and the gray enabled-Submit backing. These do not
+constitute owner approval or make every hidden state validated.
 
-**Release verdict: ACTIVE / FINAL ACCEPTANCE PENDING.** Physical Android and
-iOS runtime are **NOT VALIDATED**; ARM64 is unproven and Play Store signing is
-**NOT READY**. The current emulator APK is not a store-release artifact.
+**Verdict: ACTIVE / FINAL ACCEPTANCE PENDING.** Owner personal review remains
+required. PHYSICAL_ANDROID/ARM64/IOS_RUNTIME are NOT VALIDATED; debug signing is
+not store signing and this APK is not a store-ready artifact.
 
-To finalize this report, the lead must record:
-
-1. Labeled native14 Next feedback and disabled→enabled original-center Submit proof;
-   combined320dp/font2 spatial tutorials; terminal current profile manifests,
-   scrolled-state critique and final fresh077 comparisons/gallery.
-2. Preserved post-update data and any genuinely missing selective interruption
-   checks. Retain qualified Oct16 offline4played0skip/Finish/recovered restart/
-   exactly-once rewards, Data07 restore/edit and native09 confirmation evidence.
-   Calendar rollover alone does not require replaying the completed workout.
-3. Current-source normal/reduced-motion feedback and practical latency, plus
-   bounded startup/memory/frame/logcat measurements and honest conclusions.
-4. The true ending SHA, any required rerun after later source changes, all four
-   exact-SHA CI IDs/results, clean pushed `main` and retained-artifact state.
-5. Fresh visible GUI/Home-at-top screenshot and identity witness, explicit
-   remaining defects/platform limits and owner-review status.
-
-Until those entries are reconciled, this document is a recovery-ready draft
-covering the required section 17 fields, not a campaign completion claim.
-
-Automatic approval review rejected removal of the completed independent
-`D:/bt077-cert-d164420d` clone, the verified-empty mistakenly created
-`apps/mobile/qa-artifacts/campaign077` directory, and the content-baseline scratch
-directory recorded in `.agent/KNOWN_ISSUES.md`, each as **“blocked by policy.”**
-They remain retained; no alternate deletion was attempted. These are artifact
-cleanup limits, separate from campaign product acceptance.
+Automatic approval review rejected removal of `D:/bt077-cert-d164420d`, the empty
+`apps/mobile/qa-artifacts/campaign077` and content scratch
+`C:/Users/palac/AppData/Local/Temp/brain-content-before-eed9fcca91b04883ba2f6d7cf34f8b19`
+as **“blocked by policy.”** They remain retained; no alternate deletion was attempted.

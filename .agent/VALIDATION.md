@@ -1,4 +1,40 @@
+# Current qualification — native15/source9e5b, 2026-10-18 PH
+
+Actual independent732-commit/no-hardlinks fresh checkout/fresh npm ci/full
+unflagged certify-clean-checkout exits0/PASS.708suites7981tests/five unchanged
+snapshots,362.801s; four suites/five classified opt-in skips, zero failures;
+no current Jest worker forced-exit warning. All declared gates and independent
+tracked/untracked Git cleanliness PASS. SummarySHA256
+1173a12f337c4da1e18d655208422e5c7f5ef85bbae609151cac672c9a6e410c;
+logSHA2567edc2bbb8d78c2616c61d6a6e73fc9120f617f6f08a1a8133b670dcc2ff4e7b7.
+All four sourceCI SUCCESS39087739520/39087739481/39087739454/39087739469.
+Native15 build/install/source/assets/permissions/devicehash/exact SQLite PASS;
+firstCOLD1797ms/settled offlineHome and actual same320dp/font2 Grid normal
+scroll/completion/visibleStart/Home qualify bounded native-after. Only normal
+tutorial metadata changes,13sessions/economy/oldworkouts/settings retained.
+NATIVE_PREVIEW15/TUTORIAL_SCROLL_RECOVERY15 contain identities/originals/limits.
+Final current180 matrix/critique/motion/perf/endingCI/livehandoff remain OPEN.
+
+## Historical chronological records below
+
+Earlier live/pending statements describe their dated checkpoints; current state
+is above and in STATE/tasks/FINAL_REPORT. They do not override later terminal proof.
+
 # Validation — Campaign077
+
+## Native15 Grid repair and initial runtime — 2026-10-18 PH
+
+Source9e5b2a1b/APK8919b11b...b6502/52,311,479B exact build/map/assets/permissions/
+install/deviceSHA/three protectedfiles PASS; firstCOLD1797ms/defaultHome viewed.
+Same320dp/font2/offline Proe36e terminalCOMPLETED356.3s, checkerOFF. Root views
+original afterswipes/all4commands/all3choices/acceptedcompletion/Gotitdismissal/
+visibleunpressedStart/Home; independentb97a5849...a7b582 boundedPASS. Root posttask
+Home6c0dd37f...bef7b/equalXML942558e0...195be/currentAPKfocus; copiedSQLite
+d5364b06...30d34 integrityok/13sessions28668/12tablesexact/onlyGrid normaltutorial
+completionmetadata. Originaldensity420/font1 restored. Externalvideo0images/
+0steps is not qualified; originals provideproof. NATIVE_PREVIEW15.md.
+Final180matrix exclusive5570 exec34154 and fullfreshsource composite35659 LIVE;
+no outcomes inferred, timing measurements waitforappropriateidleconditions.
 
 ## Native14 tutorial reachability failure — 2026-10-18 PH
 

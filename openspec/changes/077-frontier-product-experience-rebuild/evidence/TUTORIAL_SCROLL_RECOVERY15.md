@@ -1,6 +1,6 @@
 # Tutorial scrolling recovery — native14 failure, native15 qualification pending
 
-Status: OPEN. Native14 source `0c8794ddbcaa743cc9ed202da047b54da2792b8b`,
+Status: BOUNDED NATIVE15 REPAIR QUALIFIED. Native14 failure source `0c8794ddbcaa743cc9ed202da047b54da2792b8b`,
 APK `c0d3c1462ebbcb0e75fc719046c7576ff1f1f696605cdd92fc95679bdb95c4ad`.
 This finding reopens tutorial acceptance; earlier style assertions did not prove
 native scroll reachability.
@@ -80,3 +80,72 @@ Initial typecheck catches a test-only readonly tuple signature; object cases
 correct it, final global typecheck and scoped lint pass. Final shared caller
 suite3/3 passes8.809s after that correction; production code is unchanged from
 the six-suite45-test pass. Full frozen-source certification remains OPEN.
+
+## Terminal boundary and preservation
+
+Task3ca1611c returns normal Home, whose settled original
+`abcea5a0098d1fbb9263f36927297d41dce748fb6b7a4e040471e0ac43bef028.jpg`
+root personally views at286XP/68coins/newOct18zeroof4. All authorized UI work and
+concise notes are finished. The operator then repeats convergence/no-tool turns;
+root stops it, terminalCANCELLED1312.4s. This is neither a task/checkerPASS nor a
+new credential failure. Its stdout and concise notes are retained externally;
+stderr file is absent. No optionalOutputter400 is observed on this task.
+
+Post-terminal copied SQLite integrityok/13sessions, protected historical/economy/
+rating/profile/settings tables and all old workouts are exact. Verification
+SHA256 `6b621939fe258eee70a242966209f4d2a1990072291f9de6032f4a9895e9796a`.
+In addition to the already known zero-valued Oct18 quests/active0of4 plan, only
+tutorial metadata changes: Grid retains replay_requested1 after the incomplete
+replay; Transform completed/replay0 gains its normal completion timestamp.
+Thus the operator's generic "no writes" wording is not literal database evidence.
+No new gameplay/reward is recorded. Originaldensity420/font1 is restored before
+installing a different APK. Guest networking remains offline pending needed
+offline checks; its saved original1/1/0 still requires restoration.
+
+Source candidate `9e5b2a1bf3df5fac3ecd9d410846d9b379145246` is committed/pushed.
+Native15 build uses its exact1107-file snapshot, inventorySHA256
+`6ccef1ba94e501c95b09be5dc66072e92faad36fcc1290636e8044715215e3ce`.
+At that checkpoint build/install/same-profile-after and fresh certification
+were pending. The subsequent native result follows; final full certification
+and broader product acceptance remain separate.
+
+## Native15 actual after — qualified
+
+Installed/source/hash proof is in NATIVE_PREVIEW15.md. Pro
+`e36e32c1-09bd-4265-aa0c-d45d5c1e8cda` is terminalCOMPLETED356.3s, checkerOFF.
+At the same320dp/font2/offline profile, two in-Demo swipes move the content and
+expose all four commands and three complete answer boards. A visible-prompt
+ordinary choice is accepted, Got it dismisses normally, Start is visibly
+reachable and never pressed; normal Back/Games/Home returns expected totals.
+The initial explanation-sheet outer-page swipe is not the repaired behavior.
+
+Root personally views these actual stored originals in the external images
+directory; each filename is its SHA256 plus `.jpg`:
+
+- After first Demo swipe: `4d24a54d7310448359c978977f4f21f4fb1703a0432e2474e9ac342608d10c13`.
+- All four commands/three choices: `8293729e861216b52162acf48f90b59d4915b62dbadd7b3a7e2a3fa735cc87a9`.
+- Accepted completion: `1b80c650995c43357094ce42e75e967eaf15d651c1f106a6f4ba1c550626b07e`.
+- Dismissed to unpressed Start: `95480740abba8f0835b5f2b056c3320649ef870f0ef3c6d54f311faf99458b39`.
+- Returned Home: `a720375e7de38dda6180d17831fcf91c2786f1f975dea6260a78a4111e492b59`.
+
+The independent reviewer personally views/hash-checks these and the native14
+failure original. ReviewSHA256
+`b97a5849f71146683b4a01d5b395d55a0b66b4d7c1bcf052c35748cb73a7b582`
+(`qa-artifacts/campaign077/tutorial15-native-after-review.json`) gives bounded
+PASS without inferring all tutorials, themes, latency or physical accessibility.
+The one-prop experiment supports nested drag negotiation as the repair seam;
+no low-level event-recipient trace was captured.
+
+Root fresh post-task bracketedHome and protected-copy verification are in
+NATIVE_PREVIEW15.md. Actual copied SQLite integrityok/13sessions/286XP68coins/
+activeOct18zeroof4;12tables match the before-task boundary exactly. Only Grid's
+normal completion resets replay_requested1→0 and updates its timestamp.
+VerificationSHA256
+`d5364b06a47edf540239f1418a821bb1a15f573e7cf2a85f5c88aa92c0c30d34`.
+Originaldensity420/font1 is restored exactly. No game session/reward is created.
+
+The task stderr file is absent; external stdout/notes are inspected. Its web
+recorder reports zero images/steps, so no valid video evidence is claimed.
+Stored original step images independently supply the proof. The pale Home bar
+under0of4 is the normal empty workout-progress track, not a loading skeleton;
+one operator wait does not imply a measured app loading delay.
