@@ -34,6 +34,11 @@ export function TutorialFrame({ gameId, children, scrollable = false }: Tutorial
       {scrollable ? (
         <ScrollView testID={testId(gameId, 'tutorial-scroll')}
           style={{ height: Math.min(600, Math.max(120, height - 112)) }}
+          // Game routes already scroll through ScreenShell. On Android the
+          // inner demo must claim nested vertical drags, including when the
+          // intro behind it is at its bottom edge, or that ancestor consumes
+          // the swipe and leaves the demo's answer boards unreachable.
+          nestedScrollEnabled
           contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           {children}
         </ScrollView>

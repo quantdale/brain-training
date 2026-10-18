@@ -8,7 +8,41 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native14 installed; bounded input proof live
+## Current checkpoint — native14 Grid tutorial scrolling defect under repair
+
+The offline combined320dp/font2 task3ca1611c reproduces a real Grid Navigator
+replay Demo defect: commands clip and answer boards remain unreachable after
+four in-sheet swipes. Root viewed original step22. Branch stopped; Transform
+Match's shorter demo completes normally through Got it to visible Start, never
+pressed. Task is returning Home; no root device operations while live. Shared
+TutorialFrame nested-scroll negotiation is the leading repair seam; installed
+Yoga geometry probe has positive modeled ranges for current long-content styles.
+TUTORIAL_SCROLL_RECOVERY15.md records evidence and native-after requirement.
+Full scope stays ACTIVE. All four29d70a45 workflows now SUCCESS: App39085982267,
+Integrity39085982258, Android39085982296, iOS39085982256.
+
+### Previous native14 Button checkpoint
+
+Evidence recovery checkpoint29d70a45 is pushed. Native14 Button actualafter now
+qualifies: disabled/enabled paintedSubmit identical948×126px/originaltap5401380
+registers; Next readablehorizontal347×125px/root+independentreview noP1P2 inthis
+sample. Devicebatch1.73s<12, arbitraryHit NOTclean-solve. NormalopaquePause/Quit
+discardsattempt→Home28668/currentOct18zeroof4. Outputter400 pausestaskafter UI
+done; rootdoctorready thenstopterminalCANCELLED. Originalfailureexplicit.
+Posttask protectedcopyintegrityok/13history/economy/ratings/settings/olderfour
+workouts EXACT;11tables exact, only3zeroOct18quests+newactiveOct18plan added.
+BUTTON_NATIVE14.md records alloriginals/hashes/limits. EnabledPNGhas realcosmetic
+P3graybacking rectangle; duration/causeunknown, existingvideo reviewinprogress.
+
+Guestnetwork provisionedofflinewifi0/data0/airplane0/activeDefaultNONE; original
+1/1/0 saved in network-control18/original.json, MUSTrestoreafter offlinechecks.
+Combined320dp/font2 provisionPASS/currentHome personallyviewed, density540 on
+unchanged1080x2400. Pro3ca1611c exclusively5570/checkerOFF ordinaryGridNavigator+
+TransformMatchtutorials;40sMCPwatchspatial14-live18/exec94594. Rootno ADBwhilelive.
+No actualgameStart/QA skip. Restore exactdensity420/font1 via prepare-spatial14.py
+restore ONLYafterterminal. Optionaloutputdescription omitted to avoidfailed
+finalizerpath (notexternalfix). Remainingmotion/matrix/perf/finalendingCI/handoff
+unchanged. Current29CI App/IntegrityPASS, Android/iOSstillrunning lastobserved.
 
 SameAVD coldprocess recovers: actualboot1/packagefound/newkernel5d0b4626...124e,
 oldnative13APK verified, every3protectedfile/all13table rows EXACT afterboot,

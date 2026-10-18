@@ -4,6 +4,14 @@ Frozen source `0c8794ddbcaa743cc9ed202da047b54da2792b8b` includes the shared
 feedback-height repair in [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md).
 Native after-proof, full current profile review and final acceptance remain open.
 
+Subsequent bounded Button after-proof is qualified in
+[BUTTON_NATIVE14.md](BUTTON_NATIVE14.md): identical disabled/enabled painted
+Submit/original-center input, labeled horizontal Next, normal opaquePause/Quit,
+unchanged historical sessions/economy/olderworkouts. CosmeticP3 gray backing is
+real across at least650ms of encoded video; cause/scope remain under investigation.
+The task is CANCELLED only after completedUI and optionalfinalizer400, not a
+checkerPASS. Current spatial/motion/profile/performance/handoff gates stay open.
+
 Installation is subsequently **recovered**. Same-AVD coldprocess reaches actual
 boot1/packagefound/newkernel `5d0b4626-0079-4acb-a0b0-31fde15b124e`; afterboot
 installed13APK is independently verified and all three protected files/all13

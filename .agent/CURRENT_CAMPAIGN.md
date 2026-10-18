@@ -11,6 +11,23 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Fresh native14 combined320dp/font2 offline check reproduces Grid Navigator
+  tutorial clipping/unscrollable choices; branch stopped after four distinct
+  swipes, root inspected original. Transform Match sibling completes normally
+  to visible unpressed Start. Shared scroll negotiation diagnosis/repair and
+  new native qualification take priority over the final matrix. Full scope
+  remains ACTIVE; TUTORIAL_SCROLL_RECOVERY15.md. All four29d70a45 CI SUCCESS.
+
+- Native14 actualButton acceptance advances: root/independentreview stable
+ 948×126 paintedSubmit/originalcenterregistered/1.73sbudget, visiblehorizontal
+  Next, normalopaquePauseQuitdiscardHome and actual13history/economy/olderworkouts
+  intact. Eleven tablehashes exact; onlynewdayplan/3zeroquests. CosmeticgraylipP3
+  durationunknown/existingrecordingreview; optionalfinalizer400→CANCELLED, no
+  checkerPASS. BUTTON_NATIVE14. Evidencecheckpoint29d70a45pushed. Offlineguest
+  network0/0/airplane0/activeNONE andcombined320dp2xprovisionPASS; Pro3ca1611c
+  tutorialsonlylive/exclusivedevice/40sMCPwatch. Restoreoriginaldisplay/network
+  afterterminal/neededofflinecaptures; no actualgameStart/QA skip.
+
 - Native14 install recovered: coldprocess boot1/servicefound/kernel5d0b4626,
   all13table rows/3files EXACT, old13APK verified. Fullverified-file52,311,495B
   transfer/deviceSHA theninstall SUCCESS/exactSQLite retained. Native14cold

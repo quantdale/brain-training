@@ -2,6 +2,24 @@
 
 ## Fresh audit findings
 
+- Native14 Grid Navigator replay Demo is unusable at combined320dp/fontScale2:
+  four in-sheet swipes leave clipped commands and no reachable answer boards.
+  Root viewed the actual original; task3ca1611c stopped that branch. Transform
+  Match's shorter demo completes in the same profile. Shared nested scrolling
+  is under repair; native-after acceptance remains OPEN. See
+  TUTORIAL_SCROLL_RECOVERY15.md; no style-test-only PASS.
+
+- Native14 actualSubmit/Next sizing regressions are qualified for the sampled
+  currentstate: samepainted948×126Submit/originalcenterregistered, Next347×125
+  horizontalreadable; BUTTON_NATIVE14. RemainingcosmeticP3: earlyenabledPNGgray
+  rectangle aroundroundedface, actualdistinctencodedframes spanatleast650ms;
+  sameenabledselfcorrection/causeunknown. Existingrecordingreviewconfirmsnot
+  onlyonePNG; no sourcepatch/fixed/transientclaim. Finalmatrix/motion/perfOPEN.
+- OptionalARTEMIS Outputter400 recurs after otherwise completed native14 UI/
+  normaldiscardHome; rootdoctorready/stopCANCELLED. Provideraccessworks. No new
+  credential/env/sourceedits. NextboundedPro omitsoptionaloutputdescription;
+  localSDKcondition supportsavoidingthatpath, notclaimedexternalrepair.
+
 - Native14 installation/guestavailability now RECOVERED after completehash-verified
   filetransfer and coldsameAVD process. Boot1/servicefound/old13APK/3files13tables
   exact, successful14devicehash/exactSQLite. Firstcold6102ms and actuallyvisible

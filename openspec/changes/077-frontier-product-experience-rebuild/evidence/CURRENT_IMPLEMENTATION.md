@@ -2,6 +2,22 @@
 
 ## Current source and actual saved-workout checkpoint
 
+New shared TutorialFrame candidate explicitly enables Android nested scrolling
+inside ScreenShell. Native14's actual combined320dp/font2 Grid demo has clipped
+unreachable choices after four swipes; Transform Match's shorter sibling demo
+completes normally. Six affected suites45tests, final types/scoped lint and
+independent source review pass. New APK/native-after/full source certification
+remain OPEN; TUTORIAL_SCROLL_RECOVERY15.md separates wiring tests from gesture
+proof. No other production component is changed in this repair.
+
+Current14 bounded Button after-proof now qualifies stable disabled/enabled
+paintedSubmit/originalcenteractivation and visible horizontal Next/opaquePause/
+normalQuit. Posttask13history/economy/olderworkouts unchanged; only natural
+Oct18plan/zeroquest rows added. BUTTON_NATIVE14 records actual originals,
+independent review, optionalfinalizer400/CANCELLED and real cosmeticgraybackingP3
+over at least650ms. Combinedcompact2x/offline spatial tutorials are live;
+current matrix/motion/performance/ending handoff remain open.
+
 Subsequent actual14 installation succeeds after same-AVD process cold start:
 new5d0b4626 kernel/boot1/packagefound, all3rawfiles/all13tables exactly preserved,
 full52,311,495-byte device transfer/hash before install/Success/devicehash/exact

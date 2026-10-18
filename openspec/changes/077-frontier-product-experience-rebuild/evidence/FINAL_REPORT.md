@@ -6,6 +6,14 @@ unflagged clean-checkout composite: **708 suites / 7,979 tests / five unchanged
 snapshots**, all declared gates and clean tracked/untracked Git. All four
 workflows succeed at that source. This source checkpoint is not the ending SHA.
 
+A subsequent native14 combined320dp/font2 offline check finds a real Grid
+Navigator tutorial scrolling defect. The shorter Transform Match demo completes
+normally. A shared nested-scroll candidate passes six affected suites45tests,
+final types/lint and independent source review; rebuilt APK verification and
+fresh source certification remain pending. The campaign stays ACTIVE.
+[TUTORIAL_SCROLL_RECOVERY15.md](TUTORIAL_SCROLL_RECOVERY15.md) records the original
+failure, diagnosis limits and required native-after outcome.
+
 Native14 builds from that exact source. Its staged APK is
 `c0d3c1462ebbcb0e75fc719046c7576ff1f1f696605cdd92fc95679bdb95c4ad`,
 52,311,495 bytes, with matching source, bundle, assets, permissions, host ZIP
@@ -37,8 +45,14 @@ repair in 0c: offline red/green using the installed React Native Yoga engine giv
 face of 1438.1→48 logical dp while preserving width and explicit-height
 contracts; seven focused suites / 65 tests / five unchanged snapshots, types,
 lint and independent review pass. [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md)
-records cause and limits. Actual native14 labeled feedback and disabled→enabled
-Submit geometry/original-center input remain open.
+records cause and limits. [BUTTON_NATIVE14.md](BUTTON_NATIVE14.md) subsequently
+qualifies actual labeled horizontal Next and identical948×126px disabled/enabled
+Submit painted bounds/original-center activation in1.73s. Normal opaquePause/
+Quit discards the attempt and returns Home; fresh SQLite verifies all13 sessions,
+economy/ratings/settings/olderworkouts unchanged. The arbitrary input happens to
+Hit and is not a clean solve. Optionalfinalizer400 causes terminalCANCELLED after
+UI completion; no checkerPASS. A real P3 gray backing rectangle spans at least
+650ms in actual video; cause/scope remain under investigation, not dismissed.
 [NATIVE_PREVIEW13.md](NATIVE_PREVIEW13.md) retains the prior install proof and
 its actual defect; the later successful native14 update is independently qualified.
 
@@ -53,8 +67,9 @@ and the first cold restart ANR before successful recovery. It is not clean-solve
 or reliable-startup acceptance.
 
 The shared Button repair in2cdb addresses a real enabled-sizing defect with
-caller red/green checks and independent review; actual disabled/enabled native
-geometry is still open. Earlier scrolled Profile/Progress/Home source repairs
+caller red/green checks and independent review; the sampled native14 disabled/
+enabled painted geometry and original-center registration now qualify as above.
+Earlier scrolled Profile/Progress/Home source repairs
 and sampled native12 after-proof remain in
 [SCROLLED_RECOVERY11.md](SCROLLED_RECOVERY11.md). Historical native11's180frames
 and gallery are preserved; they do not replace the current final matrix.
@@ -104,7 +119,7 @@ process recovery does not establish their root cause or final runtime acceptance
 | Ending SHA | **PENDING — fill after all authorized implementation/evidence work and the final coherent commit.** Current source is an intermediate checkpoint. |
 | Worktree state | One canonical worktree on `main`; no auxiliary linked worktrees or temporary branches. Product source `0c8794dd` is pushed; later evidence changes are being converged. Final clean/pushed ending-state verification is **PENDING**. |
 
-The twenty-one campaign commits through source checkpoint 0c are:
+The twenty-two campaign commits through evidence checkpoint29d70a45 are:
 
 | Commit | Coherent progress |
 |---|---|
@@ -129,6 +144,7 @@ The twenty-one campaign commits through source checkpoint 0c are:
 | `2cdb9ed6` | Preserve filled button sizing across actionable states |
 | `6b4dc1dc` | Certify native13 and preserve completed offline workout evidence |
 | `0c8794dd` | Bound feedback button height and qualify storage recovery |
+| `29d70a45` | Qualify native14 recovery and reconcile current game evidence |
 
 Independent certification clones and `D:/bt077`, the native build copy, are
 separate from linked Git worktrees. Their retained artifacts and cleanup limits

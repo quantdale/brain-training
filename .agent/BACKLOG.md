@@ -12,6 +12,15 @@ plus historical follow-ups.
 
 ## Still-open durable items
 
+- Campaign077 P3 cosmetic: native14 NumberLine enabled Submit PNG shows a gray
+  backing rectangle at the rounded face corners/bottom. Face bounds/label/input
+  qualify; actual encoded recording shows at least650ms, cause unknown. See
+  BUTTON_NATIVE14.md. Closure needs
+  actual same-caller temporal/settled evidence and a justified correction if
+  persistent; do not replay full workouts or claim a different rounded caller
+  fixes it. Existing recording review confirms this is not only one PNG;
+  targeted installed-RN/source cause investigation is the next observation.
+
 - Owner product decision (from Change 062, 2026-09-20): exported backup
   files live in the files domain and Android auto-backup carries them
   under the default `allowBackup=true` (only the `database` domain is

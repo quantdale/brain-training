@@ -1,5 +1,32 @@
 # Validation — Campaign077
 
+## Native14 tutorial reachability failure — 2026-10-18 PH
+
+Offline Pro3ca1611c at combined320dp/font2 reaches actual Grid replay Demo,
+but four in-sheet swipes leave clipped commands and unreachable choices.
+Root personally views original step22. This branch FAILS reachability;
+viewport-height assertions are insufficient. Transform Match's shorter demo
+completes through ordinary visible choice/Got it to Start, never pressed;
+root views step35 candidate original. Terminal task/data/restore checks pending.
+Installed-Yoga geometry-only long-content probe yields positive scroll ranges;
+native gesture negotiation repair and same-profile new-APK proof remain OPEN.
+All four29d70a45 CI SUCCESS; these do not qualify the new repair.
+
+## Native14 actual input/feedback and history — 2026-10-18 PH
+
+Root personallyviews3originalPNGs and actualfeedback/Pause/Home; independent
+feedbacke4f248d2...2ca2d/Submit e1f2f56c...90f36 qualify bounded controls. Disabled/
+enabledpaintedSubmit948×126px/samebounds/originaltap5401380registered; Next
+347×125px/readablehorizontalinsidecard. Actualdevicebatch1.73s<unchanged12,
+arbitrarytapcoincidentalHitnotclean-solve. NormalPause/Quitdiscards→Home28668/
+Oct18zeroof4. ShellXML137 unavailable/rawboundsnotclaimed. Outputter400 after
+completedUIpaused; doctorready/rootstopterminalCANCELLED, notcheckerPASS.
+Afterdata8e7b6aa5...2663d integrityok/13sessions/economy/ratings/settings/4older
+workouts exactlyunchanged;11tables exact, addonly3zeroOct18quests+index0plan.
+ActualenabledPNGrealgraybackingrectangleP3; duration/causeunknown/videoanalysis
+pending, nottransient/fixedclaim. BUTTON_NATIVE14.md. Currentcombined320dp2x/
+offlineprovisionPASS; tutorialPro3ca1611c live, outcomeNOTVALIDATEDuntilreview.
+
 ## Frozen0c full source qualification / native14 recovery — 2026-10-18 PH
 
 Actualcoldprocess boot1/servicesready/new5d0b4626 kernel, afterbootold13APK/

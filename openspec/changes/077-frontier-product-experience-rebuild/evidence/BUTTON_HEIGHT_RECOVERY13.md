@@ -55,7 +55,9 @@ Frozen0c full fresh-checkout certification and native14 host build now pass;
 [NATIVE_PREVIEW14.md](NATIVE_PREVIEW14.md) records exact708/7979 counters and build
 proof. Initial streaming installation fails and device recovery remains open.
 Actual installed labeled feedback/disabled→enabled original-center input proof
-is still required. No game
+subsequently qualifies for the bounded native14 sample in
+[BUTTON_NATIVE14.md](BUTTON_NATIVE14.md), with a separate cosmeticP3 backing
+rectangle and explicit limits. No game
 mechanic, deadline, answer, scoring, generator, economy or persisted format changes.
 
 | Ignored record under `qa-artifacts/campaign077/` | SHA256 |
