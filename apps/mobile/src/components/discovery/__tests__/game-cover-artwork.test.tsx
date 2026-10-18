@@ -65,6 +65,7 @@ describe('registered mechanic cover contract', () => {
       expect(art.props.source).toBe(getGameCover(game.id)!.source);
       expect(art.props.resizeMode).toBe('contain');
       expect(art.props.fadeDuration).toBe(0);
+      expect(StyleSheet.flatten(art.props.style)).toMatchObject({ width: '100%', height: '100%' });
       await result.unmount();
     }
   });

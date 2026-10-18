@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "numPassedTestSuites": 708,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 4,
+  "numTotalTestSuites": 712,
+  "numPassedTests": 7979,
+  "numFailedTests": 0,
+  "numPendingTests": 5,
+  "numTotalTests": 7984,
+  "summarySha256": "798a7c79d5562f465f55e59452549ebf7d3df1d51af2be19ab5a4fb71b4d9d4e",
+  "logSha256": "36040ff2c757da35be386c828e6c42dc3bcca4326a12b6fcc1b93e2da26f74b2"
+}

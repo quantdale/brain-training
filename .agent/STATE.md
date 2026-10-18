@@ -6,7 +6,7 @@
 **Status:** IN_PROGRESS
 **Canonical branch:** main
 
-Owner authorized complete focused42-game cover redesign, Android qualification and final four-workflow success. Starting SHA e7885b6d. Campaign077 historical certification remains unchanged. Mechanics42/42 audited; exact renderer collisions confirmed. 42final identities integrated; independent blind/informed review corrections complete.569529B runtimePNG,27,525,120B hypothetical all42RGBA. Mapping/asset/focused Games-detail tests PASS. Fullsource checks and native build underway. No gameplay/persistence changes authorized or planned. Runtime and source validation remain NOT VALIDATED for new work.
+Owner authorized complete focused42-game cover redesign, Android qualification and final four-workflow success. Starting SHA e7885b6d. Campaign077 historical certification remains unchanged. Mechanics42/42 audited; exact renderer collisions confirmed. 42final identities integrated; independent blind/informed review corrections complete.569529B runtimePNG,27,525,120B hypothetical all42RGBA. Mapping/asset/focused Games-detail tests PASS. Fullsource checks and native build underway. No gameplay/persistence changes authorized or planned. First nativeAPK revealed intrinsic Image sizing/clipping; explicit100percent imagebounds repair has focused17tests/typecheck/lintPASS. RebuildB and fresh nativequalification pending. Runtime remains NOT VALIDATED until actual screenshots.
 
 # Durable Project State
 

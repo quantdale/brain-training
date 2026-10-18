@@ -33,7 +33,9 @@ export const GameCoverArtwork = memo(function GameCoverArtwork({ gameId, height,
         style={[styles.frame, { maxWidth: height * 1.6 }]}>
         <Image testID={testID ? `${testID}-artwork` : undefined} source={cover.source}
           accessible={false} resizeMode="contain" fadeDuration={0}
-          style={StyleSheet.absoluteFill} />
+          // Image supplies intrinsic dimensions internally. Absolute edges alone
+          // do not override those dimensions on Android; explicit percentages do.
+          style={[StyleSheet.absoluteFill, styles.image]} />
         {cover.labels.length > 0 ? (
           <Svg width="100%" height="100%" viewBox="0 0 320 200" style={StyleSheet.absoluteFill}>
             {cover.labels.map((label, index) => (
@@ -53,4 +55,5 @@ export const GameCoverArtwork = memo(function GameCoverArtwork({ gameId, height,
 const styles = StyleSheet.create({
   slot: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   frame: { width: '100%', aspectRatio: 1.6 },
+  image: { width: '100%', height: '100%' },
 });

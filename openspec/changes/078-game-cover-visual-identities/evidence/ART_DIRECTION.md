@@ -27,3 +27,7 @@ Original prompt: single stationary green signal button in chunky golden-yellow h
 Six real rendered covers viewed at179×112dp footprint. Independent blind review before key/source: word linking and missing operator high confidence, Simon medium-high, rotation medium-high. Running Order failed to communicate tail-only recall; Fold Match could read as compression/reflection. Revised Running Order with discarded earlier stream, retained end window and three empty response slots/replay cue. Fold changed from paired grids to one lifted paper flap, thickness/shadow/hinge and exact OR destinations. Rotation shapes enlarged11percent. No uniqueness claim relies on filenames or palette alone.
 
 Recognition remains an independent model assessment, not human usability certification. Inherently related memory tasks need instructional titles/tutorials for full rules; covers communicate their different activity grammar.
+
+## Execution craft review
+
+Refero-design skill was available during continuation and its research-first/reference-lock/visual-QA methodology was read and applied. Existing077lock remains dominant; the two actual targeted screen inspections above supply current concrete evidence. No new product direction or additional broad exploration is warranted. React best-practices review confirms primitive gameId/height memoization, static literal assetmapping, no effects/remote waterfall, bounded nativegeometry and decorative accessibility; web/Next-specific suggestions are inapplicable to this native presentation change.
