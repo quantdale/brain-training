@@ -2,12 +2,37 @@
 
 ## Fresh audit findings
 
+- Native14 installation/guestavailability now RECOVERED after completehash-verified
+  filetransfer and coldsameAVD process. Boot1/servicefound/old13APK/3files13tables
+  exact, successful14devicehash/exactSQLite. Firstcold6102ms and actuallyvisible
+  Home28668/newOct18plan qualified; reliableperformance remainsOPEN. Pro984a122b
+  liveforactualButtonafter. Original failures below remainhistorical evidence.
+
+- Newguestkernel4d1a/device is observed, but system_server686 Watchdog-killed
+  after81s in SettingsProvider aconfig file read; replacement1068/fullbootabsent.
+  One premature CEpathcopy is98-byte error/INVALID_NOT_A_BACKUP; verifiedbackup
+  intact. Graceful qemu44452 close+actualexit, fullstoppedAVD42files9.23GB/every
+  SHA/backingchain backup PASS precedes sameAVD-no-snapshot process108764.
+  Boot/data/currentAPK/install remainOPEN; no blind secondguest reboot/wipe.
+
+- Native14 firstinstall FAIL is concrete truncatedstream: expected52311495,
+  copied46399488, short5912007 thenstagedAPKparsefailure. Host1565ZIP CRC/v2sign
+  PASS; whyinputEOF remainsunproven. Later watchdog kills system_server amid
+  pre-existing framework instability; package-service absent/replacement4693
+  disappears. This does not establish app-source cause or exoneration. All3
+  protectedDBfiles and all13table rows EXACT/13sessions28668 before one guest-only
+  reboot. Clienttimeout30s does not proveunsentrequest; sameqemu44452 console
+  running/ADBOFFLINE. Waitsameguest before anynewinstall. Native14 notqualified
+  installed/started. NATIVE_PREVIEW14.md/independentdiagnosis7dfd4941...79371f.
+  Source0c full708/7979/five snapshots/allgates and allfourCI PASS remainseparate.
+
 - Native13 feedback height source cause/repair now qualified independently:
   unconditional inner growth operates on column HEIGHT. Bounded explicit-height
   growth preserves intrinsic controls/caller floors/Submit width; actual Yoga
  1438.1→48dp,13 current cases PASS,7suites65tests/fiveunchangedsnapshots/types/lint
   PASS, independent source review noP1P2. Installed13 still has the defect.
-  Native14/fullcert/actualafter remain OPEN; BUTTON_HEIGHT_RECOVERY13.md.
+  Full0c cert/native14hostbuild now PASS; installation/actualafter remain OPEN;
+  BUTTON_HEIGHT_RECOVERY13.md/NATIVE_PREVIEW14.md.
 
 - Confirmed native13 feedback P2: ordinary NumberLine timeout renders Next round
   as a huge vertical blue pill, with its label below viewport. Root personally

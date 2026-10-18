@@ -17,7 +17,7 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 | 10 Shared system/offline | Consolidated existing tokens/primitives/HUD/stages/results/motion; IDs/contracts preserved; no duplicate library/cloud dependency | 4,8.1 | Shared implementation/source contracts COMPLETE; native motion/cross-product acceptance OPEN |
 | 11 Visual gates/critique | Actual six-profile screenshots for every major modified screen; direct observed theme separated; matched fresh 077 baseline; independent each-wave critique/defect correction | 1.5,5.7,8 | OPEN |
 | 12 Real runtime | VisibleGUI/currentbuild/cold launch/navigation/theme/game/feedback/result/workout/SQLite/force-stop/offline/recovery/settings/assets/memory/perf/logcat | 9.2–9.4,10.1 | OPEN |
-| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | Current2cdb composite/native13 build/install/source CI and full-workout saved-data preservation PASS; runtime/startup/storage-recovery/ending-SHA boundaries OPEN |
+| 13 Engineering/protection | Relevant fullJest/typecheck/lint/strictOpenSpec/registry/provenance/dependency-security/permissions/offline/migrations/SQLite/backup-restore/clean-checkout/native/GHA; existing data/contracts protected | 9 | Current0c8794dd full fresh composite708/7979/all four source CI/native14 host source-build-assets-permissions PASS; initial stream FAIL retained, later verified-file install/devicehash/exactSQLite PASS, COLD6102ms/actualHome qualified. Full-workout and storage recovery saved-data preservation qualified; current runtime/performance/ending-SHA remain OPEN |
 | 14 Ten waves | Implement through A–J; no research/asset-only ending | All | OPEN |
 | 15 Autonomy/efficiency/durable | Safe parallel packets/single shared owner, systemic fixes, wave checkpoints/tests/assets/issues/SHA/next, commits/push | All | IN PROGRESS |
 | 16 Acceptance | Distinct appealing coherent visuals/art/type/icons/layout/light-dark/reflow/motion; all 42 correctness/inputs/tutorials/feedback/pause/persistence; tested build/clean/provenance/noHigh/finalSHA4CI; updated visibleHome | 8–10 | OPEN |
@@ -26,7 +26,17 @@ Authoritative brief `.agent/CAMPAIGN077_OWNER_BRIEF.md`, SHA256 b282291269598dee
 
 Each named gate/artifact/profile/game/state becomes an evidence row in the relevant inventory and final report; uncertain or indirect proof stays OPEN. PHYSICAL_ANDROID and IOS_RUNTIME are NOT VALIDATED absent actual devices/platform evidence. This specified limitation does not authorize pretending ARM64/store readiness or owner taste approval.
 
-## Current implementation reconciliation — 2cdb / native13
+## Current implementation reconciliation — 0c source / native14 recovery
+
+Frozen0c8794dd full unflagged independent fresh-checkout composite succeeds:
+708suites7979tests/five unchanged snapshots/all declared gates/clean Git.
+All four source workflows succeed. [NATIVE_PREVIEW14.md](NATIVE_PREVIEW14.md)
+records exact native14 build/source/assets/eight-permission proof, initial
+truncated-stream installation failure and current same-guest boot recovery.
+Actual native14 installation/cold launch/geometry/runtime remain OPEN. Root
+current full Jest verifies all42 IDs/436 game suites/4829 assertions; the complete
+[GAME_ACCEPTANCE.md](GAME_ACCEPTANCE.md) ledger preserves selective native and
+unvalidated boundaries. Full source certification does not close those boundaries.
 
 Superseding Oct18: real storage recovery/all13 table-row preservation and completed
 Oct16offline4played0skip/exact unique effects are qualified in
@@ -35,8 +45,9 @@ game suites for every ID in the actual2cdb Jest record (436 game suites/4829 gam
 assertions, a subset of708/7967). Selective native boundaries remain explicit;
 the owner does not require42 repetitive journeys or a new full workout each
 calendar day. Shared Button feedback-height regression is now source/Yoga fixed
-and reviewed in BUTTON_HEIGHT_RECOVERY13; new fullcert/native14/actualinputafter
-are required. Current motion/profiles/performance/ending-SHA/handoff remain OPEN.
+and reviewed in BUTTON_HEIGHT_RECOVERY13; fullcert/native14 host build now pass,
+actual install/inputafter required. Motion/profiles/performance/ending-SHA/handoff
+remain OPEN.
 
 Later source checkpoint `2cdb9ed632cecae6e888fa4a2e7f9fe639f715d5` repairs a
 real shared Button parent-sizing defect observed in native12. Full independent

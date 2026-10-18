@@ -11,6 +11,33 @@ The owner rejected the real previous app and authorizes complete redesign, actua
 
 ## Progress
 
+- Native14 install recovered: coldprocess boot1/servicefound/kernel5d0b4626,
+  all13table rows/3files EXACT, old13APK verified. Fullverified-file52,311,495B
+  transfer/deviceSHA theninstall SUCCESS/exactSQLite retained. Native14cold
+  COLD6102ms, personallyviewedsettledHome28668/newOct18zeroof4/0days; doctorready.
+  Pro984a122b exclusively5570 singleNumberLineinput+feedback/checkerOFF with40s
+  statuswatch; rootno deviceactions untilterminal. Broadergates remainOPEN.
+
+- Recovery advances beyond pendingreboot: newkernel4d1a/device observed, but
+  Watchdog kills686 during SettingsProvider aconfigfile read; boot incomplete.
+  Root rejects premature98-byte CEerrorcopy, preserves original qualifiedbackup.
+  Gracefultargetshutdown/actualexit then fullstoppedAVD42files9,226,994,882B/
+  everySHA/backingchain PASS. Samebraintraining-ui35/5570 coldstart-no-snapshot
+  qemu108764 at00:33:45UTC, no wipe/config/RAM/GPU/otherdevice/hostinput. Actual
+  boot/data/APK/install stillOPEN. Source/fullcert/all4CI remain qualified.
+
+- Frozen0c full fresh composite PASS708suites7979tests/five unchangedsnapshots/
+  all declared gates/cleanGit; every42ID has currentpassing suites. AllfourCI
+  SUCCESS App39080473302/Integrity39080473387/Android39080473193attempt2/
+  iOS39080473273. Native14 build7m03s/532tasks/exact1107files/941map/assets/eight
+  permissions PASS; stagedAPKc0d3c146...5c4ad. Initial streaminginstallFAIL ends
+ 5,912,007bytes short; hostCRC/signature and unchangedprotecteddata PASS.
+  Recurrent system-server/package-service loss requires recovery. Pre-reboot
+  all13table rows/files EXACT/13sessions28668/Oct16completed4; one guest-only
+  reboot request timesout30s, sameGUI/PID44452 nowADBoffline/consoleRunning.
+  Waitactualboot/service/root/data/APK before verified-file retry; no second
+  reboot from timeout alone. NATIVE_PREVIEW14/GAME_ACCEPTANCE record boundaries.
+
 - Feedback Button source repair now passes actual installed Yoga red/green:
  1438.1→48dp face, same intrinsicwidth, explicit72dp cell fill and stable320×48dp
   Submit.13 current cases PASS/root independently compiled19 Yoga units. Valid

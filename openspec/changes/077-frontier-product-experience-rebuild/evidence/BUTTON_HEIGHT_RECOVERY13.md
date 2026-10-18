@@ -51,8 +51,11 @@ logging remains in the integrated log; assertions and console gates pass.
 
 Independent read-only source review finds no concrete P1/P2 or weakened
 assertion in the inspected diff. This is source/Yoga qualification only.
-New frozen-source full certification, native14 build/install and actual labeled
-feedback/disabled→enabled original-center input proof remain required. No game
+Frozen0c full fresh-checkout certification and native14 host build now pass;
+[NATIVE_PREVIEW14.md](NATIVE_PREVIEW14.md) records exact708/7979 counters and build
+proof. Initial streaming installation fails and device recovery remains open.
+Actual installed labeled feedback/disabled→enabled original-center input proof
+is still required. No game
 mechanic, deadline, answer, scoring, generator, economy or persisted format changes.
 
 | Ignored record under `qa-artifacts/campaign077/` | SHA256 |

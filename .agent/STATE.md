@@ -8,7 +8,76 @@
 **Owner authority:** `.agent/CAMPAIGN077_OWNER_BRIEF.md` (exact supplied brief)
 **Resource mode:** day; one lead-owned visible emulator; restrained expensive checks.
 
-## Current checkpoint — native13 storage recovered; feedback button regression
+## Current checkpoint — native14 installed; bounded input proof live
+
+SameAVD coldprocess recovers: actualboot1/packagefound/newkernel5d0b4626...124e,
+oldnative13APK verified, every3protectedfile/all13table rows EXACT afterboot,
+integrityok. Verified-file install of exactnative14 succeeds00:35:12UTC:
+52,311,495B/SHA c0d3c1462ebbcb0e75fc719046c7576ff1f1f696605cdd92fc95679bdb95c4ad,
+devicehashmatch/exactSQLite13sessions/settings unchanged. Original streamFAIL
+retained. Firstcoldlaunch01:13:29 Statusok/COLD6102ms; laterroot personallyviewed
+settled HomePNG95bb4327...a8fdf/equalXMLb8c50c08...718c/currentAPK/focus. Home
+286XP68coins/0days/newOct18plan0of4 startsVisualSearch, oldcompleted16 retained.
+This is startup observation, notquiet60fpsPASS. Doctor5/5ready. Pro984a122b...
+exclusively5570/checkerOFF singleNumberLineinput+feedback proof live with40sMCP
+watch button14-live18; no rootdevice actions untilterminal. No fullworkoutreplay.
+
+### Earlier source/recovery chronology (superseded by current installed checkpoint)
+
+The pending labels below record earlier boundaries; current installation and
+cold launch are qualified above. Remaining product acceptance is still open.
+
+Guest reboot actually executes: new4d1a6461...e2cd/device at00:21:34UTC. Boot
+remains incomplete; Watchdog kills system_server686 after81s blocked in aconfig
+default file read during SettingsProvider initialization, replacement1068.
+Root restores targetadbd uid0; premature protectedCE copy gets98-byte error,
+explicitlyINVALID/notbackup. Pre-reboot3files/all13table proof remains intact.
+After supportedconsole shutdown00:31:24, actual qemu44452 exit observed00:31:54.
+Full stoppedAVD42files/9,226,994,882B/allqcowbackingchains independently rehashed
+PASS; proofd30a8e5ce535ca547b2ea7eb12143ffb966c147c2e67809617648316916b4be8.
+SameAVD/port coldprocess starts00:33:45, qemu108764/launcher103744, -no-snapshot;
+no wipe/restore/RAM/GPU/sourceconfig edit/otherdevice/hostinput. Boot, protected
+data, actualAPK and installation qualification remain pending. Prepared14
+static/tutorial/button/motion/gallery helpers are NOT executed evidence.
+
+Full0c unflagged fresh-checkout certification is now terminalPASS/exit0:
+708suites7979tests/five unchanged snapshots/four skipped suites/five classified
+optins/zero failures/all declared gates/clean tracked-untracked status. Summary
+b4ee11152a7855560ed81b5f681bb0815849a745c940795a9c2732ccb9434556;
+logee946b60f9e55ad362522c437be81bf2b214746505b19530d3caaccea45c9ea6.
+No observed Jest worker forced-exit. Allfour0c workflows SUCCESS:
+App39080473302/Integrity39080473387/Android39080473193(attempt2)/iOS39080473273.
+Root actual currentJest verifies436 game suites/4829 assertions/every42ID; counts
+equal prior independent ledger. GAME_ACCEPTANCE.md has all current boundaries.
+
+Initial native14 install remains FAILED/truncated stream, notinstalledPASS.
+At00:10:56 package absent and replacement system_server4693 gone again. After
+fullcert terminal, root independently preserves all13 table rows/current3files
+EXACTLY/13sessions28668/completed16 and no app PID before one guest-only reboot.
+The reboot request's client times out30s; do NOT infer no reboot or repeat it.
+At00:13:47 same5570 ADB is OFFLINE; qemu44452/braintraining-ui35 console reports
+running, unchanged process. Boot/service/data/installedAPK recovery stillOPEN.
+Observe same guest. No wipe, hostinput/config or other emulator action. Verified
+file-transfer retry is prepared but NOT RUN. Native14 runtime/visual/tutorial/
+motion/performance/finalhandoff stillOPEN; full goal ACTIVE.
+
+Oct18 frozen0c8794dd is now pushed; native14 BUILD PASS7m03s/532tasks, exact1107
+files/941mappedown/onechangedproduction/assets/eightpermissions. StagedAPKc0d3c146...
+5c4ad/52,311,495B. The then-live full unflagged730commit checkout certification
+and Android attempt2 subsequently succeed as recorded above. Android attempt1
+Foojay resolutionfailure remains retained. No dependency changed.
+
+Initial14streaming install FAILED: Android expected52311495/copies46399488 bytes,
+5,912,007 short, stagedAPK parsefails/session434170790 destroyed. Hostall1565ZIP
+CRCs/v2signaturePASS; pipe-endcause unproven. System was already unstable before
+install; laterwatchdog kills mainblocked104s. Package absent/no system_server at
+00:05UTC; replacement4693/zygote4558 at00:08:28 butservice stillnotqualified.
+Samekernelboot/qemu44452. All3protectedSQLitefileSHA remain EXACT preinstall13
+sessions/completed16 state; no datarestore. NATIVE_PREVIEW14.md. No current14APK/
+launchPASS until actualservice/APK/data proof. Waitfullcertbefore newinstall;
+prepared verified-file transport is not yet run. GAME_ACCEPTANCE.md reconciles
+every42 row with actual source/test/native boundaries; no newfullworkout needed
+solely for calendar rollover.
 
 Oct18 source convergence: exact installed Yoga reproduction is red before
 (face1438.1dp/label below fixture viewport), green after bounded-height growth

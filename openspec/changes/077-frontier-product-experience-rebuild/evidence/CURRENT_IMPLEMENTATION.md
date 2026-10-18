@@ -2,12 +2,32 @@
 
 ## Current source and actual saved-workout checkpoint
 
+Subsequent actual14 installation succeeds after same-AVD process cold start:
+new5d0b4626 kernel/boot1/packagefound, all3rawfiles/all13tables exactly preserved,
+full52,311,495-byte device transfer/hash before install/Success/devicehash/exact
+SQLite13sessions/settings. First14coldStatusok/COLD6102ms; settledHome28668/
+newOct18zeroof4/0days personally viewed and XML/APK/focus qualified. Original
+streamfailure retained in NATIVE_PREVIEW14. Nativeinput/feedback Pro984a122b live;
+no broad runtime/performance/currentprofile/endingacceptance inferred.
+
+Frozen `0c8794dd` supersedes source-certification labels below: full independent
+fresh unflagged composite PASS708suites7979tests/five unchanged snapshots/all
+declared gates/clean Git; all four source workflows succeed. Native14 build,
+exact1107-file source/941 mapped own files/packaged assets/eight permissions
+pass, but its initial streaming install fails5,912,007 bytes short. No current14
+installed/start/runtime PASS is inferred. [NATIVE_PREVIEW14.md](NATIVE_PREVIEW14.md)
+records the original failure and current device recovery. The one guest reboot
+executes: new kernel4d1a6461...e2cd is observed00:21:34UTC; same qemu44452 remains.
+At00:24:20 replacement system_server686 is present, package service still absent.
+Root waits for actual boot/service/data/APK proof; no emulator-process restart,
+wipe, old snapshot load or other-device action has occurred.
+
 Superseding Oct18 source state: installed native13 exposes a persistent tall
 Next-round control. [BUTTON_HEIGHT_RECOVERY13.md](BUTTON_HEIGHT_RECOVERY13.md)
 proves the shared column-growth cause with installed Yoga and repairs it while
 preserving width/explicit-height contracts. Integrated7suites65tests/five unchanged
-snapshots/types/lint and independent review pass; new full composite/native14/
-actual native-after remain required. This is a new source change beyond2cdb.
+snapshots/types/lint and independent review pass; full composite/native14 build
+now pass as above. Actual installation/native-after remain required.
 The real storage saturation below is RECOVERED: verified attributed artifact
 archive/scoped cleanup/normalRetry once restores saved28668/completed4 and every
 one of13 complete table-row hashes exactly. Post-a410 probe retains the same

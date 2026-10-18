@@ -1,5 +1,42 @@
 # Validation — Campaign077
 
+## Frozen0c full source qualification / native14 recovery — 2026-10-18 PH
+
+Actualcoldprocess boot1/servicesready/new5d0b4626 kernel, afterbootold13APK/
+every3file/all13table rows exact/integrityok. Completeverified devicefile native14
+52,311,495B/SHA c0d3c146...5c4ad installs SUCCESS00:35:12UTC, installedhash/
+exactSQLite/settings/13sessions PASS. FirstactualcoldStatusok/COLD6102ms01:13:29,
+rootsettledHome personallyviewed286XP68coins/newOct18plan0of4/0days, PNG95bb4327...
+a8fdf/equalXMLb8c50c08...718c/currentAPK/focus. Notquiet/performancePASS. Doctor5/5
+ready; singlePro984a122b liveforcurrentinput/feedback, notyetacceptedresult.
+
+Later new4d1a kernel/device proves original reboot ran;686 Watchdog81s at00:27:42
+while SettingsProvider reads aconfigdefaults, replacement1068/no fullboot.
+Premature CEcopy98-byte missing-path error is INVALID_NOT_A_BACKUP, no SQLite
+or corruption claim. Targetadbd uid0 observed. Actual qemu44452 exits after one
+supported console close. Entire stoppedAVD42files/9,226,994,882B/everyfilecopied+
+independently rehashed/allqcowbackingchains PASS, proofd30a8e5c...b4be8.
+SameAVD/port no-snapshot coldprocess108764 starts00:33:45. Actual readiness/
+protected data/APK/install/runtime stillNOTVALIDATED; no wipe/config/otherdevice.
+
+Actual fresh independent no-hardlinks/full730commit checkout/freshnpmci/full
+unflagged composite terminalPASS/exit0:708suites7979tests/fiveunchanged snapshots,
+zero failures/four skipped suites/five classifiedoptins/all declared gates/clean
+tracked-untracked Git. Summaryb4ee11152a7855560ed81b5f681bb0815849a745c940795a9c2732ccb9434556;
+logee946b60f9e55ad362522c437be81bf2b214746505b19530d3caaccea45c9ea6.
+No observed workerforcedexit. Actual currentgameJSON verifies every42ID and436
+suites4829assertions; no game source changed since independently audited2cdb.
+Allfour0cCI SUCCESS App39080473302/Integrity39080473387/
+Android39080473193attempt2/iOS39080473273. FailedAndroid1Foojayresolution retained.
+
+Native14 source/build/map/assets/permission PASS; stagedAPKc0d3c146...5c4ad,
+52,311,495B/532tasks7m03s. Initialinstall FAIL:5,912,007bytes short thenparseerror.
+Hostall1565CRC/v2signature PASS; protectedfilesunchanged PASS. Independent7dfd4941...
+79371f distinguishes truncatedinput from later system-server watchdog. Pre-reboot
+all13table rows/currentfiles EXACT/13sessions28668/Oct16completed4. Oneguest-only
+reboot requestclienttimeout30s; laterADBoffline/sameqemu44452consoleRunning,
+notterminalbootfailureorinstalledPASS. Service/boot/data/APK recovery OPEN.
+
 ## Feedback height source repair — 2026-10-18 PH
 
 Actual installed RN0.86.3 Yoga C++ red: feedback face1438.1dp/labely1171.05 in
@@ -11,7 +48,8 @@ Jestbefore02 valid9FAIL20controls49.499s; afterfocused29PASS13.542s; finalintegr
 7suites65tests/fiveunchanged snapshots31.627s PASS. Initialinvalid Jestflags and
 empty compilefailure retained, no greenclaim. Finalglobaltypes02/scopedlint exit0.
 Independentreview661277d03b025eb66f912909fe3c7ef2879cf2bcb6c54c510aa603805c404d72
-no concreteP1P2/weakened assertions. Newfullsourcecert/native14/actualafter OPEN.
+no concreteP1P2/weakened assertions. Full0csourcecert/native14hostbuild subsequently
+PASS as above; actual installation/inputafter remain OPEN.
 
 ## Storage recovery and native13 feedback regression — resumed2026-10-17 PH
 
