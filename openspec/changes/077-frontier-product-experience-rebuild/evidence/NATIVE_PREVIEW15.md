@@ -1,7 +1,7 @@
 # Native15 — shared tutorial scrolling candidate
 
 Status: BUILD/INSTALL/INITIAL HOME/BOUNDED GRID TUTORIAL REPAIR QUALIFIED;
-final visual/motion/performance remain OPEN; fresh clean-source certification PASS.
+final static/matched control/practical runtime assessment and fresh clean-source certification QUALIFIED WITH LIMITS.
 
 Source `9e5b2a1bf3df5fac3ecd9d410846d9b379145246`, APK SHA256
 `8919b11bb3f5eb4b0baea73773c12a4676b59c94c79a0f4e2dfac053d9bb6502`,
@@ -92,7 +92,15 @@ full logSHA256
 `7edc2bbb8d78c2616c61d6a6e73fc9120f617f6f08a1a8133b670dcc2ff4e7b7`.
 Expo forced-exit housekeeping, npm deprecations and NodeDEP0190 remain in the
 original log; success is not a clean-process-teardown claim.
-Final180 staticcapture is also live,
-exclusive device ownershipexec34154. Motion/performance waits for timing-safe
-conditions and the capture to finish.
-These source workflows are not an ending-SHA claim. Full scope remains ACTIVE.
+Final180 staticcapture/explicit personal original-image review is complete:
+121staticPASS/59P3/noP1P2, strict aggregateSHA
+4a7daed84c800c23e9f9f6495789c285a5839a02a6ad89b480a51f62c430764a.
+NATIVE_VISUAL15 records144independent+36root views, exact perimage records,
+150genuine077baseline pairs/30unmatched and15 independent direct comparisons.
+Original density420/font1/motion1 and OS night:no/secure1 are restored.
+After both heavy certification and capture are terminal, six bounded warm
+navigation windows observe106platform frames/91janky, hostCPU points38–74%;
+PSS364148/346553KiB. This is poor emulator frame evidence, not smooth/60fps
+acceptance, physical latency or leak proof. Exact mode/route values are retained
+in final-warm-render-control/summary.json. Matched native press Pro9b2d923c is terminalCOMPLETED315.2s; RUNTIME_FINAL15 records actual clips/frames and bounded sampled normal/reduced policy. Final all13 tables exact since after-Grid, original settings/network restored, actual visible unminimized Home in LIVE_HANDOFF15.
+These source workflows are not an ending-SHA claim. Ending-commit CI/integration is verified separately before canonical terminal closure.

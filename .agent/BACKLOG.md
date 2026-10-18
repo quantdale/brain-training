@@ -12,6 +12,13 @@ plus historical follow-ups.
 
 ## Still-open durable items
 
+- Campaign077 P3 static review: singular-day copy on domain detail, a clipped
+  secondary Bronze Ring unlock hint, and unclear primary-category balance versus
+  multi-domain rating freshness wording. Repeated discovery covers, sparse
+  one-point analytics and the competing foreground Demo/background Start
+  composition remain minor tradeoffs. Final per-image native15 review and
+  FINAL_REPORT record actual profiles; no hidden primary-action or P1/P2 claim.
+
 - Campaign077 P3 cosmetic: native14 NumberLine enabled Submit PNG shows a gray
   backing rectangle at the rounded face corners/bottom. Face bounds/label/input
   qualify; actual encoded recording shows at least650ms, cause unknown. See

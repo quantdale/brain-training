@@ -29,9 +29,10 @@ progress, stable levels and immediate timed game start. PRESS_POLICY_RECOVERY
 adds the real held-scale/disabled/reduced-motion repair. Game clocks/sensory
 claims remain independent of decorative motion; presentation cannot grant XP.
 
-Remaining: terminal current180-frame critique/gallery, matched normal/reduced
-native press, bounded practical startup/frame/PSS/logcat assessment, final
-report/brief audit/endingSHA four CI/clean pushed main and restored visible Home
-handoff. These open gates are in tasks.md; existing qualified full-workout/
-restores/art need no blind replay/regeneration. Owner taste review remains
-required; physical/ARM64/iOS runtime/store signing are not claimed.
+Final native15 180-frame critique/gallery and matched normal/reduced filter
+canary, bounded startup/frame/PSS/logcat assessment and actual visible restored
+Home are recorded in NATIVE_VISUAL15/RUNTIME_FINAL15/LIVE_HANDOFF15. Ending-
+candidate exact-SHA four CI and clean integrated main are checked before this
+terminal candidate is made canonical. FINAL_REPORT/COMPLETION_AUDIT15 retain
+full scope, known debt and explicit limits. No successor is activated; owner
+taste approval/physical/ARM64/iOS runtime/store signing are not claimed.

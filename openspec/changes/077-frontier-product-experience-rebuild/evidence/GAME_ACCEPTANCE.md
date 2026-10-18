@@ -53,4 +53,10 @@ Oct16offline4played0skip/normalFinish/recovered restart and four unique formula-
 
 No row claims a complete native enlarged-text, screen-reader or interruption journey. Manual TalkBack/VoiceOver, physical tap latency, ARM64 and iOS runtime remain NOT VALIDATED. The owner explicitly asks for source-first investigation, shared-family regressions and selective real use, rather than42 repetitive controller runs.
 
-Qualified selective checks include native14 labeled Next/disabled-to-enabled original-center Submit, native14 Transform and native15 Grid tutorials at combined320dp/font2, and unchanged native12 sampled scrolled Profile/Progress repairs. Current static matrix/review, matched normal/reduced press feedback, practical latency and bounded frame/PSS/logcat assessment are being converged. Final gallery/CI/visibleHome/section17/original-audit gates remain in tasks.md; source tests never stand in for missing pixels or gameplay.
+Qualified selective checks include native14 labeled Next/original-center Submit,
+native14 Transform/native15 Grid tutorials at combined320dp/font2, unchanged
+native12 sampled scrolled repairs, current180 static reviews and actual matched
+normal/reduced filter press. RUNTIME_FINAL15 records measured warm frames/PSS/
+logs and explicit poor-jank/recording/physical limits. Source tests never replace
+missing gameplay or claim all42 native states; final integration/CI/live handoff
+evidence is indexed by FINAL_REPORT/COMPLETION_AUDIT15.

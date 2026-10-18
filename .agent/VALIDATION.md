@@ -1,3 +1,18 @@
+# Terminal candidate qualification — Campaign077
+
+NATIVE_VISUAL15:180actual originals/121staticPASS59P3/noP1P2/144independent+36root,
+150genuine baseline pairs30unmatched/15independent direct pairs. RUNTIME_FINAL15:
+matched normal/reduced filter taskCOMPLETED315.2s, actual device clips/frames,
+six warm windows106frames91janky/host38-74%, three PSS points/scoped logs. Poor
+jank, encoded distortion and historical ANRs retained; no60fps/leak/physical
+latency claim. All13 tables exact afterGrid throughfinal runtime, integrityok/
+13sessions28668/settings/olderworkouts intact. Necessary returnCOLD1703ms.
+LIVE_HANDOFF15:06:23:42UTC actual visible/unminimized5570/currentAPK/foreground
+Home/original PNG0f92e763...8012f/equalXMLb8c50c08...718c personally viewed,
+all original display/theme/motion/rotation/network restored. Ending candidate
+is integrated into main only after exact-SHA four CI success; final delivery/
+Actions metadata supplies SHA/run IDs and clean/pushed/no-temp-branch proof.
+
 # Current qualification — native15/source9e5b, 2026-10-18 PH
 
 Actual independent732-commit/no-hardlinks fresh checkout/fresh npm ci/full

@@ -1,9 +1,10 @@
 # CAMPAIGN 077 — FRONTIER PRODUCT REBUILD REPORT
 
-**Status: ACTIVE — final evidence convergence, 2026-10-18 PH.** Implementation,
-native15 tutorial repair and fresh full-source certification are qualified.
-Current180-frame review, matched motion/performance, final Git/CI and live
-handoff are still being completed. Owner visual approval is not claimed.
+**Verdict: CAMPAIGN_077_EMULATOR_REVIEW_READY_WITH_LIMITATIONS.** The
+implementation, source/game/visual/selective runtime and visible Home handoff
+are qualified. This terminal candidate becomes canonical only after exact-SHA
+four-workflow success. Final delivery supplies that actual ending SHA/run IDs;
+owner taste approval and physical/store readiness are not claimed.
 
 ## Repository
 
@@ -13,7 +14,7 @@ handoff are still being completed. Owner visual approval is not claimed.
 | Starting SHA | `c7bbf0ddfa184204027d8b6df14deab5abf87a6e` |
 | Certified application source | `9e5b2a1bf3df5fac3ecd9d410846d9b379145246` |
 | Ending SHA | Final delivery records the exact ending commit and its four CI run IDs after the documentation commit. A committed file cannot contain its own Git hash. |
-| Worktree | One canonical worktree, no temporary branches/worktrees; final clean/pushed verification pending |
+| Worktree | One canonical worktree; isolated terminal validation branch is integrated/removed after exact-SHA CI; final delivery verifies clean/pushed main |
 
 Application-source identity is frozen at9e5b; later evidence/control-plane-only
 commits must preserve those exact build inputs. These are the campaign commits
@@ -44,6 +45,7 @@ through that source checkpoint; the final delivery adds subsequent evidence comm
 | `0c8794dd` | 077: bound feedback button height and qualify storage recovery |
 | `29d70a45` | 077: qualify native14 recovery and reconcile current game evidence |
 | `9e5b2a1b` | 077: enable nested tutorial scrolling and preserve native14 evidence |
+| `e6a76442` | 077: qualify native15 tutorial and fresh full-source certification |
 
 Independent certification clones and `D:/bt077` are retained external build/
 verification copies, not abandoned linked worktrees. Pre077 records remain
@@ -202,19 +204,20 @@ separates armed XML geometry from expired default/font2 PNGs. Storage13 qualifie
 real failed-bootstrap Retry and preservation; healthy recovery deep links alone
 are not failed-storage proof.
 
-Native15 current180-frame matrix/critique/gallery is pending. The baseline is
-the genuine fresh077150-frame collection, never076. Current compact320 vs
-baseline360dp and expanded720 vs800dp are responsive-family comparisons;
-day/session/workout states differ. Thirty added states have no fabricated before
-image. Native11 all-nine-illustration/both-theme review and exact native15
-packaged pixels retain artwork identity; current layouts get separate review.
+Native15 all180 original frames are personally reviewed:144 independent/36root,
+121staticPASS59P3/noP1P2. NATIVE_VISUAL15 records perimage hashes/brackets/direct
+themes/profiles and actual critique. The gallery has150 genuine fresh077 baseline
+pairs/30unmatched states;15 direct baseline/current pairs independently viewed.
+Compact360-to320dp,expanded800-to720dp and day/history/results/workout states
+differ and are disclosed. Native12 sampled scrolled after-repairs and named
+dynamic evidence retain scope; no076 or invented prechangeactive/pause pictures.
 
 Motion keeps the useful existing engine. SOURCE_DISPOSITION's explicit mapping
 covers native-driver press/entrance/verdict/results/reward cues, progress bars
 (JS driver), stable level numerals and immediate game start. Decorative motion
 does not gate cognitive timers or grant rewards. PRESS_POLICY_RECOVERY records
 the genuine held-scale/disabled/reduced-motion correction and red/green callers.
-Current matched native motion and practical measurements remain pending.
+Actual matched filter press/selection and measured warm frames/PSS/logs are in RUNTIME_FINAL15; bounded policy supported, poor jank/recording distortion/physical-latency limits retained.
 
 ## Games
 
@@ -296,7 +299,7 @@ completed test produced 0/12. It is not reported as a newly fixed bug.
 | Native Android | Native15 exact1107-file snapshot/941mapped own sources/bundle/nine art/three fonts PASS; Gradle532tasks7m14s, one worker/no daemon |
 | Install / data | Full device file hash before normal install-r SUCCESS; installed hash match; all three SQLite files exact/integrityok13sessions/settings retained |
 | Cold / offline | Actual absent-process firstCOLD1797ms/ADB1.881s; settled Home and Grid tutorial/locally rendered art while wifi0/data0/active networkNONE |
-| Current motion / frame / memory / logs | Pending final bounded measurement; no60fps/physical-latency/leak-free claim |
+| Current motion / frame / memory / logs | RUNTIME_FINAL15: matched filter press/selection,106frames91janky/host38-74%,PSS364148/346553KiB/post321603, scoped log/exit assessment. No60fps/physical-latency/leak-free claim |
 
 Full cert summarySHA256
 `1173a12f337c4da1e18d655208422e5c7f5ef85bbae609151cac672c9a6e410c`;
@@ -350,7 +353,7 @@ All four workflows SUCCESS at the frozen application source9e5b:
 | Android Build Smoke |[39087739454](https://github.com/quantdale/brain-training/actions/runs/39087739454) |
 | iOS Build Smoke |[39087739469](https://github.com/quantdale/brain-training/actions/runs/39087739469) |
 
-Exact ending-SHA outcomes remain pending; final delivery supplies the actual
+Exact ending-SHA outcomes are checked before candidate integration; final delivery supplies the actual
 ending commit plus four run IDs after the final commit. iOS compilation does
 not prove iOS runtime. Historical0c Android attempt1 Foojay resolution failure
 and no-source-change attempt2 success remain retained.
@@ -359,17 +362,16 @@ and no-source-change attempt2 success remain retained.
 
 | Field | Qualified identity / remaining final witness |
 |---|---|
-| GUI / target | Same visible dedicated braintraining-ui35/emulator-5570, qemu108764; final visible/unminimized check pending |
+| GUI / target | Same visible dedicated braintraining-ui35/emulator-5570, qemu108764; actual visible/unminimized witness06:23:42UTC PASS |
 | Installed APK |`8919b11bb3f5eb4b0baea73773c12a4676b59c94c79a0f4e2dfac053d9bb6502`,52,311,479bytes |
 | Package/version |`com.braintraining.app`0.1.0/code1000, x86_64, min24/target36, debug-signed release |
 | Source |`9e5b2a1bf3df5fac3ecd9d410846d9b379145246`; snapshotSHA6ccef1ba…3ce, mapSHA1c6c517e…591, packaged bundle0a377d5b…ce21; full hashes in NATIVE_PREVIEW15 |
 | Guest |Current kernel5d0b4626-0079-4acb-a0b0-31fde15b124e, one AVD, no wipe/restore |
 | Home/data |Initial/default and post-tutorial286XP68coins/Oct18zeroof4 personally viewed; completedOct16 retained |
-| Final restoration |Original density420/font1/motion1/night:no/rotation1,0/network1,1,0 and final Home-at-top witness pending |
+| Final restoration |Exact original density420/font1/motion1/night:no secure1/rotation1,0/network1,1,0 restored; Home-at-top personally viewed PNG0f92e763...8012f/equalXMLb8c50c08...718c |
 
 No host mouse/keyboard/focus automation is used. Current build/install/cold/
-initial Home/tutor/data identities are in NATIVE_PREVIEW15; final screenshot
-and GUI/foreground witness must be added after exclusive runtime work finishes.
+initial Home/tutor/data identities are in NATIVE_PREVIEW15; LIVE_HANDOFF15 records actual final screenshot/visible GUI/foreground proof and restored preferences.
 
 ## Final assessment
 
@@ -377,7 +379,7 @@ The changes materially improve action hierarchy, original local illustration,
 type/icons, readable progress, game presentation/tutorial reachability, truthful
 feedback and data operations, while repairing shared input/timing/state defects.
 No confirmed unresolved Critical/High source defect is identified by the current
-42-game reconciliation; final native review/performance assessment remains open.
+42-game reconciliation. Current native critique and bounded practical assessment are complete, with poor emulator jank and encoded distortion explicitly retained.
 
 Known lower-severity debt includes repeated covers/sparse one-point analytics,
 singular-day copy, truncated secondary Bronze Ring unlock caption, distinction
@@ -385,7 +387,7 @@ between primary-category balance and multi-domain rating wording, thin tutorial
 seam/competing background CTA and the gray enabled-Submit backing. These do not
 constitute owner approval or make every hidden state validated.
 
-**Verdict: ACTIVE / FINAL ACCEPTANCE PENDING.** Owner personal review remains
+**Verdict: EMULATOR REVIEW READY WITH LIMITATIONS.** Owner personal review remains
 required. PHYSICAL_ANDROID/ARM64/IOS_RUNTIME are NOT VALIDATED; debug signing is
 not store signing and this APK is not a store-ready artifact.
 

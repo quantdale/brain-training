@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "COMPLETED",
   "change": "077-frontier-product-experience-rebuild",
-  "description": "Campaign 077. Lead owns shared systems, generated registries, governance, assets and device integration. Explicit repair and route packets own disjoint surfaces.",
+  "description": "Campaign077 converged; no active coder packet. Historical ownership/evidence retained; owner personal review/platform limits remain explicit.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

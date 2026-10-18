@@ -7,7 +7,7 @@ current debt and qualification limits, rather than issuing stale live-task steps
 ## Current findings and remaining validation
 
 - No confirmed unresolved Critical/High source defect in current42-game
-  reconciliation. Final native profiles/motion/performance/CI/handoff remain open.
+  reconciliation. Final native profiles/canary/practical assessment/live Home are qualified within named limits; exact ending-CI is checked before canonical integration.
 - P3 actual enabled Number Line Submit has gray backing at rounded corners/
   bottom for>=650ms. Painted face/input/Next qualify; cause unproven. Existing
   source setter paths do not establish an omitted-radius bug; no speculative
@@ -20,7 +20,7 @@ current debt and qualification limits, rather than issuing stale live-task steps
   exact profile/frame bounds and static/below-fold limits.
 - Historical slow cold draws/no-focused-window ANRs/framework watchdogs and
   host-confounded jank remain unexplained, not erased by current firstCOLD1797ms.
-  Current practical frame/PSS/logcat observations are still due. Physical60fps,
+  Current RUNTIME_FINAL15 measures91/106janky frames/host38-74%,PSS364148/346553KiB/post321603; functional canary works, smoothness remains limited. Physical60fps,
   physical tap latency and leak-free behavior are NOT VALIDATED.
 - Optional ARTEMIS Outputter400 occurred after successful UI and can cause
   finalizer CANCELLED. Provider access works; omitted optional outputdescription
@@ -71,3 +71,5 @@ current debt and qualification limits, rather than issuing stale live-task steps
   certification clones and D:/bt077 also remain verification/build evidence,
   separate from Git worktrees. The six successful sampler-folder removals are
   a different operation and must not be reported rejected.
+
+- Final device-local canary recordings contain text distortion including system status bar; attribution unproven. Actual settled PNGs remain clean. Sparse/VFR recordings and FFmpeg metadata/DTS warnings are retained, not a clean-motion or precise-latency claim. RUNTIME_FINAL15.
