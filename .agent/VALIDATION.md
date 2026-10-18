@@ -1,6 +1,14 @@
-# Campaign078 � current qualification
+# Campaign078 — terminal candidate qualification
 
-42cover generation/check, mapping/dimensions/hashes/unique42/assetbudget, focused4suites20tests, fulltypecheck/lint, strict63OpenSpecitems, registry/provenance/ownership/repo/offline/secrets/runtimeQA/Expo/workflow/impact gates PASS. Productionaudit10accepted/no new unallowlisted moderate+ PASS. Independent titlehidden pilot/fullreview and informed finalcorrections complete. FullJest708passedsuites7979passedtests5classifiedskips/fiveunchangedsnapshots347.671s PASS; web22routesPASS. Additional determinism regression focused4testsPASS after fullrun. Native/APK/install/all42device/profile/perf/finalCI still inprogress, not claimedPASS. Baseline fixed16swipe captures retained; ARTEMIS preliminarypartialcoverage and unexecutedProbenchmark not accepted.
+Source and native qualification complete; final exact-SHA workflows must all succeed before delivery. Whole Jest708passed suites7979passed tests/five snapshots/five classified skips PASS predates final sizing repair; current focused17tests/typecheck/lint PASS. Final AppCI runs full current source. Strict63OpenSpec/registry/provenance/ownership/repo/offline/secrets/runtimeQA/Expo/workflow/impact/web22routes/dependency gate PASS. Ten accepted production advisories remain.
+
+Accepted APKfc2c99f7f4ffb668ed6ea9d79a5f91714e33178834b7bee6868360db045c605d /52733728B, production359a80be.989 mapped own sources/all42 packaged PNG decoded pixels match. NativeA clipping failure repaired/rebuilt; exact installed APK/same signing/permissions/protected SQLite PASS. Owner15sessions/all14tables exact/integrityok after runtime.
+
+Root actual all42 light/dark review; sampled font2/320dp/320dp-dark-font2/548dp responsive frames; actual full-library recording; native ARTEMIS Memory details/introduction/return6actions PASS within checker-off/navigation-only scope. Offline COLD1348ms at12:06UTC records Wi-Fi0/mobile0/defaultnetworknone and traversal to list end. Prior partial ARTEMIS traversal/Probenchmark are not accepted. No full42 gameplay rerun.
+
+Matched16gesture counters:266/650jank40.92%→255/66938.12%,p95113→101ms; legacy92.77→94.32%. PSS182247→208391KiB(+25.53MiB/+14.35%); settled206273. Texture cache110.02KB→40.41MB. Bounded emulator observations, not causal improvement/60FPS/physical/leak-free claims. Asset budget569529B/decoded26.25MiB; APKdelta+422249B,JSbundle−8416B.
+
+Visible/unminimized5570/Games and original settings witnessed; post-CI refresh/clean-pushed-main/four exactSHA Actions IDs go in local FINAL_DELIVERY.json. Full evidence in078 FINAL_REPORT/NATIVE_VALIDATION/PERFORMANCE/OFFLINE_PROOF.077/076 historical records below remain unchanged.
 
 # Terminal candidate qualification — Campaign077
 

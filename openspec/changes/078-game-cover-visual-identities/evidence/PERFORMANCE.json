@@ -1,0 +1,32 @@
+{
+  "before2": {
+    "frames": "650",
+    "janky": "266",
+    "p50ms": "40",
+    "p90ms": "77",
+    "p95ms": "113",
+    "slowBitmapUploads": "6",
+    "attachedViews": "1095",
+    "pssStartKiB": 192259,
+    "pssEndKiB": 182247,
+    "legacyJankPercent": 92.77,
+    "gfxImageTexture": "110.02 KB"
+  },
+  "after": {
+    "frames": "669",
+    "janky": "255",
+    "p50ms": "38",
+    "p90ms": "69",
+    "p95ms": "101",
+    "slowBitmapUploads": "1",
+    "attachedViews": "931",
+    "pssStartKiB": 203788,
+    "pssEndKiB": 208391,
+    "pssSettledKiB": 206273,
+    "legacyJankPercent": 94.32,
+    "gfxImageTexture": "40.41 MB"
+  },
+  "pssEndIncreaseKiB": 26144,
+  "pssEndIncreasePercent": 14.35,
+  "interpretation": "One matched16gesture sample; memory/texture cost increases; primary frame counters do not establish causal or general improvement. Legacyjank remains very high."
+}

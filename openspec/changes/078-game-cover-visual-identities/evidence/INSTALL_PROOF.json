@@ -1,0 +1,14 @@
+{
+  "apkSha256": "fc2c99f7f4ffb668ed6ea9d79a5f91714e33178834b7bee6868360db045c605d",
+  "before": {
+    "brain-training.db": "d06fc9d924602691a2d14eb12200579a214da965819c656033ab2866ce71c850",
+    "brain-training.db-shm": "513c395db8fed0a0cc4dd698995887adfc413c1eb347fbc7edfb7bc4efb0de54",
+    "brain-training.db-wal": "bd2a13781de278daf4723a71ea331b931013e83e083fb9454e17020f425c0552"
+  },
+  "after": {
+    "brain-training.db": "d06fc9d924602691a2d14eb12200579a214da965819c656033ab2866ce71c850",
+    "brain-training.db-shm": "513c395db8fed0a0cc4dd698995887adfc413c1eb347fbc7edfb7bc4efb0de54",
+    "brain-training.db-wal": "bd2a13781de278daf4723a71ea331b931013e83e083fb9454e17020f425c0552"
+  },
+  "byteIdentical": true
+}

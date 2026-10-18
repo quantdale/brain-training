@@ -1,3 +1,11 @@
+# Known Issues — Campaign078
+
+No unresolved required cover correction after independent and actual native review. Remaining P3 limits: OddOneOut triangle may suggest play, rule-switch timing/watchlist disappearance need instructions, GridRecall echo small, ReactionTime richer depth. Large/compact/font2 coverage is sampled; physicalAndroid/ARM64/iOS runtime and comprehensive screen readers/human recognizability remain unvalidated.
+
+Memory cost:42 covers569529B packaged/26.25MiB hypothetical RGBA. Matched endpointPSS+25.53MiB/+14.35%, texture cache110.02KB→40.41MB. Main frame counters slightly lower; legacyjank94.32% remains poor. No60FPS/causal improvement/leak-free claim. Larger cold blank reserved slots settle correctly; instant every-frame availability not claimed. NativeA imagebounds repaired/rebuilt in359a80be.
+
+Final exactSHA four-workflow delivery condition is recorded in local FINAL_DELIVERY.json after observation. Owner history15sessions/all14tables exact. Campaign077 repeated-cover debt is resolved by078; other historical findings below retain their dated evidence.
+
 # Known Issues — Campaign077
 
 Current application source9e5b2a1b/native15. Historical per-preview failures remain

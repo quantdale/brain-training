@@ -1,0 +1,82 @@
+[
+  {
+    "file": "after-up-01.png",
+    "sha256": "7ac47e428d8d66a54e2aebe12f174f80ec880583d83dc3ff0d4a47c228a6e31a",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-02.png",
+    "sha256": "e32e78ed1f3f4e01a3cf7037532cdb91b3802d7d02c83f3609a81b6345a5e39c",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-03.png",
+    "sha256": "74e186601a088d6f97e0d058ba808e7a4797fdec9394404bf1197c761a4a40ad",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-04.png",
+    "sha256": "7710f2ebac5db5a38fe5e2a1e8e0af41093ff44dbd7a481c6c749e0f676b32b6",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-05.png",
+    "sha256": "bc00fc2000fe89813f2ee49c8912f142429770a1efc412d2fed8936ba8097454",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-06.png",
+    "sha256": "dc5c0f41abfc40babc1912aed715b23a10be92cd42b773d09a2375e840fe4255",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-07.png",
+    "sha256": "7cf9f5a82c99216d4726bd64b59f12fc4534e57c645cedafcb679e42ea315436",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "after-up-08.png",
+    "sha256": "9069cb24825965a8c505dd8e6808cc14842ecc2847a00c36d706bd0b7e48e594",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-01.png",
+    "sha256": "6ad04b2274164f8efa684f60ab51cac66281f1cdf9c8e7d68bb89f6244460aab",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-02.png",
+    "sha256": "7c4c351e616ac46e6021e971b0f62b294ad1a2b823f6ec3aa5c412ef690dab81",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-03.png",
+    "sha256": "b026074b04f715bb30a10e68720b273d92976da4c641b1bc5bab8077d86c2e05",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-04.png",
+    "sha256": "f108bfe6b7e1c8b13ce5a1883798dd06604253237aaace1f4f060829fb32e50b",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-05.png",
+    "sha256": "df9b5e7b9771bf876491392c61b9362214f7b10d03ae0a5cb94ccfa8e1945a99",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-06.png",
+    "sha256": "6ffb78862a481a652f92a728aac7ed82ba1411cdd5173f7515991bd437ae2f8e",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-07.png",
+    "sha256": "2b81b3a75b097e03d2b3d4be04c8df34a408ee7c53eb4c89b31c0933b2f981e0",
+    "rootPersonallyInspected": true
+  },
+  {
+    "file": "dark-08.png",
+    "sha256": "956ad93cd4914ce409f2092beee88b663f3e3870b03f094fad6148807a46dc7c",
+    "rootPersonallyInspected": true
+  }
+]

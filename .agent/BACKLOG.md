@@ -10,11 +10,16 @@ ledger `.agent/OVERNIGHT_056_067_STATE.md`); durable current state lives in
 `.agent/STATE.md`. This file records durable work outside the terminal campaign
 plus historical follow-ups.
 
+## Campaign078 bounded follow-ups
+
+- Human title-hidden recognizability/taste assessment remains external. Static rule-timing/secondary-cue limits are in078 RECOGNIZABILITY; no required source correction remains.
+- Physical-device memory/scroll profiling could assess the explicit26.25MiB decoded artwork budget and poor emulator smoothness. Current comparison is PERFORMANCE, not60FPS certification.
+
 ## Still-open durable items
 
 - Campaign077 P3 static review: singular-day copy on domain detail, a clipped
   secondary Bronze Ring unlock hint, and unclear primary-category balance versus
-  multi-domain rating freshness wording. Repeated discovery covers, sparse
+  multi-domain rating freshness wording. Discovery cover repetition is resolved in078. Sparse
   one-point analytics and the competing foreground Demo/background Start
   composition remain minor tradeoffs. Final per-image native15 review and
   FINAL_REPORT record actual profiles; no hidden primary-action or P1/P2 claim.

@@ -1,0 +1,36 @@
+{
+  "startedAtUtc": "2026-10-18T12:06:35.659639+00:00",
+  "serial": "emulator-5570",
+  "wifi": "0",
+  "mobileData": "0",
+  "airplane": "0",
+  "connectivityWitness": [
+    "Active default network: none"
+  ],
+  "coldLaunch": "Starting: Intent { act=android.intent.action.VIEW dat=braintraining://games/... pkg=com.braintraining.app }\r\nStatus: ok\r\nLaunchState: COLD\r\nActivity: com.braintraining.app/.MainActivity\r\nTotalTime: 1348\r\nWaitTime: 1352\r\nComplete",
+  "pngSha256": "3f5000cb2f09cf001f6f305ad747f8b96c726d341487a5fcb41f3c681c01fa85",
+  "capturedAtUtc": "2026-10-18T12:06:40.901789+00:00",
+  "rootPersonallyInspected": true,
+  "traversal": [
+    {
+      "file": "offline-scroll-02.png",
+      "sha256": "5362e2f008626c2f6f9d2484ff000461ae31159273bb4fb673ef2e3dd008f4d1",
+      "utc": "2026-10-18T12:06:59.654542+00:00"
+    },
+    {
+      "file": "offline-scroll-04.png",
+      "sha256": "39109dc810eb27c9b6c90419f69c5c8bc3e0d3f8488c5c1abdcee955050bb43b",
+      "utc": "2026-10-18T12:07:01.668896+00:00"
+    },
+    {
+      "file": "offline-scroll-08.png",
+      "sha256": "b8a3ee155918b221b5f7da62f320b94cd4166259c0e165e22035aea976ab0397",
+      "utc": "2026-10-18T12:07:05.189637+00:00"
+    }
+  ],
+  "wifiAtEnd": "0",
+  "mobileDataAtEnd": "0",
+  "connectivityAtEnd": [
+    "Active default network: none"
+  ]
+}

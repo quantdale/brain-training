@@ -1,5 +1,9 @@
 # Ultimate Goal and Goal-Mode Entry
 
+## Campaign078 owner directive — terminal delivery candidate
+
+Focused42-game visual identity work is implemented and natively qualified with explicit limits. Final handoff requires four workflows to succeed at the exact ending commit and a fresh visible Games witness. Post-commit FINAL_DELIVERY.json records those observations. No successor campaign is authorized. The078 FINAL_REPORT contains42 concepts, source/APK identity, native evidence, memory tradeoff and preserved data. Campaign077 statements below describe their historical terminal checkpoint.
+
 ## Campaign077 owner directive — completed
 
 The full077 implementation, source/game/visual/selective runtime certification

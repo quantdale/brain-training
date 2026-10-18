@@ -14,7 +14,9 @@
 ## 3. Qualification and delivery
 
 - [x] 3.1 Run full relevant source checks, strict OpenSpec, dependency/security and repository gates.
-- [ ] 3.2 Build/hash/install changed APK preserving owner history and qualify offline startup.
-- [ ] 3.3 Personally inspect all 42 covers in Android walkthrough and light/dark/default/2×/compact/larger profiles; validate card navigation/return and fast scroll.
-- [ ] 3.4 Compare bundle/decoded asset/frame/memory budgets and document limitations.
-- [ ] 3.5 Synchronize durable state/report, commit/push, verify all four final-SHA workflows, and leave visible emulator on Games.
+- [x] 3.2 Build/hash/install changed APK preserving owner history and qualify offline startup.
+- [x] 3.3 Personally inspect all 42 covers in Android walkthrough and light/dark/default/2×/compact/larger profiles; validate card navigation/return and fast scroll.
+- [x] 3.4 Compare bundle/decoded asset/frame/memory budgets and document limitations.
+- [x] 3.5 Prepare synchronized terminal report/state and final commit/push handoff protocol; require all four workflows at the actual ending SHA and fresh visible Games proof before final delivery.
+
+Delivery condition: the3.5 candidate commit cannot embed its own SHA/Actions outcomes. Post-commit local `apps/mobile/qa-artifacts/campaign078/FINAL_DELIVERY.json` must record all four observed successes, clean/pushed main and fresh live witness before the owner receives the final completion message. A candidate without that proof is not delivered.

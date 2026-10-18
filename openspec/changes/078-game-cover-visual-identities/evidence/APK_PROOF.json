@@ -1,0 +1,138 @@
+{
+  "sourceCommit": "359a80be81f6b6730622067294a3f24f607fdbd6",
+  "apkSha256": "fc2c99f7f4ffb668ed6ea9d79a5f91714e33178834b7bee6868360db045c605d",
+  "apkBytes": 52733728,
+  "bundleBytes": 5338512,
+  "bundleSha256": "6264e250adf912f77e933ab187172e0e4c575e94bb72ca96410778c3337305f8",
+  "mapSha256": "d6f7a5744b6c351509c8e2b9711eb43d18abe0020c0bc4efc43d451e1da6403f",
+  "matchedOwnSources": 989,
+  "coverPixelMatches": {
+    "attention-odd-one-out": [
+      "res/Ww.png"
+    ],
+    "attention-sustained-vigilance": [
+      "res/7R1.png"
+    ],
+    "attention-symbol-tracker": [
+      "res/_r.png"
+    ],
+    "attention-target-count": [
+      "res/LS.png"
+    ],
+    "attention-visual-search": [
+      "res/Ag.png"
+    ],
+    "flexibility-card-sort": [
+      "res/C4.png"
+    ],
+    "flexibility-color-stroop": [
+      "res/oM.png"
+    ],
+    "flexibility-cue-shift": [
+      "res/bd.png"
+    ],
+    "flexibility-rule-flip": [
+      "res/JR.png"
+    ],
+    "flexibility-task-switch": [
+      "res/z_.png"
+    ],
+    "language-context-fit": [
+      "res/2L.png"
+    ],
+    "language-sentence-builder": [
+      "res/xL.png"
+    ],
+    "language-word-chain": [
+      "res/FM.png"
+    ],
+    "language-word-match": [
+      "res/rL.png"
+    ],
+    "language-word-scramble": [
+      "res/wB.png"
+    ],
+    "logic-code-cracker": [
+      "res/EO.png"
+    ],
+    "logic-deduction-table": [
+      "res/4y.png"
+    ],
+    "logic-next-sequence": [
+      "res/Gw.png"
+    ],
+    "logic-order-path": [
+      "res/g0.png"
+    ],
+    "logic-rule-grid": [
+      "res/p1.png"
+    ],
+    "math-equation-builder": [
+      "res/jq.png"
+    ],
+    "math-fast-math": [
+      "res/5_.png"
+    ],
+    "math-missing-operator": [
+      "res/qR.png"
+    ],
+    "math-number-line-estimation": [
+      "res/Rs.png"
+    ],
+    "math-value-ordering": [
+      "res/8h.png"
+    ],
+    "memory": [
+      "res/nX.png"
+    ],
+    "memory-grid-recall": [
+      "res/bN.png"
+    ],
+    "memory-pair-recall": [
+      "res/t7.png"
+    ],
+    "memory-pattern-tap-back": [
+      "res/Sp.png"
+    ],
+    "memory-prospective-cue": [
+      "res/AS.png"
+    ],
+    "memory-running-order": [
+      "res/77.png"
+    ],
+    "memory-sequence-memory": [
+      "res/Xa.png"
+    ],
+    "spatial-coordinate-turn": [
+      "res/BM.png"
+    ],
+    "spatial-fold-match": [
+      "res/Lw.png"
+    ],
+    "spatial-grid-nav": [
+      "res/bB.png"
+    ],
+    "spatial-mental-rotation": [
+      "res/fG.png"
+    ],
+    "spatial-transform-match": [
+      "res/Hx.png"
+    ],
+    "speed-color-match": [
+      "res/UR.png"
+    ],
+    "speed-order-sweep": [
+      "res/T3.png"
+    ],
+    "speed-quick-compare": [
+      "res/2P.png"
+    ],
+    "speed-reaction-time": [
+      "res/Jg.png"
+    ],
+    "speed-tap-rush": [
+      "res/Ys.png"
+    ]
+  },
+  "inputInventorySha256": "94bc91296a0ec15569a5a59a51d3728842257800026fe1eb5a651ae4c6a5089e"
+}

@@ -1,11 +1,11 @@
-# Campaign078 — game-cover visual identities
+# Campaign078 â€” game-cover visual identities
 
 **Campaign id:** `078-game-cover-visual-identities`
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Mode:** day
 **Starting SHA:** `e7885b6d`
 **Change:** `openspec/changes/078-game-cover-visual-identities`
 
-Execute stagesA–G of owner brief. Exit:42 intentional accurate identities integrated offline; independent title-hidden review; all42 native cover inspection/light-dark/large text/responsive/nav/perf checks; currentAPK/source hashes and preserved history; source/repository/security gates; allfour workflows green at actual finalSHA; visible braintraining-ui35 open on Games. Root owns integration, generated outputs, shared files and device.
+StagesAâ€“F and delivery preparation complete:42/42 mechanic-specific covers, actual ImageGen/targeted Refero, independent blind/informed review, scoped integration, source gates, accepted rebuilt APK, all42 default-theme native inspection, sampled responsive profiles, offline/card navigation/return, bounded performance comparison and preserved owner data. Full evidence/report under the change. Production source359a80be; accepted APKfc2c99â€¦c605d.
 
-Progress: startup/reconciliation and parallel42-mechanic audit complete. Pilot and baseline underway. This is presentation-only and does not reopen076/077.
+This terminal candidate is qualified with explicit performance/platform/recognition limits. Final delivery is conditional on four workflows succeeding at its actual ending SHA and a fresh live Games witness. Exact post-commit observations are written to local apps/mobile/qa-artifacts/campaign078/FINAL_DELIVERY.json and final owner response. No successor campaign; do not reopen076/077.

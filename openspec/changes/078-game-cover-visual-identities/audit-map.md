@@ -1,3 +1,3 @@
 # Audit map
 
-Owner stagesA�G map to tasks1.1�3.5. Mechanic matrix, pilot/review, native walkthrough, performance, source gates, APK/data proof and finalCI outcomes will live in evidence/. Pending checks remain NOT VALIDATED until observed.
+StagesA–B → MECHANIC_MATRIX/ART_DIRECTION;C–E → contact sheets/RECOGNIZABILITY;F → SOURCE_CHECKS/APK_PROOF/INSTALL_PROOF/DATA_PRESERVATION/NATIVE_VALIDATION/PERFORMANCE/OFFLINE_PROOF;G → FINAL_REPORT/OWNER_HANDOFF plus post-commit local FINAL_DELIVERY.json for actual endingSHA/four Actions results/fresh live witness. Exact-SHA delivery condition remains mandatory; earlier runs do not substitute. Historical076/077 certification is unchanged.

@@ -1,0 +1,20 @@
+{
+  "capturedAtUtc": "2026-10-18T12:03:34.921244+00:00",
+  "serial": "emulator-5570",
+  "avd": "braintraining-ui35",
+  "pngSha256": "8fc28d9bc0d84fac4a87e719d0117021b0d965e45104d15de7463f73455ae414",
+  "xmlSha256": "bc15775e52d3ac5d9de5a2097013e7ef2c2fde78bd0bc259e3d82edbeb2b0492",
+  "rootPersonallyInspected": true,
+  "focus": [
+    "mCurrentFocus=Window{7f2d425 u0 com.braintraining.app/com.braintraining.app.MainActivity}",
+    "mFocusedApp=ActivityRecord{8a292de u0 com.braintraining.app/.MainActivity t1291}"
+  ],
+  "size": "Physical size: 1080x2400",
+  "density": "Physical density: 420",
+  "fontScale": "1.0",
+  "night": "Night mode: no",
+  "wifi": "1",
+  "mobileData": "1",
+  "airplane": "0",
+  "installedApkSha256": "fc2c99f7f4ffb668ed6ea9d79a5f91714e33178834b7bee6868360db045c605d"
+}
