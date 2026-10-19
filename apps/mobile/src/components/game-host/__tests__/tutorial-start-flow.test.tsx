@@ -164,6 +164,19 @@ describe('tutorial completion hands control back to a playable Start action', ()
     await view.unmount();
   });
 
+  it('starts short tutorials in reading order without a viewport-sized blank spacer above them', async () => {
+    const { view } = await renderGame('light');
+    let ancestor = screen.getByTestId(testId(GAME_ID, 'tutorial')).parent;
+    const alignments: unknown[] = [];
+    while (ancestor !== null && ancestor.props.contentContainerStyle === undefined) {
+      alignments.push(StyleSheet.flatten(ancestor.props.style)?.justifyContent);
+      ancestor = ancestor.parent;
+    }
+    expect(alignments).not.toContain('flex-end');
+    expectTutorialOwnsIntroduction();
+    await view.unmount();
+  });
+
   it('lets the intrinsic tutorial grow within the scrolling route instead of clipping at a percent height cap', async () => {
     Object.assign(mockViewport, { width: 320, height: 533, fontScale: 2 });
     const { view } = await renderGame('dark');

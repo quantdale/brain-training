@@ -436,11 +436,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  // Preserve the bottom-aligned card for short steps; taller steps grow the
-  // route's scroll range. ScreenShell supplies the actual safe-area inset.
+  // This is a page in the route's reading flow, not a bottom sheet. Short
+  // steps start at the top; taller steps grow the same accessible scroll range.
+  // ScreenShell supplies the actual safe-area inset.
   tutorialContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
     paddingBottom: Spacing.four,
   },
   content: {

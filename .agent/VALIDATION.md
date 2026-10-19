@@ -1,3 +1,19 @@
+# Focused scale/responsive repair — source/build checkpoint, 2026-10-19
+
+Metadata3 valid before failures; short-tutorial alignment1 valid before failure.
+Initial focused72PASS; final full710suites8002tests/five unchanged snapshots,
+five existing classified opt-in skips/294.919s PASS. Global types/final types,
+full lint, strict63, declared source/security/repo gates, web22 PASS. APK
+10e7a10ea80c3a985d3bc67981b6f7df559ce3c00400caa255c20b182bab9dde,
+52734320B,576tasks6m8s. All1162 production inputs/942 own mapped code/bundle/
+expected8permissions verified. Update install exactSQLite3files/all13tables/
+18sessions PASS. Compact320dp/font2 header Place reappears, title893→766px;
+actual tutorial Gotit[105,1064][427,1201], underlyingStart absent. Other native
+profiles/nested canaries/final normal handoff/endingCI remain in progress.
+Provider daily500 quota cancels initial new Flash/Pro runs; no acceptance inferred.
+External same-provider fallback verified/temporary; credentials untouched.
+Full report under docs/bugfixes/ui-scaling. This checkpoint is not final delivery.
+
 # Focused tutorial/Start repair — 2026-10-19
 
 Original source: new18 interaction/scroll-ownership regressions allFAIL, plus

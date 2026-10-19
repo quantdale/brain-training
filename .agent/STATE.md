@@ -1,5 +1,25 @@
 # Durable Project State
 
+## Focused scale/responsive repair — 2026-10-19 (native qualification in progress)
+
+Clean origin/main2c0a990e baseline. Oversized handoff primarily came from the
+retained840x1400/420dpi/font2 QA profile; arrival still had size override but
+font1. AVD physical1080x2400/420dpi established and normal-scale shell inspected.
+Two confirmed shared defects repaired: intrinsic wrapping metadata in GameStage
+restores missing Place kicker at compact2x; GameHost removes obsolete bottom-sheet
+alignment from in-flow tutorial. No type/button token or scaling-cap change.
+Four regressions fail before; full source710suites8002tests/five unchanged
+snapshots/five classified skips/types/finaltypes/lint/strict63/declared gates/web
+PASS. Android576tasks6m8s/APK10e7a10e…bab9dde,1162 inputs/942 mapped code exact,
+expected8permissions,install-r/allSQLite files/all13 tables exact/18sessions PASS.
+Native compact2x header red/green and open tutorial/no underlyingStart witnessed.
+Remaining native profile comparisons, nested canaries, final normal visible
+handoff and ending-SHA four workflows remain pending. Flash/Pro shared model
+hit daily500 quota; supported same-provider3.1FlashLite fallback live-verified
+and temporarily selected externally, no credentials changed. Restore external
+config byte-for-byte and normal emulator profile before final handoff.
+Bounded report: docs/bugfixes/ui-scaling/REPORT.md. No new campaign.
+
 ## Focused tutorial/Start repair — 2026-10-19
 
 Owner-authorized bounded repair, starting clean origin/main41b0777f; no new

@@ -1,0 +1,30 @@
+{
+  "apkSha256": "10e7a10ea80c3a985d3bc67981b6f7df559ce3c00400caa255c20b182bab9dde",
+  "apkBytes": 52734320,
+  "mappedOwnCode": 942,
+  "mappedDifferences": [],
+  "bundlePackagedExactly": true,
+  "permissions": [
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.INTERNET",
+    "android.permission.MODIFY_AUDIO_SETTINGS",
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.VIBRATE",
+    "android.permission.WAKE_LOCK",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "com.braintraining.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "changedSourceHashes": {
+    "/src/components/game-host/game-host.tsx": "d0af0aabce32b90b5f5a0f42b4769bb41da0aaa2b8d2859f38e9599fd509f758",
+    "/src/components/discovery/game-stage.tsx": "bc890880fb24f459ad49fefdc83741d41e420eeacffc242e0f1792a7bf717bb6"
+  },
+  "inputFiles": 1162,
+  "inputDifferences": [],
+  "gradleTasks": 576,
+  "gradleExecuted": 24,
+  "buildDuration": "6m8s",
+  "installMode": "pm install -r",
+  "sqliteFilesIdenticalAtInstall": true,
+  "all13TablesIdenticalAtInstall": true,
+  "savedSessionsAtInstall": 18
+}

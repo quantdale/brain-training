@@ -71,19 +71,21 @@ export function GameStage({
       <GameWorldArt game={game} size={size} testID={artTestID} />
       <View style={styles.body}>
         <View style={styles.kickerRow}>
-          <IdentityMark
-            family={identity.family}
-            size={26}
-            color={hue?.softText ?? theme.textSecondary}
-            testID={identityTestID}
-          />
-          <ThemedText
-            type="eyebrow"
-            themeColor="textSecondary"
-            style={styles.kicker}>
-            {kickerText}
-          </ThemedText>
-          {meta}
+          <View style={styles.kickerGroup}>
+            <IdentityMark
+              family={identity.family}
+              size={26}
+              color={hue?.softText ?? theme.textSecondary}
+              testID={identityTestID}
+            />
+            <ThemedText
+              type="eyebrow"
+              themeColor="textSecondary"
+              style={styles.kicker}>
+              {kickerText}
+            </ThemedText>
+          </View>
+          {meta ? <View style={styles.metadata}>{meta}</View> : null}
         </View>
         <ThemedText type={titleType} testID={titleTestID}>
           {game.name}
@@ -106,10 +108,26 @@ const styles = StyleSheet.create({
   },
   kickerRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  // Measure the identity and metadata as separate intrinsic groups. A long
+  // enlarged category must wrap below the identity, not reduce its text to
+  // zero width (and a tall, invisible column) through a flex:1 basis.
+  kickerGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    maxWidth: '100%',
     gap: Spacing.two,
   },
   kicker: {
-    flex: 1,
+    flexShrink: 1,
+  },
+  metadata: {
+    flexShrink: 1,
+    maxWidth: '100%',
   },
 });
