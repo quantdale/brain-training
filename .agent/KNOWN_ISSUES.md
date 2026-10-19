@@ -1,3 +1,15 @@
+# Focused tutorial/Start repair — 2026-10-19
+
+Resolved: DeductionTable compact320dp/font2 wrong-answer tutorial clipped Retry
+and covered Start. Shared in-flow ownership/no percent cap qualified by actual
+fullRetry/completion/Start/activeplay, eight OrderPath native profiles and Grid
+nested-scroll completion. No remaining tutorial/Start blocker observed in those
+profiles; all42 inherit shared source. Owner18sessions/prior data retained.
+Existing P3 cramped2x category/kicker text remains; it does not cover Start.
+Brief shell captures qualify navigation/route headings (Home/Profile still
+loading in those frames), not their complete data presentation. This does not
+reopen unrelated077/078 work. See docs/bugfixes/tutorial-start/REPORT.md.
+
 # Known Issues — Campaign078
 
 No unresolved required cover correction after independent and actual native review. Remaining P3 limits: OddOneOut triangle may suggest play, rule-switch timing/watchlist disappearance need instructions, GridRecall echo small, ReactionTime richer depth. Large/compact/font2 coverage is sampled; physicalAndroid/ARM64/iOS runtime and comprehensive screen readers/human recognizability remain unvalidated.

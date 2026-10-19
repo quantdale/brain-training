@@ -217,7 +217,7 @@ const RULES = [
   {
     name: 'visual / design-system shared layer',
     impact: 'visual/design-system shared layer',
-    match: ['apps/mobile/src/components/ui/**', 'apps/mobile/src/constants/theme.ts', 'apps/mobile/src/design/**'],
+    match: ['apps/mobile/src/components/ui/**', 'apps/mobile/src/components/game-ui/**', 'apps/mobile/src/constants/theme.ts', 'apps/mobile/src/design/**'],
     checks: [
       'cd apps/mobile && npm run typecheck',
       'Affected screenshots + representative canary screens',

@@ -8,7 +8,7 @@
  * primary action, and a single-row instrument strip during play.
  *
  * Contracts preserved: pause overlay opacity/focus behaviour, hardware-back
- * interception, dev-only QA panel placement, tutorial overlay anchoring, and
+ * interception, dev-only QA panel placement, tutorial completion, and
  * every `testId(gameId, …)` the automation harness depends on.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -258,18 +258,21 @@ export function GameHost({
     workoutLaunch?.gameId === gameId
       ? (storedPosition ?? workoutLaunch.legIndex) + 1
       : null;
-  // A tutorial is a modal learning surface. Keep the intro mounted behind it
-  // for a smooth dismissal, but remove its controls from the accessibility
-  // tree while the tutorial owns focus; otherwise a clipped Start button can
-  // be discovered behind the visible demo on compact screens.
-  const contentHidden = paused || (view === 'intro' && tutorialOpen);
+  // The route's ScreenShell owns vertical scrolling. A tutorial must take
+  // the intro's place in that flow: an absolute card contributes no scroll
+  // height and leaves a painted/touchable Start behind its clipped content.
+  const showingTutorial = view === 'intro' && tutorialOpen && tutorial !== undefined;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]} testID={testId(gameId, 'screen')}>
-      <View
+      {showingTutorial ? (
+        <View style={styles.tutorialContent}>
+          {tutorial}
+        </View>
+      ) : <View
         style={styles.content}
-        importantForAccessibility={contentHidden ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={contentHidden}
+        importantForAccessibility={paused ? 'no-hide-descendants' : 'auto'}
+        accessibilityElementsHidden={paused}
         accessible={false}>
         {view === 'intro' ? (
           // Campaign 055: the intro is a game-world Stage — world art leads,
@@ -419,17 +422,12 @@ export function GameHost({
         ) : null}
 
         {view === 'results' ? children : null}
-      </View>
+      </View>}
 
       {paused && view === 'session' ? (
         <PauseOverlay gameId={gameId} onResume={onResume} onQuit={onQuit} />
       ) : null}
 
-      {view === 'intro' && tutorialOpen && tutorial !== undefined ? (
-        <View style={styles.tutorialOverlay} pointerEvents="box-none">
-          {tutorial}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -438,16 +436,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  // Bottom-anchored overlay: guarantees tutorial controls stay reachable on
-  // short viewports where stacking the card after tall intro content used to
-  // clip the Skip/Done buttons off-screen (device-verified defect). The
-  // bottom inset keeps the last button clear of the gesture/nav zone.
-  tutorialOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  // Preserve the bottom-aligned card for short steps; taller steps grow the
+  // route's scroll range. ScreenShell supplies the actual safe-area inset.
+  tutorialContent: {
+    flexGrow: 1,
     justifyContent: 'flex-end',
     paddingBottom: Spacing.four,
   },

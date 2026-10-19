@@ -1,5 +1,11 @@
 # Campaign078 — game-cover visual identities
 
+2026-10-19: separate owner-requested tutorial/Start defect repair qualified;
+no campaign activation or redesign. Shared source/gates/build/install/eight
+native profiles/Deduction actual launch/Grid nested scrolling/data preservation
+pass. Exact ending-SHA CI/live handoff checked post-commit. Bounded record:
+`docs/bugfixes/tutorial-start/REPORT.md`. The078 status below is historical.
+
 **Campaign id:** `078-game-cover-visual-identities`
 **Status:** VALIDATED
 **Mode:** day

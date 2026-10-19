@@ -1,0 +1,66 @@
+{
+  "integrity": "ok",
+  "savedSessions": 18,
+  "unchangedTables": {
+    "achievement_unlocks": {
+      "count": 5,
+      "rowsSha256": "bc13c9d4e18183838e8a4c4bacc2b3dfba29001b340ff55e6051794436618691"
+    },
+    "achievements": {
+      "count": 37,
+      "rowsSha256": "62be3f194df3a9d72b9fbeefcd96268aec4a72dcad5fe100f9d776a67808963a"
+    },
+    "currency_ledger": {
+      "count": 19,
+      "rowsSha256": "6220fd85c3013c78c9f9c1ff0f16822e95b44c9822b8fc75e578529954900fa3"
+    },
+    "domain_ratings": {
+      "count": 8,
+      "rowsSha256": "45862d512afd25b62e4b6e3e5f90b312d2e20e41003e1aae7025e2115b009bc3"
+    },
+    "game_favorites": {
+      "count": 0,
+      "rowsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "game_sessions": {
+      "count": 18,
+      "rowsSha256": "e711f7727e4ee6e54e0108bc84284830d605fd2c18a4b8f04301e89cc6aa31d8"
+    },
+    "profile": {
+      "count": 1,
+      "rowsSha256": "21fa01a80df75d56df1071594417a6782d9938f5186b4f5c9eda0b37ced317d4"
+    },
+    "quests": {
+      "count": 16,
+      "rowsSha256": "23faf6259e3525de0725f868063be83924ab5981d33d7ec4e68383aa92f39eb5"
+    },
+    "rating_history": {
+      "count": 35,
+      "rowsSha256": "baa11725856ea493454fd3a1a08784f5d8eefb1bc1ca3174f445f18659d37c5a"
+    },
+    "xp_awards": {
+      "count": 1,
+      "rowsSha256": "d30232d79db3832a900c9deac727ea6e6c3dd3545f88631ce782e776813ca142"
+    }
+  },
+  "originalWorkoutsRetained": 5,
+  "newDailyWorkout": {
+    "date": "2026-10-19",
+    "status": "active",
+    "current_index": 0,
+    "reroll_attempt": 0,
+    "skipped_indices_json": null
+  },
+  "originalQuestProgressRowsRetained": 21,
+  "addedZeroProgressQuestRows": 6,
+  "addedQuestPeriods": [
+    "2026-10-19",
+    "2026-W43"
+  ],
+  "completedTutorialGameIds": [
+    "logic-deduction-table",
+    "logic-order-path",
+    "spatial-grid-nav"
+  ],
+  "conclusion": "All existing history/economy/profile/settings/ratings/workouts/quest rows preserved. Normal tutorial metadata and date-rollover initialization only."
+}

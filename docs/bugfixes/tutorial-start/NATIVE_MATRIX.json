@@ -1,0 +1,189 @@
+{
+  "profiles": [
+    {
+      "label": "profile-default-font1-light",
+      "font": 1,
+      "night": "no",
+      "motion": 1,
+      "traceIds": [
+        "c34745c7-ceb9-4893-ba09-44e79c8506c0"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "58bc2b8b46c8ffb56ddc1bfbd3e7db742de92b6dc3bb70fd417fa204f3c4379a",
+      "size": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1502][993,1649]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-default-font1-dark",
+      "font": 1,
+      "night": "yes",
+      "motion": 1,
+      "traceIds": [
+        "bfb7b9d8-1e66-4f99-bfbd-5329ffdf5df7"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "8da5d704ceb260cc0df42a0c59ada41c9a2004bccaf01173b5f26e93e6f93cee",
+      "size": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1502][993,1649]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-default-font2-light",
+      "font": 2,
+      "night": "no",
+      "motion": 1,
+      "traceIds": [
+        "77481385-34d3-4948-b260-2a385e660d28"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "c3c6665a9bc833435034163af26fa58e967a18fa1317cc8ef34d16c0c551db87",
+      "size": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1972][993,2119]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-default-font2-dark",
+      "font": 2,
+      "night": "yes",
+      "motion": 0,
+      "traceIds": [
+        "440395c9-7e1a-426c-9e2f-685560abee36"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "15350508853809bc5c123d3c8d59d3f58251cc01a501ab3b715a97f22eabc916",
+      "size": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1972][993,2119]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-compact-font1-light",
+      "font": 1,
+      "night": "no",
+      "motion": 1,
+      "traceIds": [
+        "d97ec35b-935f-43ea-8fd4-1475c77248b6"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "1a1f0e2eaf6e2b4ad8651390c866b4ceb21478b6a5f08d8ffffa967208c3d0f9",
+      "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1099][753,1246]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-compact-font1-dark",
+      "font": 1,
+      "night": "yes",
+      "motion": 1,
+      "traceIds": [
+        "63aba95d-4398-43ad-9047-0e2772576aca"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "90cca6bc117f47150dbc2456ae4e5146a384bebc86b55d756f6aeaeb0138ca4d",
+      "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,989][753,1136]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-compact-font2-light",
+      "font": 2,
+      "night": "no",
+      "motion": 1,
+      "traceIds": [
+        "a7e89713-d79b-4d9a-a03c-89132be43011",
+        "792c77c4-4bad-44dd-a8fc-7840d41d2588"
+      ],
+      "rejectedAttempt": "dccb04b5-3bf3-45f9-90dc-8ba4b0930666",
+      "pngSha256": "df3744a8f78ce239b755bb20b40511e41f6f90102f7bf9bf561d1bbb4fd8aa11",
+      "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1169][753,1316]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    },
+    {
+      "label": "profile-compact-font2-dark",
+      "font": 2,
+      "night": "yes",
+      "motion": 0,
+      "traceIds": [
+        "0bd2acd7-bd51-4d50-84b2-f5086a222fbf"
+      ],
+      "rejectedAttempt": null,
+      "pngSha256": "c1c871c60fbc8f37e3bc609d582b3bb44862d6cafe617ccc4b2d7b5bf481558c",
+      "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+      "density": "Physical density: 420",
+      "enabledStart": {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1174][753,1321]"
+      },
+      "tutorialAbsent": true,
+      "review": "root personally inspected tutorial and post-completion originals"
+    }
+  ]
+}

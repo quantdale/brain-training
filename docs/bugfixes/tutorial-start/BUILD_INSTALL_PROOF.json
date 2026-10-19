@@ -1,0 +1,17 @@
+{
+  "apkSha256": "319a89f703e10d813632340b807ca29d5bd3305cf1b6dd39059fb69b77221a4b",
+  "apkBytes": 52733916,
+  "inputFiles": 1162,
+  "inputDifferences": [],
+  "mappedOwnCodeFiles": 942,
+  "mappedChangedFiles": [
+    "/src/components/game-host/game-host.tsx",
+    "/src/components/game-ui/tutorial-frame.tsx"
+  ],
+  "mapDifferences": [],
+  "bundleSha256": "a2630876bd255f9d8be1a33cca85d1db59a020233e72a68a8f2ae4ed11aa27f4",
+  "installFilesIdentical": true,
+  "installTablesIdentical": true,
+  "integrity": "ok",
+  "savedSessions": 18
+}

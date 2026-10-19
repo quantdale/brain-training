@@ -1,3 +1,31 @@
+# Focused tutorial/Start repair — 2026-10-19
+
+Original source: new18 interaction/scroll-ownership regressions allFAIL, plus
+intrinsic-height guardFAIL/two nested-scroll controlsPASS. Final full-source
+Jest709suites7998tests/five unchanged snapshotsPASS/504.652s; five existing
+classified opt-in skips, zero failures. Global TypeScript02/full ESLint exit0.
+Strict OpenSpec63/63, registry/real-base provenance/ownership/repo/offline1007/
+runtimeQA/secrets/workflow4/affected-map/Expo23/self-test14/web22/dependencyaudit
+PASS; ten accepted advisories remain. No independent fresh-checkout claim.
+Native baseline Deduction at320dp/font2 shows coveredStart/clippedRetry after
+2swipes. Actual after fullRetry[105,1064][735,1201]/normal completion/fullStart/
+activeboard/Pause/Quit qualify repair; selected originals personally inspected.
+OrderPath8/8 native viewport/font/theme cases, normal/reducedmotion and Grid
+all4commands/all3choices/normalcompletion/returnedStart PASS; RNTL guards retain
+both nested-scroll callers. Incorrect actor completion/partial-button frames
+rejected; final accepted copies retained. Shell4tab navigation/headings PASS,
+Home/Profile data still loading in brief captures; no fullleaf acceptance.
+Build576tasks10m48s,1,162 inputs exact/942 mapped own code exact including both
+changed files. APK319a89f7…221a4b/52,733,916B/devicehash/install-r/all3SQLite files/
+all13tables exact at install. Runtime integrityok/18sessions/economy/profile/
+ratings unchanged; all5oldworkouts/21oldquest-progress rows exact. Addonly normal
+tutorial metadata, Oct19newactiveplan0/4 and6zero daily/weekly progress rows.
+Impact map now56patterns: shared game-ui omission repaired, self-test16 and
+strict two-production-file classification PASS. Full Jest predates this two-line
+map addition; current final CI reruns the source gates. Final exact-SHA CI/live
+handoff observed post-commit in local FINAL_DELIVERY.json and final response.
+Full focused evidence: docs/bugfixes/tutorial-start/REPORT.md.
+
 # Campaign078 — terminal candidate qualification
 
 Source and native qualification complete; final exact-SHA workflows must all succeed before delivery. Whole Jest708passed suites7979passed tests/five snapshots/five classified skips PASS predates final sizing repair; current focused17tests/typecheck/lint PASS. Final AppCI runs full current source. Strict63OpenSpec/registry/provenance/ownership/repo/offline/secrets/runtimeQA/Expo/workflow/impact/web22routes/dependency gate PASS. Ten accepted production advisories remain.

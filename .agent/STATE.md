@@ -1,5 +1,26 @@
 # Durable Project State
 
+## Focused tutorial/Start repair — 2026-10-19
+
+Owner-authorized bounded repair, starting clean origin/main41b0777f; no new
+campaign. Two shared production files replace absolute tutorial/intro overlap
+with in-flow ownership and remove the intrinsic percent height cap. All42 games
+inherit the fix;077 nested-scroll flags remain. Native Deduction before clipped
+Retry/coveredStart at320dp/font2; after fullRetry, normal completion, enabled
+Start and actual active gameplay personally inspected. OrderPath eight native
+viewport/font/theme combinations and Grid nested demo/normalcompletion PASS;
+normal/reducedmotion covered. Source full Jest709suites7998tests/five snapshots/
+classified skips/types/lint/strict63/gates/web/audit PASS. Shared game-ui added
+to synchronized56-pattern impact map/self-test16/strict two-file coverage PASS.
+APK319a89f7…221a4b installed-r; exact SQLite files/all13tables preserved at
+installation. Runtime retains18sessions/economy/settings/ratings/all prior
+workout/quest rows; only normal tutorial metadata/newOct19 plan/zero-progress
+quest rows added. Report/evidence: docs/bugfixes/tutorial-start/REPORT.md.
+This is the qualified delivery candidate. Exact ending-SHA four-workflow success
+and final visible Deduction Start refresh are checked after commit, recorded in
+local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response;
+do not infer their success from this pre-commit record. Historical078 stays closed.
+
 **Active campaign:** none
 **Last campaign:** `078-game-cover-visual-identities`
 **Last campaign status:** VALIDATED

@@ -1,0 +1,29 @@
+{
+  "traceId": "2988baee-23e3-4976-a423-030d64740ad7",
+  "label": "after-deduction-retry",
+  "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+  "density": "Physical density: 420",
+  "fontScale": "2.0",
+  "night": "1",
+  "motion": "1",
+  "pngSha256": "f8a80729d124bb33dc18a0016125cf7c997a73c64010ecd9e17df38cb9c057e4",
+  "actions": [
+    {
+      "resource-id": "logic-deduction-table.tutorial",
+      "text": "",
+      "content-desc": "",
+      "enabled": "true",
+      "clickable": "false",
+      "bounds": "[42,79][798,1274]"
+    },
+    {
+      "resource-id": "logic-deduction-table.tutorial-retry",
+      "text": "",
+      "content-desc": "Try again",
+      "enabled": "true",
+      "clickable": "true",
+      "bounds": "[105,1064][735,1201]"
+    }
+  ],
+  "rootVisualReview": "PASS: entire Retry above gesture bar; no background Start"
+}

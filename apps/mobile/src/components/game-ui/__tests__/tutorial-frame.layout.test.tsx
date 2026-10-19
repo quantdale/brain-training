@@ -1,12 +1,7 @@
 /**
- * TutorialFrame layout contract (Campaign 055P pixel certification).
- *
- * The frame is a bottom-anchored overlay card with `overflow: hidden`. Its
- * height cap must leave room for the tallest observed tutorial step: the
- * deduction-table demo grows when the "Try again" control appears after a
- * wrong answer, and an 88% cap resolved against the game screen left that
- * control with negative height — unreachable (device-verified). The cap stays
- * as a safety valve at the full overlay height.
+ * TutorialFrame layout contract. Intrinsic steps must contribute their whole
+ * height to ScreenShell's scroll range, including controls after long text.
+ * The two independently scrolling demos retain Android nested scrolling.
  *
  * RNTL v14 `render` is async — the render is awaited.
  */
@@ -36,15 +31,19 @@ describe('TutorialFrame layout', () => {
     expect(screen.getByTestId(`${gameId}.tutorial-scroll`).props.nestedScrollEnabled).toBe(true);
   });
 
-  it('caps the card at the full overlay height so tall steps stay reachable', async () => {
+  it('lets long intrinsic steps grow into the route scroll range without clipping their final action', async () => {
     await render(
-      <TutorialFrame gameId="contract">
-        <Text>step</Text>
-      </TutorialFrame>,
+      <ScreenShell>
+        <TutorialFrame gameId="contract">
+          <Text>{'Long instructions. '.repeat(200)}</Text>
+          <Text testID="final-action">Got it</Text>
+        </TutorialFrame>
+      </ScreenShell>,
     );
     const card = screen.getByTestId('contract.tutorial');
     const style = flatStyle(card.props.style);
-    expect(style.maxHeight).toBe('100%');
+    expect(style.maxHeight).toBeUndefined();
+    expect(style.height).toBeUndefined();
     expect(style.overflow).toBe('hidden');
   });
 });

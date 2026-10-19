@@ -30,13 +30,13 @@ export function TutorialFrame({ gameId, children, scrollable = false }: Tutorial
       <View style={[styles.rail, { backgroundColor: theme.accent }]} />
       {/* An explicit height avoids the old auto-height ScrollView measuring
           cycle. Short tutorials keep intrinsic sizing; long steps can scroll
-          independently inside the existing overlay, including at 2× text. */}
+          independently inside the scrolling route, including at 2× text. */}
       {scrollable ? (
         <ScrollView testID={testId(gameId, 'tutorial-scroll')}
           style={{ height: Math.min(600, Math.max(120, height - 112)) }}
           // Game routes already scroll through ScreenShell. On Android the
           // inner demo must claim nested vertical drags, including when the
-          // intro behind it is at its bottom edge, or that ancestor consumes
+          // route is at its bottom edge, or that ancestor consumes
           // the swipe and leaves the demo's answer boards unreachable.
           nestedScrollEnabled
           contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -52,14 +52,10 @@ const styles = StyleSheet.create({
     borderRadius: Radii.medium,
     // Keeps the full-bleed rail clipped to the card's corners.
     overflow: 'hidden',
-    // Safety valve — observed tutorials stay below this. Keeps a pathological
-    // future step from pushing controls off-screen. Campaign 055P: the
-    // previous 88% cap resolved against a shorter reference than the visible
-    // viewport on some game intros, so the deduction-table demo's "Try again"
-    // (which appears after a wrong answer) measured negative height and could
-    // not be tapped; the full overlay height leaves the valve intact while
-    // keeping every observed step reachable.
-    maxHeight: '100%',
+    // Intrinsic steps must contribute their full height to ScreenShell's
+    // scroll range. A percent height cap plus overflow:hidden clips the last
+    // controls at large font scales. Long interactive demos retain their
+    // bounded, nested ScrollView above (Campaign 077).
   },
   rail: {
     height: 3,
