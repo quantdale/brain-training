@@ -1,0 +1,34 @@
+{
+  "device": "emulator-5570",
+  "display": "Physical size: 1080x2400",
+  "density": "Physical density: 420",
+  "fontScale": "1.0",
+  "systemNight": "Night mode: no",
+  "animations": {
+    "animator_duration_scale": "1",
+    "transition_animation_scale": "1",
+    "window_animation_scale": "1"
+  },
+  "windowDisplay": [],
+  "appTheme": "System (unchanged)",
+  "artemisConfigRestoredSha256": "1cc591b47c4d242b0832a157ae16c55ae9175c7397c981f15f5cd9e73472e30a",
+  "gui": {
+    "processId": 108764,
+    "handle": 919866,
+    "title": "Android Emulator - braintraining-ui35:5570",
+    "visible": true,
+    "minimized": false,
+    "observedUtc": "2026-10-19T05:43:26.1805805Z"
+  },
+  "ownerStart": [
+    {
+      "resource-id": "logic-order-path.start",
+      "text": "",
+      "content-desc": "Start game",
+      "enabled": "true",
+      "clickable": "true",
+      "bounds": "[87,1502][993,1649]"
+    }
+  ],
+  "screenshot": "screenshots/owner-handoff-final.png"
+}

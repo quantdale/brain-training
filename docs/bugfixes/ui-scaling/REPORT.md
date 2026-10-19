@@ -102,5 +102,164 @@ that failed capture is not accepted evidence. A fresh direct hierarchy/PNG
 capture after the route settled supplies the Games witness. Existing build,
 Expo/CSS/Node warnings remain visible in the raw logs.
 
-Android rebuild, final profile matrix, preservation comparison and owner handoff
-are in progress; no native-after or ending-CI success is inferred here yet.
+## Accepted Android build
+
+Release build: 576 tasks (24 executed), 6m8s, x86_64/debug signing. APK
+52,734,320 bytes; SHA-256
+`10e7a10ea80c3a985d3bc67981b6f7df559ce3c00400caa255c20b182bab9dde`.
+All 1,162 production build inputs match; all 942 mapped application code sources
+match, including both changed files. The packaged bundle is byte-identical to
+the generated bundle, and all eight permissions match the repository allowlist.
+The device transfer was independently hashed before `pm install -r` succeeded.
+SQLite db/wal/shm remain byte-identical and all 13 table row digests match across
+installation; all 18 saved sessions are retained. [Build proof](ANDROID_BUILD.json).
+
+## Native findings after repair
+
+Compact/font2 light and dark: the `Place` kicker is visible, with category reflow
+below it. The title moves from y893 to y766 pixels. Start remains 147px/56dp high;
+all five difficulty choices and How to play are reachable above the gesture bar.
+Actual tutorial `[105,1064][427,1201]` Got it is fully visible; native XML proves
+the underlying Start is absent. Normal completion returns an enabled Start.
+Accepted Order Path traces: `55c30a9c-da67-4cd5-9dda-ab85e27f03ad`,
+`2afb536a-cc64-4745-b3ee-c751303cee17`,
+`82ebbbab-8e47-4e90-9e71-427cd8e3eb54`.
+
+Grid Navigator's actual Demo at compact/font2/dark exposes all four commands
+and all three answer boards through nested scrolling. The first candidate
+capture clipped the third board's bottom; it is not full-board proof. A separate
+follow-up reaches the full third board and bottom border. Normal selection of
+the visible final cell reaches You've got it, Got it, then enabled Start.
+Accepted traces: `e06455ee-c13e-41d9-8941-9b2c9e114ae3`,
+`cc48dcc0-67ec-4134-b153-3fdfa0a03085`,
+`e4b1e2d8-8b4c-4979-ab90-33c964aee45d`,
+`d6c813fc-4c0a-4617-895d-031c3cc893d8`.
+The last run used nine inner swipes; no gesture-efficiency claim is made.
+
+ARTEMIS Flash and Pro initially inherited the same exhausted daily-500-call
+model. Those cancelled runs do not qualify native behavior. The existing
+same-provider `gemini-3.1-flash-lite` fallback was live-verified, temporarily
+selected in external configuration, and restored byte-for-byte after native QA.
+No credential was changed. One shell quoting attempt failed before any write.
+A combined nested-canary run stayed on Order Path and is rejected; a later
+checkpointed Pro run was stopped during planning. The accepted Grid route was
+opened and verified directly before the short, single-route tasks above.
+Some optional finalizer calls hit provider deadlines after actual UI completion;
+only inspected native originals and actions qualify behavior, not status alone.
+
+Transform Match at compact/font2/dark also reaches its source pattern through
+inner scrolling, makes a normal correct selection, shows the completion Got it,
+and returns to enabled Start. Trace `f1a55825-38f2-4056-8b95-8e7cf25a65e0`.
+The options frame contains partial candidates, so it does not certify all full
+candidate boards simultaneously; normal nested scrolling and completion are
+qualified by the inspected sequence.
+
+The rebuilt APK's default/font1 tutorial now starts at **y199px**, compared with
+y1573px before. Got it is `[105,701][420,827]`, and Start is absent while the
+tutorial is open. Trace `a1705367-10b5-4128-be82-749ca3fd941f`. Trace
+`fc12f828-9e9b-4c14-93ad-735376077b86` then taps Got it and Start and reaches
+the actual Round 1/5 board with clues and five item controls. Trace
+`f2b4e4a1-c64e-42cf-a763-2c27ee897465` normally pauses/quits the unsaved attempt.
+Pause on the expired-round feedback did not respond; Next round then Pause/Quit
+worked. No saved session was created. This existing feedback-state behavior is
+outside the introduction sizing correction and is not claimed repaired.
+
+Seven representative native profiles pass visual/hierarchy review:
+
+| Display | Font | Theme | Start height | Result |
+|---|---|---|---|---|
+| 1080×2400 / 420dpi | 1.0 | Light | 56dp | Balanced introduction; every difficulty and both actions fit |
+| 1080×2400 / 420dpi | 1.0 | Dark | 56dp | Same composition |
+| 1080×2400 / 420dpi | 1.5 | Light | 56dp | Readable larger text; intrinsic choices reflow |
+| 1080×2400 / 420dpi | 2.0 | Light | 56dp | Metadata and choices wrap; scrolling retains actions |
+| 840×1400 / 420dpi | 1.0 | Light | 56dp | Scroll reaches complete choices, Start and help |
+| 840×1400 / 420dpi | 2.0 | Light | 56dp | Full Start/help and tutorial completion reachable |
+| 840×1400 / 420dpi | 2.0 | Dark | 56dp | Same accessible reflow |
+
+The native difficulty pressables measure 126–143px (48–54.48dp), including
+their differing face/lip geometry, across the inspected font1/1.5/2 frames.
+They grow modestly with native text metrics and wrap into more rows; they are
+not giant fixed-height controls. [Control measurements](CONTROL_METRICS.json),
+[profile matrix and frame hashes](NATIVE_MATRIX.json), and
+[direct native hierarchies](hierarchies/) retain the measured evidence.
+XML line endings are normalized for Git; all native node attributes are retained.
+An independent reviewer inspected the seven profile pairs, plus Grid/Transform
+images, and found no additional concrete sizing defect. Static images qualify
+composition only; the named ARTEMIS sequences qualify interaction.
+
+Two overlapping profile-capture attempts were rejected and recaptured
+sequentially. A later dark-profile second hierarchy capture lost its UIAutomator
+transport; a fresh settled hierarchy/PNG supplies its accepted Start frame.
+No failed or mislabeled frame is counted as passing.
+Trace `f8c9f609-1211-47cc-b656-9de5d9ade179` separately scrolls the full-display
+200% introduction to show the entire Start and How to play above the gesture
+bar. The accepted 200% Start frame is this final position, not its earlier
+partially cropped help-button frame.
+
+## Before/after and review screenshots
+
+These are original device captures. The default and accessibility examples are
+explicitly separated so enlarged text is not presented as the ordinary UI.
+
+| Review | Before | After |
+|---|---|---|
+| Normal tutorial placement | [Bottom-aligned](screenshots/before-normal-tutorial.png) | [Top of scroll flow](screenshots/default-font1-light-tutorial.png) |
+| Compact 200% identity | [Missing kicker](screenshots/before-compact-font2-header.png) | [Wrapped metadata](screenshots/compact-font2-light-header.png) |
+| Ordinary introduction | [Baseline Start](screenshots/before-normal-start.png) | [Normal light](screenshots/default-font1-light-start.png) / [dark](screenshots/default-font1-dark-start.png) |
+
+More originals: [150% introduction](screenshots/default-font15-light-start.png),
+[200% introduction](screenshots/default-font2-light-start.png),
+[compact 200% Start](screenshots/compact-font2-light-start.png),
+[compact 200% tutorial](screenshots/compact-font2-light-tutorial.png),
+[Grid full choices](screenshots/grid-full-choices.png),
+[Transform completion](screenshots/transform-completion.jpg),
+[actual gameplay](screenshots/default-font1-light-board.jpg).
+
+The current rebuilt APK's settled normal-scale leaves are also inspected:
+[Home](screenshots/default-font1-light-home.png),
+[Games](screenshots/default-font1-light-games.png),
+[detail](screenshots/default-font1-light-detail.png),
+[Progress](screenshots/default-font1-light-progress.png),
+[Profile](screenshots/default-font1-light-profile.png) and
+[existing Results](screenshots/default-font1-light-results.png).
+[Normal-screen hashes and hierarchy links](NORMAL_SCREENS.json).
+The capture connection sometimes closes during route transitions. Those
+transport failures do not qualify UI behavior; fresh settled sessions supply
+the accepted XML/PNG. No production source change was made for tooling errors.
+
+## Preservation and ordinary handoff
+
+Post-runtime SQLite integrity is `ok`. All **18 saved sessions** and all twelve
+non-tutorial table row digests are unchanged from arrival: profile, XP, currency,
+ratings/history, quests, achievements, favorites and workouts. Only ordinary
+tutorial completion/replay metadata changed. No fixtures, reset, migration or
+database restoration was used. [Data preservation](DATA_PRESERVATION.json).
+
+The dedicated emulator is left visible and unminimized with Brain Training in
+the foreground on Order Path's normal introduction. Start is enabled/clickable
+at `[87,1502][993,1649]`, fully on screen. Final display: **1080×2400 pixels,
+420dpi, no size/density override, font1.0**. System day appearance and all three
+animation scales1 are restored; the app's System theme preference is unchanged.
+Only this emulator's test display/font/night settings were touched. No unrelated
+device, host focus/input, app data or network setting was altered.
+[Handoff settings and visible-window proof](HANDOFF.json),
+[owner review screenshot](screenshots/owner-handoff-final.png).
+Original external ARTEMIS configuration SHA-256 after restoration:
+`1cc591b47c4d242b0832a157ae16c55ae9175c7397c981f15f5cd9e73472e30a`.
+
+Source checkpoint `d11964ed6948b50e396278c69d252387f3c686fe` has all four
+workflows successful: Repository Integrity39202701386, App CI39202701228,
+Android Build Smoke39202701192 and iOS Build Smoke39202701273. Ending evidence
+commit CI is separately checked at its actual SHA before delivery.
+
+This is a bounded Android emulator recertification of the impacted shared
+surfaces, not 42 complete gameplay journeys. Physical Android/ARM64/iOS runtime,
+comprehensive screen-reader coverage and every viewport/font/theme combination
+remain unvalidated. Existing Campaign 077 performance findings and dependency
+advisories are unchanged.
+
+The final evidence commit records preservation and the ordinary owner handoff.
+Its four exact-SHA workflows and fresh post-CI handoff are checked after push;
+the final response supplies the ending SHA and observed CI results. The local
+`apps/mobile/qa-artifacts/ui-scaling/FINAL_DELIVERY.json` retains those live
+observations without a self-referential commit hash.

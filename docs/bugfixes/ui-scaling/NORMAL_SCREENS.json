@@ -1,0 +1,102 @@
+[
+  {
+    "label": "default-font1-light-home",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "6391c03af7687bd8bf1355b142d4e5cc88bffb54fa2d268f1e5fd720b2a3acf9",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-home.png",
+    "hierarchy": "hierarchies/default-font1-light-home.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "default-font1-light-games",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "695ae8cf1acf1a7e5504e6bb196e3397ec3a5f8f882f9a76bacdcc43e55f369b",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-games.png",
+    "hierarchy": "hierarchies/default-font1-light-games.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "default-font1-light-detail",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "56f6fe098dbb3b3c7a0ff8f1c0d57fe27e426fb5fb4b2f06cee610cadd87e80e",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-detail.png",
+    "hierarchy": "hierarchies/default-font1-light-detail.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "default-font1-light-progress",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "6a126fde8f083494e8f5eda9578b6166c9026f7b14d9532665c99bb0c0bd52d3",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-progress.png",
+    "hierarchy": "hierarchies/default-font1-light-progress.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "default-font1-light-profile",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "43ac65c165208208062630861b7881f96ffbb42dfa0f4817d1cc4f3907ec1ed6",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-profile.png",
+    "hierarchy": "hierarchies/default-font1-light-profile.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "default-font1-light-results",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "e47ca584d147468b841b19edaf157ace795c2c5a1da1061aa0d4a3088648a9c1",
+    "actions": [],
+    "screenshot": "screenshots/default-font1-light-results.png",
+    "hierarchy": "hierarchies/default-font1-light-results.xml",
+    "rootReviewed": true
+  },
+  {
+    "label": "owner-handoff-final",
+    "size": "Physical size: 1080x2400",
+    "density": "Physical density: 420",
+    "fontScale": "1.0",
+    "night": "1",
+    "motion": "1",
+    "pngSha256": "e6052f76c93d4cfd408be75c00c5568767610536c0a1854cdc00f6463c8ddb99",
+    "actions": [
+      {
+        "resource-id": "logic-order-path.start",
+        "text": "",
+        "content-desc": "Start game",
+        "enabled": "true",
+        "clickable": "true",
+        "bounds": "[87,1502][993,1649]"
+      }
+    ],
+    "screenshot": "screenshots/owner-handoff-final.png",
+    "hierarchy": "hierarchies/owner-handoff-final.xml",
+    "rootReviewed": true
+  }
+]

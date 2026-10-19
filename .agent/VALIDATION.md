@@ -1,4 +1,4 @@
-# Focused scale/responsive repair — source/build checkpoint, 2026-10-19
+# Focused scale/responsive repair — qualified, 2026-10-19
 
 Metadata3 valid before failures; short-tutorial alignment1 valid before failure.
 Initial focused72PASS; final full710suites8002tests/five unchanged snapshots,
@@ -8,11 +8,18 @@ full lint, strict63, declared source/security/repo gates, web22 PASS. APK
 52734320B,576tasks6m8s. All1162 production inputs/942 own mapped code/bundle/
 expected8permissions verified. Update install exactSQLite3files/all13tables/
 18sessions PASS. Compact320dp/font2 header Place reappears, title893→766px;
-actual tutorial Gotit[105,1064][427,1201], underlyingStart absent. Other native
-profiles/nested canaries/final normal handoff/endingCI remain in progress.
-Provider daily500 quota cancels initial new Flash/Pro runs; no acceptance inferred.
-External same-provider fallback verified/temporary; credentials untouched.
-Full report under docs/bugfixes/ui-scaling. This checkpoint is not final delivery.
+actual tutorial Gotit[105,1064][427,1201], underlyingStart absent. Seven native
+profile pairs reviewed/default1,1.5,2/compact1,2/light,dark; Start56dp/difficulty
+48–54.48dp. Normal tutorial y1573→199px/fullGotit/noStart→realRound1/5 PASS.
+Grid all4commands/all3fullboards/normalcompletion; Transform inner scrolling/
+correctselection/completion/fullStart PASS (not allfullcandidateboardsinoneframe).
+Settled newAPK Home/Games/detail/Progress/Profile/oldResults normal UI reviewed.
+Runtime integrityok/18sessions/all12nontutorialtables exact; onlytutorialmetadata
+changes. Original external config byte-for-byte restored after live fallback;
+credentials untouched. Visible5570 normal1080x2400/420/font1/day/allmotion1/intro
+fullStart witnessed. Four sourceCI d11964ed SUCCESS; exact ending-SHA fourCI/live
+refresh recorded post-commit in local FINAL_DELIVERY.json/final response.
+Full bounded report under docs/bugfixes/ui-scaling; historical limits retained.
 
 # Focused tutorial/Start repair — 2026-10-19
 

@@ -1,3 +1,14 @@
+# Focused scale/responsive repair — 2026-10-19
+
+Resolved: retained compact840x1400/font2 handoff was misleading as default;
+normal1080x2400/420/font1 restored. Confirmed compact2 kicker disappearance and
+short normal tutorial bottom alignment fixed in two shared files. Seven native
+profiles/current normal leaves/Grid+Transform canaries qualify bounded layout;
+no unresolved sizing blocker observed. Physical/screen-reader/fullcrossproduct
+limits remain. P3 observed on OrderPath expired-round feedback: Pause taps do
+not open pause; Next round→Pause→Quit works. Not changed by this tutorial-only
+layout correction; no saved-progress loss. See ui-scaling/REPORT.md.
+
 # Focused tutorial/Start repair — 2026-10-19
 
 Resolved: DeductionTable compact320dp/font2 wrong-answer tutorial clipped Retry
@@ -5,7 +16,7 @@ and covered Start. Shared in-flow ownership/no percent cap qualified by actual
 fullRetry/completion/Start/activeplay, eight OrderPath native profiles and Grid
 nested-scroll completion. No remaining tutorial/Start blocker observed in those
 profiles; all42 inherit shared source. Owner18sessions/prior data retained.
-Existing P3 cramped2x category/kicker text remains; it does not cover Start.
+The P3 cramped2x category/kicker finding is resolved by the later scale repair.
 Brief shell captures qualify navigation/route headings (Home/Profile still
 loading in those frames), not their complete data presentation. This does not
 reopen unrelated077/078 work. See docs/bugfixes/tutorial-start/REPORT.md.

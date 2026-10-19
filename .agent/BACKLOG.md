@@ -17,6 +17,11 @@ plus historical follow-ups.
 
 ## Still-open durable items
 
+- OrderPath expired-round feedback: observed Pause taps do not open pause;
+  Next round→Pause→Quit works. Bounded follow-up should decide whether Pause
+  should be disabled or remain available between rounds. Existing behavior,
+  outside the scale/tutorial-layout correction; ui-scaling/REPORT.md.
+
 - Campaign077 P3 static review: singular-day copy on domain detail, a clipped
   secondary Bronze Ring unlock hint, and unclear primary-category balance versus
   multi-domain rating freshness wording. Discovery cover repetition is resolved in078. Sparse

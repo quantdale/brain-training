@@ -1,6 +1,6 @@
 # Durable Project State
 
-## Focused scale/responsive repair — 2026-10-19 (native qualification in progress)
+## Focused scale/responsive repair — 2026-10-19 (qualified)
 
 Clean origin/main2c0a990e baseline. Oversized handoff primarily came from the
 retained840x1400/420dpi/font2 QA profile; arrival still had size override but
@@ -12,12 +12,17 @@ Four regressions fail before; full source710suites8002tests/five unchanged
 snapshots/five classified skips/types/finaltypes/lint/strict63/declared gates/web
 PASS. Android576tasks6m8s/APK10e7a10e…bab9dde,1162 inputs/942 mapped code exact,
 expected8permissions,install-r/allSQLite files/all13 tables exact/18sessions PASS.
-Native compact2x header red/green and open tutorial/no underlyingStart witnessed.
-Remaining native profile comparisons, nested canaries, final normal visible
-handoff and ending-SHA four workflows remain pending. Flash/Pro shared model
-hit daily500 quota; supported same-provider3.1FlashLite fallback live-verified
-and temporarily selected externally, no credentials changed. Restore external
-config byte-for-byte and normal emulator profile before final handoff.
+Seven actual native profiles/default1,1.5,2/compact1,2/light,dark PASS; Start56dp
+throughout, difficulty48–54.48dp. Short normal tutorial y1573→199px; Start absent
+while open, Gotit→Start→actualRound1/5 PASS. Grid/Transform compact2dark normal
+nested-scroll completion/returnedStart PASS. Current settled normal Home/Games/
+detail/Results/Progress/Profile reviewed; no further sizing defect. Post-runtime
+integrityok/18sessions/all12non-tutorialtables exact; only tutorial metadata
+changed. Original external ARTEMIS config restored byte-for-byte after temporary
+same-provider fallback; no credentials changed. Visible/unminimized5570 on
+OrderPath intro/fullStart,1080x2400/420dpi/nooverride/font1/day/Systemtheme/all
+motion1. Source d11964ed all4CI SUCCESS; exact ending-SHA CI and fresh live
+handoff are recorded post-commit in local FINAL_DELIVERY.json/final response.
 Bounded report: docs/bugfixes/ui-scaling/REPORT.md. No new campaign.
 
 ## Focused tutorial/Start repair — 2026-10-19

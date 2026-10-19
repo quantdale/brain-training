@@ -1,0 +1,374 @@
+{
+  "device": "emulator-5570",
+  "apkSha256": "10e7a10ea80c3a985d3bc67981b6f7df559ce3c00400caa255c20b182bab9dde",
+  "coverage": "Seven representative profiles; not every viewport/font/theme cross product or all42 gameplay.",
+  "profiles": [
+    {
+      "label": "compact-font2-light",
+      "traceIds": [
+        "55c30a9c-da67-4cd5-9dda-ab85e27f03ad",
+        "2afb536a-cc64-4745-b3ee-c751303cee17"
+      ],
+      "rootReviewed": true,
+      "header": {
+        "label": "compact-font2-light-header",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "cb698a5457a1e35f20979a27ecc078fe1f44863a64023e4e21a5d7ed1707dfca",
+        "actions": [],
+        "screenshot": "screenshots/compact-font2-light-header.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "start": {
+        "label": "compact-font2-light-start",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "6e0251d4290c18869d1d6881b1a8f636874528423bdf1028358af28e5fbcadf8",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,986][753,1133]"
+          }
+        ],
+        "screenshot": "screenshots/compact-font2-light-start.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "compact-font2-dark",
+      "traceIds": [
+        "82ebbbab-8e47-4e90-9e71-427cd8e3eb54"
+      ],
+      "rootReviewed": true,
+      "header": {
+        "label": "compact-font2-dark-header",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "2",
+        "motion": "1",
+        "pngSha256": "ba657029e2b66b999d46cb21a7c64f2be27c36a25bd868e3cd58501a107b5957",
+        "actions": [],
+        "screenshot": "screenshots/compact-font2-dark-header.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "start": {
+        "label": "compact-font2-dark-start",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "2",
+        "motion": "1",
+        "pngSha256": "a558648588c5677a76a744f23342877f4ee6614dcc8a2e255c7906769ea8d6d6",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,972][753,1119]"
+          }
+        ],
+        "screenshot": "screenshots/compact-font2-dark-start.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "compact-font1-light",
+      "traceIds": [
+        "e1c97143-5452-466e-9dc8-630004954cac"
+      ],
+      "rootReviewed": true,
+      "header": {
+        "label": "compact-font1-light-header",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "c4c8a8ac2304c83b6dc6f6f2e307af9a4fb8701e105223c11c62be53b6c09684",
+        "actions": [],
+        "screenshot": "screenshots/compact-font1-light-header.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "start": {
+        "label": "compact-font1-light-start",
+        "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "376210fc44ba9527c08a7bb60606018734daf9da8d33f9a2a7f6a53b1d1b6d05",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,989][753,1136]"
+          }
+        ],
+        "screenshot": "screenshots/compact-font1-light-start.png",
+        "pixelDimensions": [
+          840,
+          1400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "default-font2-light",
+      "traceIds": [
+        "f8c9f609-1211-47cc-b656-9de5d9ade179"
+      ],
+      "rootReviewed": true,
+      "header": {
+        "label": "default-font2-light-header",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "f77286c91a6f6c770348d7588926280611275a5928bfe1454121025281f9a44c",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,2057][993,2204]"
+          }
+        ],
+        "screenshot": "screenshots/default-font2-light-header.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "start": {
+        "label": "default-font2-light-start",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "2.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "c44fe9177bdb1148672da2a086e5fbb003eaa24db823c2787d1375171fa220fa",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1972][993,2119]"
+          }
+        ],
+        "screenshot": "screenshots/default-font2-light-start.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "default-font15-light",
+      "traceIds": [],
+      "rootReviewed": true,
+      "header": {
+        "label": "default-font15-light-header",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.5",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "ec42287a4d001b3c42fca12f4899169121f044ed5bfb13d39128388a2d51659e",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1651][993,1798]"
+          }
+        ],
+        "screenshot": "screenshots/default-font15-light-header.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "start": {
+        "label": "default-font15-light-start",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.5",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "ec42287a4d001b3c42fca12f4899169121f044ed5bfb13d39128388a2d51659e",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1651][993,1798]"
+          }
+        ],
+        "screenshot": "screenshots/default-font15-light-start.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "default-font1-dark",
+      "traceIds": [],
+      "rootReviewed": true,
+      "header": {
+        "label": "default-font1-dark-header",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "2",
+        "motion": "1",
+        "pngSha256": "6f8657c8e671692357bad8ece94618208f463a170d4be38599aac26896734fd0",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1502][993,1649]"
+          }
+        ],
+        "screenshot": "screenshots/default-font1-dark-header.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "start": {
+        "label": "default-font1-dark-start",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "2",
+        "motion": "1",
+        "pngSha256": "23afa520c9fc7362c46967ec34f666c645bbd76de6ba3cbe546acf5b2da43b17",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1502][993,1649]"
+          }
+        ],
+        "screenshot": "screenshots/default-font1-dark-start.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    },
+    {
+      "label": "default-font1-light",
+      "traceIds": [],
+      "rootReviewed": true,
+      "header": {
+        "label": "default-font1-light-header",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "9746005962ef8f3639fd98e4763879c83c4228090ace45ac85c597f884d2f985",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1502][993,1649]"
+          }
+        ],
+        "screenshot": "screenshots/default-font1-light-header.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "start": {
+        "label": "default-font1-light-start",
+        "size": "Physical size: 1080x2400",
+        "density": "Physical density: 420",
+        "fontScale": "1.0",
+        "night": "1",
+        "motion": "1",
+        "pngSha256": "9746005962ef8f3639fd98e4763879c83c4228090ace45ac85c597f884d2f985",
+        "actions": [
+          {
+            "resource-id": "logic-order-path.start",
+            "text": "",
+            "content-desc": "Start game",
+            "enabled": "true",
+            "clickable": "true",
+            "bounds": "[87,1502][993,1649]"
+          }
+        ],
+        "screenshot": "screenshots/default-font1-light-start.png",
+        "pixelDimensions": [
+          1080,
+          2400
+        ]
+      },
+      "startHeightDp": 56.0,
+      "tutorialAbsentAtStart": true
+    }
+  ]
+}

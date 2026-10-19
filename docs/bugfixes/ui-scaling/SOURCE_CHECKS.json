@@ -1,0 +1,99 @@
+{
+  "sourceCheckpoint": "d11964ed6948b50e396278c69d252387f3c686fe",
+  "gates": [
+    {
+      "name": "repo-state",
+      "exitCode": 0
+    },
+    {
+      "name": "registry",
+      "exitCode": 0
+    },
+    {
+      "name": "provenance",
+      "exitCode": 0
+    },
+    {
+      "name": "ownership",
+      "exitCode": 0
+    },
+    {
+      "name": "offline",
+      "exitCode": 0
+    },
+    {
+      "name": "runtime-qa",
+      "exitCode": 0
+    },
+    {
+      "name": "secrets",
+      "exitCode": 0
+    },
+    {
+      "name": "workflows",
+      "exitCode": 0
+    },
+    {
+      "name": "affected-map",
+      "exitCode": 0
+    },
+    {
+      "name": "affected-source",
+      "exitCode": 0
+    },
+    {
+      "name": "expo-alignment",
+      "exitCode": 0
+    },
+    {
+      "name": "certifier-self-test",
+      "exitCode": 0
+    },
+    {
+      "name": "openspec",
+      "exitCode": 0
+    },
+    {
+      "name": "dependency-audit",
+      "exitCode": 0
+    },
+    {
+      "name": "typecheck",
+      "exitCode": 0
+    },
+    {
+      "name": "lint",
+      "exitCode": 0
+    },
+    {
+      "name": "jest-full",
+      "exitCode": 0
+    },
+    {
+      "name": "jest-signal",
+      "exitCode": 0
+    },
+    {
+      "name": "web-export",
+      "exitCode": 0
+    }
+  ],
+  "finalTypecheck": 0,
+  "jest": {
+    "success": true,
+    "numPassedTestSuites": 710,
+    "numFailedTestSuites": 0,
+    "numPendingTestSuites": 4,
+    "numPassedTests": 8002,
+    "numFailedTests": 0,
+    "numPendingTests": 5
+  },
+  "snapshotsPassed": 5,
+  "snapshotsUpdated": 0,
+  "classifiedExistingOptInSkips": 5,
+  "regressionBeforeFailures": {
+    "metadata": 3,
+    "tutorialAlignment": 1
+  },
+  "independentReview": "No concrete finding in either source correction or inspected native frames; profile and gesture limits retained."
+}

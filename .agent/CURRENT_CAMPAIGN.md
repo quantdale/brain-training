@@ -1,10 +1,11 @@
 # Campaign078 — game-cover visual identities
 
-2026-10-19: separate owner-requested scale/responsive correction in native
-qualification; no campaign activation. Two shared layout corrections/source
-gates/build/install/data preservation/compact2x header and tutorial isolation
-pass. Remaining profile/nested/runtime/final normal handoff/endingCI pending.
-See docs/bugfixes/ui-scaling/REPORT.md;078 remains historical and closed.
+2026-10-19: separate owner-requested scale/responsive correction qualified;
+no campaign activation. Two shared fixes/full gates/rebuilt APK/seven native
+profiles/tutorial→actualStart/Grid+Transform nestedcanaries/18session preservation
+PASS. Visible5570 restored1080x2400/420dpi/font1/day/motion1 on intro/fullStart.
+Source d11964ed fourCI success; final exact-SHA CI/live refresh checked after
+evidence commit. See docs/bugfixes/ui-scaling/REPORT.md;078 remains closed.
 
 2026-10-19: separate owner-requested tutorial/Start defect repair qualified;
 no campaign activation or redesign. Shared source/gates/build/install/eight

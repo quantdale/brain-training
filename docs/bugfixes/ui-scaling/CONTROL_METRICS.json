@@ -1,0 +1,178 @@
+{
+  "default-font1-light-start": [
+    {
+      "resource-id": "logic-order-path.difficulty.easy",
+      "text": "",
+      "content-desc": "Easy",
+      "bounds": "[87,1197][295,1333]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.normal",
+      "text": "",
+      "content-desc": "Normal",
+      "bounds": "[316,1197][569,1323]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.hard",
+      "text": "",
+      "content-desc": "Hard",
+      "bounds": "[590,1197][800,1333]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.expert",
+      "text": "",
+      "content-desc": "Expert",
+      "bounds": "[87,1355][330,1481]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.adaptive",
+      "text": "",
+      "content-desc": "Adaptive",
+      "bounds": "[351,1355][635,1481]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.start",
+      "text": "",
+      "content-desc": "Start game",
+      "bounds": "[87,1502][993,1649]",
+      "clickable": "true"
+    }
+  ],
+  "default-font15-light-start": [
+    {
+      "resource-id": "logic-order-path.difficulty.easy",
+      "text": "",
+      "content-desc": "Easy",
+      "bounds": "[87,1346][342,1482]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.normal",
+      "text": "",
+      "content-desc": "Normal",
+      "bounds": "[363,1346][688,1472]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.hard",
+      "text": "",
+      "content-desc": "Hard",
+      "bounds": "[709,1346][967,1482]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.expert",
+      "text": "",
+      "content-desc": "Expert",
+      "bounds": "[87,1504][396,1630]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.adaptive",
+      "text": "",
+      "content-desc": "Adaptive",
+      "bounds": "[417,1504][790,1630]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.start",
+      "text": "",
+      "content-desc": "Start game",
+      "bounds": "[87,1651][993,1798]",
+      "clickable": "true"
+    }
+  ],
+  "default-font2-light-start": [
+    {
+      "resource-id": "logic-order-path.difficulty.easy",
+      "text": "",
+      "content-desc": "Easy",
+      "bounds": "[87,1499][366,1642]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.normal",
+      "text": "",
+      "content-desc": "Normal",
+      "bounds": "[387,1499][749,1632]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.hard",
+      "text": "",
+      "content-desc": "Hard",
+      "bounds": "[87,1664][370,1797]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.expert",
+      "text": "",
+      "content-desc": "Expert",
+      "bounds": "[391,1664][734,1797]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.adaptive",
+      "text": "",
+      "content-desc": "Adaptive",
+      "bounds": "[87,1818][506,1951]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.start",
+      "text": "",
+      "content-desc": "Start game",
+      "bounds": "[87,1972][993,2119]",
+      "clickable": "true"
+    }
+  ],
+  "compact-font2-light-start": [
+    {
+      "resource-id": "logic-order-path.difficulty.easy",
+      "text": "",
+      "content-desc": "Easy",
+      "bounds": "[87,513][366,656]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.normal",
+      "text": "",
+      "content-desc": "Normal",
+      "bounds": "[387,513][749,646]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.hard",
+      "text": "",
+      "content-desc": "Hard",
+      "bounds": "[87,678][370,811]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.expert",
+      "text": "",
+      "content-desc": "Expert",
+      "bounds": "[391,678][734,811]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.difficulty.adaptive",
+      "text": "",
+      "content-desc": "Adaptive",
+      "bounds": "[87,832][506,965]",
+      "clickable": "true"
+    },
+    {
+      "resource-id": "logic-order-path.start",
+      "text": "",
+      "content-desc": "Start game",
+      "bounds": "[87,986][753,1133]",
+      "clickable": "true"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "device": "emulator-5570",
+  "avd": "braintraining-ui35",
+  "startingCommit": "2c0a990e3671192153f81bf1e971edef4a6db0a6",
+  "arrival": {
+    "physicalPixels": [
+      1080,
+      2400
+    ],
+    "overridePixels": [
+      840,
+      1400
+    ],
+    "densityDpi": 420,
+    "fontScale": 1.0,
+    "systemNight": "no",
+    "animatorDurationScale": 1,
+    "pngSha256": "35b0329a36ebf1f7d4cec076dc1e6a6974a87d890fb1099b366fe7a2a44d2396"
+  },
+  "priorHandoff": {
+    "endingSha": "2c0a990e3671192153f81bf1e971edef4a6db0a6",
+    "size": "Physical size: 1080x2400\nOverride size: 840x1400",
+    "fontScale": "2.0",
+    "motion": "1",
+    "pngSha256": "65183e445a031cefd6e4032bcb96ca0fa5aa60a012c93c4a26e3d961f709b013"
+  },
+  "avdConfig": {
+    "width": 1080,
+    "height": 2400,
+    "dpi": 420
+  },
+  "ordinaryTarget": {
+    "sizeOverride": null,
+    "pixels": [
+      1080,
+      2400
+    ],
+    "dpi": 420,
+    "fontScale": 1.0,
+    "night": "no",
+    "motion": 1
+  },
+  "typographyMultipliedByFontScale": false,
+  "newScalingRestrictions": false,
+  "confirmedCodeDefects": [
+    "zero-basis kicker squeezed by unconstrained metadata",
+    "bottom-sheet alignment retained on full tutorial page"
+  ]
+}
