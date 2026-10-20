@@ -44,6 +44,7 @@
       "hermeticPushPath": [
         "repo-state-integrity (scripts/validate-repo-state.mjs)",
         "registry-generated-check (scripts/generate-game-registry.mjs --check)",
+        "spec-store-generated-check (scripts/generate-spec-store.mjs --check)",
         "provenance-drift-check (scripts/validate-provenance.mjs --check)",
         "task-ownership-check (scripts/validate-task-ownership.cjs)",
         "offline-boundary-check (scripts/validate-offline.mjs --check)",

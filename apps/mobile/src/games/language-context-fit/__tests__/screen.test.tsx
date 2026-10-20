@@ -151,6 +151,27 @@ describe('ContextFitScreen', () => {
     expect(screen.getByTestId(testId('language-context-fit', 'forced-badge'))).toBeOnTheScreen();
   });
 
+  it('keeps Pause live during round feedback (F-10a regression)', async () => {
+    const { clock } = await renderScreen({ seed: 'pause-feedback' });
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'start')));
+    await advanceTime(clock, 500);
+    const expected = expectedRound('pause-feedback', 0, new Set(), null);
+    await fireEvent.press(
+      screen.getByTestId(testId('language-context-fit', 'option', String(expected.correctIndex))),
+    );
+    expect(screen.getByTestId(testId('language-context-fit', 'round-correct'))).toBeOnTheScreen();
+
+    // The Pause control must not be a dead affordance on the feedback state.
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'pause')));
+    expect(screen.getByTestId('language-context-fit.pause-overlay')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'resume')));
+    expect(screen.queryByTestId('language-context-fit.pause-overlay')).toBeNull();
+
+    // The feedback state is still navigable afterwards.
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'next-round')));
+    expect(screen.getByTestId(testId('language-context-fit', 'round', '2'))).toBeOnTheScreen();
+  });
+
   it('pause freezes the round and resume returns to the question', async () => {
     const { clock } = await renderScreen({ seed: 'pause' });
     await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'start')));

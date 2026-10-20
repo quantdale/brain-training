@@ -24,7 +24,7 @@
 - [x] Run risk-appropriate repository/build/runtime checks and inspect
       persisted state/logs.
 - [x] Write the required Campaign 043 evidence packet and overnight handoff.
-- [ ] Commit and push a coherent checkpoint, then re-fetch/reconcile safely.
+- [x] Commit and push a coherent checkpoint, then re-fetch/reconcile safely.
 - [x] Classify Campaign 043 as COMPLETE, PARTIAL_MANUAL_PLATFORM_PENDING, or
       BLOCKED without fabricating unavailable evidence.
 
@@ -32,3 +32,11 @@ Closure: `CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING`. The remaining
 unchecked commit task is completed by the orchestrator at the campaign
 transition checkpoint; the absence of a product repair is intentional because
 no current defect was reproduced.
+
+## Terminal closure (2026-10-19)
+
+The commit/reconcile row is checked as completed at the campaign transition
+checkpoint — exactly what the closure note above records — so `openspec list`
+no longer reports this closed change as `in-progress` (explore finding F-2).
+The `PARTIAL_MANUAL_PLATFORM_PENDING` classification itself is unchanged:
+manual platform validation remains NOT VALIDATED.

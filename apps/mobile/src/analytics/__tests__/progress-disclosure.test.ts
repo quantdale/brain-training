@@ -6,6 +6,8 @@ import {
   buildNextConsideration,
   buildProgressConsistency,
   buildProgressMovement,
+  formatDaysSince,
+  formatDaysSinceProse,
   type DomainInsight,
   type TrainingBalance,
 } from "@/analytics";
@@ -153,5 +155,29 @@ describe("Progress disclosure summaries", () => {
       reason: "least-practiced",
       sessionsInWindow: 1,
     });
+  });
+});
+
+describe("day-count copy (F-9 singular/zero-day grammar)", () => {
+  it("formatDaysSinceProse reads naturally for 0/1/many days and null", () => {
+    expect(formatDaysSinceProse(0)).toBe("today");
+    expect(formatDaysSinceProse(1)).toBe("yesterday");
+    expect(formatDaysSinceProse(2)).toBe("2 days ago");
+    expect(formatDaysSinceProse(45)).toBe("45 days ago");
+    expect(formatDaysSinceProse(null)).toBe("not recorded");
+  });
+
+  it("formatDaysSince never renders a bare '0d ago'", () => {
+    expect(formatDaysSince(0)).toBe("today");
+    expect(formatDaysSince(1)).toBe("1d ago");
+    expect(formatDaysSince(null)).toBe("not recorded");
+  });
+
+  it("prose form never emits the ungrammatical '0 days ago'/'1 days ago'", () => {
+    for (const days of [0, 1, 2, 365, null]) {
+      const text = formatDaysSinceProse(days);
+      expect(text).not.toMatch(/0 days ago/);
+      expect(text).not.toMatch(/1 days ago/);
+    }
   });
 });

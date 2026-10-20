@@ -17,26 +17,34 @@ plus historical follow-ups.
 
 ## Still-open durable items
 
-- OrderPath expired-round feedback: observed Pause taps do not open pause;
-  Next round→Pause→Quit works. Bounded follow-up should decide whether Pause
-  should be disabled or remain available between rounds. Existing behavior,
-  outside the scale/tutorial-layout correction; ui-scaling/REPORT.md.
+- RESOLVED 2026-10-19 (F-10a): OrderPath expired-round Pause taps. Decision:
+  pause STAYS available between rounds (matches the 36-game majority and the
+  feedback-timer safety analysis). Fixed in the 5 games whose `canPause` made
+  the Pause control a dead affordance during `roundResult` (order-path,
+  deduction-table, word-match, context-fit, word-chain): `canPause` includes
+  the feedback phase, reducers pause/resume there without a frozen budget, and
+  `next-round` is `paused`-guarded. Screen + reducer regressions green.
 
-- Campaign077 P3 static review: singular-day copy on domain detail, a clipped
-  secondary Bronze Ring unlock hint, and unclear primary-category balance versus
-  multi-domain rating freshness wording. Discovery cover repetition is resolved in078. Sparse
-  one-point analytics and the competing foreground Demo/background Start
-  composition remain minor tradeoffs. Final per-image native15 review and
-  FINAL_REPORT record actual profiles; no hidden primary-action or P1/P2 claim.
+- Campaign077 P3 static review: singular-day copy and the clipped secondary
+  Bronze Ring unlock hint are RESOLVED 2026-10-19 (F-9: grammatical
+  today/yesterday/N-days copy with regressions; F-10b: collectible-tile
+  name/hint wrap-not-clip via `alignSelf: 'stretch'` + `flexShrink: 1`).
+  Still open: unclear primary-category balance versus multi-domain rating
+  freshness wording (copy tradeoff); sparse one-point analytics and the
+  competing foreground Demo/background Start composition remain minor
+  tradeoffs. Discovery cover repetition is resolved in078. Final per-image
+  native15 review and FINAL_REPORT record actual profiles; no hidden
+  primary-action or P1/P2 claim.
 
-- Campaign077 P3 cosmetic: native14 NumberLine enabled Submit PNG shows a gray
-  backing rectangle at the rounded face corners/bottom. Face bounds/label/input
-  qualify; actual encoded recording shows at least650ms, cause unknown. See
-  BUTTON_NATIVE14.md. Closure needs
-  actual same-caller temporal/settled evidence and a justified correction if
-  persistent; do not replay full workouts or claim a different rounded caller
-  fixes it. Existing recording review confirms this is not only one PNG;
-  targeted installed-RN/source cause investigation is the next observation.
+- RESOLVED 2026-10-19 (F-10c): the native14 gray backing rectangle on enabled
+  NumberLine Submit. Root cause established from source: RGB194 = `Depth.lip`
+  (`rgba(0,0,0,.24)` over light) — the campaign-026 "physical key" lip was a
+  taller pill wrapper background whose larger end radius leaks gray wedges past
+  the face's rounded bottom corners. The shadow is now an absolutely
+  positioned face-sized stadium shifted 4 dp down (uniform curved edge,
+  disabled state renders none, matching the native14 disabled frame); button
+  layout regressions pin the geometry. A fresh native re-capture would still be
+  the ideal confirmation and remains external evidence, not claimed here.
 
 - Owner product decision (from Change 062, 2026-09-20): exported backup
   files live in the files domain and Android auto-backup carries them

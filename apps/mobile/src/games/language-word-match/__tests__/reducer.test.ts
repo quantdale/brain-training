@@ -284,13 +284,19 @@ describe('pause / resume', () => {
     expect(state.lastAnswerMs).toBe(8000);
   });
 
-  it('pauses only during the question phase', () => {
+  it('pauses during question and feedback phases, but not in intro', () => {
     const inIntro = languageGameReducer(createInitialLanguageState(), { type: 'pause', nowMs: 0 });
     expect(inIntro.paused).toBe(false);
     let state = startSession('p2');
     state = answerCorrect(state, 500);
+    // Feedback phase stays pausable so the Pause control is never a dead
+    // affordance (F-10a regression: this previously asserted the defect).
     const inResult = languageGameReducer(state, { type: 'pause', nowMs: 600 });
-    expect(inResult.paused).toBe(false);
+    expect(inResult.paused).toBe(true);
+    expect(inResult.phase).toBe('roundResult');
+    const resumed = languageGameReducer(inResult, { type: 'resume', nowMs: 700 });
+    expect(resumed.paused).toBe(false);
+    expect(resumed.phase).toBe('roundResult');
   });
 
   it('cannot pause twice or resume when not paused', () => {

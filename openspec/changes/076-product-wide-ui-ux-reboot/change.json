@@ -1,29 +1,30 @@
 {
-  "id": "076-product-wide-ui-ux-reboot",
-  "status": "ACTIVE",
-  "predecessor": "phase10-terminal-certification",
-  "canonicalBranch": "main",
-  "entrypoint": "EXECUTION.md",
-  "proposal": "proposal.md",
-  "design": "design.md",
-  "tasks": "tasks.md",
-  "specOrder": [
-    "product-experience",
-    "gameplay-experience",
-    "experience-certification"
-  ],
-  "activationRule": "Owner goal directive (goal-mode): perform openspec apply on openspec/changes/076-product-wide-ui-ux-reboot/ \u2014 implement its staged tasks until complete or an honestly BLOCKED condition is durably recorded.",
-  "baselineAuditCommit": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
-  "productBaselineCommit": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
-  "baselineArtifact": {
-    "releaseApkSha256": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
-    "apkBytes": 109647329,
-    "device": "braintraining-ui35 / emulator-5554",
-    "resolution": "1080x2400 @ 420dpi"
-  },
-  "fullHardening": false,
-  "reviewConsumption": "Consumes the Explore-stage release baseline (evidence/before/: 20 device PNGs + index.json with APK/device hashes) and the proposal's Refero research (three style references, two product screens, two flows). Historical redesign certificates are context, not acceptance evidence for this reboot.",
-  "formerVerdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED (withdrawn after per-frame review)",
-  "validationNote": "Release acceptance BLOCKED: 22/168 individual game-state frames lack valid visual evidence; verified 90/90 route matrix is for earlier APK 00024954, while the final c3b3e4d9 matrix aborted amid system ANRs; ARTEMIS Flash smoke passed but nine Pro attempts were provider-BLOCKED and ADB fallback is not controller-led acceptance; iOS NOT VALIDATED. See GAME_ASSESSMENT.md and WAVE14_EVIDENCE.md. Source/tests and focused final-build detail stills do not certify the missing gates.",
-  "verdict": "CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED"
+ "id": "076-product-wide-ui-ux-reboot",
+ "status": "VALIDATED",
+ "predecessor": "phase10-terminal-certification",
+ "canonicalBranch": "main",
+ "entrypoint": "EXECUTION.md",
+ "proposal": "proposal.md",
+ "design": "design.md",
+ "tasks": "tasks.md",
+ "specOrder": [
+  "product-experience",
+  "gameplay-experience",
+  "experience-certification"
+ ],
+ "activationRule": "Owner goal directive (goal-mode): perform openspec apply on openspec/changes/076-product-wide-ui-ux-reboot/ \u2014 implement its staged tasks until complete or an honestly BLOCKED condition is durably recorded.",
+ "baselineAuditCommit": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+ "productBaselineCommit": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+ "baselineArtifact": {
+  "releaseApkSha256": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+  "apkBytes": 109647329,
+  "device": "braintraining-ui35 / emulator-5554",
+  "resolution": "1080x2400 @ 420dpi"
+ },
+ "fullHardening": false,
+ "reviewConsumption": "Consumes the Explore-stage release baseline (evidence/before/: 20 device PNGs + index.json with APK/device hashes) and the proposal's Refero research (three style references, two product screens, two flows). Historical redesign certificates are context, not acceptance evidence for this reboot.",
+ "formerVerdict": "CHANGE_076_PRODUCT_WIDE_UI_UX_REBOOT_VALIDATED (withdrawn after per-frame review)",
+ "validationNote": "Release acceptance BLOCKED: 22/168 individual game-state frames lack valid visual evidence; verified 90/90 route matrix is for earlier APK 00024954, while the final c3b3e4d9 matrix aborted amid system ANRs; ARTEMIS Flash smoke passed but nine Pro attempts were provider-BLOCKED and ADB fallback is not controller-led acceptance; iOS NOT VALIDATED. See GAME_ASSESSMENT.md and WAVE14_EVIDENCE.md. Source/tests and focused final-build detail stills do not certify the missing gates.",
+ "verdict": "CHANGE_076_RELEASE_ACCEPTANCE_BLOCKED",
+ "statusNote": "Terminal disposition 2026-10-19 (explore finding F-2): implementation complete; task 14.3 closed as superseded-with-limitation (matched before/after baseline historically unachievable, no matched-matrix claim). Successor certification 076-f is complete; 077/078 advanced. See tasks.md terminal-closure notes."
 }

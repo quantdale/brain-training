@@ -367,6 +367,25 @@ describe("WordChainScreen", () => {
     expect(screen.getByTestId(testId(GAME_ID, "round", "2"))).toBeOnTheScreen();
   });
 
+  it("keeps Pause live during expired-chain feedback (F-10a regression)", async () => {
+    const { clock } = await renderScreen({ seed: "pause-feedback" });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    await advanceTime(clock, NORMAL_PARAMS.timePerRoundMs + 500);
+    expect(screen.getByTestId(testId(GAME_ID, "round-timeout"))).toBeOnTheScreen();
+
+    // The Pause control must not be a dead affordance on the feedback state.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "pause")));
+    expect(screen.getByTestId(`${GAME_ID}.pause-overlay`)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "resume")));
+    expect(screen.queryByTestId(`${GAME_ID}.pause-overlay`)).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, "round-timeout"))).toBeOnTheScreen();
+
+    // The feedback state is still navigable afterwards.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "next-round")));
+    expect(screen.getByTestId(testId(GAME_ID, "round", "2"))).toBeOnTheScreen();
+  });
+
   it("pauses: opaque overlay appears and the budget freezes until resume", async () => {
     const { clock } = await renderScreen({ seed: "pause-test" });
 

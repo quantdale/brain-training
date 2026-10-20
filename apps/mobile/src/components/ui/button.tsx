@@ -303,9 +303,18 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
   }
   // The lip wrapper keeps the testID, ref and accessibility contract on the
   // inner pressable; automation traverses one extra layout View per filled
-  // button and nothing else changes.
-  return <View style={[fullWidth && styles.fullWidth, styles.lipOuter,
-    !showLip && { backgroundColor: 'transparent' }, cellStyle]}>{body}</View>;
+  // button and nothing else changes. The shadow itself is an absolutely
+  // positioned, FACE-SIZED bar shifted 4 dp down (F-10c): a taller pill
+  // wrapper background has a larger end radius than the face and leaks gray
+  // wedges past the face's rounded bottom corners — the native14 "gray backing
+  // rectangle" P3. A same-size shifted stadium keeps the shadow edge a clean,
+  // uniform curved lip.
+  return (
+    <View style={[fullWidth && styles.fullWidth, styles.lipOuter, cellStyle]}>
+      {showLip ? <View style={styles.lipBar} testID={testID ? `${testID}-lip` : undefined} /> : null}
+      {body}
+    </View>
+  );
 });
 
 const styles = StyleSheet.create({
@@ -326,9 +335,19 @@ const styles = StyleSheet.create({
   outlined: {
     borderWidth: 1,
   },
-  // Physical key: the wrapper's own translucent floor shows as a 4 dp shadow
-  // edge under the raised face. Same shading language as the Spark node.
+  // Physical key: a face-sized translucent stadium shifted 4 dp down shows as
+  // a curved shadow edge under the raised face. Deliberately the SAME size and
+  // radius as the face — a taller wrapper background would protrude past the
+  // face's bottom corners (F-10c). Same shading language as the Spark node.
   lipOuter: {
+    borderRadius: Radii.pill,
+  },
+  lipBar: {
+    position: 'absolute',
+    top: 4,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderRadius: Radii.pill,
     backgroundColor: Depth.lip,
   },

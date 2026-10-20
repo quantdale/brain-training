@@ -33,6 +33,7 @@ import {
   buildReactionTrend,
   explainMetric,
   filterByWindow,
+  formatDaysSinceProse,
   isWithinWindow,
   loadProgressSnapshot,
   summarizePointTrend,
@@ -329,8 +330,8 @@ export default function ProgressDomainScreen() {
           </View>
           <ThemedText type="caption" themeColor="textSecondary">
             {insight?.status === 'stale'
-              ? `Stale — last trained ${insight.daysSinceUpdate} days ago.`
-              : `Fresh — trained ${insight?.daysSinceUpdate} days ago.`}{' '}
+              ? `Stale — last trained ${formatDaysSinceProse(insight.daysSinceUpdate)}.`
+              : `Fresh — trained ${formatDaysSinceProse(insight?.daysSinceUpdate ?? null)}.`}{' '}
             {plural(insight?.sessions ?? 0, 'session')} · {plural(insight?.windowEntries ?? 0, 'update')} in this window.
           </ThemedText>
           {insight?.bestRating !== null ? (

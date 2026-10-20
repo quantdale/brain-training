@@ -20,5 +20,13 @@
       probe baselines committed, campaign-055 corrections, hygiene.
 - [x] 11. Full matrix + validators + OpenSpec strict + probe runner.
 - [x] 12. Bounded device pass on a fresh 065 build; evidence written.
-- [ ] 13. Adversarial closure review; durable state; commit; push;
+- [x] 13. Adversarial closure review; durable state; commit; push;
       `HEAD == origin/main`.
+
+## Terminal closure (2026-10-19)
+
+Task 13 is checked from the program ledger
+(`.agent/OVERNIGHT_056_067_STATE.md`, `CHANGE_065_COMPLETE`): two adversarial
+passes ran (six-lane recon → closure verifier; four residual items repaired),
+the full matrix closed green (588 suites / 6,893 tests; OpenSpec 49/49 strict),
+and durable state was reconciled and pushed. (Explore finding F-2.)

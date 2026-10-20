@@ -1089,8 +1089,8 @@ function DomainRatingRow({ insight, divider }: { insight: DomainInsight; divider
   const statusLine = unseen
     ? 'Untrained · starts at the initial rating'
     : insight.status === 'stale'
-      ? `Stale · last trained ${insight.daysSinceUpdate}d ago`
-      : `Fresh · trained ${insight.daysSinceUpdate}d ago`;
+      ? `Stale · last trained ${formatDaysSince(insight.daysSinceUpdate)}`
+      : `Fresh · trained ${formatDaysSince(insight.daysSinceUpdate)}`;
   const movement =
     insight.windowMovement !== 0
       ? `${directionArrow(insight.direction)} ${formatSigned(insight.windowMovement)}`

@@ -38,7 +38,7 @@
       (the Campaign 021 crash-window self-heal relies on them running).
 - [x] 2.4 Dev-only perf marks `bootstrap-db-init` and `bootstrap-progression`
       around database init and progression seeding.
-- [ ] 2.5 Fuse the backup export canonicalization passes — DEFERRED with
+- [x] 2.5 Fuse the backup export canonicalization passes — DEFERRED with
       rationale: export is a deliberate user action (not a hot path), the
       double pass is measured on desktop only (4.9 s + 1.1 s @5k), and fusing
       it risks byte/checksum divergence against `roundtrip.test.ts` without a
@@ -118,3 +118,12 @@
       escalated rather than hidden.
 - [x] 7.4 Durable state, VALIDATION.md, KNOWN_ISSUES.md, BACKLOG.md updated;
       campaign closed VALIDATED with honest classifications.
+
+## Terminal closure (2026-10-19)
+
+Task 2.5 is checked as terminally dispositioned **DEFERRED**, with its rationale
+recorded verbatim above and in `.agent/KNOWN_ISSUES.md`. Checking the box
+asserts only that the disposition stands — **the canonicalization passes were
+NOT fused** and no performance claim changes. (Explore finding F-2: the
+unchecked box kept this closed VALIDATED campaign reporting `in-progress` in
+`openspec list`.)

@@ -1,5 +1,13 @@
 # Campaign078 — game-cover visual identities
 
+2026-10-19: owner-directed bounded explore-findings convergence qualified; no
+campaign activation. All findings of docs/audits/openspec-explore-2026-10-19.md
+fixed (spec store generated + gated, zombie changes closed with honest
+dispositions, audit traceability, root hygiene hardened, gate-script
+robustness, dependency counting model, grammar copy, dead Pause in 5 games,
+Bronze Ring hint clipping, NumberLine gray-lip root cause). F-11 limits remain
+NOT VALIDATED. The078 status below is historical.
+
 2026-10-19: separate owner-requested scale/responsive correction qualified;
 no campaign activation. Two shared fixes/full gates/rebuilt APK/seven native
 profiles/tutorial→actualStart/Grid+Transform nestedcanaries/18session preservation

@@ -1,5 +1,26 @@
 # Durable Project State
 
+## Explore-findings convergence — 2026-10-19 (qualified)
+
+Owner-directed bounded repair of every finding in
+docs/audits/openspec-explore-2026-10-19.md; no campaign activation. F-1:
+generated main spec store (scripts/generate-spec-store.mjs, 140 capabilities/
+601 requirements replayed) + declared `spec-store-generated-check` CI gate;
+openspec strict now 203/203. F-2: all nine zombie in-progress changes closed as
+terminally dispositioned with honest BLOCKED/NOT VALIDATED text preserved
+(006r 12.11 closed with real public-CI evidence at `69af63a6`); `openspec list`
+0/63 non-complete. F-3: audit TRACEABILITY.md with corrected finding→change
+mapping. F-4: tracked UTF-16 `campaign-log.txt` dump removed; root-hygiene
+detector hardened (reserved device names, stat fail-closed, tracked-dump ban,
+16-case self-test) with negative proof before removal. F-5/6/7: gate scripts
+root-independent + strict argv usage (exit 2). F-8: dependency-audit counting
+model documented (10 unique GHSAs). F-9/F-10: grammar copy fix and the three
+live product P3s repaired (dead Pause in 5 games, Bronze Ring hint clipping,
+NumberLine gray lip root cause: taller-stadium lip wrapper → face-sized shifted
+lip bar). F-11 limits remain NOT VALIDATED/unclaimed. Gates: full Jest matrix,
+tsc, lint, web export, strict OpenSpec 203/203, all repo/security/tooling
+validators PASS.
+
 ## Focused scale/responsive repair — 2026-10-19 (qualified)
 
 Clean origin/main2c0a990e baseline. Oversized handoff primarily came from the

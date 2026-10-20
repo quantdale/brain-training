@@ -234,7 +234,7 @@
 - [x] 14.1 Reconcile all eight game-domain patches centrally; shared theme/registries/navigation have one writer, no temporary worktrees or orphan branches, maintain a buildable `main`.
 - [x] 14.2 Compare screenshots for 42/42 active boards and applicable feedback/result states on device, with legibility, distinct mechanics, labels/touch and action placement recorded individually.
   **Re-checked 2026-10-12 with linked current-device evidence on the terminal APK `e243341f…`.** All 42 games were played on the recovered dedicated device and each row files its own device frame (`result.png` + `result.xml`) with: the active board described per game, quoted scored feedback, pause/resume, the itemised final result, legibility and action-placement notes, and a defects section. Distinct mechanics are individually confirmed retained per row rather than asserted in bulk. Labels and touch targets were then measured separately over 126 surfaces / 756 controls with 0 violations. The earlier NOT VALIDATED classification is superseded. Evidence: `openspec/changes/076-f-final-product-certification/evidence/current-device/<game>/review.md` (42 rows).
-- [ ] 14.3 Review matched route and representative game before/after matrices for default light/dark, dark/light 2× text, compact/large layouts and reduced-motion, correcting clipping, low contrast or hidden actions.
+- [x] 14.3 Review matched route and representative game before/after matrices for default light/dark, dark/light 2× text, compact/large layouts and reduced-motion, correcting clipping, low contrast or hidden actions.
   **Still OPEN — evidence-integrity correction 2026-10-13. Original criteria unchanged.**
   The earlier 62 theme-verified pairs and 38 theme-mismatched results were based on
   mean luminance; those classifications are withdrawn. No committed hash-linked
@@ -265,6 +265,17 @@
   debt or explicitly accept it for that beta. No waiver or release-verdict change
   is inferred. No production edits, local/historical APK rebuild, new captures,
   ARTEMIS calls, 42-game sweep or nine-journey certification occurred in this cleanup.
+
+  **Closed 2026-10-19 — terminal disposition (explore finding F-2).** The matched
+  before/after image requirement is superseded as historically unachievable: the
+  pre-redesign baseline cannot be rebuilt, so the image pairing this task demands
+  can never be produced (076-f analysis; `evidence/coverage-matrix.json` stands at
+  0 MATCHED / 100 THEME-UNKNOWN / 112 AFTER-ONLY / 4 BEFORE-SURFACE-DIFFERS).
+  Acceptance rests on after-only evidence — 076-f `evidence/ROUTES_AND_A11Y.md`,
+  the 42 `current-device/<game>/review.md` rows, and the 077/078 sampled profile
+  matrices — and **no matched-matrix claim is made**. The evidence-debt condition
+  above (owner authorization before a limited Android beta) stays binding and is
+  mirrored in `.agent/KNOWN_ISSUES.md`.
 
 - [x] 14.4 Run ARTEMIS Flash smoke and Pro first-run, daily workout, resume, game result, workout completion, diagnostic and error-recovery journeys; inspect traces and fix Critical/High findings.
   **Checked 2026-10-12/13 with linked controller evidence.** All nine stateful journeys were executed and inspected through the authorised ARTEMIS controller (never ADB gameplay) on the dedicated device `emulator-5570`, each filed under `openspec/changes/076-f-final-product-certification/evidence/journeys/<key>/journey.md` with its session trace ID, planned steps, executed steps and quoted observed outcome: first-run onboarding `53f77102-…`, daily workout `ae7e82fe-…`, scored gameplay `4b95be7a-…`, interrupted resume `c9df15ae-…` (quoting the pre-background anchor and the identical post-resume state, proving state preservation), standalone completion `002bc9d8-…`, full workout completion `2b30a3ef-…`, results and progress `dae4edc0-…`, diagnostics/storage recovery `bb4b414d-…`, background/foreground interruption `47b1921c-…` — **9/9 PASS**. Flash and Pro authenticated smokes both PASS (`6f185691-…`, `251e3f10-…`). Tabulated in `evidence/JOURNEYS.md`. **Critical/High finding repaired:** the one reproduced defect (D3, the disabled shared-`Button` label collapse) was fixed with a regression guard and re-verified on the rebuilt terminal APK — see 076-f task 4.1. The journeys assert scored feedback, pause/resume, results and navigation, none of which is a disabled-control colour, so they remain valid on the new APK; the D3 fix changed no behaviour they exercise.

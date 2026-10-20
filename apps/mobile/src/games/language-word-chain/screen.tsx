@@ -120,7 +120,9 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     clock,
     canPause: () => {
       const current = stateRef.current;
-      return current.phase === 'question' && !current.paused;
+      // Pause stays available on the expired-round feedback (roundResult) so
+      // the session header's Pause control is never a dead affordance (F-10a).
+      return (current.phase === 'question' || current.phase === 'roundResult') && !current.paused;
     },
     onPause: () => dispatch({ type: 'pause', nowMs: session.elapsedMs() }),
   });

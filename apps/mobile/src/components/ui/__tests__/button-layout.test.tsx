@@ -8,6 +8,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { GameButton } from '@/components/game-ui/game-button';
+import { Depth, Radii } from '@/theme/tokens';
 import { Button, type ButtonVariant } from '../button';
 
 type NativeNode = {
@@ -113,5 +114,53 @@ describe('Button parent-facing layout', () => {
     const face = StyleSheet.flatten(screen.getByTestId('game-next').props.style);
     expect(face.flexGrow ?? 0).toBe(0);
     expect(face.paddingHorizontal).toBe(24);
+  });
+});
+
+describe('Button lip geometry (F-10c regression)', () => {
+  it('draws the physical-key shadow as a face-sized shifted bar, not a wrapper background', async () => {
+    const tree = await render(
+      <View><Button label="Submit estimate" testID="submit" variant="primary" /></View>,
+    );
+    // The taller-stadium wrapper background leaked gray wedges past the face's
+    // rounded bottom corners (native14 "gray backing rectangle", RGB194 =
+    // Depth.lip over light). The wrapper must not paint at all.
+    expect(outerStyle(tree).backgroundColor).toBeUndefined();
+    const face = StyleSheet.flatten(screen.getByTestId('submit').props.style) ?? {};
+    expect(face.marginBottom).toBe(4);
+    const lip = StyleSheet.flatten(screen.getByTestId('submit-lip').props.style) ?? {};
+    // Same radius and width as the face, shifted 4 dp down: a uniform curved
+    // shadow edge instead of a backing rectangle.
+    expect(lip.position).toBe('absolute');
+    expect(lip.top).toBe(4);
+    expect(lip.left).toBe(0);
+    expect(lip.right).toBe(0);
+    expect(lip.bottom).toBe(0);
+    expect(lip.borderRadius).toBe(Radii.pill);
+    expect(lip.backgroundColor).toBe(Depth.lip);
+  });
+
+  it('renders no shadow bar when disabled (matches the native14 disabled frame)', async () => {
+    const tree = await render(
+      <View><Button label="Submit estimate" testID="submit-off" variant="primary" disabled /></View>,
+    );
+    expect(outerStyle(tree).backgroundColor).toBeUndefined();
+    expect(screen.queryByTestId('submit-off-lip')).toBeNull();
+  });
+
+  it('keeps the shadow bar for danger/success and omits it for secondary/ghost', async () => {
+    for (const variant of ['danger', 'success'] as const) {
+      const tree = await render(
+        <View><Button label="Act" testID={`b-${variant}`} variant={variant} /></View>,
+      );
+      expect(screen.getByTestId(`b-${variant}-lip`)).toBeOnTheScreen();
+      expect(outerStyle(tree).backgroundColor).toBeUndefined();
+    }
+    for (const variant of ['secondary', 'ghost'] as const) {
+      await render(
+        <View><Button label="Act" testID={`b-${variant}`} variant={variant} /></View>,
+      );
+      expect(screen.queryByTestId(`b-${variant}-lip`)).toBeNull();
+    }
   });
 });

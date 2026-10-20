@@ -1,6 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
+// The validated root is the CALLER'S CWD by contract: the repo-state test
+// suite (src/governance/__tests__/repo-state.test.ts) runs this script against
+// synthetic fixture trees to prove each failure class, and CI runs it against
+// the checkout. Do NOT switch this to a script-relative root — that silently
+// repointed fixture runs at the real repository and made negative tests pass
+// vacuously (caught by that suite on 2026-10-19).
 const root = process.cwd();
 const required = [
   'README.md',
@@ -37,35 +44,162 @@ for (const rel of required) {
   else if (fs.statSync(p).size === 0) errors.push(`Required file is empty: ${rel}`);
 }
 // Repository-root hygiene: allowlist of expected top-level entries; reject
-// unexpected zero-byte or suspicious shell-residue files (e.g. `'`, `i.startsWith('home')`).
-// This is narrowly scoped to the repository root; empty fixtures elsewhere are allowed.
+// shell/editor residue at the repository root. Covers the residue classes that
+// have actually occurred here (explore finding F-4 / audit L08-F05):
+//   1. Windows reserved device names (`nul`, `con`, `com1`…) — the classic
+//      `command > nul` redirection artifact; previously invisible because the
+//      detector only looked at zero-byte files;
+//   2. zero-byte leftovers (unchanged);
+//   3. suspicious redirection-mangled names (unchanged);
+//   4. TRACKED command-output dumps (`*.log`/`*.txt` at the root must stay
+//      untracked) — `campaign-log.txt`, a UTF-16 `git log` dump, was `git
+//      add`-ed at the root and became invisible to every UTF-8 scanner,
+//      including validate-secrets.mjs;
+//   5. unrecognised root FILES (extension outside the allowlist).
+// Directories keep their current lenient treatment: machine-installed
+// assistant-config trees (.cline/, .cursor/, …) must not fail this gate merely
+// by existing (see .gitignore). Narrowly scoped to the repository root;
+// empty fixtures elsewhere are allowed. `--self-test` exercises the pure
+// predicate below with synthetic residue (this path had no self-test at all).
 const allowedRootEntries = new Set([
   'README.md', 'AGENTS.md', 'LICENSE', '.editorconfig', '.gitattributes', '.gitignore',
   'apps', 'docs', 'scripts', 'openspec', 'qa-artifacts', 'qa-canaries.log',
   '.agent', '.agents', '.claude', '.git', '.github', '.kimi-code', '.opencode', '.quarantine',
 ]);
 const allowedRootExtensions = new Set(['.md', '.json', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.png', '.jpg', '.jpeg', '.svg', '.webp', '.log', '.txt', '.yml', '.yaml', '.toml', '.lock', '.gradle', '.properties', '.xml', '.bat', '.sh', '.exe']);
-const rootEntries = fs.readdirSync(root, { withFileTypes: true });
-for (const entry of rootEntries) {
-  const name = entry.name;
-  if (allowedRootEntries.has(name)) continue;
-  if (name.startsWith('.') && !allowedRootEntries.has(name)) {
-    const ext = path.extname(name);
-    if (allowedRootExtensions.has(ext) || ['.env', '.nvmrc', '.npmrc', '.yarnrc', '.DS_Store'].includes(name)) continue;
+const knownRootDotfiles = ['.env', '.nvmrc', '.npmrc', '.yarnrc', '.DS_Store'];
+// Root-level *.log/*.txt may exist as local, untracked tool output (emulator
+// logs, scratch notes) but must never be committed: every such tracked file so
+// far has been an accidental command-output dump.
+const rootDumpExtensions = new Set(['.log', '.txt']);
+const windowsReservedName = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+
+/**
+ * Pure root-entry classifier (also driven by --self-test).
+ * @param {{ name: string, statError?: string, isFile?: boolean, size?: number, tracked?: boolean }} entry
+ * @returns {string[]} problems (empty = clean)
+ */
+export function rootHygieneProblems(entry) {
+  const { name, statError, isFile = false, size = 0, tracked = false } = entry;
+  const problems = [];
+  if (windowsReservedName.test(name)) {
+    problems.push(
+      `Windows reserved device name at repository root: '${name}' — classic redirection residue (e.g. \`cmd > nul\`), remove it`,
+    );
   }
-  const fullPath = path.join(root, name);
-  try {
-    const stat = fs.statSync(fullPath);
-    if (stat.isFile() && stat.size === 0) {
-      if (!['.gitkeep', '.npmignore'].includes(name)) {
-        errors.push(`Unexpected zero-byte file at repository root: '${name}' — remove shell residue or add to allowlist in scripts/validate-repo-state.mjs`);
-      }
-    }
-    if (/['`$;|&<>]/.test(name) || /^i\./.test(name) || name.includes('=>') || name.includes('startsWith')) {
-      errors.push(`Suspicious file name at repository root: '${name}' — likely shell/editor residue, remove it`);
-    }
-  } catch {}
+  if (statError) {
+    // A failed stat previously fell into `catch {}`, silently exempting the
+    // entry from every check. Fail closed instead.
+    problems.push(`Cannot stat repository-root entry '${name}': ${statError}`);
+    return problems;
+  }
+  if (isFile && size === 0 && !['.gitkeep', '.npmignore'].includes(name)) {
+    problems.push(`Unexpected zero-byte file at repository root: '${name}' — remove shell residue or add to allowlist in scripts/validate-repo-state.mjs`);
+  }
+  if (/['`$;|&<>]/.test(name) || /^i\./.test(name) || name.includes('=>') || name.includes('startsWith')) {
+    problems.push(`Suspicious file name at repository root: '${name}' — likely shell/editor residue, remove it`);
+  }
+  if (isFile && tracked && rootDumpExtensions.has(path.extname(name)) && !allowedRootEntries.has(name)) {
+    problems.push(`Tracked command-output dump at repository root: '${name}' — remove it from git (keep local logs untracked); see audit L08-F05`);
+  }
+  if (isFile && !name.startsWith('.') && !allowedRootEntries.has(name) && !allowedRootExtensions.has(path.extname(name)) && problems.length === 0) {
+    // Only for otherwise-clean names: a residue name (reserved/suspicious) is
+    // already reported above, and piling on a second message adds noise.
+    problems.push(`Unrecognised root file '${name}' — extension is not in the root allowlist; add the file explicitly or fix scripts/validate-repo-state.mjs`);
+  }
+  return problems;
 }
+
+function trackedRootFileNames() {
+  try {
+    const out = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'buffer' });
+    return new Set(
+      out.toString('utf8').split('\0').filter(Boolean).filter((p) => !p.includes('/')),
+    );
+  } catch {
+    // Not a git checkout (e.g. exported archive): the tracked-dump rule cannot
+    // be evaluated, so it is skipped rather than guessed. Name/size rules still run.
+    return null;
+  }
+}
+
+function collectRootHygieneProblems() {
+  const problems = [];
+  const trackedRoot = trackedRootFileNames();
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const name = entry.name;
+    if (windowsReservedName.test(name)) {
+      problems.push(...rootHygieneProblems({ name }));
+      continue;
+    }
+    if (allowedRootEntries.has(name)) continue;
+    if (name.startsWith('.') && (allowedRootExtensions.has(path.extname(name)) || knownRootDotfiles.includes(name))) continue;
+    const fullPath = path.join(root, name);
+    let stat;
+    let statError;
+    try {
+      stat = fs.statSync(fullPath);
+    } catch (error) {
+      statError = error.message;
+    }
+    problems.push(...rootHygieneProblems({
+      name,
+      statError,
+      isFile: stat?.isFile() ?? false,
+      size: stat?.size ?? 0,
+      tracked: trackedRoot ? trackedRoot.has(name) : false,
+    }));
+  }
+  return problems;
+}
+
+function rootHygieneSelfTest() {
+  const cases = [
+    [{ name: 'nul', isFile: true, size: 46 }, ['reserved']],
+    [{ name: 'NUL.txt', isFile: true, size: 10 }, ['reserved']],
+    [{ name: 'con', isFile: true, size: 1 }, ['reserved']],
+    [{ name: 'COM3.log', isFile: true, size: 1 }, ['reserved']],
+    [{ name: 'LPT9', isFile: true, size: 1 }, ['reserved']],
+    [{ name: 'campaign-log.txt', isFile: true, size: 38622, tracked: true }, ['dump']],
+    [{ name: 'scratch.txt', isFile: true, size: 100 }, []],
+    [{ name: 'stray.md', isFile: true, size: 0 }, ['zero-byte']],
+    [{ name: "'", isFile: true, size: 1 }, ['suspicious']],
+    [{ name: 'i.startsWith(home)', isFile: true, size: 1 }, ['suspicious']],
+    [{ name: 'nul', statError: 'EPERM' }, ['reserved', 'stat']],
+    [{ name: 'ghost.md', statError: 'ENOENT: dangling symlink' }, ['stat']],
+    [{ name: 'mystery.bin', isFile: true, size: 10 }, ['unrecognised']],
+    [{ name: 'ONBOARDING.md', isFile: true, size: 100 }, []],
+    [{ name: 'qa-canaries.log', isFile: true, size: 10, tracked: true }, []],
+    [{ name: '.cline', isFile: false, size: 0 }, []],
+  ];
+  const expectMap = { reserved: 'reserved device name', dump: 'command-output dump', 'zero-byte': 'zero-byte', suspicious: 'Suspicious', stat: 'Cannot stat', unrecognised: 'Unrecognised' };
+  let failed = 0;
+  for (const [input, expected] of cases) {
+    const problems = rootHygieneProblems(input);
+    const missing = expected.filter((tag) => !problems.some((p) => p.includes(expectMap[tag])));
+    const unexpected = problems.filter((p) => !expected.some((tag) => p.includes(expectMap[tag])));
+    if (missing.length || unexpected.length) {
+      failed += 1;
+      console.error(`root-hygiene self-test FAILED for ${JSON.stringify(input)}: missing=[${missing}] unexpected=[${unexpected}] got=${JSON.stringify(problems)}`);
+    }
+  }
+  if (failed) {
+    console.error(`root-hygiene self-test: ${failed}/${cases.length} cases FAILED`);
+    return false;
+  }
+  console.log(`root-hygiene self-test: PASS (${cases.length} cases)`);
+  return true;
+}
+
+const cliArgs = process.argv.slice(2);
+if (cliArgs.includes('--self-test')) {
+  process.exit(rootHygieneSelfTest() ? 0 : 1);
+}
+if (cliArgs.length) {
+  console.error('Usage: node scripts/validate-repo-state.mjs [--self-test]');
+  process.exit(2);
+}
+for (const problem of collectRootHygieneProblems()) errors.push(problem);
 
 let governance;
 try {

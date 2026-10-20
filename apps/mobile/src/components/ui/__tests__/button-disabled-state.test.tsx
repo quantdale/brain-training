@@ -194,10 +194,14 @@ describe('Button disabled treatment (076-f D3)', () => {
       return StyleSheet.flatten<ViewStyle>(root.props.style);
     };
     const before = outer();
-    expect(before.backgroundColor).toBe('transparent');
+    // F-10c construction: the wrapper never paints; the shadow is a separate
+    // face-sized bar that is simply not rendered while disabled.
+    expect(before.backgroundColor).toBeUndefined();
+    expect(screen.queryByTestId('lip-lip')).toBeNull();
     expect(flatten('lip').marginBottom).toBe(4);
     await tree.rerender(<Button label="GO" testID="lip" onPress={() => {}} />);
-    expect(outer().backgroundColor).not.toBe('transparent');
+    expect(outer().backgroundColor).toBeUndefined();
+    expect(screen.getByTestId('lip-lip')).toBeOnTheScreen();
     expect(outer().borderRadius).toBe(before.borderRadius);
     expect(flatten('lip').marginBottom).toBe(4);
   });

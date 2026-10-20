@@ -27,8 +27,11 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = process.cwd();
+// Repo root from THIS FILE's location (scripts/), not the caller's CWD, so the
+// IMPACT_MAP path resolves from any invocation directory (explore finding F-5 class).
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const IMPACT_MAP = path.join(ROOT, '.agent/IMPACT_MAP.md');
 
 /**
@@ -526,6 +529,14 @@ for (const a of args) {
   else if (a === '--list-areas') opts.list = true;
   else if (a === '--check-sync') opts.checkSync = true;
   else if (a === '--help') { printUsage(); process.exit(0); }
+  else if (a.startsWith('-')) {
+    // Unknown flags must be a usage error: a typo'd gate invocation (e.g.
+    // `--check` for `--check-sync`) previously fell through as a changed PATH,
+    // silently reporting a fake "1 changed path" plan (explore finding F-6).
+    console.error(`Unknown option: ${a}\n`);
+    printUsage();
+    process.exit(2);
+  }
   else paths.push(a);
 }
 

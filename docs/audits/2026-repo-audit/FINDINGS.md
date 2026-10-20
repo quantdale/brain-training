@@ -101,3 +101,24 @@ a `stat` failure remains valid, but it is not evidenced by that file.
 | `074-workout-lifecycle-durability` | F-14, F-15, F-16, F-33 | P2 | 2 |
 | `075-sdk-module-contract-and-session-safety` | F-12, F-13, F-19, F-31 | P2 | 2 |
 | `076-game-reducer-exhaustiveness-enforcement` | F-20, F-21 | P3 | 3 |
+
+**Correction to the Change partition table (2026-10-19).** The table above was
+written before the implementing changes were numbered: every row after `069`
+names a change id that does not exist (a consistent one-number drift plus one
+capability rename), and no change folder references its `F-xx` ids (explore
+finding F-3). The verified mapping (confirmed against change content, not
+numbering) lives in `docs/audits/2026-repo-audit/TRACEABILITY.md`:
+
+| Actual change | Findings |
+|---|---|
+| `068-storage-adapter-runtime-parity` | F-02, F-03, F-35, F-36, F-37, F-38, F-41 |
+| `069-dependency-gate-restoration` | F-01, F-34, F-42, F-43, F-44, F-45, F-46 |
+| `070-backup-transport-atomicity` | F-04, F-05, F-39, F-40 |
+| `071-shared-ui-contract-integrity` | F-08, F-09, F-10, F-11, F-18, F-27, F-28, F-29, F-30, F-32 |
+| `072-navigation-and-error-surfaces` | F-06, F-07, F-17, F-22, F-23, F-24, F-25, F-26 |
+| `073-workout-lifecycle-durability` | F-14, F-15, F-16, F-33 |
+| `074-sdk-module-contract` | F-12, F-13, F-19, F-31 |
+| `075-game-reducer-exhaustiveness` | F-20, F-21 |
+
+The historical table above is retained unmodified as the record of what was
+planned; the corrected mapping is authoritative for navigation.

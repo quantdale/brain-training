@@ -12,6 +12,20 @@ offline-first product
 **Result:** **19 vulnerabilities (15 moderate, 4 high)** — reduced from 20
 (15 moderate, 5 high) by the Campaign 054 in-range `js-yaml` remediation.
 
+**Counting-model refresh (2026-10-19).** The headline above is the 2026-09-19
+baseline and is stale as a *number to compare against npm* (explore finding
+F-8): npm's summary counts dependency-PATH entries, so it inflates over time
+as new advisory ids are published for the same advisories. The current,
+authoritative count is **10 unique GHSA advisories — all accepted with
+per-advisory reachability rationale (9 build/dev-toolchain, 1 runtime-accepted
+debt: `decode-uri-component`)**. The 2026-10-19 `npm audit --omit=dev` view
+reports 66 package entries (49 high, 17 moderate) which map to 13 npm advisory
+ids and exactly the 10 unique GHSAs allowlisted in
+`scripts/certification/dependency-audit-allowlist.json`. Gate result is
+unchanged and correct: `node scripts/validate-dependency-audit.mjs` → PASS,
+10 accepted, 0 unallowlisted moderate+ production findings. When comparing this
+doc to npm output, always reduce npm's numbers to unique GHSAs first.
+
 ## Campaign 076 — Repository Integrity red-gate remediation (2026-10-07)
 
 GitHub Actions `Repository Integrity` was red on `main` with four

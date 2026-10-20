@@ -242,6 +242,36 @@ describe('Per-domain drill-down — W09 additions', () => {
     // Best ever was 1060 even though current is 1020.
     expect(screen.getByTestId('progress-domain-best')).toHaveTextContent(/1060/);
     expect(screen.getByTestId('progress-domain-stats')).toBeOnTheScreen();
+    // Freshness copy is grammatical prose (F-9 regression): 2 days, plural.
+    expect(screen.getByText(/trained 2 days ago/)).toBeOnTheScreen();
+  });
+
+  it('renders "trained today" instead of "0 days ago" for same-day training', async () => {
+    mockDbState.db = makeFakeDb({
+      ratings: [{ domain: 'Memory', rating: 1020, sessions: 3, updatedAt: NOW }],
+      history: [
+        { id: 1, sessionId: 'a', domain: 'Memory', delta: 60, ratingAfter: 1020, createdAt: NOW },
+      ],
+      recent: [makeSession({ completedAt: NOW })],
+    });
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+
+    expect(screen.getByText(/trained today/)).toBeOnTheScreen();
+    expect(screen.queryByText(/0 days ago/)).toBeNull();
+  });
+
+  it('renders "yesterday" instead of "1 days ago" for one-day-old training', async () => {
+    mockDbState.db = makeFakeDb({
+      ratings: [{ domain: 'Memory', rating: 1020, sessions: 3, updatedAt: NOW - 1 * DAY }],
+      history: [
+        { id: 1, sessionId: 'a', domain: 'Memory', delta: 60, ratingAfter: 1020, createdAt: NOW - 1 * DAY },
+      ],
+      recent: [makeSession({ completedAt: NOW - 1 * DAY })],
+    });
+    await renderBare(ProgressDomainScreen, '/progress-domain?domain=Memory');
+
+    expect(screen.getByText(/trained yesterday/)).toBeOnTheScreen();
+    expect(screen.queryByText(/1 days ago/)).toBeNull();
   });
 
   it('does not present a no-response zero sentinel as domain reaction performance', async () => {

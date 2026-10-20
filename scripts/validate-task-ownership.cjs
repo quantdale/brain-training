@@ -227,8 +227,25 @@ module.exports = { validateTaskOwnership, globOverlap, globMatch, globToRegExp }
 
 // CLI entrypoint.
 if (require.main === module) {
-  const configPath = process.argv[2] || path.resolve(process.cwd(), '.agent/task-ownership.json');
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const argv = process.argv.slice(2);
+  if (argv.some((a) => a.startsWith('-'))) {
+    // Previously any flag (e.g. `--check`) was taken as a config PATH and died
+    // with a raw ENOENT stack trace (explore finding F-7). Reject options and
+    // print usage instead; exit 2 follows the repo's usage-error convention.
+    console.error(`Unknown option: ${argv.find((a) => a.startsWith('-'))}`);
+    console.error('Usage: node scripts/validate-task-ownership.cjs [<task-ownership.json>]');
+    process.exit(2);
+  }
+  // Default config resolves from the repo root derived from THIS FILE's
+  // location (scripts/), not the caller's CWD (explore finding F-5 class).
+  const configPath = argv[0] || path.resolve(__dirname, '..', '.agent', 'task-ownership.json');
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    console.error(`Task-ownership validation FAILED: cannot read config ${configPath}: ${error.message}`);
+    process.exit(1);
+  }
   const result = validateTaskOwnership(config);
   if (!result.valid) {
     console.error('Task-ownership validation FAILED:');

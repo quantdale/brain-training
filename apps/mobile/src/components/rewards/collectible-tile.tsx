@@ -155,7 +155,10 @@ export function CollectibleTile({
         {state === 'equipped' ? (
           <Badge label="Equipped" size="sm" tone="accent" />
         ) : detail ? (
-          <ThemedText type="caption" themeColor={locked ? 'textMuted' : 'textSecondary'}>
+          <ThemedText
+            type="caption"
+            themeColor={locked ? 'textMuted' : 'textSecondary'}
+            style={styles.detail}>
             {detail}
           </ThemedText>
         ) : null}
@@ -275,5 +278,14 @@ const styles = StyleSheet.create({
   },
   name: {
     minHeight: 36,
+    // Wrap instead of clip inside any cell/plinth width (F-10b: the Bronze
+    // Ring unlock hint was visually truncated at expanded width).
+    alignSelf: 'stretch',
+    flexShrink: 1,
+  },
+  detail: {
+    // Same wrap-not-clip guarantee for the secondary unlock/state line.
+    alignSelf: 'stretch',
+    flexShrink: 1,
   },
 });

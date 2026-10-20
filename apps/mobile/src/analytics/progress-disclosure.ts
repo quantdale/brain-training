@@ -223,5 +223,18 @@ export function formatDaysSince(days: number | null): string {
   return days === 0 ? "today" : `${days}d ago`;
 }
 
+/**
+ * Prose day count for full sentences (domain detail): "today" / "yesterday" /
+ * "N days ago". The old `${days} days ago` interpolation rendered "0 days ago"
+ * for same-day training and "1 days ago" for yesterday (explore finding F-9),
+ * and bypassed the app's own singular-day rules in components/shell/format.ts.
+ */
+export function formatDaysSinceProse(days: number | null): string {
+  if (days === null) return "not recorded";
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  return `${days} days ago`;
+}
+
 /** Keep the day constant available to tests/callers that need exact math. */
 export const PROGRESS_DAY_MS = DAY_MS;

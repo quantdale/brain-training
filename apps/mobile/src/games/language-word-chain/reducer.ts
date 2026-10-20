@@ -359,8 +359,16 @@ function reduceGameState(
     }
 
     case "pause": {
+      if (state.paused) {
+        return state;
+      }
+      // Pause stays available on the expired-round feedback (roundResult):
+      // the session header's Pause control must never be a dead affordance.
+      // No round timer runs during feedback, so there is nothing to freeze.
+      if (state.phase === "roundResult") {
+        return { ...state, paused: true };
+      }
       if (
-        state.paused ||
         state.phase !== "question" ||
         state.roundDeadlineMs === null ||
         state.roundStartedAtMs === null ||
@@ -382,6 +390,10 @@ function reduceGameState(
     }
 
     case "resume": {
+      // A feedback-phase pause carries no frozen budget to restore.
+      if (state.phase === "roundResult") {
+        return state.paused ? { ...state, paused: false } : state;
+      }
       if (
         !state.paused ||
         state.roundRemainingMs === null ||

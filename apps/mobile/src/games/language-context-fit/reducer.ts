@@ -173,7 +173,7 @@ export function contextFitGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.params === null || state.difficulty === null) return state;
+      if (state.paused || state.phase !== 'roundResult' || state.params === null || state.difficulty === null) return state;
       const nextIndex = state.roundIndex + 1;
       if (nextIndex >= state.params.rounds) {
         return { ...state, phase: 'results', roundOutcome: null };
@@ -207,8 +207,16 @@ export function contextFitGameReducer(
     }
 
     case 'pause': {
+      if (state.paused) {
+        return state;
+      }
+      // Pause stays available on the expired-round feedback (roundResult):
+      // the session header's Pause control must never be a dead affordance.
+      // No round timer runs during feedback, so there is nothing to freeze.
+      if (state.phase === 'roundResult') {
+        return { ...state, paused: true };
+      }
       if (
-        state.paused ||
         state.phase !== 'question' ||
         state.roundDeadlineMs === null ||
         state.roundStartedAtMs === null
@@ -225,6 +233,10 @@ export function contextFitGameReducer(
     }
 
     case 'resume': {
+      // A feedback-phase pause carries no frozen budget to restore.
+      if (state.phase === 'roundResult') {
+        return state.paused ? { ...state, paused: false } : state;
+      }
       if (state.paused === false || state.roundRemainingMs === null || state.roundElapsedMs === null) {
         return state;
       }

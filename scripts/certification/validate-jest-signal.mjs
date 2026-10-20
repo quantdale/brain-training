@@ -30,8 +30,14 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = process.cwd();
+// Repo root from THIS FILE's location (scripts/certification/), not the
+// caller's CWD: the default allowlist must resolve identically whether the
+// gate runs from the repo root (CI, app-ci.yml) or from apps/mobile
+// (developer shell). CWD resolution produced a bare ENOENT in the latter case
+// (explore finding F-5).
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const defaultAllowlist = path.join(root, 'scripts', 'certification', 'jest-skip-allowlist.json');
 const ALLOWLIST_SCHEMA_VERSION = 4;
 const EXPIRY_WARNING_WINDOW_DAYS = 60;

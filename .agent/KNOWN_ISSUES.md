@@ -1,3 +1,16 @@
+# Explore-findings convergence — 2026-10-19 (resolved)
+
+Resolved by the bounded F-1..F-10 wave (docs/audits/openspec-explore-2026-10-19.md
+§5): dead Pause on expired-round feedback (5 games, pause stays available
+between rounds), "0/1 days ago" copy (now today/yesterday/N days ago), the
+clipped Bronze Ring unlock hint (collectible-tile wrap-not-clip), and the
+native14 gray Submit backing (root cause: the physical-key lip wrapper leaked
+gray wedges past the face corners; now a face-sized shifted lip bar). The
+singular-day P3 under Campaign077 and the OrderPath Pause P3 under "Still-open
+durable items" are therefore historical. Standing limits below are UNCHANGED:
+physical Android/ARM64/iOS runtime, comprehensive screen readers, 60 FPS and
+human taste review remain NOT VALIDATED and unclaimed.
+
 # Focused scale/responsive repair — 2026-10-19
 
 Resolved: retained compact840x1400/font2 handoff was misleading as default;

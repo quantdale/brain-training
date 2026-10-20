@@ -16,6 +16,28 @@ For an active change, authority is:
 
 If two documents conflict, stop the conflicting work and reconcile the higher-authority document first. Do not silently choose whichever is easier.
 
+## Main spec store (generated)
+
+`openspec/specs/<capability>/spec.md` is the **consolidated current requirement
+state** per capability: what the shipped software currently requires, without
+the change-time scaffolding. It is generated, never hand-authored.
+
+- **Source of truth:** the change folders above. Each capability's delta spec
+  (`## ADDED / MODIFIED / REMOVED Requirements`) is replayed into one main spec
+  by `node scripts/generate-spec-store.mjs`.
+- **Do not edit `openspec/specs/**` by hand.** Change a requirement by adding a
+  delta to a change's `specs/`, then regenerate.
+- **Drift is a red gate:** CI runs `scripts/generate-spec-store.mjs --check`
+  (declared in `GOVERNANCE.greenMain.enforcedGateSet`), so the store cannot
+  silently diverge from the authored deltas.
+- `openspec archive` also updates main specs; after archiving a change,
+  re-run the generator so the projection stays canonical.
+- History note: before 2026-10-19 this store was empty (explore finding F-1);
+  requirements lived only inside ~70 change folders and the MODIFIED/REMOVED
+  deltas had nothing to apply against. The generator closes that gap without
+  moving any change folder (path references in `.agent/` and `docs/` remain
+  valid).
+
 ## Change lifecycle
 
 `PROPOSED -> ACTIVE -> IMPLEMENTED -> VALIDATED -> ARCHIVED`

@@ -1,3 +1,28 @@
+# Explore-findings convergence — qualified, 2026-10-19
+
+Bounded F-1..F-10 repair wave (docs/audits/openspec-explore-2026-10-19.md §5).
+Per-fix evidence: F-1 `generate-spec-store.mjs --check` OK + openspec strict
+203/203 (63 changes + 140 generated specs); F-2 `openspec list --json` 0/63
+non-complete (006r 12.11 closed on public CI runs 114/117 `success` at
+`69af63a6`); F-4 repo-state gate FAILed on the tracked dump before `git rm`
+(negative proof) and `--self-test` 16/16; F-5/6/7 exit-code reproductions
+(usage exit 2, script-relative root OK from apps/mobile); F-9/F-10 regression
+suites green (progress 15/15; five fixed games 50 suites/569 tests; collectible
+tile 3/3; button layout + kit contract 45/45). One obsolete word-match reducer
+test that pinned the dead-Pause policy was rewritten to the corrected contract
+with a dated rationale; one game-cover harness bound was raised 10 s to 60 s
+after a load-only ETIMEDOUT was reproduced as a too-tight execFileSync bound
+(the check itself is 2 s standalone and still fails hard on real drift).
+Final matrix on the committed source: full Jest 711 suites (711 passed,
+4 classified opt-in skips) / 8,018 tests (5 classified skips) / 5 snapshots
+PASS in 311.7 s; `tsc --noEmit` exit 0; `expo lint` exit 0; web export
+(22 routes) exit 0; `openspec validate --all --strict` 203/203; repo-state
+(+16-case root-hygiene self-test), registry, spec-store, provenance,
+ownership, offline, runtime-QA-contract, secrets, workflow hygiene,
+affected-map sync, expo alignment, dependency audit, jest-signal and
+certify-clean-checkout self-tests all PASS. F-11 boundaries remain NOT
+VALIDATED, not claimed.
+
 # Focused scale/responsive repair — qualified, 2026-10-19
 
 Metadata3 valid before failures; short-tutorial alignment1 valid before failure.

@@ -19,7 +19,11 @@ describe('registered mechanic cover contract', () => {
   it('keeps authored scenes, local assets, label mapping and review sheets deterministic', () => {
     const root = path.resolve(__dirname, '../../../../../..');
     expect(() => execFileSync(process.execPath, ['scripts/artwork/generate-covers.mjs', '--check'], {
-      cwd: root, stdio: 'pipe', timeout: 10_000,
+      // The check itself is ~2 s standalone; node cold-start + hashing under a
+      // 4-worker full-suite load routinely exceeded the old 10 s bound
+      // (ETIMEDOUT flakes on 2026-10-19). The bound is load headroom, not a
+      // retry: a real determinism failure still throws from --check itself.
+      cwd: root, stdio: 'pipe', timeout: 60_000,
     })).not.toThrow();
   });
   it('maps all 42 stable IDs, without extra IDs, missing assets or duplicate image content', () => {
