@@ -463,13 +463,15 @@ test('M7: schema-1 ledger is rejected — exit code 2 and reclassify-historical 
   assert.equal(r.status, 2, 'schema-1 input must exit 2');
   assert.ok(!fs.existsSync(r.outPath), 'no merged output may be produced from schema-1 input');
 
-  // KNOWN BUG (reported upstream; merge-coverage.mjs is frozen and untouched):
-  // for the real v1 shape the loader rejects on the missing runs[] BEFORE the
-  // schemaVersion check, so the mandated "run scripts/qa/
-  // reclassify-historical.mjs" guidance is unreachable and stderr only says
-  // "malformed ledger". This pins the actual (deficient) message as the bug's
-  // observable symptom; fixing the frozen loader will intentionally flip it.
-  assert.match(r.stderr, /malformed ledger/);
+  // FIXED (Campaign 080 Wave B, docs-vs-code inconsistency #6): the loader used
+  // to reject the real v1 shape on the missing runs[] BEFORE the schemaVersion
+  // check, which made the mandated `reclassify-historical.mjs` guidance
+  // unreachable. The schemaVersion check now runs FIRST, so a genuine v1
+  // ledger gets the actionable guidance rather than a bare "malformed" error.
+  assert.match(r.stderr, /reclassify-historical/,
+    'a real v1 ledger must receive the mandated reclassify-historical guidance');
+  assert.doesNotMatch(r.stderr, /malformed ledger/,
+    'a v1 ledger is NOT malformed — it is a recognised older schema');
 
   // The mandated guidance IS emitted on the reachable schema-mismatch path: a
   // document carrying runs[] under a non-2 schemaVersion.

@@ -35,7 +35,7 @@ them). Full per-game table: `coverage-reclassification.md`.
 
 | Corrected verdict on historical evidence | Count |
 |---|---|
-| **Certified** (full contract incl. provenance) | **0 / 42 runs valid** — v1 recorded no git SHA / APK hash / versionCode / device serial and no action→observation binding (F-080-004/005) |
+| **Certified** (full contract incl. provenance) | **0 / 52 runs valid** — v1 recorded no git SHA / APK hash / versionCode / device serial and no action→observation binding (F-080-004/005) |
 | Evidence depth ≥ L1-complete (incl. verified safe exit) | 0 / 52 runs — no historical run observed any post-exit destination (F-080-002) |
 | Depth ≥ L2 (would prove gameplay with complete provenance) | 0 / 52 |
 | Downgraded vs v1 claim | **52 / 52 runs** |

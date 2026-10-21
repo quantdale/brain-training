@@ -115,15 +115,19 @@ for (const file of inputs) {
     console.error(`[merge] unreadable input ${file}: ${e.message}`);
     process.exit(2);
   }
+  // Order matters: a REAL v1 ledger has no `runs[]` (it is a flat array of
+  // game records), so the schemaVersion check must come FIRST — otherwise the
+  // mandated `reclassify-historical.mjs` guidance is unreachable and the input
+  // is reported as merely "malformed" (docs-vs-code inconsistency #6).
+  if (doc.schemaVersion !== 2) {
+    diagnostics.push({ kind: 'schema-mismatch', file, detail: `schemaVersion ${doc.schemaVersion} != 2 (v1 historical ledgers must pass through reclassify-historical.mjs first)` , fatal: true });
+    console.error(`[merge] ${file} is not a schemaVersion 2 run ledger; run scripts/qa/reclassify-historical.mjs for v1 evidence`);
+    process.exit(2);
+  }
   const fileRuns = Array.isArray(doc) ? doc : Array.isArray(doc.runs) ? doc.runs : null;
   if (!fileRuns) {
     diagnostics.push({ kind: 'malformed-ledger', file, detail: 'no runs[] array (schemaVersion 2 ledger required)', fatal: true });
     console.error(`[merge] malformed ledger ${file}: expected { runs: [...] }`);
-    process.exit(2);
-  }
-  if (doc.schemaVersion !== 2) {
-    diagnostics.push({ kind: 'schema-mismatch', file, detail: `schemaVersion ${doc.schemaVersion} != 2 (v1 historical ledgers must pass through reclassify-historical.mjs first)` , fatal: true });
-    console.error(`[merge] ${file} is not a schemaVersion 2 run ledger; run scripts/qa/reclassify-historical.mjs for v1 evidence`);
     process.exit(2);
   }
   const sha256 = crypto.createHash('sha256').update(raw).digest('hex');

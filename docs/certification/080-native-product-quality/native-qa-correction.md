@@ -26,9 +26,25 @@ The repair separates three things the v1 harness conflated:
    (derived, never asserted).
 
 Classification is now **derived only from proven capabilities**. Every proof is
-bound to before/after hierarchy observations, artifact hashes, a single
-execution-attempt id, the git SHA, the installed APK sha256, and the device
-profile.
+bound to before/after hierarchy observations, a single execution-attempt id, the
+git SHA, the installed APK sha256, and the device profile.
+
+> **Correction (independent review, P1-D).** This paragraph previously claimed
+> "Every proof is bound to … artifact hashes". That overstated both the code and
+> the evidence at the time: `requireArtifact` was never set by the real sweep,
+> `expectedSha1` was never written, and pivotal observations (e.g.
+> `attention-odd-one-out` obs8/obs9, the playing→results sessionEnd proof)
+> carried `evidenceArtifact: null` while still certifying L3.
+>
+> Repaired in contract 2.0: certification-critical observations now carry a
+> REAL artifact binding (file + SHA-256 + execution-attempt id),
+> `verifyArtifactBytes()` recomputes the digest from independently read bytes,
+> and three evidence modes are explicitly distinct — **local runtime
+> certification** (artifacts present and re-hashed), **portable evidence
+> verification** (gitignored native artifacts may be absent in a fresh checkout;
+> absence is reported, never silently passed), and **source-level fixture
+> testing**. Historical records are preserved unchanged; they are re-labelled,
+> not rewritten.
 
 ---
 
