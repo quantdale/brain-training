@@ -56,6 +56,20 @@ simulator/physical runtime, owner acceptance. Per AGENTS.md success contract the
 campaign is "materially advanced", not completed; it remains ACTIVE for
 continuation. See `docs/certification/080-native-product-quality/handoff.md`.
 
+### Campaign 080 final integration status (post-integration record)
+
+The Campaign 080 substantive checkpoint commit `2fa79efb` has **all four hosted
+workflows green** (externally observed after integration, 2026-10-21): App CI
+#602 (run 39574757778), Android Build Smoke #449 (39574757422), iOS Build Smoke
+#450 (39574757606), Repository Integrity #610 (39574758253) — all SUCCESS. This
+doc is committed after `2fa79efb`, so it records that commit's observed status
+rather than its own (see `docs/certification/080-native-product-quality/
+governance.md` H1 on the self-reference model). `2fa79efb` is the substantive
+deliverable revision (QA harness + coverage matrix + certification suite +
+governance); the tip that follows is a metadata-only status record. Campaign 080
+remains ACTIVE for continuation of the remaining achievable work enumerated
+above.
+
 ## Final stabilization, acceptance, and release certification — 2026-10-21 (Campaign 079, VALIDATED with explicit limitations)
 
 Owner-authorized repository-wide stabilization and acceptance program
