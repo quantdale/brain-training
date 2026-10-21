@@ -1,25 +1,37 @@
 # Workout V3 native lifecycle report — Campaign 080 continuation
 
 Date: 2026-10-21
-Status: **DRIVER READY, JOURNEY NOT YET EXECUTED — device time consumed by the
-42-game revalidation sweep; recorded honestly (NOT VALIDATED).**
+Status: **PARTIALLY EXECUTED NATIVELY** (driver `scripts/qa/workout-journey.mjs`,
+evidence `qa-artifacts/080/workout-v3-journey.json` + per-step screenshots).
 
-Delivered this continuation: `scripts/qa/workout-journey.mjs` — a deterministic
-emulator-local driver for the full required sequence (home → plan verification
-→ start → legs played by real inputs → automatic advancement → interrupt →
-terminate/relaunch → resume → completion → reward/no-duplicate-attribution
-evidence), step-bound to before/after hierarchy observations with screenshots,
-same evidence discipline as the corrected sweep. Workout surfaces verified to
-exist and be instrumented: `home-workout-cta/continue/plan/list/selected/
-progress/complete(+panel)`, game-host `workout-context`, results
-`next-game` / `finish-workout` / `workout-complete` / `workout-progress` /
-`workout-advance-*`.
+## Verified on device (emulator-5554, installed APK sha256 231559b9…48ca)
 
-Constraint recorded: QA force-win hooks are disabled in the installed release
-build, so legs must be played by real inputs (or reach legitimate failure) —
-the driver uses the proven family-tap strategy.
+| Step | Result |
+|---|---|
+| Cold start → Home | OK |
+| Workout plan generated/visible (`home-workout-plan/list/selected`) | OK |
+| Workout start (`home-workout-cta/continue` → game with `workout-context`) | OK |
+| Leg 1 played to results | NOT OBSERVED this run |
+| Interrupt → app terminate → relaunch | OK |
+| Resume surface visible (`home-workout-continue/progress`) | OK |
+| Resume into the workout | OK |
+| Workout completion + reward evidence | NOT OBSERVED this run |
 
-Exact next action: run
-`node scripts/qa/workout-journey.mjs --max-legs 5` on the dedicated AVD, then
-verify reward rows via the data-management counts surface; expected runtime
-~15 min. No product defect is claimed or implied by this status.
+## Honest analysis
+
+The lifecycle's start/interrupt/resume spine is verified. Leg completion did
+not occur within the journey's attempt budget because the first leg's game
+presented the same answer-driven surface class as the catalog sweep's
+tutorial-demo blocker (see `full-session-validation.md`): the driver's generic
+taps reach the board but do not yet solve answer-driven legs. No product
+defect was observed — the workout correctly persisted across
+terminate/relaunch and offered resume (that IS the critical §9 property
+verified).
+
+## Exact next actions
+
+1. Re-run with per-family leg solvers (same resolvers as the tutorial-demo
+   plan; the prompts are captured in evidence).
+2. Then verify reward rows (XP/coins/quests) via `data-counts-*` before/after
+   and confirm no duplicate attribution across the interrupt/resume boundary.
+3. Exercise one abandonment/quit path (`home-workout-skip` / results quit).
