@@ -1,0 +1,86 @@
+## Purpose
+
+Make whole-product quality demonstrable through real native gameplay and
+measured runtime evidence rather than source-test counts, so a release verdict
+rests on actual exercised behavior across the game catalog, verified critical
+journeys, corrected defects, and honest platform/certification accounting.
+
+## ADDED Requirements
+
+### Requirement: Native game-catalog coverage is explicit and honest
+Every registered game SHALL carry a machine-readable native coverage record
+stating the deepest test level actually reached on a real runtime (native
+smoke, native interaction, full lifecycle, resilience), the evidence artifact
+references, and the precise remaining gap. Source-level test success SHALL NOT
+be recorded as native runtime coverage, and a lower achieved level SHALL NOT be
+reported as a higher one.
+
+#### Scenario: The coverage ledger is produced from the live registry
+- **WHEN** native validation runs against the registered game catalog
+- **THEN** a machine-readable ledger enumerates every registered game id with
+  its executed test level, result, artifact references, and remaining gap,
+  and its game set matches the generated registry exactly
+
+#### Scenario: A level is reported at its true depth
+- **WHEN** a game is exercised only to native smoke depth
+- **THEN** its record states native smoke and does not claim interaction,
+  lifecycle, or resilience coverage
+
+### Requirement: Critical journeys are exercised at runtime
+Golden-path gameplay, correct and incorrect scoring with genuine correct/
+incorrect inputs, Pause/Resume/Quit semantics, Workout V3 generation and
+completion, results and progression reward accounting, and offline operation
+SHALL be validated through actual runtime execution where the environment
+supports it, with any unexecuted journey recorded as a reproduced blocker
+rather than a pass.
+
+#### Scenario: Scoring is validated with a genuinely correct and incorrect answer
+- **WHEN** a representative game session submits one answer that is correct
+  under the game's rules and one that is incorrect
+- **THEN** the recorded scoring and feedback reflect those outcomes and the
+  persisted result matches the expected transition
+
+#### Scenario: Pause freezes timers and Quit discards the running session
+- **WHEN** a running game is paused and then quit
+- **THEN** timers do not advance while paused and quitting does not persist an
+  unintended score for the discarded session
+
+### Requirement: Performance findings are evidence-based and optimized where justified
+Runtime performance SHALL be measured under controlled, repeatable scenarios
+separating emulator overhead from application-controlled cost. Confirmed
+application-controlled bottlenecks SHALL be corrected with before-and-after
+comparison evidence; where no safe application-controlled optimization is
+justified, profiling evidence and a precise explanation SHALL be recorded.
+Absolute frame-rate certification from emulator observation SHALL NOT be
+claimed.
+
+#### Scenario: An application-controlled bottleneck is corrected
+- **WHEN** profiling confirms an application-controlled long-frame or
+  rerender bottleneck in a high-impact UI path
+- **THEN** a targeted correction is implemented and equivalent-workload
+  before-and-after measurements demonstrate the effect
+
+#### Scenario: Emulator overhead is not blamed on the app without evidence
+- **WHEN** frame performance is dominated by software rendering or host
+  contention
+- **THEN** the record demonstrates this through controlled comparison and does
+  not rewrite healthy application code to optimize an emulator artifact
+
+### Requirement: Platform and certification status stay truthful
+Certification SHALL keep Android build, Android emulator runtime, Android
+ARM64 runtime, Android physical runtime, iOS compilation, iOS simulator
+runtime, and iOS physical runtime as separate statuses, and SHALL reconcile a
+campaign's qualified implementation revision against its final integrated
+revision without rewriting historical evidence or claiming an unrun check as
+passed.
+
+#### Scenario: Platform statuses remain distinct
+- **WHEN** the release matrix is produced
+- **THEN** each platform/runtime tier carries its own result and limitations
+  and no tier is inferred from a different tier's evidence
+
+#### Scenario: The final integrated revision is reconciled
+- **WHEN** the campaign's documentation revision and final integrated revision
+  differ
+- **THEN** a bounded addendum records both, states whether application sources
+  changed between them, and identifies which checks were actually rerun

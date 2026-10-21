@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "079-stabilization-acceptance-certification",
-  "description": "Owner-authorized final stabilization, product acceptance, and release-certification program; root owns CI/governance/dependency/settings surfaces and runtime QA.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "080-native-product-quality",
+  "description": "Owner-authorized bounded successor campaign: native product-quality, gameplay acceptance, performance optimization, accessibility, and release-certification convergence; root owns CI/governance/dependency/settings surfaces, the single dedicated emulator, and runtime QA.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

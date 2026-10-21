@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "080-native-product-quality",
   "lastCampaign": "079-stabilization-acceptance-certification",
   "lastCampaignStatus": "VALIDATED",
   "lastCampaignVerdict": "CAMPAIGN_079_CONDITIONAL_GO_PENDING_OWNER_ACCEPTANCE",

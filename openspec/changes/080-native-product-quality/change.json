@@ -1,0 +1,16 @@
+{
+  "id": "080-native-product-quality",
+  "status": "ACTIVE",
+  "validationNote": "Campaign 080 opened 2026-10-21 at baseline f8ae95dd (origin/main, all four workflows green: App CI 39553587740, Android Build Smoke 39553587657, iOS Build Smoke 39553587616, Repository Integrity 39553587804). Owner-authorized bounded successor to Campaign 079 (CONDITIONAL GO). Objective: expand native gameplay coverage toward the full 42-game registry, exercise critical end-to-end journeys (correct/incorrect scoring, Pause/Resume/Quit, Workout V3, results/progression, offline), deliver evidence-based performance optimization, correct confirmed visual/UX and accessibility defects, expand persistence/recovery testing, reduce platform-qualification and governance gaps, and close with an honest release verdict. Closing status and final integration SHA are recorded at campaign close.",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "native-product-quality"
+  ],
+  "fullHardening": false,
+  "predecessor": "079-stabilization-acceptance-certification",
+  "baselineAuditCommit": "f8ae95dd",
+  "newGameModulesAllowed": false
+}

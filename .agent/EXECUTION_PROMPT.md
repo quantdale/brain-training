@@ -1,23 +1,27 @@
-# Execution Prompt — Campaign079
+# Execution Prompt — Campaign080
 
-**Status:** VALIDATED
-**Change:** `079-stabilization-acceptance-certification`
-**Planned-From:** `64c1df4d`
+**Status:** ACTIVE
+**Change:** `080-native-product-quality`
+**Planned-From:** `f8ae95dd`
 **Planned-At:** 2026-10-21
 **Target-Branch:** main
 
-Complete the owner-authorized final stabilization, product acceptance, and
-release-certification program through all OpenSpec tasks with honest per-gate
-dispositions. Preserve all 42 game identities, gameplay, persistence,
-scoring, economy, routes, offline guarantees, and prior certified evidence;
-do not reopen Campaign 078 or rewrite history. Root owns CI workflows,
-validator scripts, governance state, dependency lockfiles, GitHub settings,
-the single dedicated emulator, and final certification; delegated packets own
-isolated read-only audits or explicitly assigned write surfaces. No host
-input automation. Record BLOCKED / NOT VALIDATED wherever a gate cannot
-actually run; never fabricate evidence or impersonate owner acceptance.
+Complete the owner-authorized bounded successor campaign that eliminates the
+achievable product-quality, native-validation, performance, accessibility, and
+release-certification gaps left by Campaign 079. Preserve all 42 game
+identities, gameplay mechanics, persistence, scoring, economy, routes, offline
+guarantees, and prior certified evidence; do not reopen Campaign 078/079 or
+rewrite history. Expand real native gameplay coverage toward the full registry,
+exercise critical journeys (correct/incorrect scoring, Pause/Resume/Quit,
+Workout V3, results/progression, offline), deliver evidence-based performance
+optimization, correct confirmed visual/UX and accessibility defects, and keep
+platform and certification status honest with a final-SHA reconciliation.
 
-Closed 2026-10-21 at 9c4dd138, VALIDATED with explicit limitations
-(physical Android/ARM64/iOS runtime, screen readers, 41/42 fresh native game
-journeys, owner acceptance — all recorded NOT VALIDATED/PENDING). Full
-dispositions: docs/certification/079-release-certification/.
+Root owns CI workflows, validator scripts, governance state, dependency
+lockfiles, GitHub settings, the single dedicated emulator, native runtime QA,
+and final certification; delegated packets own isolated read-only audits or
+explicitly assigned disjoint write surfaces. No host-input automation. Record
+BLOCKED / NOT VALIDATED wherever a gate cannot actually run; never fabricate
+native execution, convert skips into passes, or impersonate owner acceptance.
+Unqualified GO is not claimed unless all mandatory release criteria, including
+external ones, are genuinely satisfied.

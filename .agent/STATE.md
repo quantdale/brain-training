@@ -1,5 +1,26 @@
 # Durable Project State
 
+## Campaign 080 activation — native product-quality & release convergence (ACTIVE)
+
+Owner-authorized bounded successor campaign `080-native-product-quality`
+activated 2026-10-21 at baseline `f8ae95dd` (= origin/main; all four hosted
+workflows green: App CI 39553587740, Android Build Smoke 39553587657, iOS
+Build Smoke 39553587616, Repository Integrity 39553587804). This campaign
+eliminates the achievable product-quality, native-validation, performance,
+accessibility, and release-certification gaps left by Campaign 079 (CONDITIONAL
+GO): expand native gameplay coverage toward the full 42-game registry, exercise
+critical end-to-end journeys (correct/incorrect scoring, Pause/Resume/Quit,
+Workout V3, results/progression, offline airplane mode), deliver evidence-based
+performance optimization, correct confirmed visual/UX and accessibility
+defects, expand persistence/recovery testing, and keep platform/certification
+status honest with a final-SHA reconciliation. Live infrastructure verified at
+activation: dedicated AVD `braintraining-qa36` (emulator-5554, x86_64,
+1080x1920/420dpi), app `com.braintraining.app` installed and runnable, ARTEMIS
+external checkout present at `D:/Tools/artemis`. Full plan: the 080 OpenSpec
+tasks; deliverables under `docs/certification/080-native-product-quality/`.
+Progress is recorded in this section and CURRENT_CAMPAIGN.md as workstreams
+close.
+
 ## Final stabilization, acceptance, and release certification — 2026-10-21 (Campaign 079, VALIDATED with explicit limitations)
 
 Owner-authorized repository-wide stabilization and acceptance program
@@ -138,7 +159,7 @@ local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response
 fresh machine; the durable proof is the CI run IDs recorded alongside);
 do not infer their success from this pre-commit record. Historical078 stays closed.
 
-**Active campaign:** none
+**Active campaign:** 080-native-product-quality
 **Last campaign:** `079-stabilization-acceptance-certification`
 **Last campaign status:** VALIDATED
 
