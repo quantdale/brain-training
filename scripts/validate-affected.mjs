@@ -521,18 +521,22 @@ area. Use it on the source subset of a change to prove coverage.`);
 }
 
 const args = process.argv.slice(2);
-const opts = { json: false, strict: false, list: false, checkSync: false };
+const opts = { json: false, strict: false, list: false, checkSync: false, selfTest: false };
 const paths = [];
 for (const a of args) {
   if (a === '--json') opts.json = true;
   else if (a === '--strict') opts.strict = true;
   else if (a === '--list-areas') opts.list = true;
   else if (a === '--check-sync') opts.checkSync = true;
+  else if (a === '--self-test') opts.selfTest = true;
   else if (a === '--help') { printUsage(); process.exit(0); }
   else if (a.startsWith('-')) {
     // Unknown flags must be a usage error: a typo'd gate invocation (e.g.
     // `--check` for `--check-sync`) previously fell through as a changed PATH,
     // silently reporting a fake "1 changed path" plan (explore finding F-6).
+    // Invariant: every flag documented in printUsage() must be recognized in
+    // this loop. `--self-test` was documented but rejected here, which
+    // reddened the Repository Integrity self-test step at d26cd536.
     console.error(`Unknown option: ${a}\n`);
     printUsage();
     process.exit(2);
@@ -540,7 +544,7 @@ for (const a of args) {
   else paths.push(a);
 }
 
-if (args.includes('--self-test')) {
+if (opts.selfTest) {
   process.exit(selfTest() ? 0 : 1);
 }
 
