@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign079
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `079-stabilization-acceptance-certification`
 **Planned-From:** `64c1df4d`
 **Planned-At:** 2026-10-21
@@ -16,3 +16,8 @@ the single dedicated emulator, and final certification; delegated packets own
 isolated read-only audits or explicitly assigned write surfaces. No host
 input automation. Record BLOCKED / NOT VALIDATED wherever a gate cannot
 actually run; never fabricate evidence or impersonate owner acceptance.
+
+Closed 2026-10-21 at 9c4dd138, VALIDATED with explicit limitations
+(physical Android/ARM64/iOS runtime, screen readers, 41/42 fresh native game
+journeys, owner acceptance — all recorded NOT VALIDATED/PENDING). Full
+dispositions: docs/certification/079-release-certification/.

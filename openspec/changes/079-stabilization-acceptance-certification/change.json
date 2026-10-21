@@ -1,6 +1,7 @@
 {
   "id": "079-stabilization-acceptance-certification",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
+  "validationNote": "Validated 2026-10-21 at 9c4dd138: all four workflows green (App CI 39547028408, Android Build Smoke 39547028543, iOS Build Smoke 39547028492, Repository Integrity 39547028373); strict OpenSpec 205/205; full Jest 711/8018/5-skip at 0e1c8784 with app source unchanged through 9c4dd138; new validator CLI-contract gate green; security register 10 to 7 accepted GHSAs with three genuine in-range remediations; branch protection plus no-bypass ruleset API-verified; evidence audit's 9 findings corrected. Explicit limitations preserved: physical Android/ARM64/iOS runtime, screen readers, 41/42 fresh native game journeys, correct-tap scoring feedback, and owner taste acceptance remain NOT VALIDATED/PENDING. Overall release verdict: CONDITIONAL GO (docs/certification/079-release-certification/release-matrix.md).",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
   "proposal": "proposal.md",

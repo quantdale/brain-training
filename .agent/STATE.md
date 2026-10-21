@@ -1,20 +1,35 @@
 # Durable Project State
 
-## Final stabilization, acceptance, and release certification — 2026-10-21 (ACTIVE, Campaign 079)
+## Final stabilization, acceptance, and release certification — 2026-10-21 (Campaign 079, VALIDATED with explicit limitations)
 
 Owner-authorized repository-wide stabilization and acceptance program
-`079-stabilization-acceptance-certification` activated (OpenSpec change
-`openspec/changes/079-stabilization-acceptance-certification`). The owner's
-starting intelligence (red Repository Integrity at d26cd536, unprotected
-branch) was re-verified first: the `--self-test` parser regression was already
-repaired at 2f18738f and all four workflows were green at 64c1df4d, so the
-campaign resumed the newer state instead of replaying the repair. Progress and
-terminal dispositions live in CURRENT_CAMPAIGN.md and the change's tasks.md;
-the authoritative certification matrix lives under
-docs/certification/079-release-certification/ (produced during the active
-campaign; governance.md is committed first). Security refresh in this
-program: brace-expansion remediated in-lockfile (3 GHSAs removed, register now
-7 accepted advisories, see .agent/DEPENDENCY_AUDIT.md 2026-10-21 section).
+`079-stabilization-acceptance-certification` executed and closed at ending
+SHA `9c4dd138` (started `64c1df4d`). The owner's starting intelligence was
+re-verified first: the reported `--self-test` parser regression was already
+repaired at 2f18738f and all four workflows were green at baseline, so the
+program advanced instead of replaying the repair. Full evidence under
+docs/certification/079-release-certification/ (release-matrix.md is the
+authoritative gate record; executive-report.md the summary; handoff.md the
+next-operator brief).
+
+Delivered: validator CLI-contract gate (15 scripts in contract, 8 permissive
+parsers hardened); security register 10 to 7 accepted GHSAs with three
+genuine in-range brace-expansion remediations (all remaining acceptances
+re-verified against the live registry with owner/review/exit fields);
+branch protection plus no-bypass ruleset 25523614 API-verified (force-push
+and deletion blocked for everyone); evidence audit findings (9: 2 P1, 6 P2)
+corrected with dated annotations; native acceptance journeys on the
+dedicated AVD (discovery, detail, tutorial, interactive demo, difficulty,
+round play, timeout feedback, advancement) with local screenshot/hierarchy
+evidence; perf probes and emulator measurements recorded. All four workflows
+SUCCESS at 9c4dd138 (App CI 39547028408, Android 39547028543, iOS
+39547028492, Repository Integrity 39547028373).
+
+Explicitly NOT VALIDATED/PENDING (external): physical Android/ARM64/iOS
+runtime, screen-reader acceptance, fresh native re-execution of 41/42 games,
+correct-tap scoring feedback and pause/quit re-validation, offline airplane
+journey, and owner subjective acceptance. Overall release verdict:
+CONDITIONAL GO.
 
 ## Fresh-machine development environment setup + red-gate repair — 2026-10-21 (qualified)
 
@@ -123,8 +138,8 @@ local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response
 fresh machine; the durable proof is the CI run IDs recorded alongside);
 do not infer their success from this pre-commit record. Historical078 stays closed.
 
-**Active campaign:** `079-stabilization-acceptance-certification`
-**Last campaign:** `078-game-cover-visual-identities`
+**Active campaign:** none
+**Last campaign:** `079-stabilization-acceptance-certification`
 **Last campaign status:** VALIDATED
 
 ### Campaign 078 terminal record (2026-10-20, historical)

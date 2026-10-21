@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "079-stabilization-acceptance-certification",
-  "lastCampaign": "078-game-cover-visual-identities",
+  "activeCampaign": null,
+  "lastCampaign": "079-stabilization-acceptance-certification",
   "lastCampaignStatus": "VALIDATED",
-  "lastCampaignVerdict": "CAMPAIGN_078_EMULATOR_REVIEW_READY_WITH_LIMITATIONS",
+  "lastCampaignVerdict": "CAMPAIGN_079_CONDITIONAL_GO_PENDING_OWNER_ACCEPTANCE",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true
