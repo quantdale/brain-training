@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "079-stabilization-acceptance-certification",
   "lastCampaign": "078-game-cover-visual-identities",
   "lastCampaignStatus": "VALIDATED",
   "lastCampaignVerdict": "CAMPAIGN_078_EMULATOR_REVIEW_READY_WITH_LIMITATIONS",
@@ -49,6 +49,7 @@
         "task-ownership-check (scripts/validate-task-ownership.cjs)",
         "offline-boundary-check (scripts/validate-offline.mjs --check)",
         "runtime-qa-contract (scripts/qa/validate-runtime-qa-contract.mjs)",
+        "validator-cli-contracts (scripts/certification/validate-cli-contracts.mjs)",
         "secret-boundary-check (scripts/validate-secrets.mjs --check)",
         "workflow-shell-hygiene (scripts/validate-workflows.mjs)",
         "affected-area-map-sync (scripts/validate-affected.mjs --check-sync)",

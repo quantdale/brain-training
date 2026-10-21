@@ -1,11 +1,18 @@
-# Execution Prompt — Campaign078
+# Execution Prompt — Campaign079
 
-**Status:** VALIDATED
-**Change:** `078-game-cover-visual-identities`
-**Planned-From:** `e7885b6d`
-**Planned-At:** 2026-10-18
+**Status:** ACTIVE
+**Change:** `079-stabilization-acceptance-certification`
+**Planned-From:** `64c1df4d`
+**Planned-At:** 2026-10-21
 **Target-Branch:** main
 
-Complete the owner-authorized focused42-game visual identity initiative through all OpenSpec tasks, source/device validation and visible Games handoff. Preserve Play Lab077 direction, gameplay/history/IDs/routes and previous certification. Root owns single5570 emulator, shared files and integration; no host input. Use actualImageGen, targetedRefero, independent title-hidden critique and allfour finalSHA workflows. No new generalUI/hardening campaign.
-
-Terminal delivery candidate prepared. Before final handoff, confirm all four workflows at the actual ending SHA and refresh visible Games witness; exact observations live in post-commit FINAL_DELIVERY.json. Scope is complete; no successor work.
+Complete the owner-authorized final stabilization, product acceptance, and
+release-certification program through all OpenSpec tasks with honest per-gate
+dispositions. Preserve all 42 game identities, gameplay, persistence,
+scoring, economy, routes, offline guarantees, and prior certified evidence;
+do not reopen Campaign 078 or rewrite history. Root owns CI workflows,
+validator scripts, governance state, dependency lockfiles, GitHub settings,
+the single dedicated emulator, and final certification; delegated packets own
+isolated read-only audits or explicitly assigned write surfaces. No host
+input automation. Record BLOCKED / NOT VALIDATED wherever a gate cannot
+actually run; never fabricate evidence or impersonate owner acceptance.

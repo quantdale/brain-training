@@ -1,0 +1,15 @@
+{
+  "id": "079-stabilization-acceptance-certification",
+  "status": "ACTIVE",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "stabilization-release-gates"
+  ],
+  "fullHardening": false,
+  "predecessor": "078-game-cover-visual-identities",
+  "baselineAuditCommit": "64c1df4d",
+  "newGameModulesAllowed": false
+}

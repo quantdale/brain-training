@@ -196,6 +196,8 @@ if (cliArgs.includes('--self-test')) {
   process.exit(rootHygieneSelfTest() ? 0 : 1);
 }
 if (cliArgs.length) {
+  const bad = cliArgs[0];
+  console.error(`${bad.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${bad}\n`);
   console.error('Usage: node scripts/validate-repo-state.mjs [--self-test]');
   process.exit(2);
 }

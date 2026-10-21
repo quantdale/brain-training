@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "VALIDATED",
-  "change": "078-game-cover-visual-identities",
-  "description": "Focused game-cover identity initiative; root owns shared integration and runtime QA.",
+  "change": "079-stabilization-acceptance-certification",
+  "description": "Owner-authorized final stabilization, product acceptance, and release-certification program; root owns CI/governance/dependency/settings surfaces and runtime QA.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

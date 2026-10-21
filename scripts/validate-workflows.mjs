@@ -496,6 +496,13 @@ function selfTest() {
 }
 
 const args = process.argv.slice(2);
+// CLI contract (079): unknown options/arguments fail with usage + exit 2.
+for (const a of args) {
+  if (a === '--self-test') continue;
+  console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+  console.error('Usage: node scripts/validate-workflows.mjs [--self-test]');
+  process.exit(2);
+}
 if (args.includes('--self-test')) {
   process.exit(selfTest() ? 0 : 1);
 }

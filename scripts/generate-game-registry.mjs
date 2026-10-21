@@ -203,6 +203,13 @@ function generate() {
 }
 
 const checkOnly = process.argv.includes('--check');
+// CLI contract (079): unknown options/arguments fail with usage + exit 2.
+for (const a of process.argv.slice(2)) {
+  if (a === '--check' || a === '--self-check') continue;
+  console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+  console.error('Usage: node scripts/generate-game-registry.mjs [--check] [--self-check]');
+  process.exit(2);
+}
 
 /**
  * In-memory fixtures pinning the SDK-mirrored validation contract. Runs the

@@ -219,7 +219,9 @@ function listExistingSpecs() {
 function main() {
   const args = process.argv.slice(2);
   const check = args.includes('--check');
-  if (args.some((a) => a.startsWith('-') && a !== '--check')) {
+  for (const a of args) {
+    if (a === '--check') continue;
+    console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
     console.error('Usage: node scripts/generate-spec-store.mjs [--check]');
     process.exit(2);
   }

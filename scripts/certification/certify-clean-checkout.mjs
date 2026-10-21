@@ -83,6 +83,13 @@ const skipInstall = process.argv.includes('--skip-install');
 // report PASS when a required boundary was skipped or could not be validated.
 const nonCertifyingOptions = allowJestNotValidated || skipInstall;
 const selfTestMode = process.argv.includes('--self-test');
+// CLI contract (079): unknown options/arguments fail with usage + exit 2.
+for (const a of process.argv.slice(2)) {
+  if (a === '--allow-jest-not-validated' || a === '--skip-install' || a === '--self-test') continue;
+  console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+  console.error('Usage: node scripts/certification/certify-clean-checkout.mjs [--self-test] [--allow-jest-not-validated] [--skip-install]');
+  process.exit(2);
+}
 
 function fail(message) {
   console.error(`certify-clean-checkout: FAIL — ${message}`);

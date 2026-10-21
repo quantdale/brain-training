@@ -12,7 +12,36 @@ offline-first product
 **Result:** **19 vulnerabilities (15 moderate, 4 high)** — reduced from 20
 (15 moderate, 5 high) by the Campaign 054 in-range `js-yaml` remediation.
 
-**Counting-model refresh (2026-10-19).** The headline above is the 2026-09-19
+**Security refresh (2026-10-21, stabilization program 079).** The current
+authoritative count is **7 unique GHSA advisories — all accepted with
+per-advisory reachability rationale (6 build/dev-toolchain, 1 runtime-accepted
+debt: `decode-uri-component`)**. Three genuine remediations landed in this
+refresh and are NOT waivers:
+
+1. **brace-expansion GHSA-q2hr-2g5m-vwhr / GHSA-qhr7-859c-m2p7 /
+   GHSA-6j4f-fj2g-mc7p (3 GHSAs, 6 npm advisory ids) — remediated in-lockfile.**
+   Fixed lines 1.1.21 / 5.0.12 are inside the parents' semver ranges
+   (`minimatch@3.1.5` → `brace-expansion ^1.1.7`; `minimatch@10.2.6` →
+   `brace-expansion ^5.0.8`), so a plain `npm update brace-expansion` moved the
+   tree 1.1.18→1.1.21 and 5.0.9→5.0.12 (lockfile-only diff: 10 version lines).
+   The three allowlist entries were removed, not re-waived. Re-audit:
+   13 → 7 unique npm advisory ids; `node scripts/validate-dependency-audit.mjs`
+   → PASS, 7 accepted, 0 unallowlisted; self-test 41/41.
+2. The remaining 7 advisories were each re-verified on 2026-10-21 against the
+   live registry before re-acceptance: `braces` latest is still 3.0.3
+   (vulnerable range `<=3.0.3`, no fix published); `node-forge` latest is still
+   1.4.0 (no fix published); `sprintf-js` latest is still 1.1.3 (advisory range
+   `<=1.1.3`, no fix published); `image-size` fixes only in 2.0.3+ while `metro`
+   pins `^1.0.2` (out of range); `uuid` fixes at 11.1.1 while `xcode` pins
+   `^7` (out of range); `decode-uri-component` fixes at 0.5.0 (ESM-only) while
+   `expo-router@57.0.28` (latest SDK 57 line, checked 2026-10-21) still pins
+   `query-string ^7.1.3` → `decode-uri-component ^0.2.2` — the Campaign 053
+   analysis holds and the entry keeps its expiry (2027-03-31) and tracking.
+3. Every remaining acceptance now additionally carries `owner`, `reviewBy`,
+   `exitCondition`, and `remediationDependency` fields per the F4 register
+   contract (previously rationale + tracking only).
+
+**Counting-model refresh (2026-10-19, superseded in count only).** The headline above is the 2026-09-19
 baseline and is stale as a *number to compare against npm* (explore finding
 F-8): npm's summary counts dependency-PATH entries, so it inflates over time
 as new advisory ids are published for the same advisories. The current,

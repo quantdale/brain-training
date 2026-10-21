@@ -1,32 +1,37 @@
-# Campaign078 — game-cover visual identities
+# Campaign079 — final stabilization, product acceptance, release certification
 
-2026-10-19: owner-directed bounded explore-findings convergence qualified; no
-campaign activation. All findings of docs/audits/openspec-explore-2026-10-19.md
-fixed (spec store generated + gated, zombie changes closed with honest
-dispositions, audit traceability, root hygiene hardened, gate-script
-robustness, dependency counting model, grammar copy, dead Pause in 5 games,
-Bronze Ring hint clipping, NumberLine gray-lip root cause). F-11 limits remain
-NOT VALIDATED. The078 status below is historical.
-
-2026-10-19: separate owner-requested scale/responsive correction qualified;
-no campaign activation. Two shared fixes/full gates/rebuilt APK/seven native
-profiles/tutorial→actualStart/Grid+Transform nestedcanaries/18session preservation
-PASS. Visible5570 restored1080x2400/420dpi/font1/day/motion1 on intro/fullStart.
-Source d11964ed fourCI success; final exact-SHA CI/live refresh checked after
-evidence commit. See docs/bugfixes/ui-scaling/REPORT.md;078 remains closed.
-
-2026-10-19: separate owner-requested tutorial/Start defect repair qualified;
-no campaign activation or redesign. Shared source/gates/build/install/eight
-native profiles/Deduction actual launch/Grid nested scrolling/data preservation
-pass. Exact ending-SHA CI/live handoff checked post-commit. Bounded record:
-`docs/bugfixes/tutorial-start/REPORT.md`. The078 status below is historical.
-
-**Campaign id:** `078-game-cover-visual-identities`
-**Status:** VALIDATED
+**Campaign id:** `079-stabilization-acceptance-certification`
+**Status:** ACTIVE
 **Mode:** day
-**Starting SHA:** `e7885b6d`
-**Change:** `openspec/changes/078-game-cover-visual-identities`
+**Starting SHA:** `64c1df4d`
+**Change:** `openspec/changes/079-stabilization-acceptance-certification`
 
-StagesA–F and delivery preparation complete:42/42 mechanic-specific covers, actual ImageGen/targeted Refero, independent blind/informed review, scoped integration, source gates, accepted rebuilt APK, all42 default-theme native inspection, sampled responsive profiles, offline/card navigation/return, bounded performance comparison and preserved owner data. Full evidence/report under the change. Production source359a80be; accepted APKfc2c99…c605d.
+Owner-authorized (2026-10-21) repository-wide stabilization and acceptance
+program with eight mandatory workstreams: green CI, governance/evidence
+reconciliation, independent product acceptance, confirmed-defect correction,
+performance/memory evidence, dependency security remediation, release
+governance/branch protection, and an independently validated release
+certification matrix. The owner's starting intelligence was re-verified
+against the live repository before execution: the previously reported
+Repository Integrity failure (run 39479920967, d26cd536) was already repaired
+at 2f18738f and all four workflows were green at the campaign baseline
+64c1df4d, so no CI recovery work was replayed.
 
-This terminal candidate is qualified with explicit performance/platform/recognition limits. Final delivery is conditional on four workflows succeeding at its actual ending SHA and a fresh live Games witness. Exact post-commit observations are written to local apps/mobile/qa-artifacts/campaign078/FINAL_DELIVERY.json and final owner response. No successor campaign; do not reopen076/077.
+Scope is bounded: no speculative features, no broad architectural rewrite, no
+gameplay/persistence/scoring/economy contract changes. Per-workstream
+dispositions and evidence are recorded in the change's tasks.md, the
+certification matrix under docs/certification/079-release-certification/, and
+the reports alongside it. Gates that cannot run in this environment are
+recorded BLOCKED / NOT VALIDATED, never PASS. Campaign 078's historical
+results remain closed and unchanged.
+
+## Historical note — Campaign078 (closed, status VALIDATED)
+
+Campaign078 game-cover visual identities remains terminally VALIDATED with
+verdict CAMPAIGN_078_EMULATOR_REVIEW_READY_WITH_LIMITATIONS; its frozen
+production source 359a80be and full evidence under
+`openspec/changes/078-game-cover-visual-identities/evidence/` are immutable
+history and are not reopened by Campaign079. Earlier bounded repairs recorded
+here (2026-10-19 explore-findings convergence, ui-scaling repair,
+tutorial/Start repair; 2026-10-21 fresh-machine setup + red-gate repair) are
+likewise historical; see .agent/STATE.md for their qualified records.

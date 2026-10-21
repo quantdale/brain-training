@@ -759,6 +759,16 @@ const generateMode = process.argv.includes('--generate-allowlist');
 const allowlistCheckMode = process.argv.includes('--check-allowlist');
 const baseArg = process.argv.find(arg => arg.startsWith('--base='));
 const baseRef = baseArg ? baseArg.slice('--base='.length) : undefined;
+// CLI contract (079): unknown options/arguments fail with usage + exit 2.
+for (const a of process.argv.slice(2)) {
+  const known = a === '--check' || a === '--json' || a === '--self-test'
+    || a === '--generate-allowlist' || a === '--check-allowlist' || a.startsWith('--base=');
+  if (!known) {
+    console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+    console.error('Usage: node scripts/validate-provenance.mjs [--check] [--json] [--base=<ref>] [--self-test] [--generate-allowlist] [--check-allowlist]');
+    process.exit(2);
+  }
+}
 
 const runMain = () => {
   const result = validate(baseRef);

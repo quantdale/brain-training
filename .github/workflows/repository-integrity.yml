@@ -67,6 +67,17 @@ jobs:
       - name: Validate generated spec store
         run: node scripts/generate-spec-store.mjs --check
 
+      # Validator CLI-contract gate (campaign 079): documented flags, parser-
+      # recognized flags and CI-invoked flags must agree for every gate script,
+      # and unknown options must fail deterministically (usage + exit 2). This
+      # is the regression class that reddened Repository Integrity at d26cd536
+      # (documented `--self-test` rejected by its own parser). Self-test first
+      # so the detector itself cannot silently regress.
+      - name: Validate validator CLI contracts
+        run: |
+          node scripts/certification/validate-cli-contracts.mjs --self-test
+          node scripts/certification/validate-cli-contracts.mjs
+
       # Self-tests for the remaining gates in this job (cheap, no install).
       # `validate-jest-signal` is additionally exercised end-to-end in app-ci.
       - name: Validator self-tests

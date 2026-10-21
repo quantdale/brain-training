@@ -50,6 +50,13 @@ function requireText(relative, needle) {
 const SCHEME_PREFIX = 'braintraining://';
 const PLACEHOLDER_RE = /[<>]/;
 const SELF_TEST = process.argv.includes('--self-test');
+// CLI contract (079): unknown options/arguments fail with usage + exit 2.
+for (const a of process.argv.slice(2)) {
+  if (a === '--self-test') continue;
+  console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+  console.error('Usage: node scripts/qa/validate-runtime-qa-contract.mjs [--self-test]');
+  process.exit(2);
+}
 
 /**
  * Extract every `braintraining://<path>` occurrence from documentation text.

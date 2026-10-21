@@ -1,5 +1,20 @@
 # Durable Project State
 
+## Final stabilization, acceptance, and release certification — 2026-10-21 (ACTIVE, Campaign 079)
+
+Owner-authorized repository-wide stabilization and acceptance program
+`079-stabilization-acceptance-certification` activated (OpenSpec change
+`openspec/changes/079-stabilization-acceptance-certification`). The owner's
+starting intelligence (red Repository Integrity at d26cd536, unprotected
+branch) was re-verified first: the `--self-test` parser regression was already
+repaired at 2f18738f and all four workflows were green at 64c1df4d, so the
+campaign resumed the newer state instead of replaying the repair. Progress and
+terminal dispositions live in CURRENT_CAMPAIGN.md and the change's tasks.md;
+the authoritative certification matrix lives under
+docs/certification/079-release-certification/. Security refresh in this
+program: brace-expansion remediated in-lockfile (3 GHSAs removed, register now
+7 accepted advisories, see .agent/DEPENDENCY_AUDIT.md 2026-10-21 section).
+
 ## Fresh-machine development environment setup + red-gate repair — 2026-10-21 (qualified)
 
 Owner goal "set up everything needed for this repos development"; no campaign
@@ -105,7 +120,7 @@ and final visible Deduction Start refresh are checked after commit, recorded in
 local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response;
 do not infer their success from this pre-commit record. Historical078 stays closed.
 
-**Active campaign:** none
+**Active campaign:** `079-stabilization-acceptance-certification`
 **Last campaign:** `078-game-cover-visual-identities`
 **Last campaign status:** VALIDATED
 **Status:** VALIDATED

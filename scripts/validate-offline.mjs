@@ -318,6 +318,14 @@ function selfTest() {
 }
 
 function main() {
+  // CLI contract (079): unknown options/arguments fail with usage + exit 2.
+  for (const a of process.argv.slice(2)) {
+    if (a === '--help' || a === '--check' || a === '--self-test') continue;
+    console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+    console.error('Usage: node scripts/validate-offline.mjs [--check] [--self-test]');
+    process.exitCode = 2;
+    return;
+  }
   if (process.argv.includes('--help')) {
     console.log('validate-offline.mjs — scan apps/mobile/src for network API usage');
     console.log('Usage: node scripts/validate-offline.mjs [--check] [--self-test]');

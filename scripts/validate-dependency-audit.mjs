@@ -417,6 +417,17 @@ function printAccepted(accepted) {
 }
 
 const args = process.argv.slice(2);
+// CLI contract (079): unknown options and stray arguments are a deterministic
+// usage error (exit 2) — never silently ignored, so a typo'd gate flag cannot
+// fall through to the default path and report a misleading pass.
+for (const a of args) {
+  const known = a === '--self-test' || a === '--offline' || a.startsWith('--package-dir=');
+  if (!known) {
+    console.error(`${a.startsWith('-') ? 'Unknown option' : 'Unexpected argument'}: ${a}\n`);
+    console.error('Usage: node scripts/validate-dependency-audit.mjs [--self-test] [--offline] [--package-dir=<dir>]');
+    process.exit(2);
+  }
+}
 if (args.includes('--self-test')) {
   process.exit(selfTest() ? 0 : 1);
 }
