@@ -237,3 +237,61 @@ Matched16-swipe sample: jank40.92→38.12%, p95113→101ms; legacy jank92.77→9
 Visible/unminimized braintraining-ui35/emulator5570/qemu108764 remains running accepted APK on Games. Original1080×2400/420dpi/font1/light/network1,1,0 restored. Actual PNG/XML/foreground/APK proof personally inspected; final post-CI live refresh required before final message. No host input/focus; other device untouched. Owner progress/history/settings preserved.
 
 Full report and matrix: openspec/changes/078-game-cover-visual-identities/evidence/FINAL_REPORT.md. PhysicalAndroid/ARM64/iOS runtime, comprehensive screen reader and human taste/recognition study remain unvalidated. Related visual P3 limits and memory tradeoff are in KNOWN_ISSUES/BACKLOG. Existing077 unrelated debt remains historical and is not reopened.
+
+## Campaign 080 continuation — certification-system repair + catalog revalidation (2026-10-21)
+
+Owner directive: repair the evidence system FIRST, then complete remaining
+achievable Campaign 080 work. Delivered:
+
+**Priority Zero — certification contract repaired (F-080-001..005 all fixed):**
+new pure evidence contract `scripts/qa/coverage-contract.mjs` (2.0) separating
+actions/states/capabilities; levels derived only from proven transitions;
+structured evidence events with before/after observations, artifact hashes,
+single-attempt binding, build/APK/device provenance; safe exit proven by
+observed destination (Back→pause→quit ladder); results-currency check. Adversarial
+suites: `coverage-contract.test.mjs` 28/28 (20 mandatory negative cases incl.
+faithful v1 false-positive fixtures + positive controls) and
+`merge-coverage.test.mjs` 12/12 (cross-run fabrication impossible, or3 union,
+conflict preservation, invalid-run exclusion, v1-schema rejection). One real
+contract bug (reference-compare fingerprints always "changed") found BY the
+adversarial suite and fixed — recorded in native-qa-correction.md.
+Provenance-aware merger (`merge-coverage.mjs` 2.0): single-run certification,
+union-of-observations labelled separately, cross-run-union-not-a-journey
+diagnostics, 3-valued or3, no silent discard.
+
+**Historical evidence preserved + reclassified:** originals backed up
+byte-for-byte (`scripts/qa/historical/080/`, sha256 recorded);
+`reclassify-historical.mjs` replays all 52 v1 runs through contract 2.0:
+52/52 downgraded (all fail provenance per F-080-005; demonstrable false
+positives: language-word-chain tutorial-only L2, memory-pair-recall started-only
+L2, attention-sustained-vigilance L3 with intro→results and no gameplay).
+
+**Fresh 42-game revalidation (corrected harness, APK sha256 231559b9…48ca,
+git b7a1eaf2, emulator-5554): certified 5 L3 / 9 L2 / 4 L1 / 24 L0.** L3:
+odd-one-out, visual-search, number-line-estimation, transform-match,
+quick-compare. Two formerly-L1-only games (speed-color-match, speed-reaction-time)
+now L2 verified. Dominant remaining blocker class documented with exact
+evidence: 22 games' guided TUTORIAL DEMOS require answer-driven completion
+("Solve 2 more problems." etc.) not yet driven by per-family demo solvers —
+prompts captured in ledger for offline resolver validation. In-repair harness
+fixes: guided-demo interaction, per-game demo contracts (grid-recall [3,5]
+computed from its seed; color-match label→button), cached-hierarchy driver
+(dump-per-action timing vs round timers), pause→quit exit ladder.
+
+**Visual corrections (verified):** Odd One Out in-game option affordance
+(borderStrong interactive boundary) + provenance correction that the confirmed
+defect is the game-detail COVER illustration (shared binary asset, composition
+fix specified, owner-taste gated); ReactionTime bounded elevation polish
+(owner-acceptance candidate); rule-switch/echo-size dispositioned NOT
+APPLICABLE on evidence. tsc clean; focused jest 21 suites/241 tests; full jest
+713 suites/8024 tests GREEN.
+
+**Status of remaining campaign obligations:** Workout V3 native journey —
+driver `scripts/qa/workout-journey.mjs` ready, journey NOT YET EXECUTED (device
+time consumed by sweep); backup/restore + migration — NOT EXECUTED, isolated-
+fixture protocol prepared, owner data never at risk; a11y/responsive matrix —
+NOT EXECUTED, ADB profile protocol prepared; TalkBack acceptance inherently
+needs human review. Build of a fresh APK with the two visual fixes is locally
+BLOCKED (ninja "manifest still dirty" ×3 after cache clean — suspected
+synced-folder file locking; the installed APK remains green and evidence binds
+its exact hash). Campaign 080 remains ACTIVE.

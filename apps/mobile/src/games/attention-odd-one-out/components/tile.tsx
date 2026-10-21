@@ -7,6 +7,12 @@
  * the odd item differs along exactly one dimension. The odd item is never
  * disclosed through the accessibility label while the round is live — the
  * reveal (`found`) only happens after the round ended.
+ *
+ * Option affordance: every tile is a tappable answer option, so the idle
+ * outline uses the interactive-boundary token (`borderStrong`, ≥3:1 vs
+ * surface) at the answer-option weight — the same pattern as
+ * speed-quick-compare's OptionButton — instead of the decorative hairline
+ * border, which left the board's selectable elements visually ambiguous.
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -58,8 +64,8 @@ export const ItemTile = memo(function ItemTile({
   const backgroundColor =
     visual === 'found' ? theme.accentSoft : visual === 'error' ? theme.dangerSoft : theme.surface;
   const borderColor =
-    visual === 'found' ? theme.success : visual === 'error' ? theme.danger : theme.border;
-  const borderWidth = visual === 'found' || visual === 'error' ? 3 : 1.5;
+    visual === 'found' ? theme.success : visual === 'error' ? theme.danger : theme.borderStrong;
+  const borderWidth = visual === 'found' || visual === 'error' ? 3 : 2;
 
   return (
     <Pressable

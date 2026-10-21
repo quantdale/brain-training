@@ -1,0 +1,3003 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-21T08:09:57.963Z",
+  "harness": "scripts/qa/native-game-sweep.mjs",
+  "buildIdentity": "installed production build (com.braintraining.app)",
+  "device": "Android SDK built for x86_64",
+  "abi": "x86_64",
+  "display": "Physical size: 1080x1920",
+  "density": "Physical density: 420",
+  "renderer": "SwiftShader (emulator software rendering)",
+  "games": [
+    {
+      "id": "flexibility-card-sort",
+      "name": "Card Sort",
+      "category": "Flexibility",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/flexibility-card-sort/L1-launch.png",
+          "bytes": 143206,
+          "sha1": "d2a0cc9d8a5587cc8321dcf6922c7d0d79a1cac7"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "flexibility-cue-shift",
+      "name": "Cue Shift",
+      "category": "Flexibility",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "rule-banner-text",
+            "tutorial-target",
+            "tutorial-target-card",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/flexibility-cue-shift/L1-launch.png",
+          "bytes": 88555,
+          "sha1": "355b63b1b8b9d7ffc547fbf851c8ad9a3d81eaaa"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "flexibility-rule-flip",
+      "name": "Rule Flip",
+      "category": "Flexibility",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": true,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-grid",
+            "tutorial-grid.card.0",
+            "tutorial-grid.card.0.verdict",
+            "tutorial-grid.card.1",
+            "tutorial-grid.card.2",
+            "tutorial-grid.card.3",
+            "tutorial-demo-done",
+            "tutorial-demo-done-lip"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/flexibility-rule-flip/L1-launch.png",
+          "bytes": 185269,
+          "sha1": "6175668b988021f7a81260f660f44d3018a7994c"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "flexibility-task-switch",
+      "name": "Task Switch",
+      "category": "Flexibility",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-target",
+            "tutorial-token",
+            "tutorial-grid",
+            "tutorial-grid.option.0",
+            "tutorial-grid.option.0-lip",
+            "tutorial-grid.option.1",
+            "tutorial-grid.option.1-lip"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/flexibility-task-switch/L1-launch.png",
+          "bytes": 112369,
+          "sha1": "bd3eef237c5c923c2bc7a0d68ba79829da1a8a56"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "language-sentence-builder",
+      "name": "Sentence Builder",
+      "category": "Language",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "tutorial-grid.word.0",
+            "tutorial-grid.word.1",
+            "tutorial-grid.word.2",
+            "tutorial-grid.word.3",
+            "tutorial-grid.word.4",
+            "tutorial-demo-next",
+            "tutorial-demo-next-lip"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/language-sentence-builder/L1-launch.png",
+          "bytes": 80200,
+          "sha1": "14a21cdc90f65131cc693cbfce13c8e8904403f2"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "logic-code-cracker",
+      "name": "Code Cracker",
+      "category": "Logic & Problem Solving",
+      "hasTutorial": true,
+      "levelReached": 1,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": false,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "current-guess",
+            "guess-pegs",
+            "guess-peg.0",
+            "guess-peg.1",
+            "guess-peg.2",
+            "color-picker",
+            "color.0",
+            "color.1",
+            "color.2",
+            "color.3",
+            "tutorial-submit"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/logic-code-cracker/L1-launch.png",
+          "bytes": 107523,
+          "sha1": "59b77d019feac8d2a7e563cf5c0ba271989f5bb3"
+        }
+      ],
+      "result": "SMOKE_ONLY",
+      "remainingGap": "Level 1 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "memory-running-order",
+      "name": "Running Order",
+      "category": "Memory",
+      "hasTutorial": true,
+      "levelReached": 1,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": false,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-palette",
+            "tutorial-palette.0",
+            "tutorial-palette.1",
+            "tutorial-palette.2",
+            "tutorial-palette.3",
+            "tutorial-palette.4",
+            "tutorial-palette.5",
+            "tutorial-palette.6",
+            "tutorial-palette.7",
+            "tutorial-palette.8",
+            "tutorial-palette.9",
+            "tutorial-palette.10",
+            "tutorial-palette.11"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/memory-running-order/L1-launch.png",
+          "bytes": 89435,
+          "sha1": "f9a1a44cc23de80a1f64e25b651c59a5e6d75601"
+        }
+      ],
+      "result": "SMOKE_ONLY",
+      "remainingGap": "Level 1 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "speed-color-match",
+      "name": "Color Match",
+      "category": "Speed",
+      "hasTutorial": true,
+      "levelReached": 1,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": false,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-swatch",
+            "swatch",
+            "label",
+            "color-grid",
+            "color-btn.red",
+            "color-btn.blue",
+            "color-btn.green",
+            "color-btn.yellow",
+            "color-btn.purple",
+            "color-btn.orange"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/speed-color-match/L1-launch.png",
+          "bytes": 78946,
+          "sha1": "05bf479d3714e4d296f375dba4c55a56fd9f7d45"
+        }
+      ],
+      "result": "SMOKE_ONLY",
+      "remainingGap": "Level 1 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "speed-order-sweep",
+      "name": "Order Sweep",
+      "category": "Speed",
+      "hasTutorial": true,
+      "levelReached": 2,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": true,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.12",
+            "token.2",
+            "token.8",
+            "token.3"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.12",
+            "token.2",
+            "token.8",
+            "token.3"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.11",
+            "token.5",
+            "token.10",
+            "token.3"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.9",
+            "token.12",
+            "token.11",
+            "token.1"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-grid",
+            "token.4",
+            "token.11",
+            "token.10",
+            "token.7"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/speed-order-sweep/L1-launch.png",
+          "bytes": 91704,
+          "sha1": "49c40fa8731def6d692305a00a86ef50f395d698"
+        }
+      ],
+      "result": "PASS",
+      "remainingGap": "Level 2 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    },
+    {
+      "id": "speed-reaction-time",
+      "name": "Reaction Time",
+      "category": "Speed",
+      "hasTutorial": true,
+      "levelReached": 1,
+      "milestones": {
+        "launched": true,
+        "rendered": true,
+        "tutorialSeen": true,
+        "tutorialCleared": false,
+        "started": false,
+        "inputSubmitted": false,
+        "feedbackObserved": false,
+        "roundAdvanced": false,
+        "sessionEnded": false,
+        "resultsShown": false,
+        "safeExit": true
+      },
+      "controlInventoryCount": 4,
+      "controlLog": [
+        {
+          "phase": "launch",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-next",
+            "tutorial-next-lip"
+          ]
+        },
+        {
+          "phase": "after-tutorial",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "playing",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-0",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-1",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-2",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-3",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-4",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-5",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-6",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-7",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-8",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-9",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-10",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-11",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-12",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        },
+        {
+          "phase": "step-13",
+          "controls": [
+            "screen",
+            "tutorial",
+            "tutorial-demo-status",
+            "tutorial-trigger"
+          ]
+        }
+      ],
+      "roundSignals": [],
+      "artifacts": [
+        {
+          "file": "qa-artifacts/080/sweep/speed-reaction-time/L1-launch.png",
+          "bytes": 158149,
+          "sha1": "d47f7ce1d689efdf34ffb561ffd3efc27314bf9e"
+        }
+      ],
+      "result": "SMOKE_ONLY",
+      "remainingGap": "Level 1 reached; full lifecycle (session-complete + results + persistence + replay + pause/resume/quit) not exercised this run"
+    }
+  ]
+}

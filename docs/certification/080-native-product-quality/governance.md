@@ -159,3 +159,31 @@ recorded in `security.md`. Accepted advisory classifications, review dates, and
 exit conditions are preserved from Campaign 079; newly in-range-fixable
 advisories are remediated rather than waived. This campaign makes no
 zero-vulnerability claim while accepted advisories remain.
+
+---
+
+## H4 — Migration plan toward PR-based autonomous integration (actionable, not executed)
+
+Full status-check enforcement requires a governance decision the agent must not
+unilaterally make (it would disrupt the current autonomous direct-push model
+and constrain owner access). The actionable plan, for owner decision:
+
+1. **Preconditions (no behavior change):** add a merge-queue or branch-push CI
+   job that publishes the four required checks on candidate SHAs; keep the
+   ruleset (force-push/deletion blocked for everyone) untouched.
+2. **Autonomous wave procedure (reversible):** agents push to an
+   `auto/<campaign>` branch instead of `main`; a green required-check set +
+   up-to-date-with-main gate merges it via the existing strict PR checks. The
+   orchestrator merges; subagents never open PRs directly.
+3. **Pilot:** one campaign wave under the PR path with the direct-push path
+   retained as documented fallback; measure latency cost vs. safety.
+4. **Full enforcement (owner decision):** flip classic protection to
+   `enforce_admins: true` (or remove the admin bypass) ONLY after the pilot
+   proves the autonomous loop still converges; then direct push becomes
+   emergency-only with the existing force-push recovery ruleset procedure.
+5. **Rollback:** any step reverts by restoring the documented admin
+   direct-push procedure; the ruleset has never blocked administrators from
+   pushing commits, so no lockout path exists.
+
+Status: **NOT EXECUTED — recorded for owner decision.** Current automation and
+owner access are unchanged (§15 constraint honored).

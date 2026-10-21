@@ -15,7 +15,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { Elevation, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export interface TriggerButtonProps {
@@ -83,6 +83,11 @@ export const TriggerButton = memo(function TriggerButton({
 
 const styles = StyleSheet.create({
   trigger: {
+    // Bounded depth (P3 "ReactionTime depth"): the stimulus is this screen's
+    // focal surface, so `Elevation.raised` lifts it off the session surface
+    // (the arcade-panel `focal` pattern) instead of reading as a flat card.
+    // Presentation only — signal timing is captured elsewhere and untouched.
+    ...Elevation.raised,
     alignSelf: 'stretch',
     minHeight: 220,
     borderRadius: Radii.large,
