@@ -1,5 +1,43 @@
 # Durable Project State
 
+## Fresh-machine development environment setup + red-gate repair — 2026-10-21 (qualified)
+
+Owner goal "set up everything needed for this repos development"; no campaign
+activation. Fresh Windows host bootstrapped per ONBOARDING.md: Node 22.23.2/
+npm 10.9.8, JDK 17, Android SDK (build-tools 35+36, platforms 35/36/37,
+NDK 27.0.12077973, platform-tools, emulator, dedicated AVD braintraining-qa36),
+`npm ci` (1,114 packages from lockfile, no upgrades). All ONBOARDING §6
+gates PASS: typecheck, full Jest 711 suites/8,018 tests (+5 classified
+skips), lint, hermetic expo-alignment; network `expo-doctor` 20/21 patch
+drift classified advisory upstream drift per GOVERNANCE (push-path
+equivalent PASS). Full Repository Integrity job mirrored locally 18/18.
+Local Android build smoke green (gradle :app:assembleRelease 9m17s; APK
+52,735,180B; aapt2 permissions exact vs expected-apk-permissions.txt).
+App install + emulator-local smoke 5/5 PASS (install/foreground/screenshot/
+hierarchy/logcat; Home renders with workout state). ARTEMIS external
+checkout installed at D:\Tools\artemis (google/artemis 351ca84) + `uv sync`;
+doctor: python/config/host/adb/toolchain PASS after installing FFmpeg+
+scrcpy. This machine has no D: volume, so D: is provided by a persistent
+per-user `subst D: C:\VirtualD` (HKCU Run `SubstDArtemis`); nothing else
+deviates from the documented paths. Muse Spark route override written to
+D:\Tools\artemis-local-muse-spark.jsonc (openai / muse-spark-1.3-contributor
+only, no alternate fallback; upstream schema caps reasoning_effort at
+"high" so documented xhigh stays endpoint-side — drift noted in file).
+USER-OWNED REMAINING: OpenCode Go provider credential into
+D:\Tools\artemis\.env via `scripts/qa/set-artemis-key.mjs` (BT_NEW_KEY);
+ARTEMIS doctor reports gemini_api_key fail until the owner supplies it.
+
+Red-gate repair during setup: Repository Integrity was red on main at
+d26cd536 (run 39479920967, exit 2) because the F-6 unknown-flag fix never
+allowlisted the documented `--self-test` flag of validate-affected.mjs.
+Repaired at 2f18738f (parse loop recognizes --self-test; F-6 exit-2 and
+F-5 root-independence contracts re-verified; local job mirror 18/18).
+All four workflows SUCCESS at 2f18738f (Repository Integrity 39530950259,
+App CI 39530950190, Android Build Smoke 39530950268, iOS Build Smoke
+39530950355). Note: the 2f18738f commit body was mangled by shell
+substitution of backticks (claims intact, embedded usage text); history
+was not rewritten per the no-force-push policy.
+
 ## Explore-findings convergence — 2026-10-19 (qualified)
 
 Owner-directed bounded repair of every finding in

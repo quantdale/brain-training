@@ -1,3 +1,49 @@
+# Fresh-machine dev-environment qualification + Repository Integrity repair — 2026-10-21
+
+Fresh Windows host, clean origin/main. ONBOARDING §6 baseline: typecheck
+exit 0; full Jest 711 suites/711 passed (4 classified opt-in skips)/8,018
+tests passed (5 classified skips)/5 snapshots PASS in 238.7s; expo lint
+exit 0; generate-game-registry --check OK (fresh); validate-provenance
+--check OK; validate-task-ownership OK; validate-offline --check CLEAN
+(1,007 files). Network `npx expo-doctor` 20/21 exit 1 on upstream patch
+drift only — classified advisory/upstream-drift in GOVERNANCE per Change
+069; hermetic `scripts/validate-expo-alignment.mjs` PASS (22/22 aligned).
+Declared Repository Integrity job mirrored locally: 18/18 steps PASS
+(secrets 3,962 files CLEAN, workflows 44/44, affected-map sync 21 areas/
+56 patterns + self-test 16/16, spec-store 140/140, offline 30/30,
+dependency-audit 41/41 + gate PASS with documented accepted advisories,
+expo-alignment 54/54, jest-signal, provenance 13/13, runtime-QA-contract
+16/16, certify-clean-checkout 14/14, both allowlist freshness checks).
+OpenSpec strict 203/203 PASS.
+
+Regression found and repaired during setup: `node
+scripts/validate-affected.mjs --self-test` rejected its own documented
+flag (exit 2) — the F-6 unknown-flag fix in d26cd536 omitted --self-test
+from the parse allowlist, reddening the Repository Integrity self-test
+step on main at d26cd536 (run 39479920967) while the other three
+workflows were green. Fix 2f18738f routes --self-test through the parse
+loop. Post-fix contracts: self-test 16/16 exit 0 from repo root AND
+apps/mobile (F-5), unknown flags still exit 2 (F-6), --check-sync/--help/
+--list-areas exit 0, local job mirror 18/18. CI at 2f18738f: Repository
+Integrity 39530950259 SUCCESS, App CI 39530950190 SUCCESS, Android Build
+Smoke 39530950268 SUCCESS, iOS Build Smoke 39530950355 SUCCESS.
+
+Toolchain qualification beyond the baseline: local clean native build
+(`expo prebuild --platform android --clean` + `gradlew :app:assembleRelease
+-PreactNativeArchitectures=x86_64`) BUILD SUCCESSFUL 9m17s/532 tasks;
+APK 52,735,180B; `aapt2 dump permissions` matches
+scripts/android/expected-apk-permissions.txt exactly (deny-by-default
+gate). Emulator-local app smoke on braintraining-qa36: install/foreground/
+screenshot/hierarchy/logcat 5/5 PASS (qa-artifacts/20261021-023751-app-
+smoke; Home renders Today's Workout + profile state). ARTEMIS external
+checkout D:\Tools\artemis (google/artemis 351ca84) `uv sync` OK; `artemis
+doctor --json`: python_runtime/system_config/integration_host/android_adb/
+toolchain PASS (FFmpeg + scrcpy installed via winget), vision_ocr_key
+optional PASS. NOT VALIDATED / BLOCKED (user-owned, per ONBOARDING §1):
+ARTEMIS provider credential (doctor gemini_api_key fail) — owner action
+`$env:BT_NEW_KEY='<key>'; node scripts/qa/set-artemis-key.mjs`; physical
+device/ARM64/iOS runtime remain the standing unvalidated limits.
+
 # Explore-findings convergence — qualified, 2026-10-19
 
 Bounded F-1..F-10 repair wave (docs/audits/openspec-explore-2026-10-19.md §5).
