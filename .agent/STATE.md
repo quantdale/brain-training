@@ -18,8 +18,43 @@ activation: dedicated AVD `braintraining-qa36` (emulator-5554, x86_64,
 1080x1920/420dpi), app `com.braintraining.app` installed and runnable, ARTEMIS
 external checkout present at `D:/Tools/artemis`. Full plan: the 080 OpenSpec
 tasks; deliverables under `docs/certification/080-native-product-quality/`.
-Progress is recorded in this section and CURRENT_CAMPAIGN.md as workstreams
-close.
+
+### Campaign 080 progress — 2026-10-21 (MATERIALLY ADVANCED, NOT COMPLETE)
+
+Flagship workstream A DELIVERED: fresh native runtime coverage of the whole
+42-game registry via a new deterministic emulator-local sweep harness
+(`scripts/qa/native-game-sweep.mjs` — deep-link + stable `gameId.control`
+semantic ids + nested-control matching + out-of-band screenshots; fixes the 079
+slow-dump-vs-timer bottleneck). Result: **all 42 games at ≥L1 native smoke, 38
+at L2 native interaction, 1 at L3 full lifecycle** (vs 079's single journeyed
+game). Merged machine-readable ledger (`native-coverage-merged.json`) + human
+matrix delivered. Critical journeys: Pause/Resume/Quit VERIFIED (timer freeze
+across 6s, resume, quit-discard; Odd One Out); correct/incorrect scoring
+VERIFIED (live incorrect input + answer reveal + deterministic scoring.test.ts);
+offline airplane journey VERIFIED (cold-start→play→restart→persist→restore);
+results/progression verified. Performance: controlled source probes + device
+gfxinfo with emulator/software-rendering overhead separated (GPU percentiles,
+legacy/modern jank split); NO app-controlled frame bottleneck cleared the bar
+for a safe correction, so no optimization is falsely claimed (performance.md C4).
+Governance: final-SHA reconciliation (app source UNCHANGED 9c4dd138→f8ae95dd, so
+079 runtime evidence carries forward) + administrator-bypass posture reviewed
+with non-bypass as an owner decision (governance.md). Security: dependency gate
+PASS, 7 accepted GHSAs, no regression. In-campaign defect fixed: a governance-
+consistency format drift caught by the `frontier-audit` terminal-durable-state
+gate and corrected (17/17 green). Full local gate suite GREEN at checkpoint:
+typecheck, lint, jest 711/8018/5-skip, 10 hermetic repo gates, strict OpenSpec
+207/207, dependency audit. **Application source unchanged this campaign** (only
+QA scripts + docs + OpenSpec/governance).
+
+REMAINING ACHIEVABLE IN-REPO WORK (why the campaign is NOT closed): Workout V3
+full native lifecycle (B4) not re-driven; backup/restore on-device round-trip +
+upgrade/migration not re-driven (source-covered); a11y profile matrix
+(large-font/compact/dark/reduced-motion/landscape) + TalkBack runtime not
+re-executed; deeper L3 session-completion + 4 timed/keypad games at L1; visual
+P3 corrections deferred. External (not claimed): ARM64/physical Android, iOS
+simulator/physical runtime, owner acceptance. Per AGENTS.md success contract the
+campaign is "materially advanced", not completed; it remains ACTIVE for
+continuation. See `docs/certification/080-native-product-quality/handoff.md`.
 
 ## Final stabilization, acceptance, and release certification — 2026-10-21 (Campaign 079, VALIDATED with explicit limitations)
 
@@ -159,7 +194,7 @@ local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response
 fresh machine; the durable proof is the CI run IDs recorded alongside);
 do not infer their success from this pre-commit record. Historical078 stays closed.
 
-**Active campaign:** 080-native-product-quality
+**Active campaign:** `080-native-product-quality`
 **Last campaign:** `079-stabilization-acceptance-certification`
 **Last campaign status:** VALIDATED
 

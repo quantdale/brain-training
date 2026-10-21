@@ -7,6 +7,19 @@
 **Ending SHA:** _(pending final integration)_
 **Change:** `openspec/changes/080-native-product-quality`
 
+**Progress (2026-10-21 checkpoint):** MATERIALLY ADVANCED, NOT COMPLETE. The
+flagship workstream (fresh native runtime coverage of all 42 games) is delivered
+via a new deterministic sweep harness — 42/42 at ≥L1 native smoke, 38 at L2, 1
+at L3. Core critical journeys verified (Pause/Resume/Quit, correct/incorrect
+scoring, offline airplane mode). Performance evidence gathered with emulator
+overhead separated (no false optimization claimed). Governance SHA
+reconciliation + administrator-bypass review + security re-check done. Full
+local gates GREEN (typecheck/lint/jest 711/8018/10 repo gates/OpenSpec 207/207).
+Application source unchanged. Remaining achievable work (Workout V3 native,
+backup/restore round-trip, a11y profiles/TalkBack, deeper L3) is why the
+campaign remains ACTIVE for continuation — see
+`docs/certification/080-native-product-quality/handoff.md`.
+
 Owner-authorized (2026-10-21) bounded successor to Campaign 079 (CONDITIONAL
 GO). Objective: eliminate the achievable product-quality, native-validation,
 performance, accessibility, and release-certification gaps left by Campaign
