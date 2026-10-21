@@ -31,8 +31,8 @@
 
 ## 6. Release governance
 
-- [ ] 6.1 Audit workflow enforcement (PR vs push triggers, advisory vs required, skip/hide conditions, stable check names).
-- [ ] 6.2 Configure and verify branch protection (or ruleset) on `main` with required status checks, or document the exact external blocker.
+- [x] 6.1 Audit workflow enforcement (PR vs push triggers, advisory vs required, skip/hide conditions, stable check names) — all four workflows run on PRs; check names verified via the checks API; shell-hygiene gate prohibits masking constructs.
+- [x] 6.2 Configure and verify branch protection on `main` — required checks (4, strict up-to-date), force-push and deletion blocked for everyone via ruleset 25523614 (no bypass actors), explicit admin-bypass policy and integration procedure recorded in GOVERNANCE.json, AGENTS.md, and docs/certification/079-release-certification/governance.md.
 
 ## 7. Platform certification and handoff
 

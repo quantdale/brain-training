@@ -23,7 +23,32 @@
     "pushMainFrequently": true,
     "autonomousForcePushMainAllowed": false,
     "temporaryWorktreesAllowed": true,
-    "cleanupTemporaryBranchesAndWorktrees": true
+    "cleanupTemporaryBranchesAndWorktrees": true,
+    "branchProtection": {
+      "configuredAt": "2026-10-21",
+      "verifiedVia": "GitHub REST API read-back: GET branches/main/protection and GET rulesets/25523614 after configuration (campaign 079).",
+      "classicBranchProtection": {
+        "requiredStatusChecks": [
+          "Mobile app build/typecheck/tests",
+          "Android clean native build",
+          "iOS Simulator compile smoke",
+          "durable-state"
+        ],
+        "strictUpToDateRequired": true,
+        "requirePullRequestBeforeMerging": false,
+        "enforceAdmins": false,
+        "allowForcePushes": false,
+        "allowDeletions": false
+      },
+      "ruleset": {
+        "id": 25523614,
+        "name": "protect main",
+        "rules": ["non_fast_forward", "deletion"],
+        "bypassActors": "none — current_user_can_bypass: never, so force-push and deletion are blocked even for administrators"
+      },
+      "adminBypassPolicy": "Explicit: administrators bypass the classic rule (required checks do not gate direct pushes by admins) to preserve the repository's autonomous direct-push integration model. Bypass is NOT permission to skip the greenMain local-check rule below, never authorizes force-push of main (the ruleset blocks it for everyone), and must not be used to land a change whose required local checks failed. Emergency force-push/recovery requires explicit owner authorization and a temporary ruleset change that must be restored afterward.",
+      "integrationProcedure": "Human/normal changes: branch + pull request; the four required checks must pass and the branch must be up to date with main before merge (strict). Autonomous waves: commit to main and push directly after local greenMain checks pass. A rejected push indicates the protection profile changed and must be investigated before any workaround."
+    }
   },
   "greenMain": {
     "rule": "coherent push to main requires local typecheck and risk-based required checks to pass; a known-failing required check may be pushed only as an explicitly documented blocker/recovery checkpoint, never labeled green.",

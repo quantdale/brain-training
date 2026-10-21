@@ -79,6 +79,20 @@ Temporary branches/worktrees are allowed only when they materially improve isola
 - `--force-with-lease` is allowed only when the user explicitly authorizes a specific history-rewrite/recovery operation.
 - Prefer corrective commits or `git revert` for ordinary repair.
 
+### Branch protection (configured and API-verified 2026-10-21)
+
+`main` is protected: required status checks (the four workflow jobs —
+Mobile app build/typecheck/tests, Android clean native build, iOS Simulator
+compile smoke, durable-state) with strict up-to-date enforcement for pull
+requests, no force pushes, no branch deletion. A repository ruleset
+("protect main", id 25523614) blocks force-push and deletion **for everyone,
+including administrators** — recovery requires an explicit, owner-authorized
+ruleset change that is restored afterward. Administrators may still push
+commits directly (classic rule runs with enforce_admins off) so the
+autonomous direct-push integration model keeps working; that bypass never
+excuses skipping the local required checks above. Human/normal changes should
+arrive as pull requests; the required checks run on PRs already.
+
 On a genuine blocker: preserve safe work, restore buildable/startable state where practical, document the blocker, update durable state, commit, push, then stop.
 
 ## Host-interaction prohibition
