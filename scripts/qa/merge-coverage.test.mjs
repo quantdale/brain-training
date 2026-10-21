@@ -97,9 +97,27 @@ function deviceProfile(overrides = {}) {
 }
 
 function observation(seq, {
-  controls = [], screenMarkers = [], observedGameId, score = '0', boardValues = [],
+  controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
+  timestamp, phase = 'play',
 } = {}) {
-  const o = { seq, controls, screenMarkers, score, boardValues };
+  // Observations carry real provenance (timestamp + phase) and an artifact
+  // binding — the repaired contract rejects unbound "proof".
+  const o = {
+    seq,
+    controls,
+    screenMarkers,
+    score,
+    boardValues,
+    phase,
+    timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+    evidenceArtifact: {
+      file: `qa-artifacts/080/fixture/obs-${seq}.png`,
+      sha256: 'a'.repeat(64),
+      bytes: 1024,
+      kind: 'screenshot',
+    },
+  };
+  if (screenKind) o.screenKind = screenKind;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
   return o;
 }
@@ -108,7 +126,9 @@ const gameObs = (seq, extra = {}) => observation(seq, { observedGameId: GAME_ID,
 const introObs = (seq, extra = {}) => gameObs(seq, { controls: ['intro', 'start'], ...extra });
 const playingObs = (seq, extra = {}) => gameObs(seq, { controls: ['stage', 'pause', 'round.1', 'score'], ...extra });
 const resultsObs = (seq, extra = {}) => gameObs(seq, { controls: ['results', 'result-facts'], ...extra });
-const exitedObs = (seq, extra = {}) => observation(seq, { screenMarkers: ['games-title'], ...extra });
+// A PROVEN exit destination (foreground identity = app, game screen left).
+const exitedObs = (seq, extra = {}) =>
+  observation(seq, { screenKind: 'app-destination', screenMarkers: ['games-title'], ...extra });
 
 function event(seq, attemptId, fields = {}) {
   return {

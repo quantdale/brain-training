@@ -45,6 +45,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   CONTRACT_VERSION,
   AxisStatus,
@@ -52,6 +53,32 @@ import {
   classifyRun,
   or3,
 } from './coverage-contract.mjs';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
+
+/**
+ * AUTHORITATIVE game-id registry (B1). `knownGameId` is a caller-supplied flag
+ * and must never be trusted on its own; ids are validated against the real
+ * generated game modules instead. When the registry cannot be resolved the
+ * merger says so explicitly rather than silently trusting the caller.
+ */
+function loadGameRegistry() {
+  try {
+    const ids = [];
+    for (const d of fs.readdirSync(GAMES_DIR)) {
+      const metaPath = path.join(GAMES_DIR, d, 'game.json');
+      if (!fs.existsSync(metaPath)) continue;
+      try {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        if (meta && typeof meta.id === 'string') ids.push(meta.id);
+      } catch { /* a corrupt game.json is reported by the registry gate, not here */ }
+    }
+    return ids.length ? new Set(ids) : null;
+  } catch {
+    return null;
+  }
+}
 
 // --- args ------------------------------------------------------------------
 function usage() {
@@ -101,12 +128,55 @@ for (const file of inputs) {
   }
   const sha256 = crypto.createHash('sha256').update(raw).digest('hex');
   inputManifest.push({ file: path.basename(file), sha256, runCount: fileRuns.length, generatedAt: doc.generatedAt || null, evidenceSource: doc.evidenceSource || 'runtime' });
-  for (const r of fileRuns) runs.push({ ...r, _sourceFile: path.basename(file), _sourceSha256: sha256 });
+  fileRuns.forEach((r, i) => {
+    // B4: a type-corrupt entry must produce a deterministic, actionable
+    // validation result — never an uncontrolled crash downstream and never a
+    // silent omission. Corrupt entries are retained as INVALID runs.
+    if (!r || typeof r !== 'object' || Array.isArray(r)) {
+      diagnostics.push({
+        kind: 'corrupt-run-entry',
+        file: path.basename(file),
+        runId: `(entry ${i})`,
+        detail: `run entry is ${r === null ? 'null' : Array.isArray(r) ? 'an array' : typeof r}, not an object`,
+        effect: 'retained as an invalid run; excluded from certification',
+      });
+      runs.push({ executionAttemptId: `(corrupt-entry-${i})`, gameId: '(missing)', events: [], observations: [], _corrupt: true, _sourceFile: path.basename(file), _sourceSha256: sha256 });
+      return;
+    }
+    runs.push({ ...r, _sourceFile: path.basename(file), _sourceSha256: sha256 });
+  });
+}
+
+// --- authoritative registry (B1) -------------------------------------------
+const knownGames = loadGameRegistry();
+if (!knownGames) {
+  diagnostics.push({
+    kind: 'registry-unavailable',
+    detail: `authoritative game registry not resolvable at ${GAMES_DIR}; knownGameId caller flags were NOT independently verified`,
+    effect: 'game-id validation degraded to caller assertion — this is NOT a registry-enforced certification',
+  });
+}
+
+// --- duplicate execution-attempt detection (B4) ----------------------------
+const attemptIdCount = new Map();
+for (const r of runs) {
+  const id = r.executionAttemptId || '(missing)';
+  attemptIdCount.set(id, (attemptIdCount.get(id) || 0) + 1);
+}
+for (const [id, n] of attemptIdCount) {
+  if (n > 1) {
+    diagnostics.push({
+      kind: 'duplicate-execution-attempt-id',
+      runId: id,
+      detail: `executionAttemptId '${id}' appears ${n} times across the inputs`,
+      effect: 'attempt-count inflation risk; all duplicates are retained and none is trusted as a distinct attempt without further provenance',
+    });
+  }
 }
 
 // --- validate + classify every run ----------------------------------------
 const validatedRuns = runs.map((r) => {
-  const c = classifyRun(r);
+  const c = classifyRun(r, { knownGames: knownGames || undefined });
   return {
     run: r,
     executionAttemptId: r.executionAttemptId || '(missing)',
@@ -114,6 +184,7 @@ const validatedRuns = runs.map((r) => {
     valid: c.validation.valid,
     errors: c.validation.errors,
     warnings: c.validation.warnings,
+    notes: c.validation.notes || [],
     level: c.level,
     status: c.status,
     axes: c.axes,
@@ -187,37 +258,72 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     ? { level: best.level, levelName: LEVEL_NAME[best.level], status: best.status, runId: best.executionAttemptId, reasons: best.reasons }
     : { level: 0, levelName: LEVEL_NAME[0], status: 'FAILED', runId: null, reasons: ['no contract-valid execution attempt'] };
 
-  // Capability union across runs (union-of-observations — NOT a journey).
-  const capabilityUnion = {};
+  // ------------------------------------------------------------------
+  // B2: CERTIFIED capability axes come from CONTRACT-VALID runs ONLY.
+  // Historical invalid runs remain visible for transparency (in
+  // `historicalObservations`) but must never make a certified capability
+  // column look verified.
+  // ------------------------------------------------------------------
+  const certifiedUnion = {};
+  const historicalObservations = {};
   const conflicts = [];
   for (const a of AXIS_ORDER) {
-    const perRun = list.map((v) => ({ runId: v.executionAttemptId, status: v.axes[a] ? v.axes[a].status : AxisStatus.NOT_EXECUTED, note: v.axes[a] ? v.axes[a].note : '' }));
-    let top = AxisStatus.NOT_EXECUTED;
-    const topRuns = [];
-    for (const p of perRun) {
-      if (STATUS_RANK[p.status] > STATUS_RANK[top]) { top = p.status; topRuns.length = 0; topRuns.push(p.runId); }
-      else if (p.status === top) topRuns.push(p.runId);
-    }
-    capabilityUnion[a] = { status: top, runs: topRuns, perRun };
-    const verifiedSome = perRun.some((p) => p.status === AxisStatus.VERIFIED);
-    const failedSome = perRun.some((p) => p.status === AxisStatus.FAILED);
+    const perRun = list.map((v) => ({ runId: v.executionAttemptId, valid: v.valid, status: v.axes[a] ? v.axes[a].status : AxisStatus.NOT_EXECUTED, note: v.axes[a] ? v.axes[a].note : '' }));
+    const validPerRun = perRun.filter((p) => p.valid);
+    const invalidPerRun = perRun.filter((p) => !p.valid);
+
+    const topOf = (set) => {
+      let top = AxisStatus.NOT_EXECUTED;
+      const topRuns = [];
+      for (const p of set) {
+        if (STATUS_RANK[p.status] > STATUS_RANK[top]) { top = p.status; topRuns.length = 0; topRuns.push(p.runId); }
+        else if (p.status === top) topRuns.push(p.runId);
+      }
+      return { status: top, runs: topRuns };
+    };
+
+    const certified = topOf(validPerRun);
+    certifiedUnion[a] = { status: certified.status, runs: certified.runs, perRun: validPerRun, provenance: 'certified-valid-runs' };
+
+    // Historical / invalid runs: recorded separately, explicitly non-certifying.
+    const historical = topOf(invalidPerRun);
+    historicalObservations[a] = {
+      status: historical.status,
+      runs: historical.runs,
+      perRun: invalidPerRun,
+      provenance: 'historical-uncertifiable',
+      certifying: false,
+    };
+
+    const verifiedSome = validPerRun.some((p) => p.status === AxisStatus.VERIFIED);
+    const failedSome = validPerRun.some((p) => p.status === AxisStatus.FAILED);
     if (verifiedSome && failedSome) {
       conflicts.push({
         axis: a,
-        detail: 'one run VERIFIED this capability while another FAILED it',
-        authoritativeRule: 'both retained; certification uses the single deepest valid run only; union marks the capability VERIFIED but the failed run is never discarded',
-        runs: perRun,
+        detail: 'one VALID run VERIFIED this capability while another VALID run FAILED it',
+        authoritativeRule: 'both retained; certification uses the single deepest valid run only; the failed run is never discarded',
+        runs: validPerRun,
+      });
+    }
+    if (invalidPerRun.some((p) => p.status === AxisStatus.VERIFIED)) {
+      conflicts.push({
+        axis: a,
+        detail: 'an INVALID (uncertifiable) run reports this capability as VERIFIED',
+        authoritativeRule: 'excluded from the certified column entirely; shown only under historicalObservations for transparency',
+        runs: invalidPerRun,
       });
     }
   }
 
   // Union-of-observations may cross runs; it must NEVER be presented as a
   // session. Emit an explicit warning whenever a union looks "complete" but no
-  // single run proves it.
+  // single run proves it. This deliberately considers ALL runs (including
+  // uncertifiable historical ones), because the misleading impression is
+  // exactly what an auditor needs flagged.
   const unionLooksComplete =
-    capabilityUnion.gameplayEntered.status === AxisStatus.VERIFIED &&
-    capabilityUnion.sessionEnded.status === AxisStatus.VERIFIED &&
-    capabilityUnion.resultsCurrent.status === AxisStatus.VERIFIED;
+    list.some((v) => v.axes.gameplayEntered && v.axes.gameplayEntered.status === AxisStatus.VERIFIED) &&
+    list.some((v) => v.axes.sessionEnded && v.axes.sessionEnded.status === AxisStatus.VERIFIED) &&
+    list.some((v) => v.axes.resultsCurrent && v.axes.resultsCurrent.status === AxisStatus.VERIFIED);
   const singleRunL3 = valid.some((v) => v.level >= 3);
   if (unionLooksComplete && !singleRunL3) {
     diagnostics.push({
@@ -242,6 +348,26 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     }
   }
 
+  // Build-mixing detection: if this game's runs came from different APKs or
+  // source revisions, say so explicitly. Certification is single-run so a
+  // fabrication is already impossible, but a reader must not mistake a mixed
+  // evidence set for one coherent build's behaviour.
+  const builds = new Map();
+  for (const v of valid) {
+    const b = v.run.buildIdentity || {};
+    const key = `${b.gitSha || '?'}|${b.apkSha256 || '?'}|${b.versionCode ?? '?'}`;
+    if (!builds.has(key)) builds.set(key, []);
+    builds.get(key).push(v.executionAttemptId);
+  }
+  if (builds.size > 1) {
+    diagnostics.push({
+      kind: 'mixed-build-identity',
+      gameId: id,
+      detail: `certifying runs span ${builds.size} distinct build identities: ${[...builds.entries()].map(([k, rs]) => `${k} (${rs.length} run${rs.length > 1 ? 's' : ''})`).join('; ')}`,
+      effect: 'certification remains single-run (no cross-build journey is possible); the mixed evidence set is flagged so it is not read as one build\'s behaviour',
+    });
+  }
+
   const first = list[0].run;
   return {
     id,
@@ -249,12 +375,15 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     category: first.category || '',
     certified,
     runs: list.map(runSummary),
-    capabilityUnion,
+    // B2: certified axes (valid runs only) vs historical uncertifiable
+    // observations (invalid runs) are NEVER blended.
+    capabilityUnion: certifiedUnion,
+    historicalObservations,
     conflicts,
     downgrades,
     // Independent resilience subcapabilities MAY union across runs (contract
     // explicitly defines them as independent), each with run provenance.
-    resilience: Object.fromEntries([...UNIONABLE].map((k) => [k, capabilityUnion[k]])),
+    resilience: Object.fromEntries([...UNIONABLE].map((k) => [k, certifiedUnion[k]])),
   };
 });
 

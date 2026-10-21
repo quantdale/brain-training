@@ -9,6 +9,7 @@ import {
   observeState,
   or3,
   validateRunRecord,
+  verifyArtifactBytes,
 } from './coverage-contract.mjs';
 
 // Adversarial regression suite for the pure QA evidence contract (v2.0).
@@ -20,7 +21,7 @@ import {
 const GAME_ID = 'memory-pair-recall';
 const ATTEMPT_ID = 'attempt-fixture-001';
 
-const sha1Of = (label) => createHash('sha1').update(label).digest('hex');
+const sha256Of = (label) => createHash('sha256').update(label).digest('hex');
 
 const buildIdentity = (overrides = {}) => ({
   gitSha: 'a'.repeat(40),
@@ -41,16 +42,40 @@ const deviceProfile = (overrides = {}) => ({
 });
 
 // Observation fixture. The `state` field is derived from the same controls the
-// contract derives state from, so fixtures stay self-consistent.
+// contract derives state from, so fixtures stay self-consistent. Every
+// observation carries a real artifact BINDING (file + digest + attempt id) —
+// the contract no longer accepts unbound "proof".
 function observation(seq, {
-  controls = [], screenMarkers = [], observedGameId, score = '0', boardValues = [],
-  sha1, expectedSha1,
+  controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
+  controlDetails, sha256, verifiedSha256, artifact = true, phase = 'play', requireArtifact, timestamp,
 } = {}) {
-  const derived = observeState({ controls, screenMarkers, gameId: GAME_ID, observedGameId });
-  const evidenceArtifact = { sha1: sha1 || sha1Of(`obs-${seq}`) };
-  if (expectedSha1 !== undefined) evidenceArtifact.expectedSha1 = expectedSha1;
-  const o = { seq, state: derived.state, controls, screenMarkers, score, boardValues, evidenceArtifact };
+  const derived = observeState({ controls, screenMarkers, screenKind, gameId: GAME_ID, observedGameId });
+  const o = {
+    seq,
+    state: derived.state,
+    controls,
+    screenMarkers,
+    score,
+    boardValues,
+    phase,
+    timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+  };
+  if (screenKind) o.screenKind = screenKind;
+  if (controlDetails) o.controlDetails = controlDetails;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
+  if (requireArtifact !== undefined) o.requireArtifact = requireArtifact;
+  if (artifact) {
+    o.evidenceArtifact = {
+      file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.png`,
+      sha256: sha256 || sha256Of(`obs-${seq}`),
+      bytes: 1024,
+      kind: 'screenshot',
+      executionAttemptId: ATTEMPT_ID,
+    };
+    if (verifiedSha256 !== undefined) o.evidenceArtifact.verifiedSha256 = verifiedSha256;
+  } else {
+    o.evidenceArtifact = null;
+  }
   return o;
 }
 
@@ -58,7 +83,10 @@ const gameObs = (seq, extra = {}) => observation(seq, { observedGameId: GAME_ID,
 const introObs = (seq, extra = {}) => gameObs(seq, { controls: ['intro', 'start'], ...extra });
 const playingObs = (seq, extra = {}) => gameObs(seq, { controls: ['stage', 'pause', 'round.1', 'score'], ...extra });
 const resultsObs = (seq, extra = {}) => gameObs(seq, { controls: ['results', 'result-facts'], ...extra });
-const exitedObs = (seq, extra = {}) => observation(seq, { screenMarkers: ['games-title'], ...extra });
+// A PROVEN exit destination: foreground identity is the app and the game screen
+// left. This is the only shape that may ever certify a safe exit.
+const exitedObs = (seq, extra = {}) =>
+  observation(seq, { screenKind: 'app-destination', screenMarkers: ['games-title'], ...extra });
 
 function event(seq, fields = {}) {
   return {
@@ -74,7 +102,7 @@ function event(seq, fields = {}) {
 }
 
 function runRecord(overrides = {}) {
-  return {
+  const rec = {
     executionAttemptId: ATTEMPT_ID,
     gameId: GAME_ID,
     knownGameId: true,
@@ -85,6 +113,16 @@ function runRecord(overrides = {}) {
     observations: [],
     ...overrides,
   };
+  // Fixture convenience: bind observation artifacts to the record's own
+  // execution attempt. Tests that specifically attack wrong-attempt artifact
+  // reuse overwrite this binding AFTER construction.
+  for (const o of rec.observations || []) {
+    if (o && o.evidenceArtifact && typeof o.evidenceArtifact === 'object' &&
+        o.evidenceArtifact.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
+      o.evidenceArtifact = { ...o.evidenceArtifact, executionAttemptId: rec.executionAttemptId };
+    }
+  }
+  return rec;
 }
 
 // ---------------------------------------------------------------------------
@@ -367,23 +405,59 @@ test('N14: evidence from two different APK builds cannot merge into one validate
   assert.equal(deriveLevel(merged).level, 0);
 });
 
-test('N15: artifact hash mismatch fails validation and awards no level', () => {
+test('N15: artifact hash mismatch is detected by INDEPENDENT byte verification, not self-assertion', () => {
+  // P1-C: the old `expectedSha1 !== sha1` comparison checked two values copied
+  // out of the same untrusted record and could never fire on real sweep data.
+  // The repaired contract verifies against bytes read from disk.
+
+  // (a) recorded digest disagrees with the independently computed digest.
   const badArtifact = runRecord({
-    observations: [gameObs(1, { controls: ['intro', 'start'], sha1: 'a'.repeat(40), expectedSha1: 'b'.repeat(40) })],
+    observations: [gameObs(1, { controls: ['intro', 'start'], sha256: 'a'.repeat(64), verifiedSha256: 'b'.repeat(64) })],
     events: [event(1, { action: 'deeplink', actionAcknowledged: null })],
   });
-  const checks = validateRunRecord(badArtifact);
+  const checks = validateRunRecord(badArtifact, { evidenceMode: 'local' });
   assert.equal(checks.valid, false);
   assert.ok(checks.errors.some((e) => e.includes('artifact hash mismatch')));
-  assert.equal(deriveLevel(badArtifact).level, 0);
+  assert.equal(deriveLevel(badArtifact, { evidenceMode: 'local' }).level, 0);
 
-  const badArtifactList = runRecord({
-    observations: [introObs(1)],
-    artifacts: [{ sha1: 'a'.repeat(40), expectedSha1: 'c'.repeat(40) }],
+  // (b) the verifier recomputes the digest from REAL bytes.
+  const realBytes = Buffer.from('the actual screenshot bytes');
+  const honest = { file: 'qa-artifacts/080/x.png', sha256: createHash('sha256').update(realBytes).digest('hex'), bytes: realBytes.length };
+  assert.equal(verifyArtifactBytes(honest, realBytes).ok, true);
+  assert.equal(verifyArtifactBytes({ ...honest, sha256: 'c'.repeat(64) }, realBytes).ok, false);
+  assert.equal(verifyArtifactBytes(honest, Buffer.from('different bytes entirely')).ok, false);
+  assert.equal(verifyArtifactBytes({ ...honest, bytes: 1 }, realBytes).ok, false);
+
+  // (c) a self-asserted pair of equal values proves nothing on its own.
+  const selfAsserted = runRecord({
+    observations: [gameObs(1, { controls: ['intro', 'start'], sha256: 'a'.repeat(64) })],
     events: [event(1, { action: 'deeplink', actionAcknowledged: null })],
   });
-  assert.equal(validateRunRecord(badArtifactList).valid, false);
-  assert.equal(deriveLevel(badArtifactList).level, 0);
+  // Without an independent computation the record is structurally acceptable
+  // but carries NO verified evidence — and in local mode an unverified critical
+  // artifact must not certify.
+  assert.equal(verifyArtifactBytes(selfAsserted.observations[0].evidenceArtifact, Buffer.from('x')).ok, false);
+
+  // (d) an artifact bound to a DIFFERENT execution attempt is rejected.
+  const wrongAttempt = runRecord({
+    observations: [gameObs(1, { controls: ['intro', 'start'] })],
+    events: [event(1, { action: 'deeplink', actionAcknowledged: null })],
+  });
+  wrongAttempt.observations[0].evidenceArtifact.executionAttemptId = 'some-other-attempt';
+  const wrongChecks = validateRunRecord(wrongAttempt, { evidenceMode: 'local' });
+  assert.equal(wrongChecks.valid, false);
+  assert.ok(wrongChecks.errors.some((e) => e.includes('different execution attempt')));
+
+  // (e) a missing artifact on a certification-critical observation is rejected
+  // in local runtime certification and explicitly non-certifying elsewhere.
+  const noArtifact = runRecord({
+    observations: [gameObs(1, { controls: ['intro', 'start'], artifact: false, requireArtifact: true })],
+    events: [event(1, { action: 'deeplink', actionAcknowledged: null })],
+  });
+  assert.equal(validateRunRecord(noArtifact, { evidenceMode: 'local' }).valid, false);
+  const portable = validateRunRecord(noArtifact, { evidenceMode: 'portable' });
+  assert.equal(portable.valid, true, 'portable mode must not falsely FAIL absent gitignored evidence');
+  assert.ok(portable.notes.some((n) => n.includes('not portable certified evidence')));
 });
 
 test('N16: partial or corrupt ledger records fail validation at level 0', () => {

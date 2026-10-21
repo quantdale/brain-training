@@ -37,7 +37,14 @@
  */
 'use strict';
 
+import crypto from 'node:crypto';
+
 export const CONTRACT_VERSION = 'coverage-contract/2.0';
+
+/** SHA-256 over real artifact bytes (P1-C). */
+export function createSha256(buf) {
+  return crypto.createHash('sha256').update(buf).digest('hex');
+}
 
 /** Observable application states for a game screen. */
 export const GameStates = Object.freeze({
@@ -96,6 +103,7 @@ export function observeState(obs) {
   const observedGameId = obs && obs.observedGameId;
   const identityVerified =
     !!gameId && observedGameId != null ? observedGameId === gameId : false;
+  const screenKind = screenKindOf(obs);
 
   const has = (suffix) => controls.includes(suffix);
   const feedbackMarkers = controls.filter((c) =>
@@ -103,25 +111,53 @@ export function observeState(obs) {
   );
   const roundControl = controls.find((c) => /^round\.\d+$/.test(c));
   const round = roundControl ? Number(roundControl.split('.')[1]) : null;
+  // Timed-expiry markers are gameplay-meaningful: a round/stimulus timeout is a
+  // real transition and MUST show up in the change detector, otherwise an
+  // autonomous expiry inside a tap window looks like "nothing happened".
+  const timeoutMarkers = controls.filter((c) => TIMEOUT_MARKER_RE.test(c));
 
   let state = GameStates.UNKNOWN;
-  const gamePresent = controls.length > 0 || (observedGameId != null && observedGameId === gameId);
-  if (has('results') || has('result-facts')) state = GameStates.RESULTS;
-  else if (has('tutorial')) state = GameStates.TUTORIAL;
-  else if (
-    has('pause') &&
-    (has('stage') || has('round-result') || has('round-failed') || has('round-result-board') || feedbackMarkers.length > 0) &&
-    !has('intro') && !has('start')
-  )
-    // An in-round feedback / verdict board (e.g. `round-result-board` +
-    // `next-round`, no `stage`) is still the active gameplay session — treating
-    // it as 'unknown' stalls round advancement and mislabels acceptance.
-    state = GameStates.PLAYING;
-  else if (has('intro') || has('start')) state = GameStates.INTRO;
-  else if (!gamePresent && markers.includes('launcher')) state = GameStates.LAUNCHER;
-  else if (!gamePresent && markers.length > 0) state = GameStates.EXITED;
+  switch (screenKind) {
+    // Proven non-game, non-destination surfaces. These are never an exit: a
+    // failed dump, a system/permission dialog drawn over the game, or a crash
+    // must not be read as successful navigation (P1-B).
+    case ScreenKind.HIERARCHY_FAILURE:
+    case ScreenKind.ADB_FAILURE:
+    case ScreenKind.CRASH:
+    case ScreenKind.SYSTEM_DIALOG:
+    case ScreenKind.PERMISSION_DIALOG:
+    case ScreenKind.UNKNOWN:
+      state = GameStates.UNKNOWN;
+      break;
+    case ScreenKind.LAUNCHER:
+      state = GameStates.LAUNCHER;
+      break;
+    case ScreenKind.APP_DESTINATION:
+      state = GameStates.EXITED;
+      break;
+    case ScreenKind.GAME_SCREEN:
+    default: {
+      const gamePresent = controls.length > 0 || (observedGameId != null && observedGameId === gameId);
+      if (!gamePresent) { state = GameStates.UNKNOWN; break; }
+      if (has('results') || has('result-facts')) state = GameStates.RESULTS;
+      else if (has('tutorial')) state = GameStates.TUTORIAL;
+      else if (
+        has('pause') &&
+        (has('stage') || has('round-result') || has('round-failed') || has('round-result-board') || feedbackMarkers.length > 0) &&
+        !has('intro') && !has('start')
+      )
+        // An in-round feedback / verdict board (e.g. `round-result-board` +
+        // `next-round`, no `stage`) is still the active gameplay session —
+        // treating it as 'unknown' stalls round advancement and mislabels
+        // acceptance.
+        state = GameStates.PLAYING;
+      else if (has('intro') || has('start')) state = GameStates.INTRO;
+      else state = GameStates.PLAYING;
+      break;
+    }
+  }
 
-  return { state, round, feedbackMarkers, identityVerified, markers };
+  return { state, round, feedbackMarkers, timeoutMarkers, identityVerified, markers, screenKind };
 }
 
 /**
@@ -140,6 +176,8 @@ export function stateFingerprint(obs) {
     round: s.round,
     score: (obs && obs.score) != null ? String(obs.score) : null,
     feedback: [...s.feedbackMarkers].sort().join('|'),
+    // A timeout/expiry surface is a distinct gameplay state (P1-A).
+    timeout: [...(s.timeoutMarkers || [])].sort().join('|'),
     // control-text values the game exposes for the live board (e.g. word
     // assembly display). Volatile bounds are deliberately excluded.
     board: ((obs && obs.boardValues) || []).slice().sort(),
@@ -148,6 +186,354 @@ export function stateFingerprint(obs) {
 
 export function fingerprintChanged(a, b) {
   return stateFingerprint(a) !== stateFingerprint(b);
+}
+
+// ---------------------------------------------------------------------------
+// Screen classification (P1-B)
+//
+// A missing or malformed hierarchy is NOT evidence of successful navigation.
+// The v1/v2 harness emitted `non-game-app-screen` whenever a `uiautomator dump`
+// parsed to zero game controls — which includes a transient dump FAILURE and a
+// system dialog drawn over the game — and `observeState` mapped that straight
+// to EXITED, so a failed Back plus a failed dump "proved" a safe exit.
+//
+// Exit destinations must now be PROVEN by foreground-window identity plus a
+// successfully parsed hierarchy plus a live process. Unknown/unparseable is
+// never a destination.
+// ---------------------------------------------------------------------------
+
+export const ScreenKind = Object.freeze({
+  GAME_SCREEN: 'game-screen',
+  APP_DESTINATION: 'app-destination', // app foreground, game screen left
+  LAUNCHER: 'launcher',
+  SYSTEM_DIALOG: 'system-dialog',
+  PERMISSION_DIALOG: 'permission-dialog',
+  CRASH: 'crash',
+  HIERARCHY_FAILURE: 'hierarchy-failure',
+  ADB_FAILURE: 'adb-failure',
+  UNKNOWN: 'unknown',
+});
+
+/** Screen kinds that may EVER be credited as a navigation destination. */
+export const DESTINATION_SCREEN_KINDS = Object.freeze([ScreenKind.APP_DESTINATION]);
+
+const LAUNCHER_PACKAGES = new Set([
+  'com.android.launcher', 'com.android.launcher3',
+  'com.google.android.apps.nexuslauncher', 'com.sec.android.app.launcher',
+  'com.miui.home', 'com.huawei.android.launcher', 'com.oppo.launcher',
+]);
+const PERMISSION_PACKAGES = new Set([
+  'com.android.permissioncontroller', 'com.google.android.permissioncontroller',
+]);
+const SYSTEM_DIALOG_PACKAGES = new Set(['com.android.systemui', 'android', 'com.android.phone']);
+
+/**
+ * Classify what the device is actually showing, from proven harness signals.
+ *
+ * @param {object} input
+ * @param {string} [input.expectedPackage] application package under test
+ * @param {string} [input.focusPackage] foreground window package (dumpsys window)
+ * @param {'ok'|'empty'|'malformed'|'adb-failure'} [input.hierarchyStatus]
+ * @param {number} [input.controlCount] parsed game-control count
+ * @param {boolean} [input.appAlive] process liveness (pidof)
+ */
+export function deriveScreenKind(input) {
+  const {
+    expectedPackage, focusPackage, hierarchyStatus = 'ok', controlCount = 0, appAlive,
+  } = input || {};
+  if (hierarchyStatus === 'adb-failure') return ScreenKind.ADB_FAILURE;
+  if (hierarchyStatus === 'empty' || hierarchyStatus === 'malformed') return ScreenKind.HIERARCHY_FAILURE;
+  if (appAlive === false) return ScreenKind.CRASH;
+  if (!focusPackage) return ScreenKind.UNKNOWN;
+  if (expectedPackage && focusPackage === expectedPackage) {
+    return controlCount > 0 ? ScreenKind.GAME_SCREEN : ScreenKind.APP_DESTINATION;
+  }
+  if (LAUNCHER_PACKAGES.has(focusPackage)) return ScreenKind.LAUNCHER;
+  if (PERMISSION_PACKAGES.has(focusPackage)) return ScreenKind.PERMISSION_DIALOG;
+  if (SYSTEM_DIALOG_PACKAGES.has(focusPackage)) return ScreenKind.SYSTEM_DIALOG;
+  return ScreenKind.UNKNOWN;
+}
+
+/**
+ * Backward-compatible screen-kind derivation from a raw observation.
+ *
+ * NOTE the deliberate change: a bare `non-game-app-screen` marker (which the
+ * harness used to emit on ANY zero-control parse, including dump failure) is
+ * UNKNOWN, never a destination. Only an explicit `app-destination` marker —
+ * emitted by the harness with foreground-identity proof — may be an exit.
+ */
+function screenKindOf(obs) {
+  if (obs && obs.screenKind) return obs.screenKind;
+  const m = (obs && obs.screenMarkers) || [];
+  if (m.includes('adb-failure')) return ScreenKind.ADB_FAILURE;
+  if (m.includes('hierarchy-failure') || m.includes('malformed-hierarchy')) return ScreenKind.HIERARCHY_FAILURE;
+  if (m.includes('crash') || m.includes('app-crashed')) return ScreenKind.CRASH;
+  if (m.includes('permission-dialog')) return ScreenKind.PERMISSION_DIALOG;
+  if (m.includes('system-dialog')) return ScreenKind.SYSTEM_DIALOG;
+  if (m.includes('launcher')) return ScreenKind.LAUNCHER;
+  if (m.includes('app-destination')) return ScreenKind.APP_DESTINATION;
+  if (m.includes('non-game-app-screen')) return ScreenKind.UNKNOWN;
+  // Legacy / implicit: game controls parsed => the game screen itself.
+  if (((obs && obs.controls) || []).length > 0) return ScreenKind.GAME_SCREEN;
+  return ScreenKind.UNKNOWN;
+}
+
+// ---------------------------------------------------------------------------
+// Causal attribution (P1-A)
+//
+// The prior contract credited a tap as "accepted input" whenever the gameplay
+// fingerprint differed between the observation before and after it. That
+// attributes AUTONOMOUS transitions to the nearest preceding tap: in
+// `language-word-chain` a tap on `chain-word.2` was certified as accepted input
+// while the actual observed change was a ROUND TIMEOUT.
+//
+// A fingerprint difference alone is therefore never sufficient. Certification
+// of input acceptance requires an ATTRIBUTABLE signal bound to the tapped
+// control or to an explicit answer acknowledgment, and no competing autonomous
+// marker in the same observation window.
+// ---------------------------------------------------------------------------
+
+export const CausalityVerdict = Object.freeze({
+  INPUT_ACCEPTED: 'INPUT_ACCEPTED',
+  AUTONOMOUS_TIMEOUT: 'AUTONOMOUS_TIMEOUT',
+  AUTONOMOUS_PROGRESSION: 'AUTONOMOUS_PROGRESSION',
+  AMBIGUOUS_CAUSALITY: 'AMBIGUOUS_CAUSALITY',
+  NO_RESPONSE: 'NO_RESPONSE',
+});
+
+/** Controls that mark an autonomous timed expiry (not an answer). */
+export const TIMEOUT_MARKER_RE =
+  /(^|[.\-])(timeout|time-?up|times-?up|expired|expiry|countdown-zero|round-timeout|streak-expired|time-remaining-zero|missed|trial-missed|trial-timeout)([.\-]|$)/i;
+
+/**
+ * Controls that mark an explicit answer verdict. `round-answer-reveal`,
+ * `round-result-board` and `trial-wrong` are deliberately EXCLUDED: a reveal or
+ * a shared `trial-wrong` vocabulary can be produced by an unanswered timeout as
+ * well as by an answered trial (see the speed-color-match observation-vocabulary
+ * conflation), so they cannot by themselves prove that an input was received.
+ */
+export const ANSWER_FEEDBACK_RE =
+  /(^|[.\-])(verdict-correct|verdict-wrong|verdict-incorrect|feedback-correct|feedback-wrong|feedback-incorrect|answer-correct|answer-incorrect|correct-answer|wrong-answer|trial-correct|trial-accepted)([.\-]|$)/i;
+
+/** Outcome vocabulary that is ambiguous between "answered wrong" and "missed". */
+export const AMBIGUOUS_FEEDBACK_RE =
+  /(^|[.\-])(trial-wrong|round-answer-reveal|answer-reveal|round-result-board|round-result|round-failed)([.\-]|$)/i;
+
+const delta = (a, b) => {
+  const na = Number.parseFloat(String((a && a.score) ?? ''));
+  const nb = Number.parseFloat(String((b && b.score) ?? ''));
+  if (!Number.isFinite(na) || !Number.isFinite(nb)) return null;
+  return nb - na;
+};
+
+/** Text identity of one named control, or null when the control is absent. */
+function controlIdentity(obs, suffix) {
+  const c = ((obs && obs.controlDetails) || {})[suffix];
+  if (!c) return null;
+  return `${c.text ?? ''}|${c.desc ?? ''}`;
+}
+
+/**
+ * Classify the causal relationship between one input command and the state
+ * change observed across its before/after window.
+ *
+ * @param {object} args
+ * @param {string} [args.target] tapped/typed control suffix (e.g. 'chain-word.2')
+ * @param {object} args.before observation before the command
+ * @param {object} args.after observation after the command
+ * @param {string} [args.action] 'tap' | 'type' | 'key' | ...
+ * @returns {{verdict: string, outcome: string|null, signals: string[], note: string}}
+ */
+export function classifyInputCausality({ target, before, after, action } = {}) {
+  const signals = [];
+  if (!before || !after) {
+    return { verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY, outcome: null, signals, note: 'before/after observation missing — causality unprovable' };
+  }
+
+  // Target-control identity change is computed FIRST: the tapped control
+  // changing (or vanishing) is itself a state change even when the coarse
+  // gameplay fingerprint is unchanged.
+  let targetChanged = false;
+  if (target) {
+    const bi = controlIdentity(before, target);
+    const ai = controlIdentity(after, target);
+    targetChanged = bi !== null && (ai === null || ai !== bi);
+    const bval = ((before.boardValues || []).find((v) => v.startsWith(`${target}=`)) || null);
+    const aval = ((after.boardValues || []).find((v) => v.startsWith(`${target}=`)) || null);
+    if (bval !== aval && (bval !== null || aval !== null)) targetChanged = true;
+  }
+
+  if (!fingerprintChanged(before, after) && !targetChanged) {
+    return { verdict: CausalityVerdict.NO_RESPONSE, outcome: null, signals: ['no-state-change'], note: 'application state did not change' };
+  }
+  signals.push('state-changed');
+  if (targetChanged) signals.push('target-control-changed');
+  else if (target) signals.push('target-control-unchanged');
+
+  const sb = observeState({ ...before, gameId: before.gameId || '' });
+  const sa = observeState({ ...after, gameId: after.gameId || '' });
+
+  // Autonomous timed expiry in the window.
+  const timeoutBefore = (sb.feedbackMarkers || []).some((c) => TIMEOUT_MARKER_RE.test(c)) ||
+    (before.controls || []).some((c) => TIMEOUT_MARKER_RE.test(c));
+  const timeoutAfter = (after.controls || []).some((c) => TIMEOUT_MARKER_RE.test(c));
+  const freshTimeout = timeoutAfter && !timeoutBefore;
+  if (freshTimeout) signals.push('autonomous-timeout-marker');
+
+  const scoreDelta = delta(before, after);
+  if (scoreDelta) signals.push(`score-delta:${scoreDelta}`);
+
+  const freshControls = (after.controls || []).filter((c) => !(before.controls || []).includes(c));
+  const answerFb = freshControls.filter((c) => ANSWER_FEEDBACK_RE.test(c));
+  const ambiguousFb = freshControls.filter((c) => AMBIGUOUS_FEEDBACK_RE.test(c));
+  if (answerFb.length) signals.push(`answer-feedback:${answerFb.join(',')}`);
+  if (ambiguousFb.length) signals.push(`ambiguous-feedback:${ambiguousFb.join(',')}`);
+
+  const roundBefore = sb.round;
+  const roundAfter = sa.round;
+  const roundAdvanced = roundBefore != null && roundAfter != null && roundAfter > roundBefore;
+  if (roundAdvanced) signals.push(`round-advance:${roundBefore}->${roundAfter}`);
+
+  // --- verdict -----------------------------------------------------------
+  // A competing autonomous timeout inside the window makes attribution
+  // impossible: the window contains BOTH a possible response and a timed
+  // expiry. Never certify such a window as accepted input (P1-A).
+  if (freshTimeout) {
+    if (targetChanged || scoreDelta || answerFb.length) {
+      return {
+        verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY,
+        outcome: null,
+        signals,
+        note: 'input response and autonomous timeout share one observation window — causality ambiguous',
+      };
+    }
+    return {
+      verdict: CausalityVerdict.AUTONOMOUS_TIMEOUT,
+      outcome: null,
+      signals,
+      note: 'observed change is a timed expiry, not an input response',
+    };
+  }
+
+  const attributable = targetChanged || scoreDelta || answerFb.length;
+  if (attributable) {
+    // Only an answer-family action may be credited through answer feedback;
+    // a `back`/`wait` command that happens to sit in front of a verdict surface
+    // is coincidental, not causal.
+    const answerFamilyAction = action == null || ['tap', 'type', 'key'].includes(action);
+    if (!answerFamilyAction && !targetChanged && !scoreDelta) {
+      return {
+        verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY,
+        outcome: null,
+        signals,
+        note: `non-answer action '${action}' coincident with an answer verdict surface`,
+      };
+    }
+    let outcome = null;
+    if (answerFb.some((c) => /(correct|accepted)/i.test(c))) outcome = 'correct';
+    else if (answerFb.some((c) => /(wrong|incorrect)/i.test(c))) outcome = 'incorrect';
+    else if (ambiguousFb.length) outcome = 'unknown';
+    return {
+      verdict: CausalityVerdict.INPUT_ACCEPTED,
+      outcome,
+      signals,
+      note: 'state change is attributable to the issued input',
+    };
+  }
+
+  if (answerFb.length === 0 && ambiguousFb.length) {
+    return {
+      verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY,
+      outcome: null,
+      signals,
+      note: 'verdict surface is ambiguous between answered-wrong and missed stimulus',
+    };
+  }
+  if (roundAdvanced) {
+    return {
+      verdict: CausalityVerdict.AUTONOMOUS_PROGRESSION,
+      outcome: null,
+      signals,
+      note: 'round advanced without an attributable input response',
+    };
+  }
+  return {
+    verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY,
+    outcome: null,
+    signals,
+    note: 'fingerprint changed but no signal attributes the change to this input',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Artifact integrity policy (P1-C)
+//
+// `requireArtifact` was previously never set by the real sweep and
+// `expectedSha1` was never written, so the hash-mismatch check could not fire
+// on real data and "every proof is bound to an artifact hash" was an
+// overstatement. Certification-critical observations now REQUIRE a real
+// artifact, and verification independently re-reads the artifact bytes.
+// ---------------------------------------------------------------------------
+
+export const ArtifactKind = Object.freeze({
+  SCREENSHOT: 'screenshot',
+  HIERARCHY: 'hierarchy',
+  EVENT_TRACE: 'event-trace',
+  DEVICE_STATE: 'device-state',
+  FOREGROUND_IDENTITY: 'foreground-identity',
+  BUILD_PROVENANCE: 'build-provenance',
+});
+
+/**
+ * Observation phases whose evidence MUST be bound to a real artifact. The
+ * sweep sets `requireArtifact: true` on these; `validateRunRecord` enforces it.
+ */
+export const ARTIFACT_REQUIRED_PHASES = Object.freeze([
+  'pre-launch', 'launch', 'terminal', 'exit',
+]);
+
+/**
+ * Capabilities that may not be certified without at least one bound artifact of
+ * the listed kinds.
+ */
+export const CAPABILITY_ARTIFACT_REQUIREMENTS = Object.freeze({
+  launch: [ArtifactKind.SCREENSHOT, ArtifactKind.HIERARCHY],
+  identity: [ArtifactKind.HIERARCHY],
+  gameplayEntry: [ArtifactKind.HIERARCHY],
+  sessionEnd: [ArtifactKind.SCREENSHOT, ArtifactKind.HIERARCHY],
+  safeExit: [ArtifactKind.HIERARCHY],
+});
+
+/** True when an observation must carry a verifiable evidence artifact. */
+export function observationRequiresArtifact(obs) {
+  if (!obs) return false;
+  if (obs.requireArtifact === true) return true;
+  return ARTIFACT_REQUIRED_PHASES.includes(obs.phase);
+}
+
+/**
+ * Independent artifact digest verification.
+ *
+ * `selfAsserted` is what the capturing harness recorded. `actual` is computed
+ * HERE from the real bytes on disk. The two must agree — a self-asserted hash
+ * is never "verified" merely by comparing two values copied out of the same
+ * untrusted record (the dead `expectedSha1 !== sha1` check).
+ *
+ * @param {object} artifact  {file, sha256, bytes, kind, executionAttemptId}
+ * @param {Buffer} actualBytes  bytes independently read from artifact.file
+ * @returns {{ok: boolean, problems: string[], computedSha256: string|null}}
+ */
+export function verifyArtifactBytes(artifact, actualBytes) {
+  const problems = [];
+  if (!artifact || typeof artifact !== 'object') return { ok: false, problems: ['artifact is not an object'], computedSha256: null };
+  if (!Buffer.isBuffer(actualBytes)) return { ok: false, problems: ['artifact bytes unavailable'], computedSha256: null };
+  const computedSha256 = createSha256(actualBytes);
+  if (!artifact.sha256) problems.push('artifact has no recorded sha256');
+  else if (artifact.sha256 !== computedSha256) problems.push(`artifact sha256 mismatch: recorded ${artifact.sha256} computed ${computedSha256}`);
+  if (artifact.bytes != null && artifact.bytes !== actualBytes.length) {
+    problems.push(`artifact byte length mismatch: recorded ${artifact.bytes} actual ${actualBytes.length}`);
+  }
+  return { ok: problems.length === 0, problems, computedSha256 };
 }
 
 // ---------------------------------------------------------------------------
@@ -199,14 +585,45 @@ const REQUIRED_DEVICE_FIELDS = ['serial', 'model', 'abi', 'display', 'density'];
  * Validate one execution-attempt record. A run that fails provenance or
  * structure validation can never contribute a certified level.
  */
-export function validateRunRecord(r) {
+/**
+ * Validate one execution-attempt record. A run that fails provenance or
+ * structure validation can never contribute a certified level.
+ *
+ * @param {object} r
+ * @param {object} [opts]
+ * @param {Set<string>|string[]} [opts.knownGames] AUTHORITATIVE game id registry.
+ *        When supplied, a game id that is not in it can never certify (B1) —
+ *        `knownGameId` is a caller-supplied flag and is not trusted on its own.
+ * @param {'local'|'portable'|'source'} [opts.evidenceMode]
+ *        'local'   — runtime certification: artifacts must be present and hash
+ *                    to their recorded digest (used against a live checkout).
+ *        'portable'— artifacts may be absent (gitignored native evidence is not
+ *                    in a fresh checkout); structural binding is still required
+ *                    and absence is reported as NOT VERIFIABLE, never a pass.
+ *        'source'  — fixture/source testing: artifact presence is advisory.
+ */
+export function validateRunRecord(r, opts = {}) {
   const errors = [];
   const warnings = [];
-  if (!r || typeof r !== 'object') return { valid: false, errors: ['run is not an object'], warnings };
+  const notes = [];
+  const evidenceMode = opts.evidenceMode || 'portable';
+  if (!r || typeof r !== 'object' || Array.isArray(r)) {
+    return { valid: false, errors: ['run is not an object'], warnings, notes };
+  }
 
   if (!r.executionAttemptId || typeof r.executionAttemptId !== 'string') errors.push('missing executionAttemptId');
   if (!r.gameId || typeof r.gameId !== 'string') errors.push('missing gameId');
-  if (r.knownGameId === false) errors.push('unknown game id');
+  // B1: the caller's `knownGameId` flag is not evidence. When an authoritative
+  // registry is supplied, membership is checked against it.
+  if (opts.knownGames) {
+    const registry = opts.knownGames instanceof Set ? opts.knownGames : new Set(opts.knownGames);
+    if (typeof r.gameId === 'string' && !registry.has(r.gameId)) {
+      errors.push(`unknown game id '${r.gameId}' — not present in the authoritative game registry`);
+    }
+  } else if (r.knownGameId === false) {
+    errors.push('unknown game id');
+    notes.push('knownGameId was checked against a caller-supplied flag only — no authoritative registry provided');
+  }
   if (!Array.isArray(r.events)) errors.push('missing events[]');
   if (!Array.isArray(r.observations)) errors.push('missing observations[]');
 
@@ -224,7 +641,7 @@ export function validateRunRecord(r) {
     r.events.forEach((e, i) => {
       const errs = validateEvent(e);
       for (const err of errs) errors.push(`events[${i}]: ${err}`);
-      if (e && e.executionAttemptId) attemptIds.add(e.executionAttemptId);
+      if (e && typeof e === 'object' && e.executionAttemptId) attemptIds.add(e.executionAttemptId);
     });
     if (attemptIds.size > 1) errors.push('events span multiple executionAttemptIds (not one coherent attempt)');
     if (attemptIds.size === 1 && r.executionAttemptId && !attemptIds.has(r.executionAttemptId)) {
@@ -232,37 +649,78 @@ export function validateRunRecord(r) {
     }
   }
 
+  let boundArtifactCount = 0;
   if (Array.isArray(r.observations)) {
-    const seqs = r.observations.map((o) => o && o.seq);
-    if (new Set(seqs).size !== seqs.length) errors.push('duplicate observation seq');
+    const seqs = r.observations.map((o) => (o && typeof o === 'object' ? o.seq : undefined));
+    const seen = new Set();
+    seqs.forEach((s, i) => {
+      if (s === undefined || s === null) { errors.push(`observations[${i}]: missing seq`); return; }
+      if (seen.has(s)) errors.push(`observations[${i}]: duplicate observation seq ${s}`);
+      seen.add(s);
+    });
     r.observations.forEach((o, i) => {
-      if (!o || typeof o !== 'object') { errors.push(`observations[${i}]: not an object`); return; }
+      if (!o || typeof o !== 'object' || Array.isArray(o)) { errors.push(`observations[${i}]: not an object`); return; }
+      // Observation provenance: without timestamp + phase an observation proves
+      // nothing and may not be cited as evidence.
+      if (!o.timestamp) errors.push(`observations[${i}]: missing timestamp — observation has no provenance`);
+      if (!o.phase) warnings.push(`observations[${i}]: missing phase`);
       if (o.state !== undefined) {
         // Anti-spoofing: a claimed state must match what the raw controls and
         // screen markers actually show (F-080-004 — claims must be observations).
         const derived = observeState({ ...o, gameId: r.gameId }).state;
         if (derived !== o.state) errors.push(`observations[${i}]: claimed state '${o.state}' contradicts observed controls (derived '${derived}')`);
       }
-      if (o.evidenceArtifact && typeof o.evidenceArtifact === 'object') {
-        if (!o.evidenceArtifact.sha1) errors.push(`observations[${i}]: evidenceArtifact missing sha1`);
-        if (o.evidenceArtifact.expectedSha1 && o.evidenceArtifact.expectedSha1 !== o.evidenceArtifact.sha1) {
-          errors.push(`observations[${i}]: artifact hash mismatch`);
+      // --- artifact binding (P1-C) -------------------------------------
+      const required = observationRequiresArtifact(o);
+      const art = o.evidenceArtifact;
+      if (art && typeof art === 'object') {
+        boundArtifactCount++;
+        if (!art.sha256 && !art.sha1) errors.push(`observations[${i}]: evidenceArtifact missing digest`);
+        if (!art.file) errors.push(`observations[${i}]: evidenceArtifact missing file binding`);
+        if (art.kind && !Object.values(ArtifactKind).includes(art.kind)) {
+          errors.push(`observations[${i}]: unknown artifact kind '${art.kind}'`);
         }
-      } else if (o.requireArtifact === true) {
-        errors.push(`observations[${i}]: required evidence artifact missing`);
+        if (art.executionAttemptId && r.executionAttemptId && art.executionAttemptId !== r.executionAttemptId) {
+          errors.push(`observations[${i}]: artifact belongs to a different execution attempt (${art.executionAttemptId})`);
+        }
+        // A self-asserted digest is never "verified" by comparing two values
+        // copied from the same record. Hash equality is checked independently
+        // by verifyArtifactBytes() against real file bytes.
+        if (evidenceMode === 'local' && art.sha256 && art.verifiedSha256 && art.verifiedSha256 !== art.sha256) {
+          errors.push(`observations[${i}]: artifact hash mismatch (recorded ${art.sha256} != independently computed ${art.verifiedSha256})`);
+        }
+      } else if (required) {
+        if (evidenceMode === 'local') errors.push(`observations[${i}]: required evidence artifact missing`);
+        else {
+          warnings.push(`observations[${i}]: required evidence artifact missing`);
+          notes.push(`observations[${i}]: artifact not verifiable in '${evidenceMode}' mode — this observation is not portable certified evidence`);
+        }
       }
     });
   }
 
   if (Array.isArray(r.artifacts)) {
     r.artifacts.forEach((a, i) => {
-      if (!a || !a.sha1) errors.push(`artifacts[${i}]: missing sha1`);
-      if (a && a.expectedSha1 && a.expectedSha1 !== a.sha1) errors.push(`artifacts[${i}]: artifact hash mismatch`);
+      if (!a || typeof a !== 'object' || Array.isArray(a)) { errors.push(`artifacts[${i}]: not an object`); return; }
+      if (!a.sha256 && !a.sha1) errors.push(`artifacts[${i}]: missing digest`);
+      if (!a.file) errors.push(`artifacts[${i}]: missing file binding`);
+      if (a.executionAttemptId && r.executionAttemptId && a.executionAttemptId !== r.executionAttemptId) {
+        errors.push(`artifacts[${i}]: artifact belongs to a different execution attempt`);
+      }
     });
   }
 
+  // Certification-critical observations must be artifact-bound at least once.
+  if (boundArtifactCount === 0 && (r.observations || []).length > 0) {
+    if (evidenceMode === 'local') errors.push('no observation carries a verifiable evidence artifact — no certified evidence');
+    else {
+      warnings.push('no observation carries a verifiable evidence artifact');
+      notes.push(`no portable certified evidence in '${evidenceMode}' mode`);
+    }
+  }
+
   if (!r.startedAt) warnings.push('missing startedAt');
-  return { valid: errors.length === 0, errors, warnings };
+  return { valid: errors.length === 0, errors, warnings, notes, boundArtifactCount };
 }
 
 // ---------------------------------------------------------------------------
@@ -325,9 +783,16 @@ export function deriveCapabilities(record) {
   axes.tutorialObserved = axis(tutorialObs ? AxisStatus.OBSERVED : AxisStatus.NOT_EXECUTED, attemptId,
     tutorialObs ? 'tutorial surface observed' : 'no tutorial observed',
     tutorialObs ? [`obs#${tutorialObs.o.seq}`] : []);
-  axes.tutorialCompleted = axis(tutorialExit ? AxisStatus.VERIFIED : (tutorialObs ? AxisStatus.FAILED : AxisStatus.NOT_EXECUTED),
-    attemptId,
-    tutorialExit ? 'tutorial -> gameplay/intro transition observed' : (tutorialObs ? 'tutorial seen but never cleared in-run' : ''),
+  let tutorialCompletedStatus = AxisStatus.NOT_EXECUTED;
+  let tutorialCompletedNote = '';
+  if (tutorialExit) {
+    tutorialCompletedStatus = AxisStatus.VERIFIED;
+    tutorialCompletedNote = 'tutorial -> gameplay/intro transition observed';
+  } else if (tutorialObs) {
+    tutorialCompletedStatus = AxisStatus.FAILED;
+    tutorialCompletedNote = 'tutorial seen but never cleared in-run';
+  }
+  axes.tutorialCompleted = axis(tutorialCompletedStatus, attemptId, tutorialCompletedNote,
     tutorialExit ? [`evt#${tutorialExit.seq}`] : []);
 
   // -- gameplay entry -------------------------------------------------------
@@ -346,39 +811,61 @@ export function deriveCapabilities(record) {
       : (playingObs.length ? 'playing state observed but no entry transition captured' : 'never observed in playing state'),
     gameplayEntry ? [`evt#${gameplayEntry.seq}`] : playingObs.map((x) => `obs#${x.o.seq}`));
 
-  // -- input acceptance -----------------------------------------------------
+  // -- input acceptance (P1-A: CAUSALLY ATTRIBUTED, not merely observed) ----
   const playingInputEvents = events.filter((e) => {
     if (!['tap', 'type', 'key'].includes(e.action)) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     return before && observeState({ ...before, gameId: record.gameId }).state === GameStates.PLAYING;
   });
-  const accepted = playingInputEvents.filter((e) => {
-    if (e.actionAcknowledged !== true || e.transitionValid !== true) return false;
+  // A fingerprint difference alone never certifies acceptance: the harness can
+  // observe an autonomous timeout inside the tap window and the old filter
+  // credited it to the tap (real case: language-word-chain `chain-word.2`).
+  const targetSuffix = (e) => {
+    const t = String(e.target || '');
+    return record.gameId && t.startsWith(`${record.gameId}.`) ? t.slice(record.gameId.length + 1) : t;
+  };
+  const causal = playingInputEvents.map((e) => {
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    return before && after && stateFingerprint(before) !== stateFingerprint(after);
+    return { e, before, after, c: classifyInputCausality({ target: targetSuffix(e), before, after, action: e.action }) };
   });
+  const accepted = causal.filter((x) => x.c.verdict === CausalityVerdict.INPUT_ACCEPTED);
+  const autonomousTimeouts = causal.filter((x) => x.c.verdict === CausalityVerdict.AUTONOMOUS_TIMEOUT);
+  const ambiguousInputs = causal.filter((x) => x.c.verdict === CausalityVerdict.AMBIGUOUS_CAUSALITY);
   axes.inputAttempted = axis(playingInputEvents.length ? AxisStatus.ATTEMPTED : AxisStatus.NOT_EXECUTED, attemptId,
     playingInputEvents.length ? 'gameplay input requested+executed' : 'no gameplay input attempted',
     playingInputEvents.map((e) => `evt#${e.seq}`));
-  axes.inputAccepted = axis(accepted.length ? AxisStatus.VERIFIED : (playingInputEvents.length ? AxisStatus.FAILED : AxisStatus.NOT_EXECUTED),
-    attemptId,
-    accepted.length ? 'input produced an observed gameplay state change' : (playingInputEvents.length ? 'input executed but no application response observed' : ''),
-    accepted.map((e) => `evt#${e.seq}`));
+  let inputAcceptedStatus = AxisStatus.NOT_EXECUTED;
+  let inputAcceptedNote = '';
+  if (accepted.length) {
+    inputAcceptedStatus = AxisStatus.VERIFIED;
+    inputAcceptedNote = `input causally attributable to the observed change (${accepted.map((x) => `evt#${x.e.seq}:${x.c.signals.join('+')}`).join('; ')})`;
+  } else if (playingInputEvents.length) {
+    inputAcceptedStatus = AxisStatus.FAILED;
+    const rejected = [...autonomousTimeouts, ...ambiguousInputs].map((x) => `evt#${x.e.seq}:${x.c.verdict}`).join('; ');
+    inputAcceptedNote = `input executed but no causally attributable response (${rejected || 'no response observed'})`;
+  }
+  axes.inputAccepted = axis(inputAcceptedStatus, attemptId, inputAcceptedNote,
+    accepted.map((x) => `evt#${x.e.seq}`));
+  // Expose the full causal ledger so an auditor can see exactly what was
+  // rejected and why (P1-A evidence, not just a verdict).
+  axes.inputCausality = axis(AxisStatus.OBSERVED, attemptId,
+    causal.map((x) => `evt#${x.e.seq}:${x.c.verdict}`).join('; ') || 'no input events',
+    causal.flatMap((x) => [`evt#${x.e.seq}:${x.c.signals.join(',')}`]));
 
-  // -- feedback (must be NEW after an in-playing input) ----------------------
+  // -- feedback (must be NEW after a CAUSALLY ACCEPTED in-playing input) -----
   let feedback = null;
-  for (const e of playingInputEvents) {
-    const before = seqObs.get(e.observationBeforeSeq);
-    const after = seqObs.get(e.observationAfterSeq);
+  for (const x of accepted) {
+    const before = x.before;
+    const after = x.after;
     if (!before || !after) continue;
     const fbBefore = new Set(observeState({ ...before, gameId: record.gameId }).feedbackMarkers);
     const fbAfter = observeState({ ...after, gameId: record.gameId }).feedbackMarkers;
     const fresh = fbAfter.filter((f) => !fbBefore.has(f));
-    if (fresh.length) { feedback = { e, fresh, after }; break; }
+    if (fresh.length) { feedback = { e: x.e, fresh, after }; break; }
   }
   axes.feedbackObserved = axis(feedback ? AxisStatus.VERIFIED : AxisStatus.NOT_EXECUTED, attemptId,
-    feedback ? `new feedback after input: ${feedback.fresh.join(', ')}` : 'no post-input feedback transition observed',
+    feedback ? `new feedback after an accepted input: ${feedback.fresh.join(', ')}` : 'no post-accepted-input feedback transition observed',
     feedback ? [`evt#${feedback.e.seq}`, `obs#${feedback.after.seq}`] : []);
 
   // -- round advancement ----------------------------------------------------
@@ -396,6 +883,9 @@ export function deriveCapabilities(record) {
     roundAdvanced ? [`evt#${roundAdvanced.e.seq}`] : []);
 
   // -- input-independent (passive/timed) gameplay events --------------------
+  // Deliberately NOT globally rejecting timeouts: a passive/timed game may
+  // legitimately progress without input. Such a progression is credited here
+  // (the autonomous-gameplay capability), never fabricated as tap acceptance.
   let autonomous = null;
   for (let i = 1; i < states.length; i++) {
     const prev = states[i - 1];
@@ -403,10 +893,16 @@ export function deriveCapabilities(record) {
     if (prev.s.state !== GameStates.PLAYING || cur.s.state !== GameStates.PLAYING) continue;
     const inputBetween = playingInputEvents.some((e) => e.observationBeforeSeq >= prev.o.seq && e.observationAfterSeq <= cur.o.seq);
     if (inputBetween) continue;
-    if (stateFingerprint(prev.o) !== stateFingerprint(cur.o)) { autonomous = { prev: prev.o, cur: cur.o }; break; }
+    if (stateFingerprint(prev.o) !== stateFingerprint(cur.o)) { autonomous = { prev: prev.o, cur: cur.o, kind: 'unattended' }; break; }
+  }
+  if (!autonomous && autonomousTimeouts.length) {
+    const x = autonomousTimeouts[0];
+    autonomous = { prev: x.before, cur: x.after, kind: 'timed-expiry-in-input-window' };
   }
   axes.autonomousGameplayEvent = axis(autonomous ? AxisStatus.VERIFIED : AxisStatus.NOT_EXECUTED, attemptId,
-    autonomous ? 'gameplay progressed without input (timed/passive contract)' : 'no input-independent progression observed',
+    autonomous
+      ? `gameplay progressed without attributable input (${autonomous.kind}; timed/passive contract)`
+      : 'no input-independent progression observed',
     autonomous ? [`obs#${autonomous.prev.seq}->obs#${autonomous.cur.seq}`] : []);
 
   // -- session end / results currency --------------------------------------
@@ -419,7 +915,7 @@ export function deriveCapabilities(record) {
       observeState({ ...after, gameId: record.gameId }).state === GameStates.RESULTS
     );
   });
-  const resultsObs = firstState((s) => s.state === GameStates.RESULTS);
+  const resultsObsAllFound = (list) => list.length > 0;
   // A results surface reached by an event whose transition is unproven is
   // ATTEMPTED; nothing results-shaped in-run is NOT EXECUTED. sessionEnded is
   // never VERIFIED without the playing -> results transition itself.
@@ -427,46 +923,126 @@ export function deriveCapabilities(record) {
     const after = seqObs.get(e.observationAfterSeq);
     return after && observeState({ ...after, gameId: record.gameId }).state === GameStates.RESULTS;
   });
-  const lastPlaying = playingObs.length ? playingObs[playingObs.length - 1] : null;
-  // Results are CURRENT only when they follow a playing observation in the same
-  // attempt (a results screen shown at launch is stale previous-session data).
-  const resultsCurrent = !!(
-    resultsObs && lastPlaying && resultsObs.o.seq > lastPlaying.o.seq &&
-    states.every((x) => !(x.o.seq > lastPlaying.o.seq && x.o.seq < resultsObs.o.seq &&
-      (x.s.state === GameStates.EXITED || x.s.state === GameStates.LAUNCHER || x.s.state === GameStates.UNKNOWN)))
-  );
   const lastObs = states.length ? states[states.length - 1] : null;
   const interruptedWhilePlaying = !!(lastObs && lastObs.s.state === GameStates.PLAYING);
-  axes.sessionEnded = axis(
-    sessionEnd ? AxisStatus.VERIFIED
-      : (resultsReachedEvent || interruptedWhilePlaying ? AxisStatus.ATTEMPTED : AxisStatus.NOT_EXECUTED),
-    attemptId,
-    sessionEnd ? 'playing -> results transition observed in-run'
-      : (resultsReachedEvent ? 'a results surface was reached but the playing -> results transition was not proven'
-        : (interruptedWhilePlaying ? 'run interrupted while still in gameplay — session end attempted, never proven' : 'no results surface reached in-run')),
+  let sessionEndedStatus = AxisStatus.NOT_EXECUTED;
+  let sessionEndedNote = 'no results surface reached in-run';
+  if (sessionEnd) {
+    sessionEndedStatus = AxisStatus.VERIFIED;
+    sessionEndedNote = 'playing -> results transition observed in-run';
+  } else if (resultsReachedEvent) {
+    sessionEndedStatus = AxisStatus.ATTEMPTED;
+    sessionEndedNote = 'a results surface was reached but the playing -> results transition was not proven';
+  } else if (interruptedWhilePlaying) {
+    sessionEndedStatus = AxisStatus.ATTEMPTED;
+    sessionEndedNote = 'run interrupted while still in gameplay — session end attempted, never proven';
+  }
+  axes.sessionEnded = axis(sessionEndedStatus, attemptId, sessionEndedNote,
     sessionEnd ? [`evt#${sessionEnd.seq}`] : []);
-  axes.resultsCurrent = axis(resultsCurrent ? AxisStatus.VERIFIED : (resultsObs ? AxisStatus.FAILED : AxisStatus.NOT_EXECUTED),
-    attemptId,
-    resultsCurrent ? 'results follow this session\'s gameplay' : (resultsObs ? 'results screen observed but not attributable to this session' : ''),
-    resultsCurrent && resultsObs ? [`obs#${resultsObs.o.seq}`] : []);
 
-  // -- safe exit (F-080-002: proven by post-action observation) -------------
-  // Any deliberate exit-intent action counts (Back, or the app's real exit
-  // controls: pause-overlay quit, intro-back), but ONLY a post-action
-  // observation of the destination proves the exit.
+  // Results currency (B3): not merely event order. The results surface must
+  // belong to THIS execution attempt, THIS session and THIS game:
+  //   - it follows a playing observation of the same attempt;
+  //   - no intervening restart / unexpected intro / tutorial / exit / unknown
+  //     capture failure between the last playing state and the results;
+  //   - the results identity matches the expected game;
+  //   - the results score does not contradict the session's observed score.
+  // Where stronger attribution is impossible the behaviour stays conservative.
+  const resultsAll = states.filter((x) => x.s.state === GameStates.RESULTS);
+  let resultsObs = null;
+  for (let i = resultsAll.length - 1; i >= 0; i--) {
+    const cand = resultsAll[i];
+    const lastPlayingBefore = [...playingObs].filter((p) => p.o.seq < cand.o.seq).pop();
+    if (!lastPlayingBefore) continue;
+    const INTERRUPTING = new Set([
+      GameStates.EXITED, GameStates.LAUNCHER, GameStates.UNKNOWN,
+      GameStates.INTRO, GameStates.TUTORIAL,
+    ]);
+    const gapClean = states.every((x) => !(x.o.seq > lastPlayingBefore.o.seq && x.o.seq < cand.o.seq && INTERRUPTING.has(x.s.state)));
+    if (!gapClean) continue;
+    // identity binding: the results screen must be the expected game
+    if (cand.o.observedGameId != null && cand.o.observedGameId !== record.gameId) continue;
+    // score binding: on a HIGHER-IS-BETTER scale a results score below the
+    // highest observed playing score contradicts this session (it belongs to an
+    // earlier one). Games on a lower-is-better scale (e.g. reaction time in ms)
+    // are exempt — a blanket rule would create false negatives there.
+    const resultsScore = Number.parseFloat(String(cand.o.score ?? ''));
+    const playingScores = playingObs
+      .map((p) => Number.parseFloat(String(p.o.score ?? '')))
+      .filter((n) => Number.isFinite(n));
+    const maxPlaying = playingScores.length ? Math.max(...playingScores) : null;
+    const higherIsBetter = record.scoreSemantics === 'higher-is-better';
+    if (higherIsBetter && Number.isFinite(resultsScore) && maxPlaying != null && resultsScore < maxPlaying) continue;
+    resultsObs = { ...cand, boundTo: lastPlayingBefore };
+    break;
+  }
+  let resultsCurrentStatus = AxisStatus.NOT_EXECUTED;
+  let resultsCurrentNote = '';
+  if (resultsObs) {
+    resultsCurrentStatus = AxisStatus.VERIFIED;
+    resultsCurrentNote = `results bound to this session (follows obs#${resultsObs.boundTo.o.seq}, game identity and score consistent)`;
+  } else if (resultsObsAllFound(resultsAll)) {
+    resultsCurrentStatus = AxisStatus.FAILED;
+    resultsCurrentNote = 'results screen observed but not attributable to this session/attempt';
+  }
+  axes.resultsCurrent = axis(resultsCurrentStatus, attemptId, resultsCurrentNote,
+    resultsObs ? [`obs#${resultsObs.o.seq}`, `obs#${resultsObs.boundTo.o.seq}`] : []);
+
+  // -- safe exit (F-080-002 + P1-B) -----------------------------------------
+  // A safe exit is PROVEN, never assumed. It requires ALL of:
+  //   1. successful action execution acknowledgment (actionExecuted === true,
+  //      and not explicitly un-acknowledged);
+  //   2. a VALID before-state (the app screen was actually observed);
+  //   3. a VALID after-state (hierarchy parsed — a failed dump is not a state);
+  //   4. a CONFIRMED expected destination under the run's explicit exit
+  //      contract (app destination by default; launcher only when declared);
+  //   5. no evidence of a crash, task termination, system dialog or transient
+  //      tooling failure.
+  // A missing/malformed hierarchy is never evidence of successful navigation.
   const EXIT_TARGET_RE = /(^|[.\-])(quit|intro-back|exit|discard|end-session)([.\-]|$)/;
-  const safeExit = events.find((e) => {
-    if (e.action !== 'back' && !EXIT_TARGET_RE.test(e.target || '')) return false;
+  const exitContract = record.exitContract || {};
+  const acceptableDestinations = new Set(
+    Array.isArray(exitContract.acceptableDestinations) && exitContract.acceptableDestinations.length
+      ? exitContract.acceptableDestinations
+      : DESTINATION_SCREEN_KINDS,
+  );
+  const isExitIntent = (e) => e.action === 'back' || EXIT_TARGET_RE.test(e.target || '');
+  const obsIsProven = (o) => !!(o && o.timestamp && o.seq !== undefined);
+
+  const exitAttempts = events.filter((e) => isExitIntent(e));
+  const safeExit = exitAttempts.find((e) => {
+    // (1) the command must actually have been executed, not merely requested
+    if (e.actionExecuted !== true) return false;
+    if (e.actionAcknowledged === false) return false;
+    const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    if (!after) return false;
+    // (2)/(3) valid before AND after observations
+    if (!obsIsProven(before) || !obsIsProven(after)) return false;
+    const sb = observeState({ ...before, gameId: record.gameId });
     const sa = observeState({ ...after, gameId: record.gameId });
-    return sa.state === GameStates.EXITED || sa.state === GameStates.LAUNCHER;
+    // a failed/malformed capture is UNKNOWN — never a destination
+    if (sb.state === GameStates.UNKNOWN) return false;
+    if (sa.state === GameStates.UNKNOWN) return false;
+    // (5) crash / dialog / tooling failure is not navigation
+    if ([ScreenKind.CRASH, ScreenKind.HIERARCHY_FAILURE, ScreenKind.ADB_FAILURE,
+      ScreenKind.SYSTEM_DIALOG, ScreenKind.PERMISSION_DIALOG].includes(sa.screenKind)) return false;
+    // (4) confirmed expected destination under the explicit exit contract
+    return acceptableDestinations.has(sa.screenKind);
   });
-  const backAttempted = events.some((e) =>
-    (e.action === 'back' || EXIT_TARGET_RE.test(e.target || '')) && e.actionExecuted);
-  axes.safeExit = axis(safeExit ? AxisStatus.VERIFIED : (backAttempted ? AxisStatus.FAILED : AxisStatus.NOT_EXECUTED),
-    attemptId,
-    safeExit ? 'post-Back observation shows the game screen was left (destination observed)' : (backAttempted ? 'Back executed but exit destination never observed' : ''),
+  const backAttempted = exitAttempts.some((e) => e.actionExecuted === true);
+  let safeExitStatus = AxisStatus.NOT_EXECUTED;
+  let safeExitNote = '';
+  if (safeExit) {
+    safeExitStatus = AxisStatus.VERIFIED;
+    safeExitNote = `exit destination proven: '${observeState({ ...seqObs.get(safeExit.observationAfterSeq), gameId: record.gameId }).screenKind}' observed after an executed exit command`;
+  } else if (backAttempted) {
+    safeExitStatus = AxisStatus.FAILED;
+    const lastExit = exitAttempts[exitAttempts.length - 1];
+    const after = lastExit ? seqObs.get(lastExit.observationAfterSeq) : null;
+    const kind = after ? observeState({ ...after, gameId: record.gameId }).screenKind : 'no-observation';
+    safeExitNote = `exit command executed but destination NOT proven (observed screen kind: '${kind}'; acceptable: ${[...acceptableDestinations].join(', ')})`;
+  }
+  axes.safeExit = axis(safeExitStatus, attemptId, safeExitNote,
     safeExit ? [`evt#${safeExit.seq}`] : []);
 
   // -- resilience subcapabilities (independent; may union across runs) ------
@@ -487,6 +1063,45 @@ export function deriveCapabilities(record) {
 
 const V = (axes, name) => axes[name] && axes[name].status === AxisStatus.VERIFIED;
 
+// Tutorial applicability gate (B6): a tutorial that was SHOWN this attempt and
+// never cleared blocks gameplay certification. Every other case does not — a
+// returning player who already completed the tutorial is never forced to
+// repeat it purely so QA can observe it.
+const tutorialBlocksGameplay = (axes) =>
+  axes.tutorialCompleted && axes.tutorialCompleted.status === AxisStatus.FAILED;
+
+/**
+ * Tutorial-completion semantics (B6) — the single authoritative rule.
+ *
+ * The human coverage matrix said "L2 requires tutorial completion where
+ * applicable" while `deriveLevelFromAxes` never consulted `tutorialCompleted`.
+ * The authoritative rule is now:
+ *
+ *   NOT_REQUIRED            — game has no tutorial; L2 unaffected.
+ *   COMPLETED_THIS_ATTEMPT  — tutorial shown and cleared in-run; L2 unaffected.
+ *   PREVIOUSLY_COMPLETED    — tutorial persisted complete by an earlier session
+ *                             and legitimately not shown; L2 unaffected.
+ *   REQUIRED_NOT_CLEARED    — tutorial shown but never cleared in-run; BLOCKS L2.
+ *   UNKNOWN                 — applicability undetermined; L2 still permitted,
+ *                             but the axis reports UNKNOWN, never VERIFIED.
+ */
+export const TutorialStatus = Object.freeze({
+  NOT_REQUIRED: 'NOT_REQUIRED',
+  COMPLETED_THIS_ATTEMPT: 'COMPLETED_THIS_ATTEMPT',
+  PREVIOUSLY_COMPLETED: 'PREVIOUSLY_COMPLETED',
+  REQUIRED_NOT_CLEARED: 'REQUIRED_NOT_CLEARED',
+  UNKNOWN: 'UNKNOWN',
+});
+
+export function deriveTutorialStatus({ hasTutorial, tutorialState, tutorialObserved, tutorialCleared } = {}) {
+  if (tutorialObserved) {
+    return tutorialCleared ? TutorialStatus.COMPLETED_THIS_ATTEMPT : TutorialStatus.REQUIRED_NOT_CLEARED;
+  }
+  if (hasTutorial === false) return TutorialStatus.NOT_REQUIRED;
+  if (tutorialState && tutorialState.previouslyCompleted === true) return TutorialStatus.PREVIOUSLY_COMPLETED;
+  return TutorialStatus.UNKNOWN;
+}
+
 /**
  * Pure level ladder over derived axes. Used by deriveLevel() for certification
  * and, labelled explicitly, by the historical reclassifier to report the
@@ -496,12 +1111,13 @@ const V = (axes, name) => axes[name] && axes[name].status === AxisStatus.VERIFIE
  */
 export function deriveLevelFromAxes(axes) {
   const reasons = [];
+  const tutorialBlocked = tutorialBlocksGameplay(axes);
   const resilienceVerified = ['backgroundRelaunch', 'interruptionRecovery', 'offlineContinuity', 'a11yProfile', 'responsiveTransition']
     .filter((k) => V(axes, k));
-  const l3 = V(axes, 'gameplayEntered') && V(axes, 'sessionEnded') && V(axes, 'resultsCurrent');
+  const l3 = V(axes, 'gameplayEntered') && V(axes, 'sessionEnded') && V(axes, 'resultsCurrent') && !tutorialBlocked;
   const l2input = V(axes, 'inputAccepted') || V(axes, 'autonomousGameplayEvent');
   const l2response = V(axes, 'feedbackObserved') || V(axes, 'roundAdvanced') || V(axes, 'sessionEnded');
-  const l2 = V(axes, 'gameplayEntered') && l2input && l2response;
+  const l2 = V(axes, 'gameplayEntered') && l2input && l2response && !tutorialBlocked;
   const l1 = V(axes, 'launch') && V(axes, 'identity') && V(axes, 'render') && V(axes, 'safeExit');
 
   if (resilienceVerified.length && l3) {
@@ -515,6 +1131,19 @@ export function deriveLevelFromAxes(axes) {
   if (l2) {
     reasons.push('gameplay entered and an accepted input or autonomous event produced observable progression');
     return { level: 2, status: 'VERIFIED', reasons };
+  }
+  if (tutorialBlocked) {
+    // B6: the tutorial was shown this attempt and never cleared, so gameplay
+    // interaction cannot be certified even if entry transitions were observed.
+    // This never INFLATES the level: it only explains why L2/L3 are withheld,
+    // and the level is whatever the smoke evidence actually proves. Blocking
+    // reasons ACCUMULATE so an auditor sees every gap, not just the first.
+    reasons.push('tutorial shown this attempt but never cleared — L2/L3 blocked (tutorial required and not completed)');
+    if (l1) {
+      reasons.push('launch, identity, render and verified safe exit');
+      return { level: 1, status: 'PARTIAL', reasons };
+    }
+    // fall through: also report the smoke-level gaps below
   }
   if (l1) {
     reasons.push('launch, identity, render and verified safe exit');
@@ -539,8 +1168,8 @@ export function deriveLevelFromAxes(axes) {
  * Partial progress toward the next level is reported separately, never
  * promoted.
  */
-export function deriveLevel(record) {
-  const checks = validateRunRecord(record);
+export function deriveLevel(record, opts = {}) {
+  const checks = validateRunRecord(record, opts);
   const axes = deriveCapabilities(record);
   if (!checks.valid) {
     return { level: 0, status: 'FAILED', axes, reasons: [`run record invalid: ${checks.errors.join('; ')}`] };
@@ -548,9 +1177,9 @@ export function deriveLevel(record) {
   return { ...deriveLevelFromAxes(axes), axes };
 }
 
-export function classifyRun(record) {
-  const d = deriveLevel(record);
-  return { ...d, validation: validateRunRecord(record) };
+export function classifyRun(record, opts = {}) {
+  const d = deriveLevel(record, opts);
+  return { ...d, validation: validateRunRecord(record, opts) };
 }
 
 // ---------------------------------------------------------------------------

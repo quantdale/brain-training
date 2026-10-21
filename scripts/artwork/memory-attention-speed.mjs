@@ -156,17 +156,25 @@ function sequenceMemory() {
 }
 
 function oddOneOut() {
-  const centers = [[59, 74], [112, 74], [165, 74], [218, 74], [271, 74]];
+  // Campaign 080 Wave I (owner-authorized, reversible candidate — aesthetic
+  // acceptance PENDING OWNER). The earlier composition merged a paper chip, a
+  // ring, an enlarged rotated triangle and an up-arrow into one cluster, so the
+  // motif read as a circled play/arrow-key affordance — i.e. the pattern itself
+  // looked tappable. The corrected scene keeps the motif a bare triangle row
+  // (four upright, one sideways at the original slot, all identical size and
+  // fill, oddness by ORIENTATION only) and marks the odd item with a DETACHED
+  // bracket, the signal-watch cue idiom, clear of the triangle so no button or
+  // arrow-key gestalt can form. The row is re-seated y 74 -> 83 to preserve the
+  // original composition footprint now that the lower affordance is gone.
+  const centers = [[59, 83], [112, 83], [165, 83], [218, 83], [271, 83]];
   const majority = centers.map(([x, y], index) => index === 3 ? ''
     : symbol('triangle', x, y, 32, ATTENTION)).join('');
-  const odd = tile(188, 44, 60, 61, PAPER, 15)
-    + group(symbol('triangle', 218, 74, 35, ATTENTION), 'rotate(90 218 74)')
-    + circle(218, 74, 37, 'none', `stroke="${ATTENTION_DARK}" stroke-width="3"`)
-    + motion('M218 149 V121 M208 132 L218 120 L228 132', ATTENTION_DARK, 4);
+  const odd = group(symbol('triangle', 218, 83, 32, ATTENTION), 'rotate(90 218 83)');
+  const marker = motion('M202 114 V121 H238 V114', ATTENTION_DARK, 4.5);
   return cover('attention', 'One sideways triangle stands apart from an otherwise identical upright group.',
     'Find the one item differing from an identical majority by shape, color or orientation.',
     'Tap the single anomalous item before time expires.', 'A rotated minority form against a repeated majority.',
-    'Form and orientation deviance, rather than Visual Search’s simple filled-tile singleton.', majority + odd);
+    'Form and orientation deviance, rather than Visual Search’s simple filled-tile singleton.', majority + odd + marker);
 }
 
 function signalWatch() {
