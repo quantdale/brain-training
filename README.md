@@ -75,7 +75,8 @@ App-level gates (from `apps/mobile/`):
 npm run typecheck    # tsc --noEmit
 npm run test:ci      # jest full suite (2 workers — matches CI)
 npm run lint         # expo lint
-npx expo-doctor      # 21/21 expected
+npx expo-doctor      # 20/21 acceptable — known upstream patch drift (advisory,
+                     # weekly); push-path gate is scripts/validate-expo-alignment.mjs
 ```
 
 Repo-level gates from the root:

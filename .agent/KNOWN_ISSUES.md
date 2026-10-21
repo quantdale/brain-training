@@ -44,7 +44,8 @@ Final exactSHA four-workflow delivery condition is recorded in local FINAL_DELIV
 
 # Known Issues — Campaign077
 
-Current application source9e5b2a1b/native15. Historical per-preview failures remain
+Application source at 077 qualification: 9e5b2a1b/native15 (dated 077 record;
+the current tree is tracked in .agent/STATE.md). Historical per-preview failures remain
 immutable in the077 evidence directory and Git history; this file describes
 current debt and qualification limits, rather than issuing stale live-task steps.
 
@@ -73,9 +74,12 @@ current debt and qualification limits, rather than issuing stale live-task steps
 - Old Profile blank identity cause remains unknown; essential identity now
   renders immediately and later actual frames show it. Caller refresh guards
   protect unread data; settled PNGs do not validate every asynchronous frame.
-- Old Jest worker forced-exit warning remains unexplained; absent from latest
-  full independent708/7981 run. npm/Expo/Gradle/CSS/Node warnings retained. Ten
-  accepted production advisories remain in DEPENDENCY_AUDIT; no zero-risk claim.
+- Old Jest worker forced-exit warning remains unexplained; absent from the
+  full independent 708/7981 run (later full runs, 711/8018, were also clean).
+  npm/Expo/Gradle/CSS/Node warnings retained. Ten accepted production
+  advisories remained at 077 qualification; seven accepted after the
+  2026-10-21 brace-expansion remediation — see DEPENDENCY_AUDIT; no zero-risk
+  claim.
 
 ## Repaired or recovered findings — retain the originals
 

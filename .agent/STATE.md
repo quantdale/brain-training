@@ -11,7 +11,8 @@ repaired at 2f18738f and all four workflows were green at 64c1df4d, so the
 campaign resumed the newer state instead of replaying the repair. Progress and
 terminal dispositions live in CURRENT_CAMPAIGN.md and the change's tasks.md;
 the authoritative certification matrix lives under
-docs/certification/079-release-certification/. Security refresh in this
+docs/certification/079-release-certification/ (produced during the active
+campaign; governance.md is committed first). Security refresh in this
 program: brace-expansion remediated in-lockfile (3 GHSAs removed, register now
 7 accepted advisories, see .agent/DEPENDENCY_AUDIT.md 2026-10-21 section).
 
@@ -117,23 +118,32 @@ workout/quest rows; only normal tutorial metadata/newOct19 plan/zero-progress
 quest rows added. Report/evidence: docs/bugfixes/tutorial-start/REPORT.md.
 This is the qualified delivery candidate. Exact ending-SHA four-workflow success
 and final visible Deduction Start refresh are checked after commit, recorded in
-local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response;
+local qa-artifacts/tutorial-start-fix/FINAL_DELIVERY.json and the final response
+(machine-local evidence on the prior host, not in Git and not retrievable on a
+fresh machine; the durable proof is the CI run IDs recorded alongside);
 do not infer their success from this pre-commit record. Historical078 stays closed.
 
 **Active campaign:** `079-stabilization-acceptance-certification`
 **Last campaign:** `078-game-cover-visual-identities`
 **Last campaign status:** VALIDATED
-**Status:** VALIDATED
-**Canonical branch:** main
-**Verdict:** CAMPAIGN_078_EMULATOR_REVIEW_READY_WITH_LIMITATIONS
 
-Campaign078 implementation and qualified native inspection are complete. This is the terminal delivery candidate: final handoff is conditional on all four workflows succeeding at this exact ending commit. The post-commit local FINAL_DELIVERY.json records the actual ending SHA/runIDs and fresh live witness; do not infer CI success solely from this file. No successor campaign is authorized or activated.
+### Campaign 078 terminal record (2026-10-20, historical)
+
+The fields below describe Campaign 078 **at close**; they are not current
+state. Current state is the active Campaign 079 declared above and in
+CURRENT_CAMPAIGN.md.
+
+**Status at 078 close:** VALIDATED
+**Canonical branch:** main
+**Verdict at 078 close:** CAMPAIGN_078_EMULATOR_REVIEW_READY_WITH_LIMITATIONS
+
+Campaign078 implementation and qualified native inspection are complete. This is the terminal delivery candidate: final handoff is conditional on all four workflows succeeding at this exact ending commit. The post-commit local FINAL_DELIVERY.json records the actual ending SHA/runIDs and fresh live witness; do not infer CI success solely from this file. No successor campaign was authorized at 078 close (Campaign 079 was separately owner-authorized on 2026-10-21).
 
 All42 game mechanics audited;42 unique, accurate, locally packaged covers integrated across library/detail/introduction using existing Play Lab layout/tokens. Independent title-hidden pilot/full review and informed revisions complete. One actual ImageGen-derived signal object plus41 deterministic vector-authored scenes. Runtime PNGs569,529B; hypothetical all-decoded26.25MiB. No game/SDK/persistence/route/scoring/economy implementation changes. Campaign076/077 historical evidence remains unchanged.
 
 Frozen production source359a80be81f6b6730622067294a3f24f607fdbd6. Accepted APK fc2c99f7f4ffb668ed6ea9d79a5f91714e33178834b7bee6868360db045c605d /52,733,728B. NativeA intrinsic-image clipping rejected; explicit image bounds repaired, rebuilt and inspected. Bundle/source-map989 own sources and all42 packaged decoded images verified. Same signing/eight permissions; both install-r updates preserve exact SQLite files. Final runtime: integrityok,15 owner sessions/all14 tables exactly unchanged.
 
-Whole-source Jest708 suites/7979 tests/five unchanged snapshots, five classified opt-in skips PASS before final sizing repair; final focused17tests/typecheck/lint PASS. All declared relevant source/security/repository checks, web22routes, strict63 OpenSpec items PASS. Final AppCI reruns complete current source. Ten accepted production advisories remain; no zero-vulnerability claim.
+Whole-source Jest708 suites/7979 tests/five unchanged snapshots, five classified opt-in skips PASS before final sizing repair; final focused17tests/typecheck/lint PASS. All declared relevant source/security/repository checks, web22routes, strict63 OpenSpec items PASS. Final AppCI reruns complete current source. Ten accepted production advisories remained at 078 close (seven accepted after the 2026-10-21 brace-expansion remediation); no zero-vulnerability claim.
 
 Root personally inspected all42 native covers in default light/dark. Representative font2/compact/compact-dark-font2/larger profiles, actual device-local full walkthrough, bounded fast scroll, ARTEMIS Memory card/detail/introduction/return and offline COLD/traversal qualify changed surfaces. Profile coverage is sampled beyond default light/dark, not full cross-product. Earlier partial ARTEMIS claims/unexecuted benchmark are rejected. Raw device/ARTEMIS artifacts retained locally/external, selected originals/proof hashes in078 evidence.
 

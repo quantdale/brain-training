@@ -71,7 +71,9 @@ cd apps/mobile
 npm run typecheck
 npm run test:ci
 npm run lint
-npx expo-doctor
+npx expo-doctor       # 20/21 acceptable: known upstream patch drift (advisory,
+                      # weekly gate); the push-path gate is
+                      # scripts/validate-expo-alignment.mjs (hermetic)
 cd ../..
 node scripts/generate-game-registry.mjs --check
 node scripts/validate-provenance.mjs --check

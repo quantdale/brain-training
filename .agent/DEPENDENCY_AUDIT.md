@@ -44,14 +44,15 @@ refresh and are NOT waivers:
 **Counting-model refresh (2026-10-19, superseded in count only).** The headline above is the 2026-09-19
 baseline and is stale as a *number to compare against npm* (explore finding
 F-8): npm's summary counts dependency-PATH entries, so it inflates over time
-as new advisory ids are published for the same advisories. The current,
-authoritative count is **10 unique GHSA advisories — all accepted with
+as new advisory ids are published for the same advisories. The
+then-authoritative count (2026-10-19; superseded by the 2026-10-21 refresh
+above) was **10 unique GHSA advisories — all accepted with
 per-advisory reachability rationale (9 build/dev-toolchain, 1 runtime-accepted
 debt: `decode-uri-component`)**. The 2026-10-19 `npm audit --omit=dev` view
 reports 66 package entries (49 high, 17 moderate) which map to 13 npm advisory
-ids and exactly the 10 unique GHSAs allowlisted in
-`scripts/certification/dependency-audit-allowlist.json`. Gate result is
-unchanged and correct: `node scripts/validate-dependency-audit.mjs` → PASS,
+ids and exactly the 10 unique GHSAs allowlisted at that time in
+`scripts/certification/dependency-audit-allowlist.json`. Gate result was
+unchanged and correct at that date: `node scripts/validate-dependency-audit.mjs` → PASS,
 10 accepted, 0 unallowlisted moderate+ production findings. When comparing this
 doc to npm output, always reduce npm's numbers to unique GHSAs first.
 
@@ -176,11 +177,19 @@ Bucket summary per campaign rubric:
 belong to a planned Expo SDK/RN migration, not to a hardening cleanup. No
 `npm audit fix --force` was run.
 
-## Accepted debt (current)
+## Accepted debt (as of 2026-10-07 — superseded by the 2026-10-21 refresh above)
 
-The machine-readable dispositions are in
-`scripts/certification/dependency-audit-allowlist.json` (7 entries,
-`reviewedAt: 2026-09-30`):
+Current dispositions are the 7 entries in
+`scripts/certification/dependency-audit-allowlist.json` (`reviewedAt:
+2026-10-21`): `node-forge`, `image-size` ×2, `uuid`, `braces`, `sprintf-js`
+(build-dev-toolchain) and `decode-uri-component` (runtime-accepted-debt). The
+historical detail below records the 2026-10-07 review; its `brace-expansion`
+entries were REMEDIATED on 2026-10-21 (see the top of this file), not carried
+forward as accepted debt.
+
+The historical machine-readable dispositions as of that review were in
+`scripts/certification/dependency-audit-allowlist.json` (then 7 entries,
+`reviewedAt: 2026-09-30`, later extended to 10):
 
 - `decode-uri-component` GHSA-vcc3-ghjq-m6fr — `runtime-accepted-debt`,
   expires **2027-03-31**, with the re-evaluation condition tied to the next
@@ -196,11 +205,12 @@ The machine-readable dispositions are in
   GHSA-6j4f-fj2g-mc7p — `build-dev-toolchain` (Campaign 069 review above; the
   exit condition that retires them is stated there).
 
-`node scripts/validate-dependency-audit.mjs` reports PASS with these 10
+`node scripts/validate-dependency-audit.mjs` reported PASS at that review with these 10
 accepted advisories (the original 7 plus the 2026-10-07 braces and
 sprintf-js reviews; shell-quote and source-map-js were removed entirely by
 the Campaign 076 lockfile updates) and no unallowlisted moderate+
-production findings; its self-test passes 41/41.
+production findings; its self-test passes 41/41. The current gate result is
+the one at the top of this file: PASS, 7 accepted, 0 unallowlisted.
 
 **Note on the 2026-09-19 count above:** 19 vulnerabilities (15 moderate,
 4 high) was the pre-069 `npm audit` count. The three `brace-expansion`
@@ -214,4 +224,5 @@ historical count.
 
 The 2026-08-31 refresh recorded 16 vulnerabilities (12 moderate, 4 high) and
 the 2026-08-18 audit recorded 23. Counts shifted with lockfile and ecosystem
-changes; the current authoritative numbers are the 2026-09-19 figures above.
+changes; the then-authoritative numbers were the 2026-09-19 figures above
+(since superseded by the 2026-10-21 refresh at the top of this file).

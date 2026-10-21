@@ -1,7 +1,8 @@
 # Design System — "Play Lab" (change 077)
 
 This document describes the visual language in the current app source. Campaign
-077 implementation and native acceptance remain in progress. Its
+077 implementation and native acceptance landed and are validated (Campaigns
+077 and 078 are closed; see `.agent/STATE.md`). Its
 concrete values — radii, motion durations, and the palette hexes — are not a
 prose summary: `apps/mobile/src/components/__tests__/design-system-doc.test.ts`
 asserts every value stated below against the token source, so a token change

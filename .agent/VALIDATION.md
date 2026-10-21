@@ -14,7 +14,8 @@ Declared Repository Integrity job mirrored locally: 18/18 steps PASS
 dependency-audit 41/41 + gate PASS with documented accepted advisories,
 expo-alignment 54/54, jest-signal, provenance 13/13, runtime-QA-contract
 16/16, certify-clean-checkout 14/14, both allowlist freshness checks).
-OpenSpec strict 203/203 PASS.
+OpenSpec strict 203/203 PASS at `2f18738f` (superseded: 205/205 at
+`0e1c8784` after Campaign 079's change specs).
 
 Regression found and repaired during setup: `node
 scripts/validate-affected.mjs --self-test` rejected its own documented
