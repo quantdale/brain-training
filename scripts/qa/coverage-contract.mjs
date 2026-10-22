@@ -1231,3 +1231,72 @@ export function or3(a, b) {
   if (x === false && y === false) return false;
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// Advance/confirm control policy (Campaign 080, Wave D)
+//
+// The sweep's advance-control list used to be a fixed literal set
+// ('next-round', 'submit', 'check', 'confirm', 'next', 'continue', 'done',
+// 'skip', 'reveal'). The real catalog uses names it did not contain —
+// `next-problem` (Fast Math), `next-trial`, `submit-estimate` — and the
+// consequence was a CONFIRMED false negative, not a cosmetic gap:
+//
+//   math-fast-math round timed out -> feedback overlay rendered `next-problem`
+//   -> the literal set did not match -> chooseGameplayAction() returned null
+//   -> the loop fell through to its "passive" branch and never tapped again
+//   -> score stayed at 0, no post-input feedback transition was ever observed
+//   -> the run could not exceed L1 despite having already proven gameplay entry
+//      AND an accepted input.
+//
+// The policy is a PATTERN rather than more literals, and it lives here (not in
+// the CLI) so it is unit-testable: an advance control that the harness cannot
+// recognise stalls gameplay observation, and that failure mode must be caught by
+// a test rather than rediscovered on a device.
+// ---------------------------------------------------------------------------
+
+/** Matches an advance/confirm verb, optionally prefixed and as a path segment. */
+const ADVANCE_VERB_RE = /(^|[.\-])(next|continue|advance|submit|confirm|check|done|skip|reveal)([.\-]|$)/i;
+
+/** The shared GameButton renders a cosmetic `-lip` overlay above its base. */
+const DECORATIVE_SUFFIX_RE = /-lip$/;
+
+/**
+ * True when `key` names a control that advances a round or confirms an answer.
+ * Decorative `-lip` overlays are excluded: they sit ABOVE their base control, so
+ * a tap aimed at the overlay's coordinate is a tap on the base anyway, and
+ * preferring the base keeps event targets meaningful.
+ */
+export function isAdvanceControl(key) {
+  if (typeof key !== 'string' || key === '') return false;
+  if (DECORATIVE_SUFFIX_RE.test(key)) return false;
+  return ADVANCE_VERB_RE.test(key);
+}
+
+/**
+ * Choose the best advance/confirm control from a control inventory.
+ *
+ * Preference order (a semantic round-advance beats a generic submit):
+ *   0 next-round / next-problem / next-trial
+ *   1 submit / submit-*
+ *   2 confirm / check
+ *   3 next / continue / advance
+ *   4 anything else that matched the verb pattern
+ * Ties break on the shorter key (the base control rather than a wrapper).
+ *
+ * @param {object|string[]} controls  control map (keyed by semantic suffix) or key list
+ * @returns {string|null}
+ */
+export function pickAdvanceControl(controls) {
+  const keys = Array.isArray(controls)
+    ? controls.filter((k) => isAdvanceControl(k))
+    : Object.keys(controls || {}).filter((k) => isAdvanceControl(k));
+  if (!keys.length) return null;
+  const score = (k) => {
+    if (/next-round|next-problem|next-trial/.test(k)) return 0;
+    if (/^submit|submit-/.test(k)) return 1;
+    if (/confirm|check/.test(k)) return 2;
+    if (/next|continue|advance/.test(k)) return 3;
+    return 4;
+  };
+  return keys.slice().sort((a, b) => score(a) - score(b) || a.length - b.length)[0];
+}

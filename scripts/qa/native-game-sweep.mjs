@@ -52,6 +52,7 @@ import {
   observationRequiresArtifact,
   createSha256,
   observeState,
+  pickAdvanceControl,
   stateFingerprint,
 } from './coverage-contract.mjs';
 import { planTutorialStep, SolveTier } from './tutorial-solver.mjs';
@@ -342,8 +343,14 @@ function emitEvent(ctx, e) {
 // options and math operators. Non-answer surfaces (score, stage, prompt,
 // status, live, display, scroll, verdict, …) are deliberately NOT matched.
 const SELECTOR_RE = /(^|[.\-])(tile|card|option|options|word|choice|cell|item|node|target|target-card|number|operator|symbol|token|chip|response|digit|peg|pegs|guess|swatch|shape|glyph|block|row|slot|marker|cue|clue|question|command|commands|trigger|field|term|value|comparison|stimulus|pick|color|same|different|left|right|red|blue|green|yellow|purple|orange|[A-Z]|\+|\-|\*|\/)(\.\d+)?$/;
-const ADVANCE_KEYS = ['next-round', 'submit', 'check', 'confirm', 'next', 'continue', 'done', 'skip', 'reveal'];
 
+/**
+ * Advance/confirm control policy lives in the coverage contract so it is
+ * unit-tested (see coverage-contract.mjs `pickAdvanceControl`). The local
+ * literal list this replaces caused a confirmed math-fast-math false
+ * negative: `next-problem` was not recognised, the loop stalled on the
+ * feedback overlay and never tapped again.
+ */
 function center(bounds) {
   return bounds ? [Math.round((bounds[0] + bounds[2]) / 2), Math.round((bounds[1] + bounds[3]) / 2)] : null;
 }
@@ -365,8 +372,12 @@ function chooseGameplayAction(controls, tappedThisRound) {
   // A feedback / verdict board is up: advance the round first — poking board
   // controls under the overlay is not an answer attempt.
   if (feedbackUp) {
-    const advance = ADVANCE_KEYS.find((k) => has(k));
-    if (advance) return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
+    // Pattern-based, so `next-problem`/`next-trial`/`submit-estimate` are
+    // recognised instead of silently stalling the loop (see ADVANCE_RE).
+    const advance = pickAdvanceControl(controls);
+    if (advance && has(advance)) {
+      return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
+    }
   }
   if (keypadKeys.length) {
     // Keypad family: enter a couple of digits, then submit/check if present.
@@ -381,8 +392,10 @@ function chooseGameplayAction(controls, tappedThisRound) {
     const next = selectors.find((k) => !tappedThisRound.has(k)) || selectors[0];
     return { type: 'tap', target: next, point: center(controls[next].bounds) };
   }
-  const advance = ADVANCE_KEYS.find((k) => has(k));
-  if (advance) return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
+  const advance = pickAdvanceControl(controls);
+  if (advance && has(advance)) {
+    return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
+  }
   return null; // passive / stimulus-driven: wait and observe instead
 }
 

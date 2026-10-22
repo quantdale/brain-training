@@ -6,8 +6,10 @@ import {
   classifyRun,
   deriveCapabilities,
   deriveLevel,
+  isAdvanceControl,
   observeState,
   or3,
+  pickAdvanceControl,
   validateRunRecord,
   verifyArtifactBytes,
 } from './coverage-contract.mjs';
@@ -765,4 +767,71 @@ test('R2: memory-pair-recall v1 milestones must not classify L2', () => {
   assert.equal(axes.inputAccepted.status, AxisStatus.NOT_EXECUTED);
   assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.NOT_EXECUTED);
   assert.equal(axes.safeExit.status, AxisStatus.FAILED);
+});
+
+
+// ===========================================================================
+// Advance/confirm control policy (Campaign 080, Wave D)
+//
+// CONFIRMED DEFECT this pins: `math-fast-math` could never exceed L1. The round
+// timed out, the feedback overlay rendered `next-problem`, the harness's fixed
+// advance-key list did not contain that name, `chooseGameplayAction()` returned
+// null, and the loop fell through to its "passive" branch and never tapped
+// again — score stayed 0 and no post-input feedback transition was ever
+// observed. These tests make that class of stall a red suite instead of a
+// device-only discovery.
+// ===========================================================================
+
+test('advance control: real catalog names the old literal list missed are recognised', () => {
+  // Every name below appears in the recorded 42-game control inventories.
+  for (const name of ['next-problem', 'next-trial', 'submit-estimate', 'next-round', 'submit', 'confirm']) {
+    assert.equal(isAdvanceControl(name), true, `${name} must be recognised as an advance control`);
+  }
+});
+
+test('advance control: prefixed and dotted forms are recognised', () => {
+  assert.equal(isAdvanceControl('sequence.next'), true);
+  assert.equal(isAdvanceControl('tutorial-demo-next'), true);
+  assert.equal(isAdvanceControl('round.confirm'), true);
+});
+
+test('advance control: decorative -lip overlays are not advance controls', () => {
+  // The shared GameButton renders `<base>-lip` above its base control; tapping
+  // the overlay is a tap on the base, so the overlay must never be preferred.
+  assert.equal(isAdvanceControl('next-problem-lip'), false);
+  assert.equal(isAdvanceControl('next-lip'), false);
+  assert.equal(isAdvanceControl('submit-lip'), false);
+});
+
+test('advance control: answer surfaces are not mistaken for advances', () => {
+  for (const name of ['digit.1', 'option.0', 'cell.4', 'tile.2', 'score', 'stage',
+    'problem-left', 'feedback', 'feedback-timeout', 'pause', 'screen']) {
+    assert.equal(isAdvanceControl(name), false, `${name} must NOT be treated as an advance control`);
+  }
+});
+
+test('REGRESSION math-fast-math: the timeout overlay yields an advance action', () => {
+  // Exact inventory recorded on device when the round timed out.
+  const controls = {
+    feedback: {}, 'feedback-expected-answer': {}, 'feedback-problem': {},
+    'feedback-timeout': {}, 'next-problem': {}, 'next-problem-lip': {},
+    pause: {}, 'problem-label.1': {}, score: {}, screen: {}, stage: {},
+  };
+  assert.equal(pickAdvanceControl(controls), 'next-problem');
+});
+
+test('advance control preference: semantic round-advance beats a generic submit', () => {
+  assert.equal(pickAdvanceControl({ submit: {}, 'next-round': {} }), 'next-round');
+  assert.equal(pickAdvanceControl({ submit: {}, 'next-problem': {} }), 'next-problem');
+  assert.equal(pickAdvanceControl({ submit: {}, confirm: {} }), 'submit');
+  // The base control wins over its -lip overlay.
+  assert.equal(pickAdvanceControl({ 'next-trial-lip': {}, 'next-trial': {} }), 'next-trial');
+});
+
+test('advance control: no advance control present returns null (passive is honest)', () => {
+  assert.equal(pickAdvanceControl({ 'digit.1': {}, score: {}, pause: {} }), null);
+  assert.equal(pickAdvanceControl({}), null);
+  assert.equal(pickAdvanceControl(null), null);
+  // A key ARRAY is accepted too (the sweep holds both shapes).
+  assert.equal(pickAdvanceControl(['digit.1', 'next-round']), 'next-round');
 });
