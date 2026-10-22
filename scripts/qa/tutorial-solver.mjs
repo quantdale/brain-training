@@ -425,6 +425,22 @@ function solveMissingOperator(observation) {
  */
 function solveGridRebuild(observation, ctx) {
   const s = suffixesOf(observation);
+
+  // A demo that has accumulated wrong picks offers "Clear and retry". Retrying
+  // is the demo's OWN recovery path, so taking it is a legitimate step — and it
+  // is REQUIRED: without it the tracker demo can never clear, because the wrong
+  // picks it just recorded stay on the board and the run stalls (this is why
+  // attention-symbol-tracker sat at L0 with "tutorial never cleared").
+  const retry = s.find((k) => /^tutorial-demo-retry$/.test(k));
+  if (retry && !ctx.tapped.has(retry)) {
+    return {
+      action: 'tap',
+      target: retry,
+      tier: SolveTier.REVEAL_GUIDED,
+      reason: 'the demo is offering "Clear and retry" after incorrect picks — taking the demo recovery path',
+    };
+  }
+
   const revealed = revealedCorrectControls(observation).filter((k) => !ctx.tapped.has(k));
   if (revealed.length) {
     return {

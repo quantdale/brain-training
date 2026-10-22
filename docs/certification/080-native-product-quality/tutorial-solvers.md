@@ -143,3 +143,24 @@ tests pass.
 - The flash-sequence gameplay family (e.g. `memory-running-order`) remains
   automation-blocked; seeing the stimulus is a camera/polling limit, not a
   solver limit.
+
+---
+
+## 10. Addendum — the demo "clear and retry" recovery path
+
+Validating against a fresh sweep exposed one more family gap. `attention-symbol-tracker`
+accumulates wrong picks on its demo board and then offers a
+**"Clear and retry"** control. Without taking it, the wrong picks stay on the
+board forever and the demo can never clear — the run reported
+`tutorial shown this attempt but never cleared`, which is the exact L0 signature
+this workstream exists to remove.
+
+Taking the retry is a **legitimate** step, not a workaround: it is the demo's own
+recovery path, offered by the application to the player after a mistake. The
+grid-rebuild family now prefers it when present, reported as `REVEAL_GUIDED`
+with the reason recorded, so the trail shows *why* the step was taken.
+
+This is the general lesson from the family work: most remaining L0 stalls are
+**the harness not using an interaction the app already provides**, and each one
+is fixed by teaching the harness that interaction — never by loosening what
+counts as a solve.
