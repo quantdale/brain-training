@@ -62,7 +62,29 @@ const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
 const DEFAULT_OUT = path.join(REPO_ROOT, 'scripts', 'qa', 'native-coverage-ledger.json');
-const ARTIFACT_ROOT = path.join(REPO_ROOT, 'qa-artifacts', '080', 'sweep-v2');
+/**
+ * Artifact root — ONE DIRECTORY PER SWEEP RUN.
+ *
+ * This was a fixed path (`sweep-v2`), so every subsequent sweep overwrote the
+ * previous sweep's screenshots and hierarchies while the older ledgers still
+ * recorded the ORIGINAL digests for those paths. The independent verifier
+ * caught it exactly as designed: 18 hash + byte-length mismatches on a second
+ * sweep, i.e. ledgers whose cited evidence had been replaced by different bytes.
+ *
+ * That is precisely the "evidence reuse between execution attempts must be
+ * detected" and "a screenshot must not be accepted because its filename
+ * resembles the expected artifact" failure class, and it would silently
+ * invalidate any coverage claim built on a superseded run.
+ *
+ * Each run therefore gets a unique directory keyed by the sweep's start time, so
+ * evidence for one attempt can never be clobbered by another. Historical
+ * evidence is preserved rather than rewritten.
+ */
+function makeArtifactRoot() {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '').replace('Z', 'Z');
+  return path.join(REPO_ROOT, 'qa-artifacts', '080', 'sweeps', stamp);
+}
+const ARTIFACT_ROOT = makeArtifactRoot();
 const PACKAGE = 'com.braintraining.app';
 
 // --- args ------------------------------------------------------------------
