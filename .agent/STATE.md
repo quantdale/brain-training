@@ -19,6 +19,71 @@ activation: dedicated AVD `braintraining-qa36` (emulator-5554, x86_64,
 external checkout present at `D:/Tools/artemis`. Full plan: the 080 OpenSpec
 tasks; deliverables under `docs/certification/080-native-product-quality/`.
 
+### Campaign 080 progress — 2026-10-22 (P1/P2 CERTIFICATION-REPAIR WAVE)
+
+The independent adversarial review returned **ACCEPT WITH FINDINGS** (4 × P1,
+6 × P2). All four P1s and every actionable P2 are now IMPLEMENTED and TESTED.
+Findings are preserved verbatim in `independent-review.md`; dispositions live in
+the separate register `review-finding-resolution.md`.
+
+**P1-A causal attribution.** `classifyInputCausality()` separates
+INPUT_ACCEPTED / AUTONOMOUS_TIMEOUT / AUTONOMOUS_PROGRESSION /
+AMBIGUOUS_CAUSALITY / NO_RESPONSE. Acceptance now requires an attributable
+signal (target-control identity, score transition, or explicit answer
+acknowledgment) — a fingerprint difference alone never certifies input. The
+confirmed `language-word-chain` false positive is a pinned regression fixture.
+Timeouts are credited through the autonomous-gameplay capability instead of
+being fabricated as tap acceptance.
+
+**P1-B safe exit.** `deriveScreenKind()` proves destinations from hierarchy
+status + control inventory + foreground identity + process liveness. The old
+`zero parsed controls -> non-game-app-screen -> EXITED -> safeExit VERIFIED`
+mechanism is demonstrably rejected. `actionExecuted` is now reported truthfully
+(it was emitted as `true` unconditionally while `adb` ran tolerant).
+
+**P1-C artifact integrity.** `requireArtifact` is genuinely set by policy;
+artifacts carry file + SHA-256 + attempt binding; new
+`scripts/qa/verify-artifacts.mjs` recomputes digests from real bytes instead of
+comparing two self-asserted values. Three evidence modes (local / portable /
+source) are distinct. The verifier independently CONFIRMED P1-C and found more:
+908 artifacts verify, but **10 recorded hashes do not match the files on disk**
+(all in `math-fast-math`, identical computed digests recurring) and **76
+observations carry no artifact binding**, including pivotal safe-exit proofs.
+
+**P1-D narratives.** `attention-odd-one-out` L3 reclassified from "answer-driven
+rounds" to **passive timed completion** (the L3 terminal state stands); the
+unevidenced `speed-color-match` demo-clearing claim retracted; the
+"every proof bound to artifact hashes" claim retracted; `coverage-audit.md` run
+count contradiction fixed.
+
+**Wave B (P2).** B1 registry validation, B2 certified-vs-historical axis
+separation, B3 content-bound results currency (with lower-is-better exemption
+and the `firstState()` limitation fixed), B4 schema hardening + duplicate-attempt
+detection + structured corrupt-entry diagnostics, B6 authoritative tutorial
+status (returning players never forced to repeat a tutorial). B5 closed on the
+contract side (`trial-wrong` is ambiguous and cannot alone certify); the
+app-side testID vocabulary split remains open.
+
+**Wave C.** 73 tests across `coverage-contract.test.mjs`,
+`coverage-contract.adversarial.test.mjs` and `merge-coverage.test.mjs`, incl. 5
+mutation controls proving the protections have teeth.
+
+**Wave I.** Owner-authorized reversible Odd One Out cover correction integrated
+through the CANONICAL art pipeline (`memory-attention-speed.mjs#oddOneOut` +
+`generate-covers.mjs`), not a hand-edited asset. Aesthetic acceptance PENDING
+OWNER.
+
+Gates at `70bf33da`: full jest 8024/8029 green (0 failed), typecheck clean,
+lint clean, repo-state/registry/provenance/task-ownership/secrets green, QA
+contract PASS. Application source unchanged in this wave (cover art + QA
+harness + docs only).
+
+**In flight:** fresh 42-game sweep under the hardened contract
+(`native-coverage-ledger-v2.json`) — first game already certifies **L3
+VERIFIED**. Remaining: sweep completion + strict merge (Wave E), Workout V3
+lifecycle (Wave F), backup/restore/migration (Wave G), accessibility profiles
+(Wave H), performance follow-up (Wave J), and the second independent review.
+
 ### Campaign 080 progress — 2026-10-21 (MATERIALLY ADVANCED, NOT COMPLETE)
 
 Flagship workstream A DELIVERED: fresh native runtime coverage of the whole
