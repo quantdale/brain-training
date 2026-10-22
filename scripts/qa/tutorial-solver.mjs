@@ -64,10 +64,26 @@
 // Vocabulary
 // ---------------------------------------------------------------------------
 
-/** How a step's answer was obtained. Reported per step; never merged. */
+/**
+ * How a step was obtained. Reported per step; never merged.
+ *
+ *   DERIVED        an ANSWER was computed from the observed problem using the
+ *                  game's own documented rule (3+5=8, a solved operator, a
+ *                  rotation test, a fixed demo stream). The strongest tier: the
+ *                  harness genuinely knew the answer.
+ *   REVEAL_GUIDED  the app teaches by revealing; the harness read the app's own
+ *                  "Correct: …" label / verdict marker and selected it. A
+ *                  legitimate observe-then-submit interaction, graded lower.
+ *   NAVIGATION     NO answer was involved. The step is pure advancement —
+ *                  acknowledging a demo the app itself marked complete
+ *                  ("That is it" / "Got it"), or continuing past an explanatory
+ *                  notice. Calling this DERIVED would overstate it: nothing was
+ *                  solved.
+ */
 export const SolveTier = Object.freeze({
   DERIVED: 'DERIVED',
   REVEAL_GUIDED: 'REVEAL_GUIDED',
+  NAVIGATION: 'NAVIGATION',
 });
 
 /** Reusable interaction families. A game maps to one; several share behaviour. */
@@ -820,7 +836,7 @@ function solveNavigate(observation, ctx) {
   }
   const nav = navigationTarget(observation);
   if (nav && !ctx.tapped.has(nav)) {
-    return { action: 'tap', target: nav, tier: SolveTier.DERIVED, reason: `advance via '${nav}'` };
+    return { action: 'tap', target: nav, tier: SolveTier.NAVIGATION, reason: `advance via '${nav}'` };
   }
   return null;
 }
@@ -935,9 +951,27 @@ export function planTutorialStep(observation, state = {}) {
   // the demo is over and poking demo controls would be pointless churn.
   const nav = navigationTarget(observation);
   const s = suffixesOf(observation);
-  const demoStillActive = s.some((k) => /^tutorial-(demo-status|grid|palette|trigger|pad|retry|submit|same|different)$/.test(k));
+
+  // A COMPLETION affordance always wins. `tutorial-demo-done` ("That's it") only
+  // renders once the demo is satisfied, so tapping it is the correct next step.
+  //
+  // The previous "is the demo still active?" gate tested for the PRESENCE of
+  // `tutorial-grid`/`tutorial-palette`/etc. — but those containers are rendered
+  // for the whole demo, so the gate was always true and navigation was permanently
+  // suppressed. A demo could be fully satisfied (verdict rendered, "That's it"
+  // shown) and the harness would still poke cells forever, which is exactly the
+  // "tutorial shown but never cleared" stall this fix removes.
+  const COMPLETION_RE = /^tutorial-(demo-done|done|notice-continue|feedback-next)$/;
+  if (nav && COMPLETION_RE.test(nav) && !ctx.tapped.has(nav)) {
+    return { action: 'tap', target: nav, tier: SolveTier.NAVIGATION, reason: `demo complete — advance via '${nav}'` };
+  }
+
+  // Otherwise only a genuinely INTERACTIVE demo surface keeps navigation at bay:
+  // a retry prompt or an unanswered submission means the demo wants more work.
+  const demoStillActive = s.some((k) => /^tutorial-(retry|submit)$/.test(k))
+    || (s.includes('tutorial-demo-status') && !nav);
   if (nav && !demoStillActive && !ctx.tapped.has(nav)) {
-    return { action: 'tap', target: nav, tier: SolveTier.DERIVED, reason: `advance via '${nav}'` };
+    return { action: 'tap', target: nav, tier: SolveTier.NAVIGATION, reason: `advance via '${nav}'` };
   }
 
   const solver = FAMILY_SOLVERS[spec.family] || solveNavigate;

@@ -364,8 +364,10 @@ test('REAL DATA: derived tiers are only claimed where the answer is genuinely co
     const plan = planTutorialStep({ ...last, gameId: run.gameId }, { gameId: run.gameId, tapped: new Set() });
     if (plan && plan.tier === SolveTier.DERIVED) derived.push(run.gameId);
   }
-  // These games' tutorials ARE derivable from their own contracts; anything else
-  // claiming DERIVED would be overclaiming.
+  // These games' tutorials ARE genuinely computable from their own contracts.
+  // Anything else claiming DERIVED would be overclaiming. Note that pure
+  // advancement steps (acknowledging a completed demo, continuing past a
+  // notice) are NAVIGATION, not DERIVED — nothing was solved.
   const ALLOWED = new Set([
     'math-fast-math',            // sum of the shown operands
     'math-missing-operator',     // solved from the spoken equation
@@ -373,8 +375,6 @@ test('REAL DATA: derived tiers are only claimed where the answer is genuinely co
     'speed-order-sweep',         // ascending numeric labels
     'speed-tap-rush',            // the exposed stimulus
     'spatial-mental-rotation',   // geometry rotation test
-    'flexibility-card-sort',     // pure notice/navigation step
-    'flexibility-cue-shift',     // pure notice/navigation step
   ]);
   const unexpected = derived.filter((g) => !ALLOWED.has(g));
   assert.deepEqual(unexpected, [], 'DERIVED claimed for a game whose tutorial answer is not computable');
@@ -418,4 +418,39 @@ test('the grid-rebuild family takes "Clear and retry" when the demo offers it', 
   const plan = planTutorialStep(o, { gameId: 'attention-symbol-tracker' });
   assert.equal(plan.target, 'tutorial-demo-retry');
   assert.match(plan.reason, /retry/i);
+});
+
+
+test('NAVIGATION tier: pure advancement never claims a solved answer', () => {
+  // Acknowledging a demo the app itself marked complete is not a solve.
+  assert.equal(SolveTier.NAVIGATION, 'NAVIGATION');
+  assert.equal(isDerivedTier(SolveTier.NAVIGATION), false,
+    'navigation must never be presented as knowledge-derived');
+
+  const o = obs(['tutorial', 'tutorial-demo-status', 'tutorial-grid', 'tutorial-demo-done']);
+  const plan = planTutorialStep(o, { gameId: 'flexibility-rule-flip' });
+  assert.equal(plan.target, 'tutorial-demo-done');
+  assert.equal(plan.tier, SolveTier.NAVIGATION);
+});
+
+test('REAL DATA: a fully satisfied demo is acknowledged rather than poked forever', () => {
+  // Regression: the "is the demo still active?" gate tested for the PRESENCE of
+  // `tutorial-grid`, which renders for the whole demo, so the gate was always
+  // true and navigation was permanently suppressed. A demo could be complete
+  // (verdict rendered + "That is it" shown) while the harness kept tapping cells,
+  // producing the "tutorial shown but never cleared" stall.
+  const ledger = JSON.parse(fs.readFileSync(LEDGER, 'utf8'));
+  const stuck = [];
+  for (const run of ledger.runs) {
+    const tut = (run.observations || []).filter((o) => String(o.phase || '').startsWith('tutorial'));
+    if (!tut.length) continue;
+    const last = tut[tut.length - 1];
+    const controls = last.controls || [];
+    const demoComplete = controls.includes('tutorial-demo-done');
+    if (!demoComplete) continue;
+    const plan = planTutorialStep({ ...last, gameId: run.gameId }, { gameId: run.gameId, tapped: new Set() });
+    // A completed demo must yield the completion affordance, not a cell probe.
+    if (!plan || !/done/.test(plan.target)) stuck.push(`${run.gameId} -> ${plan && plan.target}`);
+  }
+  assert.deepEqual(stuck, [], 'a completed demo must be acknowledged');
 });

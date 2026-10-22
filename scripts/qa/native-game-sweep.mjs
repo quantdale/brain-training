@@ -618,6 +618,9 @@ function summariseTutorialSolve(log) {
     steps: steps.length,
     derivedSteps: steps.filter((e) => e.tier === SolveTier.DERIVED).length,
     revealGuidedSteps: steps.filter((e) => e.tier === SolveTier.REVEAL_GUIDED).length,
+    // Pure advancement steps (acknowledging a demo the app marked complete, or
+    // continuing past a notice). Counted separately: no answer was solved.
+    navigationSteps: steps.filter((e) => e.tier === SolveTier.NAVIGATION).length,
     // The last step taken, so a reader sees WHAT cleared the demo.
     last: steps.length ? steps[steps.length - 1] : null,
     // Where automation gave up, if it did. This is an automation gap to fix,
