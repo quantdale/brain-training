@@ -410,14 +410,31 @@ test('a .verdict SUFFIX marker identifies a judged cell just like -verdict.N', (
   assert.equal(plan.target, 'tutorial-grid.card.0');
 });
 
-test('the grid-rebuild family takes "Clear and retry" when the demo offers it', () => {
+test('grid rebuild LEARNS the pattern first, then retries, then rebuilds', () => {
+  // The app reveals targets, hides them, and "Clear and retry" clears the
+  // selections WITHOUT re-revealing. So the correct order is
+  //   probe -> learn -> retry -> select the learned cells.
+  // Retrying FIRST (or forgetting what was learned) loops forever — the exact
+  // reason ~10 games stayed at L0 with "tutorial shown but never cleared".
   const o = obs(
-    ['tutorial', 'tutorial-grid', 'cell.0', 'cell.1', 'tutorial-demo-retry'],
-    { 'cell.0': { desc: 'Correct: Cell 1' } },
+    ['tutorial', 'tutorial-grid', 'tutorial-demo-status', 'cell.0', 'cell.1', 'tutorial-demo-retry'],
+    { 'cell.0': { desc: 'Correct: Cell 1' }, 'tutorial-demo-status': { desc: 'Tap the 1 highlighted cells to rebuild the pattern' } },
   );
-  const plan = planTutorialStep(o, { gameId: 'attention-symbol-tracker' });
+  // Target count reached (1 of 1 learned) -> the reset is now appropriate.
+  const plan = planTutorialStep(o, { gameId: 'attention-symbol-tracker', tapped: new Set(), retriedThisDemo: false });
   assert.equal(plan.target, 'tutorial-demo-retry');
-  assert.match(plan.reason, /retry/i);
+  assert.equal(plan.resetsTapped, true);
+  assert.deepEqual(plan.knownCorrect, ['cell.0'], 'learned targets must survive the reset');
+});
+
+test('grid rebuild keeps learning while the target count is not yet reached', () => {
+  const o = obs(
+    ['tutorial', 'tutorial-grid', 'tutorial-demo-status', 'cell.0', 'cell.1', 'tutorial-demo-retry'],
+    { 'cell.0': { desc: 'Correct: Cell 1' }, 'tutorial-demo-status': { desc: 'Tap the 2 highlighted cells to rebuild the pattern' } },
+  );
+  const plan = planTutorialStep(o, { gameId: 'memory-grid-recall', tapped: new Set(['cell.0']), retriedThisDemo: false });
+  assert.equal(plan.target, 'cell.1', 'must keep probing to learn the remaining target');
+  assert.equal(plan.resetsTapped, undefined);
 });
 
 
@@ -494,7 +511,10 @@ test('retry is recognised in both spellings (tutorial-retry / tutorial-demo-retr
   // emit `tutorial-retry`; grid demos emit `tutorial-demo-retry`. Only the latter
   // was handled, so the retry-bearing demos could not reset and stalled.
   for (const id of ['tutorial-retry', 'tutorial-demo-retry']) {
-    const o = obs(['tutorial', 'tutorial-grid', id, 'cell.0'], { 'cell.0': { desc: 'Wrong pick: Cell 1' } });
+    const o = obs(
+      ['tutorial', 'tutorial-grid', 'tutorial-demo-status', id, 'cell.0'],
+      { 'cell.0': { desc: 'Correct: Cell 1' }, 'tutorial-demo-status': { desc: 'Tap the 1 highlighted cells to rebuild the pattern' } },
+    );
     const plan = planTutorialStep(o, { gameId: 'memory-grid-recall', tapped: new Set(), retriedThisDemo: false });
     assert.equal(plan.target, id, `${id} must be offered as the recovery path`);
     assert.equal(plan.resetsTapped, true);

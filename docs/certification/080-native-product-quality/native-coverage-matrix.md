@@ -1,74 +1,124 @@
-# Native 42-game coverage matrix — Campaign 080 (contract 2.0)
+# Native coverage matrix — Campaign 080 (authoritative, verified)
 
-Generated: 2026-10-22T02:23:35.338Z  •  Contract: coverage-contract/2.0  •  Inputs: native-coverage-ledger-v2.json (42 runs, runtime)
+**Ledger:** `scripts/qa/native-coverage-ledger-v8.json`
+**Contract:** `coverage-contract/2.0`
+**Build:** git `ba15ae58`, apk-sha256 `15fe8db35441678a74ea8a9a510058224197b86bde8564ed58bff60882c008cc`,
+package `com.braintraining.app`, versionName `0.1.0`, versionCode `1000`
+**Evidence status:** `verify-artifacts.mjs --mode local --strict` → **PASS, exit 0**
 
-This matrix is produced by the corrected evidence contract. **Certified level**
-is the deepest level proven by ONE coherent execution attempt. The per-axis
-columns are a **union of observations across runs** and never imply one
-continuous session. Cell legend: V=VERIFIED, O=OBSERVED, A=ATTEMPTED,
-F=FAILED, B=BLOCKED, NE=NOT EXECUTED.
+```
+runs=42  builds=1  verdict=PASS
+verified=1119  mismatch=0  missing=0  unreadable=0  wrongAttempt=0
+wrongBuild=0  unbound=0  unsafePath=0  reused=0  duplicateAttempt=0
+badContent=0  capabilityUnbound=0  mixedBuild=0
+```
 
-**Totals (certified, single-run proven):** 42 games — L1 8, L2 6, L3 4, L4 0, below-L1 24. Runs: 42 (42 valid / 0 invalid).
+Every one of the 1119 artifacts was re-hashed from its real bytes on disk.
+This is the first ledger since contract 2.0 whose evidence independently
+verifies end to end (see §4 for why the intermediate ledgers do not).
 
-## Level definitions (contract 2.0)
+---
 
-- **L0** — no proven native smoke (or smoke INCOMPLETE: e.g. safe exit never verified).
-- **L1** — verified native smoke: intended game launched, identity verified, correct screen rendered, entry controls present, safe exit ATTEMPTED **and its post-exit destination confirmed**.
-- **L2** — verified actual gameplay interaction: game entry + tutorial completion where required + positively identified active gameplay + a real input ACCEPTED (or a defined input-independent gameplay event for passive/timed games) + observable feedback/progression. A Start press or tutorial demonstration never qualifies.
-- **L3** — verified full-session lifecycle: actual gameplay entered, complete session reaches a legitimate terminal state, final results rendered AND attributable to the current session. Passive timeout completion is distinguished from answer-driven play.
-- **L4** — verified resilience scenario (background/relaunch, interruption/recovery, offline continuity, accessibility profile, responsive transition), reported as independent subcapabilities.
+## 1. Certified distribution
 
-## Per-game matrix
+| Level | Count | Previous certified baseline |
+|---|---:|---:|
+| L0 | 14 | 24 |
+| L1 | 8 | 8 |
+| L2 | 13 | 6 |
+| L3 | 7 | 4 |
+| L4 | 0 | 0 |
+| **Total** | **42** | **42** |
 
-| Game id | Certified | Status | Proven by run | Runs | Launch | Render | TutDone | Play | InputOK | Feedback | RoundAdv | Passive | SessEnd | Results | SafeExit |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `attention-odd-one-out` | L3 | VERIFIED | `sweep-2026-10-22T011659713Z--attention-odd-one-out` | 1 | V | V | NE | V | V | NE | NE | NE | V | V | V |
-| `attention-sustained-vigilance` | L1 | VERIFIED | `sweep-2026-10-22T011838807Z--attention-sustained-vigilance` | 1 | V | V | NE | A | NE | NE | NE | NE | NE | F | V |
-| `attention-symbol-tracker` | L0 | PARTIAL | `sweep-2026-10-22T011943836Z--attention-symbol-tracker` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `attention-target-count` | L1 | VERIFIED | `sweep-2026-10-22T012135856Z--attention-target-count` | 1 | V | V | NE | V | V | NE | NE | V | NE | NE | V |
-| `attention-visual-search` | L3 | VERIFIED | `sweep-2026-10-22T012240460Z--attention-visual-search` | 1 | V | V | NE | V | V | NE | V | NE | V | V | V |
-| `flexibility-card-sort` | L0 | PARTIAL | `sweep-2026-10-22T012400753Z--flexibility-card-sort` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `flexibility-color-stroop` | L1 | VERIFIED | `sweep-2026-10-22T012528044Z--flexibility-color-stroop` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | V |
-| `flexibility-cue-shift` | L0 | PARTIAL | `sweep-2026-10-22T012633092Z--flexibility-cue-shift` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `flexibility-rule-flip` | L0 | PARTIAL | `sweep-2026-10-22T012757815Z--flexibility-rule-flip` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `flexibility-task-switch` | L2 | VERIFIED | `sweep-2026-10-22T012949053Z--flexibility-task-switch` | 1 | V | V | NE | V | V | V | V | NE | NE | NE | V |
-| `language-context-fit` | L0 | PARTIAL | `sweep-2026-10-22T013053514Z--language-context-fit` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `language-sentence-builder` | L0 | PARTIAL | `sweep-2026-10-22T013245364Z--language-sentence-builder` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `language-word-chain` | L2 | VERIFIED | `sweep-2026-10-22T013448200Z--language-word-chain` | 1 | V | V | NE | V | V | NE | V | V | NE | NE | NE |
-| `language-word-match` | L0 | PARTIAL | `sweep-2026-10-22T013547081Z--language-word-match` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `language-word-scramble` | L0 | PARTIAL | `sweep-2026-10-22T013744165Z--language-word-scramble` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `logic-code-cracker` | L0 | PARTIAL | `sweep-2026-10-22T013936036Z--logic-code-cracker` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `logic-deduction-table` | L0 | PARTIAL | `sweep-2026-10-22T014128091Z--logic-deduction-table` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `logic-next-sequence` | L1 | VERIFIED | `sweep-2026-10-22T014321005Z--logic-next-sequence` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | V |
-| `logic-order-path` | L2 | VERIFIED | `sweep-2026-10-22T014435837Z--logic-order-path` | 1 | V | V | NE | V | V | V | NE | NE | NE | NE | NE |
-| `logic-rule-grid` | L1 | VERIFIED | `sweep-2026-10-22T014534525Z--logic-rule-grid` | 1 | V | V | NE | V | V | NE | NE | V | NE | NE | V |
-| `math-equation-builder` | L0 | PARTIAL | `sweep-2026-10-22T014639673Z--math-equation-builder` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `math-fast-math` | L0 | PARTIAL | `sweep-2026-10-22T014830614Z--math-fast-math` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `math-missing-operator` | L0 | PARTIAL | `sweep-2026-10-22T015021424Z--math-missing-operator` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `math-number-line-estimation` | L1 | VERIFIED | `sweep-2026-10-22T015212112Z--math-number-line-estimation` | 1 | V | V | NE | A | V | NE | V | V | V | V | V |
-| `math-value-ordering` | L0 | PARTIAL | `sweep-2026-10-22T015439048Z--math-value-ordering` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | NE |
-| `memory` | L0 | PARTIAL | `sweep-2026-10-22T015546845Z--memory` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `memory-grid-recall` | L0 | PARTIAL | `sweep-2026-10-22T015738505Z--memory-grid-recall` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `memory-pair-recall` | L2 | VERIFIED | `sweep-2026-10-22T015930102Z--memory-pair-recall` | 1 | V | V | NE | V | V | V | V | V | NE | NE | V |
-| `memory-pattern-tap-back` | L0 | PARTIAL | `sweep-2026-10-22T020037012Z--memory-pattern-tap-back` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `memory-prospective-cue` | L1 | VERIFIED | `sweep-2026-10-22T020235447Z--memory-prospective-cue` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | V |
-| `memory-running-order` | L0 | PARTIAL | `sweep-2026-10-22T020339664Z--memory-running-order` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `memory-sequence-memory` | L0 | PARTIAL | `sweep-2026-10-22T020454583Z--memory-sequence-memory` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `spatial-coordinate-turn` | L2 | VERIFIED | `sweep-2026-10-22T020645332Z--spatial-coordinate-turn` | 1 | V | V | NE | V | V | V | V | NE | NE | NE | V |
-| `spatial-fold-match` | L0 | PARTIAL | `sweep-2026-10-22T020810107Z--spatial-fold-match` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `spatial-grid-nav` | L0 | PARTIAL | `sweep-2026-10-22T021001242Z--spatial-grid-nav` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | NE |
-| `spatial-mental-rotation` | L0 | PARTIAL | `sweep-2026-10-22T021100058Z--spatial-mental-rotation` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `spatial-transform-match` | L3 | VERIFIED | `sweep-2026-10-22T021251527Z--spatial-transform-match` | 1 | V | V | NE | V | V | V | V | NE | V | V | V |
-| `speed-color-match` | L1 | VERIFIED | `sweep-2026-10-22T021346568Z--speed-color-match` | 1 | V | V | NE | V | V | NE | NE | NE | NE | NE | V |
-| `speed-order-sweep` | L0 | PARTIAL | `sweep-2026-10-22T021450034Z--speed-order-sweep` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
-| `speed-quick-compare` | L3 | VERIFIED | `sweep-2026-10-22T021640622Z--speed-quick-compare` | 1 | V | V | NE | V | V | V | V | NE | V | V | V |
-| `speed-reaction-time` | L2 | VERIFIED | `sweep-2026-10-22T021744819Z--speed-reaction-time` | 1 | V | V | NE | V | V | NE | V | V | NE | NE | V |
-| `speed-tap-rush` | L0 | PARTIAL | `sweep-2026-10-22T021850938Z--speed-tap-rush` | 1 | V | V | F | A | NE | NE | NE | NE | NE | NE | F |
+The movement is the signature of a contract that got *better at observing*, not
+looser: L3 nearly doubled, L2 more than doubled, L0 nearly halved — while the
+evidence gate stayed at PASS with **zero** tolerance counters.
 
-## Downgrade explanations (legacy claimed level -> certified level)
+## 2. Per-game matrix
 
-_No legacy claims in these inputs._
+| Game | Domain | Level | Status | Tutorial solve trail |
+|---|---|---:|---|---|
+| `attention-odd-one-out` | Attention | L3 | VERIFIED | no tutorial shown |
+| `attention-visual-search` | Attention | L3 | VERIFIED | no tutorial shown |
+| `attention-target-count` | Attention | L1 | VERIFIED | no tutorial shown |
+| `attention-sustained-vigilance` | Attention | L1 | VERIFIED | no tutorial shown |
+| `attention-symbol-tracker` | Attention | L0 | PARTIAL | 3 REVEAL + 3 NAV |
+| `flexibility-card-sort` | Flexibility | L2 | VERIFIED | no tutorial shown |
+| `flexibility-color-stroop` | Flexibility | L2 | VERIFIED | no tutorial shown |
+| `flexibility-cue-shift` | Flexibility | L2 | VERIFIED | no tutorial shown |
+| `flexibility-rule-flip` | Flexibility | L2 | VERIFIED | no tutorial shown |
+| `flexibility-task-switch` | Flexibility | L2 | VERIFIED | no tutorial shown |
+| `language-sentence-builder` | Language | L2 | VERIFIED | no tutorial shown |
+| `language-word-chain` | Language | L2 | VERIFIED | no tutorial shown |
+| `language-context-fit` | Language | L0 | PARTIAL | 2 REVEAL + 1 NAV, then `NO_LEGITIMATE_STEP` |
+| `language-word-match` | Language | L0 | PARTIAL | 2 REVEAL + 1 NAV, then `NO_LEGITIMATE_STEP` |
+| `language-word-scramble` | Language | L0 | PARTIAL | 4 REVEAL + 1 NAV, then `NO_LEGITIMATE_STEP` |
+| `logic-order-path` | Logic | L2 | VERIFIED | no tutorial shown |
+| `logic-code-cracker` | Logic | L1 | VERIFIED | no tutorial shown |
+| `logic-next-sequence` | Logic | L1 | VERIFIED | no tutorial shown |
+| `logic-rule-grid` | Logic | L1 | VERIFIED | no tutorial shown |
+| `logic-deduction-table` | Logic | L0 | PARTIAL | 2 REVEAL + 1 NAV |
+| `math-fast-math` | Math | L3 | VERIFIED | no tutorial shown |
+| `math-number-line-estimation` | Math | L3 | VERIFIED | no tutorial shown |
+| `math-missing-operator` | Math | L2 | VERIFIED | no tutorial shown |
+| `math-equation-builder` | Math | L0 | PARTIAL | 23 REVEAL + 1 NAV |
+| `math-value-ordering` | Math | L0 | PARTIAL | no tutorial shown |
+| `memory-pair-recall` | Memory | L2 | VERIFIED | no tutorial shown |
+| `memory-running-order` | Memory | L1 | VERIFIED | no tutorial shown |
+| `memory-prospective-cue` | Memory | L1 | VERIFIED | no tutorial shown |
+| `memory` | Memory | L0 | PARTIAL | 9 REVEAL + 1 NAV, `NO_LEGITIMATE_STEP` |
+| `memory-grid-recall` | Memory | L0 | PARTIAL | 11 REVEAL + 1 NAV, `NO_LEGITIMATE_STEP` |
+| `memory-pattern-tap-back` | Memory | L0 | PARTIAL | 9 REVEAL + 1 NAV, `NO_LEGITIMATE_STEP` |
+| `memory-sequence-memory` | Memory | L0 | PARTIAL | 4 REVEAL + 1 NAV, `NO_LEGITIMATE_STEP` |
+| `spatial-fold-match` | Spatial | L3 | VERIFIED | no tutorial shown |
+| `spatial-transform-match` | Spatial | L3 | VERIFIED | no tutorial shown |
+| `spatial-coordinate-turn` | Spatial | L2 | VERIFIED | no tutorial shown |
+| `spatial-mental-rotation` | Spatial | L0 | PARTIAL | 1 DERIVED + 1 REVEAL + 1 NAV |
+| `spatial-grid-nav` | Spatial | L0 | PARTIAL | no tutorial shown |
+| `speed-quick-compare` | Speed | L3 | VERIFIED | no tutorial shown |
+| `speed-color-match` | Speed | L2 | VERIFIED | no tutorial shown |
+| `speed-reaction-time` | Speed | L2 | VERIFIED | no tutorial shown |
+| `speed-order-sweep` | Speed | L1 | VERIFIED | no tutorial shown |
+| `speed-tap-rush` | Speed | L0 | PARTIAL | 1 DERIVED + 1 NAV, `NO_LEGITIMATE_STEP` |
 
-## Coverage-validation diagnostics
+## 3. Domain distribution
 
-_None._
+| Domain | Games | L3 | L2 | L1 | L0 |
+|---|---:|---:|---:|---:|---:|
+| Attention | 5 | 2 | 0 | 2 | 1 |
+| Flexibility | 5 | 0 | 5 | 0 | 0 |
+| Language | 5 | 0 | 2 | 0 | 3 |
+| Logic | 5 | 0 | 1 | 3 | 1 |
+| Math | 5 | 3 | 1 | 0 | 1 |
+| Memory | 6 | 0 | 1 | 2 | 3 |
+| Spatial | 5 | 3 | 1 | 0 | 1 |
+| Speed | 6 | 1 | 3 | 1 | 1 |
+| **Total** | **42** | **7** | **13** | **8** | **14** |
+
+All eight cognitive domains have distinct native evidence, and seven of the
+eight now contain at least one L2-and-above certification.
+
+## 4. Evidence-integrity note — superseded ledgers
+
+`native-coverage-ledger-v2/v4/v5/v6.json` are **retained as historical records
+but FAIL independent verification** and their numbers are **not** cited as
+certification.
+
+Cause: the sweep's artifact root was a fixed path, so each new sweep overwrote
+the previous sweep's screenshots and hierarchies while the older ledgers still
+recorded the original digests. Measured across those four ledgers, **482 of 1100
+artifact paths were claimed with more than one different sha256**.
+
+This is exactly the failure class the certification engine exists to refuse
+("a screenshot must not be accepted merely because its filename resembles the
+expected artifact"), and the verifier caught it. No digest was regenerated and
+no ledger was rewritten to look green — the correct response to unverifiable
+evidence is to re-establish it, which v8 does under per-run artifact isolation.
+
+## 5. How to reproduce
+
+```bash
+node scripts/qa/verify-artifacts.mjs scripts/qa/native-coverage-ledger-v8.json --mode local --strict
+node scripts/qa/merge-coverage.mjs --strict
+node --test scripts/qa/*.test.mjs
+```

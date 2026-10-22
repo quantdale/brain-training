@@ -514,6 +514,7 @@ async function driveGame(ctx) {
   //    on the run so a reveal-guided clear is never described as
   //    knowledge-derived play.
   const tappedInTutorial = new Set();
+  const tutorialKnownCorrect = new Set();
   const tutorialSolveLog = [];
   let enteredDigits = '';
   let equationStaged = [];
@@ -543,7 +544,10 @@ async function driveGame(ctx) {
       lastTapped: lastTutorialTarget,
       // Retry at most once per demo: taking it twice in a row means the demo is
       // not clearing for a reason the harness should report, not spin on.
-      retriedThisDemo: tutorialSolveLog.some((e) => e && e.target === 'tutorial-demo-retry'),
+      retriedThisDemo: tutorialSolveLog.some((e) => e && /^tutorial-(demo-)?retry$/.test(e.target || '')),
+      // Accumulated across the whole tutorial attempt so knowledge survives a
+      // board reset (the app clears selections but does not re-reveal targets).
+      knownCorrect: tutorialKnownCorrect,
     });
 
     if (!plan) {
@@ -571,7 +575,11 @@ async function driveGame(ctx) {
     // A demo that RESETS its board on "Clear and retry" requires the harness to
     // reset its own used-control set; otherwise every cell looks already-used
     // after one retry and the demo can never be re-attempted.
+    if (plan.knownCorrect) {
+      for (const k of plan.knownCorrect) tutorialKnownCorrect.add(k);
+    }
     if (plan.resetsTapped) {
+      // Clear only the USED set: learned targets are retained separately.
       tappedInTutorial.clear();
       enteredDigits = '';
       equationStaged = [];

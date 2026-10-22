@@ -445,67 +445,74 @@ function solveMissingOperator(observation) {
  */
 function solveGridRebuild(observation, ctx) {
   const s = suffixesOf(observation);
+  const status = textOf((observation.controlDetails || {})['tutorial-demo-status']);
 
-  // A demo that has accumulated wrong picks offers "Clear and retry". Retrying
-  // is the demo's OWN recovery path, so taking it is a legitimate step — and it
-  // is REQUIRED: without it the tracker demo can never clear, because the wrong
-  // picks it just recorded stay on the board and the run stalls (this is why
-  // attention-symbol-tracker sat at L0 with "tutorial never cleared").
-  // Preferred FIRST, before the revealed-answer branch: after accumulating wrong
-  // picks a demo offers "Clear and retry", and the app RESETS its board when it
-  // is taken. If the harness instead keeps using its stale tapped-set, every
-  // cell looks already-used and the demo can never be re-attempted — the exact
-  // `NO_LEGITIMATE_STEP` stall observed on memory-grid-recall.
+  // These demos work in two phases: the target cells are briefly REVEALED, then
+  // hidden and the player must rebuild the pattern. Probing a cell makes the app
+  // render its own verdict ("Correct: Cell 4" / "Wrong pick: Cell 2"), so the
+  // solver can LEARN the target set — provided it remembers what it learned.
+  //
+  // The critical detail (this is what kept ~10 games at L0): "Clear and retry"
+  // RESETS the selections but does NOT re-reveal the targets. So the correct
+  // strategy is observe -> learn -> clear wrong picks -> select the LEARNED
+  // cells. Taking retry first, or forgetting the learned set on retry, loops
+  // forever: the app clears the board and the harness starts guessing again.
+  const known = ctx.knownCorrect instanceof Set ? ctx.knownCorrect : new Set(ctx.knownCorrect || []);
+  for (const k of revealedCorrectControls(observation)) known.add(k);
+
+  // The demo states how many cells form the pattern ("Tap the 2 highlighted…").
+  const countMatch = /(\d+)\s*highlighted/i.exec(status);
+  const targetCount = countMatch ? Number(countMatch[1]) : null;
+
   const retry = s.find((k) => /^tutorial-(demo-)?retry$/.test(k));
+  const learnedEnough = targetCount !== null ? known.size >= targetCount : known.size > 0;
+
+  // Phase 1 — gather knowledge by probing cells not yet probed.
+  if (!learnedEnough) {
+    const cells = s.filter((k) => /(^|\.)(cell|tile|card)(\.\d+|\.\d+-\d+)$/.test(k) && !/verdict/.test(k));
+    const fresh = cells.find((k) => !ctx.tapped.has(k));
+    if (fresh) {
+      return {
+        action: 'tap',
+        target: fresh,
+        tier: SolveTier.REVEAL_GUIDED,
+        reason: `probing '${fresh}' to learn the pattern from the app's own verdict`,
+      };
+    }
+    return null;
+  }
+
+  // Phase 2 — the wrong picks are now known and the app offers a reset. Clear
+  // them (keeping what we learned) so the pattern can be rebuilt cleanly.
   if (retry && !ctx.retriedThisDemo) {
     return {
       action: 'tap',
       target: retry,
       tier: SolveTier.REVEAL_GUIDED,
-      // `resetsTapped: true` tells the caller to CLEAR its used-control set: the
-      // app resets its board on retry, so the harness must reset with it.
       resetsTapped: true,
-      reason: 'the demo is offering "Clear and retry" after incorrect picks — taking the demo recovery path',
+      knownCorrect: [...known],
+      reason: `learned ${known.size} target cell(s); clearing the wrong picks before rebuilding`,
     };
   }
 
-  const revealed = revealedCorrectControls(observation).filter((k) => !ctx.tapped.has(k));
-  if (revealed.length) {
+  // Phase 3 — select ONLY the learned target cells.
+  const ordered = [...known].filter((k) => s.includes(k));
+  const next = ordered.find((k) => !ctx.selectedAfterReset?.has?.(k) && !ctx.tapped.has(k)) || ordered.find((k) => !ctx.tapped.has(k));
+  if (next) {
     return {
       action: 'tap',
-      target: revealed[0],
+      target: next,
       tier: SolveTier.REVEAL_GUIDED,
-      reason: `app marked '${revealed[0]}' as the correct cell — selecting the revealed answer`,
+      reason: `selecting '${next}', a cell the app revealed as part of the pattern`,
     };
   }
-  // Pattern-rebuild demos mark judged cells with a verdict marker in EITHER
-  // shape: a `-verdict.N` prefix (grid-level) or a `.verdict` SUFFIX on the cell
-  // itself (`tutorial-grid.card.0.verdict`). Only the prefix form was handled,
-  // so a demo using the suffix form never yielded a target and stalled.
-  const verdictCells = [
-    ...s.filter((k) => /-verdict\.\d+$/.test(k)).map((k) => k.replace(/-verdict\./, '.')),
-    ...s.filter((k) => /\.verdict$/.test(k)).map((k) => k.replace(/\.verdict$/, '')),
-  ];
-  const nextVerdict = verdictCells.find((k) => s.includes(k) && !ctx.tapped.has(k));
-  if (nextVerdict) {
-    return {
-      action: 'tap',
-      target: nextVerdict,
-      tier: SolveTier.REVEAL_GUIDED,
-      reason: `app rendered a verdict marker for '${nextVerdict}' — that cell was already judged part of the demo answer`,
-    };
+
+  // Everything learned has been selected; the demo should now be satisfied.
+  const done = s.find((k) => /^tutorial-(demo-done|done)$/.test(k));
+  if (done) {
+    return { action: 'tap', target: done, tier: SolveTier.NAVIGATION, reason: 'pattern rebuilt — acknowledge the completed demo' };
   }
-  // No reveal yet: an untried cell must be attempted to obtain the app's
-  // feedback. This is a deliberate probe, reported as such (never DERIVED).
-  const cells = s.filter((k) => /(^|\.)(cell|tile|card)(\.\d+|\.\d+-\d+)$/.test(k) && !/verdict/.test(k));
-  const target = cells.find((k) => !ctx.tapped.has(k));
-  if (!target) return null;
-  return {
-    action: 'tap',
-    target,
-    tier: SolveTier.REVEAL_GUIDED,
-    reason: `probing '${target}' to obtain the app's own correctness feedback (no answer revealed yet)`,
-  };
+  return null;
 }
 
 /**
@@ -961,6 +968,10 @@ export function planTutorialStep(observation, state = {}) {
     equation: state.equation || [],
     lastTapped: state.lastTapped || null,
     retriedThisDemo: state.retriedThisDemo === true,
+    // Knowledge the solver accumulated across a board reset. Surviving the
+    // retry is the whole point: the app clears its selections but does NOT
+    // re-reveal the targets, so a solver that forgets must guess forever.
+    knownCorrect: state.knownCorrect instanceof Set ? state.knownCorrect : new Set(state.knownCorrect || []),
   };
 
   // Navigation always takes precedence: if the app is offering "done"/"next",
