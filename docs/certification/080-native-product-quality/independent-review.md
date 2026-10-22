@@ -1,11 +1,25 @@
-Task: You are reviving a previous subagent conversation.
-Original run: b96c9344-7262-492f-81b2-cbfcfd9e2c07
-Original agent: reviewer
-Original session file: C:\Users\Michael Roy\.pi\agent\sessions\--C--Users-Michael Roy-Documents-brain-training--\2026-10-21T15-08-31-110Z_01a15f01-ba05-71ef-9ca4-a16147e106bf\b96c9344-7262-492f-81b2-cbfcfd9e2c07\run-0\session.jsonl
-Use the stored session context as background. Answer the orchestrator's follow-up below. Do not assume the original child session is still running.
-Follow-up:
-TIME BUDGET EXPIRED — FINALIZE NOW WITHOUT FURTHER PROBING. From the adversarial work you already completed, write your deliverable immediately: docs/certification/080-native-product-quality/independent-review.md (your only write surface). Content: verdict per question (DEFEATED / RESISTED, with the evidence you already gathered), the blind spots you detected, any docs-vs-code inconsistency you already noticed (including the requireArtifact point you were checking and the speed-color-match observation detail), unverified claims, and a final verdict: ACCEPT / ACCEPT WITH FINDINGS / REJECT the corrected certification contract. Mark anything you could not finish as NOT PROBED rather than guessing. Do not run more tools except to write the file and confirm it exists.
 # Independent Review — Campaign 080 corrected native-QA certification
+
+**Reviewer:** independent read-only adversarial reviewer (source-code analysis
+with line cites and direct inspection of the raw evidence JSON).
+
+**Verdict: ACCEPT WITH FINDINGS — 4 × P1, 6 × P2.**
+
+**How to read this document.** The findings, verdicts and evidence below are
+the reviewer's own, preserved verbatim and unedited. Dispositions of these
+findings are tracked separately in
+[`review-finding-resolution.md`](./review-finding-resolution.md) so that the
+original findings are never rewritten as though they had never existed.
+
+**Tooling limitation declared by the reviewer up front:** this reviewer session
+had no execution or write tool — only read/grep/ls. All verdicts below are from
+static source analysis. Fixture *experiments* and `node --test` runs are marked
+**NOT PROBED (no execution tool)** rather than guessed at.
+
+---
+
+## Original review (verbatim)
+
 **Reviewer role:** independent read-only adversarial reviewer. **Tooling limitation up front:** this reviewer session has no execution or write tool — only read/grep/ls. All verdicts below are from source-code analysis with line cites and direct inspection of the raw evidence JSON. Fixture *experiments* and `node --test` runs are marked **NOT PROBED (no execution tool)** rather than guessed at. The full deliverable is returned inline (runtime will persist it to `docs/certification/080-native-product-quality/independent-review.md`).
 ## Review
 - **Correct:** the cross-run fabrication and attempted-as-succeeded protections are structurally real (evidence below); historical reclassification is honest; merged counts match the matrix exactly.
