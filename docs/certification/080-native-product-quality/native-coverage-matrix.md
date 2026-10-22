@@ -122,3 +122,66 @@ node scripts/qa/verify-artifacts.mjs scripts/qa/native-coverage-ledger-v8.json -
 node scripts/qa/merge-coverage.mjs --strict
 node --test scripts/qa/*.test.mjs
 ```
+
+---
+
+## 6. Post-v8 harness improvements and their effect (measured)
+
+Three further harness defects were found by reading the app's own tutorial
+contracts rather than by trial and error. Each is fixed, tested, and its effect
+measured on the affected games.
+
+### 6.1 "Clear and retry" does NOT re-reveal — fixed, measured
+
+The memory/attention demos are two-phase: targets are briefly revealed, then
+hidden. Probing a cell makes the app render its own verdict
+(`Correct: Cell 4` / `Wrong pick: Cell 2`), so the solver can *learn* the target
+set. The decisive contract detail is that **retry clears the selections but does
+not re-reveal the targets**. The previous solver retried as soon as a retry
+control merely existed, discarding what it had learned and restarting the guess
+loop forever.
+
+Correct order is `probe → learn → clear wrong picks → select the learned cells`,
+with `knownCorrect` explicitly carried **across** the reset.
+
+Measured effect: `memory-grid-recall` **L0 → L1 VERIFIED** (tutorial fully
+cleared: 12 steps → `tutorial-demo-done` → `tutorial-done`).
+
+### 6.2 Retry spelling and repeatable stimulus — fixed
+
+- `tutorial-retry` (language family) and `tutorial-demo-retry` (grid family) are
+  both recognised.
+- A demo stating a remaining count (`Tap the target (3 left)`) marks its stimulus
+  **repeatable**; without a count the control stays one-shot, so this cannot
+  degrade into blind re-tapping.
+
+### 6.3 Remaining L0 stand a DIFFERENT, honestly-stated blocker
+
+The residual stalls are **stimulus-observation-rate limits, not app defects and
+not solver defects**:
+
+- `memory`, `memory-pattern-tap-back`, `memory-sequence-memory` and
+  `memory-running-order` reveal a sequence **one tile at a time** with a short
+  flash, then require it be replayed **in order**. A ~900 ms polling loop cannot
+  sample every flash, so the harness never learns the sequence it must replay.
+  The app correctly refuses a wrong tap and ends the attempt.
+- `attention-symbol-tracker`, `language-*`, `logic-deduction-table`,
+  `math-equation-builder`, `spatial-*` and `speed-tap-rush` each report an
+  explicit `NO_LEGITIMATE_STEP` where the demo's next requirement was not
+  observable through the current polling contract.
+
+Recording these as automation gaps is the honest disposition. They were
+deliberately **not** converted into "passed" by tapping arbitrary controls, which
+would fabricate interactions the user never performed. Closing them requires a
+faster observation channel (e.g. continuous screencap or accessibility-event
+streaming) rather than a change to certification rules.
+
+## 7. What is NOT claimed
+
+- No L4 certification exists (requires verified resilience subcapabilities).
+- Physical-device, ARM64 and iOS runtime coverage are unavailable here.
+- `REVEAL_GUIDED` tutorial clears are legitimate interactions but weaker
+  evidence than `DERIVED`; they are labelled per step and never presented as
+  knowledge-derived play.
+- Tutorial completion does not by itself certify subsequent gameplay; levels are
+  derived from the full axis set.
