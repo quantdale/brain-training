@@ -454,3 +454,36 @@ test('REAL DATA: a fully satisfied demo is acknowledged rather than poked foreve
   }
   assert.deepEqual(stuck, [], 'a completed demo must be acknowledged');
 });
+
+
+test('retry signals a board reset so the demo can be re-attempted', () => {
+  // Regression (confirmed on memory-grid-recall): after accumulating wrong picks
+  // the demo offers "Clear and retry" and RESETS its board. The harness kept a
+  // stale tapped-set, so every cell looked already-used and the solver returned
+  // NO_LEGITIMATE_STEP forever — the demo could never be re-attempted.
+  const o = obs(
+    ['tutorial', 'tutorial-grid', 'tutorial-demo-retry', 'tutorial-demo-status',
+      'cell.0', 'cell.1', 'cell.2', 'cell.3', 'cell.5'],
+    {
+      'cell.0': { desc: 'Wrong pick: Cell 1' },
+      'cell.3': { desc: 'Correct: Cell 4' },
+      'cell.5': { desc: 'Correct: Cell 6' },
+    },
+  );
+  // Everything already used, yet retry must STILL be offered.
+  const tapped = new Set(['cell.0', 'cell.1', 'cell.2', 'cell.3', 'cell.5', 'tutorial-next']);
+  const retryPlan = planTutorialStep(o, { gameId: 'memory-grid-recall', tapped, retriedThisDemo: false });
+  assert.equal(retryPlan.target, 'tutorial-demo-retry');
+  assert.equal(retryPlan.resetsTapped, true, 'the caller must clear its used-control set');
+
+  // After the reset the revealed correct cells are selectable again.
+  const postReset = planTutorialStep(o, { gameId: 'memory-grid-recall', tapped: new Set(), retriedThisDemo: true });
+  assert.equal(postReset.target, 'cell.3');
+  assert.equal(postReset.tier, SolveTier.REVEAL_GUIDED);
+
+  // Retry is offered at most once per demo, so the harness cannot spin on it.
+  const noDoubleRetry = planTutorialStep(o, {
+    gameId: 'memory-grid-recall', tapped: new Set(['tutorial-demo-retry']), retriedThisDemo: true,
+  });
+  assert.notEqual(noDoubleRetry && noDoubleRetry.target, 'tutorial-demo-retry');
+});

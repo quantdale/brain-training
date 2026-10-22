@@ -445,11 +445,36 @@ async function driveGame(ctx) {
   observe(ctx, 'pre-launch', true);
 
   // 1. Launch via deep link (identity proof comes from the observation).
-  adb(serial, ['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `braintraining://game/${gameId}`], { timeout: 20000, tolerant: true });
-  ctx.appLaunched = true;
-  await sleep(2800);
-  const launchObs = observe(ctx, 'launch', true);
-  emitEvent(ctx, { action: 'deeplink', target: `braintraining://game/${gameId}`, actionExecuted: true, actionAcknowledged: launchObs.observedGameId === gameId, before: ctx.observations[ctx.observations.length - 2], after: launchObs });
+  //
+  // Launch is RETRIED, and its result is reported truthfully. A single tolerant
+  // `am start` was not enough: when the previous game's activity was still
+  // tearing down, the intent was delivered to a dying instance and the run
+  // captured `launch:exited` / `launch:launcher` for the whole attempt. That
+  // surfaced as `L0 FAILED no trustworthy native smoke evidence` — a FALSE
+  // app-quality signal (an app defect is not indicated by a missed deep link
+  // while a previous activity is still finishing). Two games were mis-reported
+  // this way in one sweep and verified healthy on a re-run, so the harness now
+  // waits for the app to settle, retries the intent, and records honestly
+  // whether the launch actually executed.
+  let launchExecuted = false;
+  let launchObs = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(2500);
+    try {
+      adb(serial, ['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `braintraining://game/${gameId}`], { timeout: 20000 });
+      launchExecuted = true;
+    } catch {
+      launchExecuted = false;
+    }
+    ctx.appLaunched = true;
+    await sleep(attempt === 0 ? 2800 : 3500);
+    launchObs = observe(ctx, `launch${attempt === 0 ? '' : `-retry-${attempt}`}`, true);
+    // The deep link landed when the game's own screen is observed. Anything
+    // else (launcher / exited) means the intent did not take effect yet.
+    if (launchObs.state === GameStates.TUTORIAL || launchObs.state === GameStates.INTRO ||
+        launchObs.state === GameStates.PLAYING || launchObs.state === GameStates.RESULTS) break;
+  }
+  emitEvent(ctx, { action: 'deeplink', target: `braintraining://game/${gameId}`, actionExecuted: launchExecuted, actionAcknowledged: launchObs.observedGameId === gameId, before: ctx.observations[ctx.observations.length - 2], after: launchObs });
 
   // 2. Tutorial traversal — only while the OBSERVED state is 'tutorial'.
   //
@@ -494,6 +519,9 @@ async function driveGame(ctx) {
       enteredDigits,
       equation: equationStaged,
       lastTapped: lastTutorialTarget,
+      // Retry at most once per demo: taking it twice in a row means the demo is
+      // not clearing for a reason the harness should report, not spin on.
+      retriedThisDemo: tutorialSolveLog.some((e) => e && e.target === 'tutorial-demo-retry'),
     });
 
     if (!plan) {
@@ -518,8 +546,17 @@ async function driveGame(ctx) {
       tier: plan.tier,
       reason: plan.reason,
     });
-    tappedInTutorial.add(plan.target);
-    tappedInTutorial.add(key);
+    // A demo that RESETS its board on "Clear and retry" requires the harness to
+    // reset its own used-control set; otherwise every cell looks already-used
+    // after one retry and the demo can never be re-attempted.
+    if (plan.resetsTapped) {
+      tappedInTutorial.clear();
+      enteredDigits = '';
+      equationStaged = [];
+    } else {
+      tappedInTutorial.add(plan.target);
+      tappedInTutorial.add(key);
+    }
     lastTutorialTarget = key;
     if (/^digit\.\d$/.test(key)) enteredDigits += key.slice('digit.'.length);
     if (key === 'submit') enteredDigits = '';

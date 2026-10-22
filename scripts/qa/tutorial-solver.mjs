@@ -451,12 +451,20 @@ function solveGridRebuild(observation, ctx) {
   // is REQUIRED: without it the tracker demo can never clear, because the wrong
   // picks it just recorded stay on the board and the run stalls (this is why
   // attention-symbol-tracker sat at L0 with "tutorial never cleared").
+  // Preferred FIRST, before the revealed-answer branch: after accumulating wrong
+  // picks a demo offers "Clear and retry", and the app RESETS its board when it
+  // is taken. If the harness instead keeps using its stale tapped-set, every
+  // cell looks already-used and the demo can never be re-attempted — the exact
+  // `NO_LEGITIMATE_STEP` stall observed on memory-grid-recall.
   const retry = s.find((k) => /^tutorial-demo-retry$/.test(k));
-  if (retry && !ctx.tapped.has(retry)) {
+  if (retry && !ctx.retriedThisDemo) {
     return {
       action: 'tap',
       target: retry,
       tier: SolveTier.REVEAL_GUIDED,
+      // `resetsTapped: true` tells the caller to CLEAR its used-control set: the
+      // app resets its board on retry, so the harness must reset with it.
+      resetsTapped: true,
       reason: 'the demo is offering "Clear and retry" after incorrect picks — taking the demo recovery path',
     };
   }
@@ -945,6 +953,7 @@ export function planTutorialStep(observation, state = {}) {
     enteredDigits: state.enteredDigits || '',
     equation: state.equation || [],
     lastTapped: state.lastTapped || null,
+    retriedThisDemo: state.retriedThisDemo === true,
   };
 
   // Navigation always takes precedence: if the app is offering "done"/"next",
