@@ -323,6 +323,14 @@ export const TIMEOUT_MARKER_RE =
  * a shared `trial-wrong` vocabulary can be produced by an unanswered timeout as
  * well as by an answered trial (see the speed-color-match observation-vocabulary
  * conflation), so they cannot by themselves prove that an input was received.
+ *
+ * NOTE (Campaign 080 P2-B5, now closed app-side): `speed-color-match` used to
+ * emit `trial-wrong` for BOTH an incorrect colour and an expired stimulus. It
+ * now emits three distinct ids — `trial-correct` / `trial-wrong` /
+ * `trial-missed` — so `trial-missed` is a genuine timeout signal and is listed
+ * in TIMEOUT_MARKER_RE, while `trial-wrong` remains ambiguous for evidence from
+ * OLDER builds that still conflated them. `trial-wrong` is therefore kept in
+ * AMBIGUOUS_FEEDBACK_RE: the contract must stay correct for archived evidence.
  */
 export const ANSWER_FEEDBACK_RE =
   /(^|[.\-])(verdict-correct|verdict-wrong|verdict-incorrect|feedback-correct|feedback-wrong|feedback-incorrect|answer-correct|answer-incorrect|correct-answer|wrong-answer|trial-correct|trial-accepted)([.\-]|$)/i;

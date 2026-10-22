@@ -134,7 +134,12 @@ describe('SpeedColorMatchScreen trial verdict cue', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     await advance(clock, NORMAL.stimulusTimeoutMs + 1);
 
-    const cue = screen.getByTestId(testId(GAME_ID, 'trial-wrong'));
+    // A MISS has its own semantic id (`trial-missed`), distinct from the wrong
+    // pick's `trial-wrong`. Regression for review finding P2-B5: both failure
+    // modes previously shared one testID, so automation could not tell a
+    // wrong-colour tap from an expired stimulus.
+    const cue = screen.getByTestId(testId(GAME_ID, 'trial-missed'));
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
     expect(cue.props.accessibilityLabel).toBe('Last trial: missed');
     expect(cue).toHaveTextContent(/Missed/);
     expect(within(cue).getByTestId('status-icon-time', { includeHiddenElements: true })).toBeOnTheScreen();
@@ -155,15 +160,18 @@ describe('SpeedColorMatchScreen trial verdict cue', () => {
       screen.getByTestId(testId(GAME_ID, 'color-btn', trialsFor(seed)[0].swatchColor)),
     );
 
-    // The overdue tap resolved nothing: no hit cue, no success.
+    // The overdue tap resolved nothing: no hit cue, no success, and crucially
+    // no WRONG cue either — a late tap is not an incorrect answer.
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-correct'))).toBeNull();
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-missed'))).toBeNull();
 
-    // The timeout owns the resolution and presents the miss.
+    // The timeout owns the resolution and presents the MISS (not a wrong pick).
     await act(async () => {
       jest.advanceTimersByTime(NORMAL.stimulusTimeoutMs);
     });
-    const cue = screen.getByTestId(testId(GAME_ID, 'trial-wrong'));
+    const cue = screen.getByTestId(testId(GAME_ID, 'trial-missed'));
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
     expect(cue.props.accessibilityLabel).toBe('Last trial: missed');
     expect(screen.queryByTestId(testId(GAME_ID, 'trial-correct'))).toBeNull();
   });

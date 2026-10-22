@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import {
+  AMBIGUOUS_FEEDBACK_RE,
+  ANSWER_FEEDBACK_RE,
   AxisStatus,
+  CausalityVerdict,
+  TIMEOUT_MARKER_RE,
+  classifyInputCausality,
   classifyRun,
   deriveCapabilities,
   deriveLevel,
@@ -834,4 +839,68 @@ test('advance control: no advance control present returns null (passive is hones
   assert.equal(pickAdvanceControl(null), null);
   // A key ARRAY is accepted too (the sweep holds both shapes).
   assert.equal(pickAdvanceControl(['digit.1', 'next-round']), 'next-round');
+});
+
+
+// ===========================================================================
+// Timed-stimulus outcome vocabulary (Campaign 080 review finding P2-B5)
+//
+// CONFIRMED AMBIGUITY this pins: `speed-color-match` emitted ONE testID
+// (`trial-wrong`) for two genuinely different outcomes — the player tapped the
+// wrong colour, and the stimulus expired with no input. The certification
+// contract could therefore only treat it as ambiguous feedback, and automation
+// could not tell a wrong answer from a miss.
+//
+// The app now emits `trial-correct` / `trial-wrong` / `trial-missed`. These
+// tests pin the contract's reading of that vocabulary — and, importantly, keep
+// `trial-wrong` ambiguous so ARCHIVED evidence from builds that conflated the
+// two is never retroactively over-credited.
+// ===========================================================================
+
+test('B5: a missed stimulus is a timeout marker, not an answer verdict', () => {
+  assert.equal(TIMEOUT_MARKER_RE.test('trial-missed'), true);
+  // A miss must never be read as evidence that an answer arrived.
+  assert.equal(ANSWER_FEEDBACK_RE.test('trial-missed'), false);
+  assert.equal(AMBIGUOUS_FEEDBACK_RE.test('trial-missed'), false);
+});
+
+test('B5: an incorrect selection is ambiguous feedback and never a timeout marker', () => {
+  // Kept ambiguous deliberately: historical builds used this id for a miss too.
+  assert.equal(AMBIGUOUS_FEEDBACK_RE.test('trial-wrong'), true);
+  assert.equal(TIMEOUT_MARKER_RE.test('trial-wrong'), false);
+  assert.equal(ANSWER_FEEDBACK_RE.test('trial-wrong'), false);
+});
+
+test('B5: a correct selection is unambiguous accepted-answer feedback', () => {
+  assert.equal(ANSWER_FEEDBACK_RE.test('trial-correct'), true);
+  assert.equal(TIMEOUT_MARKER_RE.test('trial-correct'), false);
+  assert.equal(AMBIGUOUS_FEEDBACK_RE.test('trial-correct'), false);
+});
+
+test('B5: a wrong selection is NOT misreported as a timeout in causal attribution', () => {
+  // A tap that produces `trial-wrong` must not be credited as autonomous
+  // timeout, and must not be credited as accepted input either (ambiguous).
+  const before = { seq: 0, phase: 'play-0', controls: ['color-btn.red', 'trial-status'], score: 'Score 0' };
+  const wrongTap = { seq: 1, phase: 'play-0', controls: ['color-btn.red', 'trial-status', 'trial-wrong'], score: 'Score 0' };
+  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: wrongTap, action: 'tap' });
+  assert.notEqual(c.verdict, CausalityVerdict.AUTONOMOUS_TIMEOUT,
+    'a wrong COLOUR pick is an answered trial, never an autonomous timeout');
+  assert.notEqual(c.verdict, CausalityVerdict.INPUT_ACCEPTED,
+    'ambiguous wrong-pick vocabulary alone must not certify acceptance');
+});
+
+test('B5: an expired stimulus IS attributed as an autonomous timeout', () => {
+  const before = { seq: 0, phase: 'play-0', controls: ['color-btn.red', 'trial-status'], score: 'Score 0' };
+  const missTap = { seq: 1, phase: 'play-0', controls: ['color-btn.red', 'trial-status', 'trial-missed'], score: 'Score 0' };
+  const c = classifyInputCausality({ target: 'color-btn.red', before, after: missTap, action: 'tap' });
+  assert.equal(c.verdict, CausalityVerdict.AUTONOMOUS_TIMEOUT,
+    'a fresh trial-missed marker is a genuine timed expiry');
+  assert.ok(c.signals.includes('autonomous-timeout-marker'));
+});
+
+test('B5: a successful response remains correctly scored as accepted', () => {
+  const before = { seq: 0, phase: 'play-0', controls: ['color-btn.red', 'trial-status'], score: 'Score 0' };
+  const hit = { seq: 1, phase: 'play-0', controls: ['color-btn.red', 'trial-status', 'trial-correct'], score: 'Score 10' };
+  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: hit, action: 'tap' });
+  assert.equal(c.verdict, CausalityVerdict.INPUT_ACCEPTED);
 });

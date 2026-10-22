@@ -265,7 +265,7 @@ describe('SpeedColorMatchScreen', () => {
     // restarts from the resume moment.
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
     expect(screen.queryByTestId(testId(GAME_ID, 'pause-overlay'))).toBeNull();
-    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-missed'))).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
 
     // Just inside the restored window: still waiting for an answer.
@@ -273,14 +273,16 @@ describe('SpeedColorMatchScreen', () => {
       clock.advance(3_500);
       jest.advanceTimersByTime(3_500);
     });
-    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-missed'))).toBeNull();
 
-    // Past the restored window: the trial times out.
+    // Past the restored window: the trial times out — an expired stimulus with
+    // NO input is a MISS (`trial-missed`), not a wrong answer (`trial-wrong`).
     await act(async () => {
       clock.advance(600);
       jest.advanceTimersByTime(600);
     });
-    expect(screen.getByTestId(testId(GAME_ID, 'trial-wrong'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'trial-missed'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
   });
 
   it('persists the final adaptive challenge rating in the session record', async () => {

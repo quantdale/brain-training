@@ -83,7 +83,21 @@ export interface SpeedColorMatchScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Verdict kinds for the trial cue (reducer outcome + reaction presence). */
+/**
+ * Verdict kinds for the trial cue (reducer outcome + reaction presence).
+ *
+ * These are DISTINCT player-facing outcomes and each carries its own semantic
+ * testID, so automation can never confuse them:
+ *
+ *   'hit'     -> `trial-correct`  input accepted, colour matched
+ *   'wrong'   -> `trial-wrong`    input accepted, colour differed
+ *   'missed'  -> `trial-missed`   no input inside the stimulus window
+ *
+ * The reducer collapses both failure modes into `timeout` and records a
+ * reaction time only for a real tap, so the distinction is re-derived here from
+ * authoritative state: `timeout` WITH a reaction reading is a wrong pick,
+ * `timeout` WITHOUT one is a miss.
+ */
 type TrialVerdict = 'hit' | 'wrong' | 'missed';
 
 /**
@@ -165,7 +179,14 @@ function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
             badge: theme.warning,
             glyphColor: theme.warningOn,
             text: 'warning' as const,
-            testID: 'trial-wrong',
+            // Distinct from `trial-wrong` on purpose: a MISSED trial (the
+            // stimulus expired with no input) and a WRONG trial (the player
+            // tapped the wrong colour) are different outcomes with different
+            // causes and different coaching. Sharing one testID made them
+            // indistinguishable to automation and to the accessible name's
+            // machine-readable counterpart, which is exactly the ambiguity
+            // Campaign 080 review finding P2-B5 recorded.
+            testID: 'trial-missed',
           };
 
   return (
