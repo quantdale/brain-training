@@ -278,9 +278,13 @@ export function isTutorialSurface(observation) {
 /** A control usable as a "next/continue/done" navigation affordance. */
 export function navigationTarget(observation, { includeSkip = false } = {}) {
   const s = suffixesOf(observation);
+  // `tutorial-demo-done` ("That's it") is the per-demo completion affordance
+  // that appears once the demo is satisfied; it precedes the final
+  // `tutorial-done`. It is listed BEFORE the navigation verbs because a demo
+  // that has just been completed should be acknowledged, not re-entered.
   const order = includeSkip
-    ? ['tutorial-skip', 'tutorial-done', 'tutorial-notice-continue', 'tutorial-demo-next', 'tutorial-next', 'tutorial-feedback-next', 'tutorial-retry']
-    : ['tutorial-done', 'tutorial-notice-continue', 'tutorial-demo-next', 'tutorial-next', 'tutorial-feedback-next'];
+    ? ['tutorial-skip', 'tutorial-demo-done', 'tutorial-done', 'tutorial-notice-continue', 'tutorial-demo-next', 'tutorial-next', 'tutorial-feedback-next', 'tutorial-retry']
+    : ['tutorial-demo-done', 'tutorial-done', 'tutorial-notice-continue', 'tutorial-demo-next', 'tutorial-next', 'tutorial-feedback-next'];
   // `tutorial-retry` is only a navigation target when the demo is COMPLETE and
   // offering a retry; treating it as navigation mid-demo would discard progress.
   return order.find((k) => s.includes(k)) || null;
@@ -450,10 +454,14 @@ function solveGridRebuild(observation, ctx) {
       reason: `app marked '${revealed[0]}' as the correct cell — selecting the revealed answer`,
     };
   }
-  // Pattern-rebuild demos mark remaining required cells with a verdict suffix.
-  const verdictCells = s
-    .filter((k) => /-verdict\.\d+$/.test(k))
-    .map((k) => k.replace(/-verdict\./, '.'));
+  // Pattern-rebuild demos mark judged cells with a verdict marker in EITHER
+  // shape: a `-verdict.N` prefix (grid-level) or a `.verdict` SUFFIX on the cell
+  // itself (`tutorial-grid.card.0.verdict`). Only the prefix form was handled,
+  // so a demo using the suffix form never yielded a target and stalled.
+  const verdictCells = [
+    ...s.filter((k) => /-verdict\.\d+$/.test(k)).map((k) => k.replace(/-verdict\./, '.')),
+    ...s.filter((k) => /\.verdict$/.test(k)).map((k) => k.replace(/\.verdict$/, '')),
+  ];
   const nextVerdict = verdictCells.find((k) => s.includes(k) && !ctx.tapped.has(k));
   if (nextVerdict) {
     return {

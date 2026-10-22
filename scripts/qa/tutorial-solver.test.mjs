@@ -379,3 +379,43 @@ test('REAL DATA: derived tiers are only claimed where the answer is genuinely co
   const unexpected = derived.filter((g) => !ALLOWED.has(g));
   assert.deepEqual(unexpected, [], 'DERIVED claimed for a game whose tutorial answer is not computable');
 });
+
+
+// ===========================================================================
+// 10. Gaps found by a fresh sweep (demo-done affordance, .verdict suffix)
+// ===========================================================================
+
+test('demo-done, the "That is it" affordance, is a navigation target and outranks next', () => {
+  // `tutorial-demo-done` appears once the demo is satisfied. It was missing
+  // from the navigation list, so a completed demo could never be acknowledged
+  // and the run stalled at "tutorial shown but never cleared".
+  assert.equal(navigationTarget(obs(['tutorial', 'tutorial-demo-done'])), 'tutorial-demo-done');
+  assert.equal(
+    navigationTarget(obs(['tutorial', 'tutorial-demo-done', 'tutorial-next'])),
+    'tutorial-demo-done',
+    'acknowledging a completed demo precedes generic navigation',
+  );
+});
+
+test('a .verdict SUFFIX marker identifies a judged cell just like -verdict.N', () => {
+  // Real shape recorded on flexibility-rule-flip: `tutorial-grid.card.0.verdict`
+  // (suffix) alongside `tutorial-grid.card.0`. Only the `-verdict.N` PREFIX form
+  // was handled, so suffix-form demos yielded no target and stalled.
+  const o = obs(
+    ['tutorial', 'tutorial-grid', 'tutorial-grid.card.0', 'tutorial-grid.card.1', 'tutorial-grid.card.0.verdict'],
+    { 'tutorial-grid.card.0': { desc: 'blue square 3' }, 'tutorial-grid.card.1': { desc: 'red circle 2' } },
+  );
+  const plan = planTutorialStep(o, { gameId: 'flexibility-rule-flip' });
+  assert.ok(plan);
+  assert.equal(plan.target, 'tutorial-grid.card.0');
+});
+
+test('the grid-rebuild family takes "Clear and retry" when the demo offers it', () => {
+  const o = obs(
+    ['tutorial', 'tutorial-grid', 'cell.0', 'cell.1', 'tutorial-demo-retry'],
+    { 'cell.0': { desc: 'Correct: Cell 1' } },
+  );
+  const plan = planTutorialStep(o, { gameId: 'attention-symbol-tracker' });
+  assert.equal(plan.target, 'tutorial-demo-retry');
+  assert.match(plan.reason, /retry/i);
+});
