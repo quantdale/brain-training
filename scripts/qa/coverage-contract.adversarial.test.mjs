@@ -417,6 +417,13 @@ test('B11 (P1-B): deriveScreenKind maps every harness signal to the intended sem
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'adb-failure' }), ScreenKind.ADB_FAILURE);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'ok', controlCount: 3 }), ScreenKind.GAME_SCREEN);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.APP_DESTINATION);
+  // `dumpsys window` reports a COMPONENT (`package/activity`), not a bare
+  // package name. Regression: that comparison silently never matched, so every
+  // real app destination fell through to UNKNOWN and safe exits were never
+  // proven on device (32 of 42 games were downgraded to L0 for exactly this).
+  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: `${pkg}/${pkg}.MainActivity`, hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.APP_DESTINATION,
+    'a component name must resolve to its package before comparison');
+  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher', hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.LAUNCHER);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.launcher3', hierarchyStatus: 'ok' }), ScreenKind.LAUNCHER);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.systemui', hierarchyStatus: 'ok' }), ScreenKind.SYSTEM_DIALOG);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.permissioncontroller', hierarchyStatus: 'ok' }), ScreenKind.PERMISSION_DIALOG);

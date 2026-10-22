@@ -254,10 +254,15 @@ export function deriveScreenKind(input) {
   // as focused, so focus must never be allowed to override observed controls.
   if (controlCount > 0) return ScreenKind.GAME_SCREEN;
   if (!focusPackage) return ScreenKind.UNKNOWN;
-  if (expectedPackage && focusPackage === expectedPackage) return ScreenKind.APP_DESTINATION;
-  if (LAUNCHER_PACKAGES.has(focusPackage)) return ScreenKind.LAUNCHER;
-  if (PERMISSION_PACKAGES.has(focusPackage)) return ScreenKind.PERMISSION_DIALOG;
-  if (SYSTEM_DIALOG_PACKAGES.has(focusPackage)) return ScreenKind.SYSTEM_DIALOG;
+  // `dumpsys window` reports a COMPONENT (`package/activity`), not a bare
+  // package name. Comparing the raw token against the package silently never
+  // matched, so every genuine app destination fell through to UNKNOWN and safe
+  // exits could not be proven. Compare the package portion only.
+  const focusPkg = String(focusPackage).split('/')[0];
+  if (expectedPackage && focusPkg === expectedPackage) return ScreenKind.APP_DESTINATION;
+  if (LAUNCHER_PACKAGES.has(focusPkg)) return ScreenKind.LAUNCHER;
+  if (PERMISSION_PACKAGES.has(focusPkg)) return ScreenKind.PERMISSION_DIALOG;
+  if (SYSTEM_DIALOG_PACKAGES.has(focusPkg)) return ScreenKind.SYSTEM_DIALOG;
   return ScreenKind.UNKNOWN;
 }
 
