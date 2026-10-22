@@ -19,6 +19,91 @@ activation: dedicated AVD `braintraining-qa36` (emulator-5554, x86_64,
 external checkout present at `D:/Tools/artemis`. Full plan: the 080 OpenSpec
 tasks; deliverables under `docs/certification/080-native-product-quality/`.
 
+### Campaign 080 progress — 2026-10-22 (VERIFIER DEFECTS, TUTORIAL SOLVERS, EVIDENCE-INTEGRITY REPAIR)
+
+Checkpoint `77972354`. Application source changed ONCE this wave (the P2-B5
+testID split) and the APK was rebuilt and identity-verified afterwards.
+
+**Both newly reported verifier defects FIXED.** They were architectural, so the
+repair is architectural: verdict derivation, build-scope policy and the process
+exit code now live in ONE pure module (`scripts/qa/artifact-integrity.mjs`) and
+the CLI is reduced to args + I/O + `process.exit(deriveVerificationExitCode(...))`.
+The historical defect existed precisely because a SECOND exit expression lived in
+the CLI. Only a genuine PASS exits 0; BLOCKED / NOT_VERIFIABLE / NO_EVIDENCE /
+unknown all exit 1; usage + malformed input exit 2. Mixed-build evidence can no
+longer pass single-build certification (`--build-scope single|archive`, with
+per-partition verification and an explicit "does not describe the current
+revision" statement). 40 real process-exit CLI tests, including a pinned
+regression asserting the old expression said "do not fail" for
+BLOCKED-with-mandatoryProblems>0. Adjacent hardening: path-escape refusal,
+cross-attempt reuse, duplicate attempt ids, byte-length checks, content sniffing
+(a file NAMED .png is not a screenshot), capability-artifact sufficiency.
+
+**Critical evidence-integrity defect FOUND BY THIS VERIFIER.** The sweep's
+artifact root was a fixed path, so each new sweep overwrote the previous sweep's
+screenshots/hierarchies while older ledgers still recorded the original digests:
+482 of 1100 artifact paths were claimed with more than one sha256. Every pre-fix
+ledger (v2/v4/v5/v6) is RETAINED but FAILS independent verification and its
+coverage numbers are NOT cited as certification. No digest was regenerated and no
+ledger rewritten to look green. Fixed with per-run artifact isolation
+(`qa-artifacts/080/sweeps/<stamp>/`).
+
+**Authoritative verified coverage** (`native-coverage-ledger-v8.json`):
+`verify-artifacts --mode local --strict` → PASS, 1119 artifacts, 0 mismatch/
+missing/unreadable/wrong-attempt/wrong-build/unbound/unsafe-path/reused/
+duplicate-attempt/bad-content/capability-unbound/mixed-build, single build
+(git ba15ae58, apk 15fe8db3…, versionCode 1000). Distribution **7 L3 / 13 L2 /
+8 L1 / 14 L0** vs the previous certified 4/6/8/24.
+
+**Guided-tutorial solver system delivered** (`scripts/qa/tutorial-solver.mjs`,
+30 tests): 12 deterministic families, provider-free, three HONEST solve tiers —
+DERIVED (an answer computed: 6 games), REVEAL_GUIDED (app revealed it: 11),
+NAVIGATION (nothing solved: 5). `isDerivedTier()` is true only for DERIVED, so
+reveal-guided or navigation clears can never be presented as knowledge-derived
+play. Derived claims were hand-audited (e.g. the spatial rotation case verified
+by independently rotating the grid 0/90/180/270°).
+
+**Real harness defects found and fixed while validating natively** (each one had
+been silently capping games): the advance-control list missed `next-problem` /
+`next-trial` / `submit-estimate` (this alone took math-fast-math L0→L3); a
+"satisfied demo" could never be acknowledged because the active-demo gate tested
+for containers rendered for the whole demo; `tutorial-demo-done` was absent from
+navigation; verdict markers appear as both `-verdict.N` and a `.verdict` suffix;
+retry is spelled two ways; "Clear and retry" clears selections but does NOT
+re-reveal targets, so the solver must LEARN the pattern first and carry it ACROSS
+the reset (memory-grid-recall L0→L1); a timed stimulus with a remaining count is
+repeatable; and launch now retries, because a deep link delivered while the
+previous activity was tearing down produced a FALSE `L0 FAILED` on two games that
+verified healthy on re-run.
+
+**Residual L0 (14) — stated honestly.** Dominated by
+stimulus-observation-rate limits, NOT app defects and NOT solver defects:
+`memory`, `memory-pattern-tap-back`, `memory-sequence-memory`,
+`memory-running-order` flash a sequence one tile at a time and require ordered
+replay; a ~900 ms polling loop cannot sample every flash, so the harness never
+learns what it must replay (the app correctly rejects a wrong tap). Closing these
+needs a faster observation channel, not a weaker certification rule. They were
+deliberately not converted into passes by tapping arbitrary controls.
+
+**P2-B5 CLOSED (app-side).** `speed-color-match` emitted one testID
+(`trial-wrong`) for two different outcomes; it now emits `trial-correct` /
+`trial-wrong` / `trial-missed`. Scoring unchanged. `trial-wrong` stays ambiguous
+in the contract on purpose so ARCHIVED evidence from builds that conflated them
+is never retroactively over-credited.
+
+**SECOND INDEPENDENT ADVERSARIAL REVIEW — BLOCKED_EXTERNAL.** All three reviewer
+routes failed for environmental reasons: Claude Code OAuth session expired;
+Codex CLI sandbox rejected all process execution and repository writes; built-in
+`reviewer` agent hit an exhausted coding-plan quota (reset 2026-10-27). A static
+self-review is NOT substituted and will NOT be labelled independent. The
+certification engine therefore remains without second-party verification, which
+is why the campaign stays ACTIVE.
+
+Gates at `77972354`: typecheck clean, jest 713 suites / 8024 passed (5 classified
+skips, 0 failed), 205 QA contract tests, repo-state / registry / spec-store /
+cli-contracts (16 scripts) / workflows / offline / provenance / task-ownership /
+secrets / runtime-QA-contract all PASS.
+
 ### Campaign 080 progress — 2026-10-22 (P1/P2 CERTIFICATION-REPAIR WAVE)
 
 The independent adversarial review returned **ACCEPT WITH FINDINGS** (4 × P1,
