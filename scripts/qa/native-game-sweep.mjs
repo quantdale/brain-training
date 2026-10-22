@@ -48,6 +48,9 @@ import {
   CONTRACT_VERSION,
   GameStates,
   classifyRun,
+  deriveScreenKind,
+  observationRequiresArtifact,
+  createSha256,
   observeState,
   stateFingerprint,
 } from './coverage-contract.mjs';
@@ -118,6 +121,7 @@ function resolveSerial() {
   return lines[0].split(/\s+/)[0];
 }
 
+const sha256 = (buf) => createSha256(buf);
 const sha1 = (buf) => crypto.createHash('sha1').update(buf).digest('hex');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -193,6 +197,36 @@ function screenMarkersFor(serial, controls) {
 }
 
 /**
+ * Proven screen classification (P1-B). A failed/malformed `uiautomator dump`
+ * used to parse to zero game controls and was emitted as
+ * `non-game-app-screen`, which the contract read as EXITED — so a failed Back
+ * plus a failed dump "proved" a safe exit. The harness now reports the
+ * foreground window identity, the hierarchy status and process liveness
+ * explicitly, and the contract derives the screen kind from those facts.
+ */
+function screenKindFor(serial, xml, controls, appExpectedRunning = true) {
+  let hierarchyStatus = 'ok';
+  if (!xml || !xml.trim()) hierarchyStatus = 'empty';
+  else if (!/<node\b/.test(xml)) hierarchyStatus = 'malformed';
+  const focus = currentFocus(serial);
+  // Liveness is only meaningful once the app is expected to be up: an app that
+  // has not been launched yet is not a crash.
+  let appAlive;
+  if (appExpectedRunning) {
+    try {
+      appAlive = !!adb(serial, ['shell', 'pidof', PACKAGE], { tolerant: true, timeout: 15000 }).trim();
+    } catch { appAlive = undefined; }
+  }
+  return deriveScreenKind({
+    expectedPackage: PACKAGE,
+    focusPackage: focus || undefined,
+    hierarchyStatus,
+    controlCount: Object.keys(controls).length,
+    appAlive,
+  });
+}
+
+/**
  * Take one observation. `key` decides whether the full evidence bundle
  * (screenshot + hierarchy dump) is stored; the parsed control inventory,
  * score and board values are captured for EVERY observation either way.
@@ -206,16 +240,26 @@ function observe(ctx, phase, key) {
   const boardValues = suffixes
     .filter((s) => /(tile|card|option|word|choice|cell|item|node|target-card|number|symbol|token|chip|key|display|board|sequence|status|problem|text|answer|label|prompt)(\.\d+)?$/.test(s))
     .map((s) => `${s}=${controls[s].text || controls[s].desc || ''}`);
+  const screenKind = screenKindFor(serial, xml, controls, ctx.appLaunched === true);
+  // Control identity (text/desc) is captured so the causality contract can
+  // attribute a change to the SPECIFIC control that was tapped (P1-A).
+  const controlDetails = Object.fromEntries(suffixes.map((s) => [s, {
+    text: controls[s].text || '',
+    desc: controls[s].desc || '',
+  }]));
   const obs = {
     seq: ctx.obsSeq++,
     phase,
     timestamp: new Date().toISOString(),
     controls: suffixes,
     screenMarkers: screenMarkersFor(serial, controls),
+    screenKind,
+    controlDetails,
     observedGameId: suffixes.length ? gameId : null,
     score: scoreControl ? (scoreControl.text || scoreControl.desc || null) : null,
     boardValues,
     evidenceArtifact: null,
+    requireArtifact: false,
   };
   // Cache the parsed inventory (with bounds) so the driving loops can act
   // WITHOUT re-dumping the hierarchy — on this emulator a dump costs ~3-4s
@@ -223,7 +267,10 @@ function observe(ctx, phase, key) {
   // out before any tap landed (the v1 bottleneck class).
   ctx.lastControls = controls;
   obs.state = observeState({ ...obs, gameId }).state;
-  if (key) {
+  // P1-C artifact policy: certification-critical observations MUST be bound to
+  // a real artifact. `requireArtifact` is now genuinely set by the real sweep.
+  obs.requireArtifact = observationRequiresArtifact(obs);
+  if (key || obs.requireArtifact) {
     const pngPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.png`);
     try {
       const buf = execFileSync(ADB, ['-s', serial, 'exec-out', 'screencap', '-p'], {
@@ -231,14 +278,24 @@ function observe(ctx, phase, key) {
       });
       fs.mkdirSync(artDir, { recursive: true });
       fs.writeFileSync(pngPath, buf);
-      ctx.artifacts.push({ file: path.relative(REPO_ROOT, pngPath).replace(/\\/g, '/'), bytes: buf.length, sha1: sha1(buf) });
-      obs.evidenceArtifact = { file: path.relative(REPO_ROOT, pngPath).replace(/\\/g, '/'), sha1: sha1(buf) };
+      const rel = path.relative(REPO_ROOT, pngPath).replace(/\\/g, '/');
+      const art = {
+        file: rel, bytes: buf.length, sha256: sha256(buf), sha1: sha1(buf),
+        kind: 'screenshot', executionAttemptId: ctx.attemptId,
+      };
+      ctx.artifacts.push(art);
+      obs.evidenceArtifact = { ...art };
     } catch { /* screenshot failure stays visible as evidenceArtifact: null */ }
     const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
     fs.mkdirSync(artDir, { recursive: true });
     fs.writeFileSync(xmlPath, xml);
-    ctx.artifacts.push({ file: path.relative(REPO_ROOT, xmlPath).replace(/\\/g, '/'), bytes: xml.length, sha1: sha1(Buffer.from(xml)) });
-    if (!obs.evidenceArtifact) obs.evidenceArtifact = { file: path.relative(REPO_ROOT, xmlPath).replace(/\\/g, '/'), sha1: sha1(Buffer.from(xml)) };
+    const relXml = path.relative(REPO_ROOT, xmlPath).replace(/\\/g, '/');
+    const xmlArt = {
+      file: relXml, bytes: Buffer.byteLength(xml), sha256: sha256(Buffer.from(xml)),
+      sha1: sha1(Buffer.from(xml)), kind: 'hierarchy', executionAttemptId: ctx.attemptId,
+    };
+    ctx.artifacts.push(xmlArt);
+    if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
   }
   ctx.observations.push(obs);
   return obs;
@@ -349,12 +406,30 @@ function chooseGameplayAction(controls, tappedThisRound) {
 // --- per-game driver -------------------------------------------------------
 async function driveGame(ctx) {
   const { serial, gameId } = ctx;
-  const tap = (pt) => { if (pt) adb(serial, ['shell', 'input', 'tap', String(pt[0]), String(pt[1])], { timeout: 15000, tolerant: true }); };
+  // P1-B / review Q11: the command result is reported truthfully. Previously
+  // `actionExecuted: true` was emitted unconditionally while the adb call ran
+  // with `tolerant: true`, so a FAILED input was recorded as executed. A
+  // command that never executed can never prove anything.
+  const tap = (pt) => {
+    if (!pt) return false;
+    try {
+      adb(serial, ['shell', 'input', 'tap', String(pt[0]), String(pt[1])], { timeout: 15000 });
+      return true;
+    } catch { return false; }
+  };
+  const pressBack = () => {
+    try {
+      adb(serial, ['shell', 'input', 'keyevent', 'KEYCODE_BACK'], { timeout: 15000 });
+      return true;
+    } catch { return false; }
+  };
 
   const act = async (phase, action, target, point, key) => {
     const before = ctx.observations[ctx.observations.length - 1] || null;
-    if (action === 'tap' && point) tap(point);
-    else if (action === 'back') adb(serial, ['shell', 'input', 'keyevent', 'KEYCODE_BACK'], { timeout: 15000, tolerant: true });
+    let executed = false;
+    if (action === 'tap' && point) executed = tap(point);
+    else if (action === 'back') executed = pressBack();
+    else if (action === 'wait') executed = true;
     await sleep(action === 'back' ? 1200 : 900);
     const after = observe(ctx, phase, key !== false);
     // Acknowledgment: only when the application-level state changed
@@ -362,18 +437,20 @@ async function driveGame(ctx) {
     const changed = before ? stateFingerprint(before) !== stateFingerprint(after) : true;
     return emitEvent(ctx, {
       action, target,
-      actionExecuted: true,
-      actionAcknowledged: before ? changed : null,
+      actionExecuted: executed,
+      actionAcknowledged: executed ? (before ? changed : null) : false,
       before, after,
     });
   };
 
   // 0. Pre-launch observation binds the deeplink transition (an acknowledged
-  //    action must reference before/after observations — contract 2.0).
+  //    action must reference before/after observations — contract 2.0). The app
+  //    is not expected to be running yet, so absence here is NOT a crash.
   observe(ctx, 'pre-launch', true);
 
   // 1. Launch via deep link (identity proof comes from the observation).
   adb(serial, ['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', `braintraining://game/${gameId}`], { timeout: 20000, tolerant: true });
+  ctx.appLaunched = true;
   await sleep(2800);
   const launchObs = observe(ctx, 'launch', true);
   emitEvent(ctx, { action: 'deeplink', target: `braintraining://game/${gameId}`, actionExecuted: true, actionAcknowledged: launchObs.observedGameId === gameId, before: ctx.observations[ctx.observations.length - 2], after: launchObs });

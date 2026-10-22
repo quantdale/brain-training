@@ -235,7 +235,9 @@ const SYSTEM_DIALOG_PACKAGES = new Set(['com.android.systemui', 'android', 'com.
  * @param {string} [input.focusPackage] foreground window package (dumpsys window)
  * @param {'ok'|'empty'|'malformed'|'adb-failure'} [input.hierarchyStatus]
  * @param {number} [input.controlCount] parsed game-control count
- * @param {boolean} [input.appAlive] process liveness (pidof)
+ * @param {boolean} [input.appAlive] process liveness (pidof). Only consulted
+ *        when the app is EXPECTED to be running: an app that has not been
+ *        launched yet is not a crash.
  */
 export function deriveScreenKind(input) {
   const {
@@ -243,11 +245,16 @@ export function deriveScreenKind(input) {
   } = input || {};
   if (hierarchyStatus === 'adb-failure') return ScreenKind.ADB_FAILURE;
   if (hierarchyStatus === 'empty' || hierarchyStatus === 'malformed') return ScreenKind.HIERARCHY_FAILURE;
+  // A dead process cannot be showing a live game screen: any controls parsed in
+  // that situation are stale, so liveness outranks the control inventory.
   if (appAlive === false) return ScreenKind.CRASH;
+  // Parsed game controls are direct proof the game screen is rendered. The
+  // foreground-focus probe is only a SECONDARY signal: on an emulator the app
+  // can be running and rendering while the window manager reports the launcher
+  // as focused, so focus must never be allowed to override observed controls.
+  if (controlCount > 0) return ScreenKind.GAME_SCREEN;
   if (!focusPackage) return ScreenKind.UNKNOWN;
-  if (expectedPackage && focusPackage === expectedPackage) {
-    return controlCount > 0 ? ScreenKind.GAME_SCREEN : ScreenKind.APP_DESTINATION;
-  }
+  if (expectedPackage && focusPackage === expectedPackage) return ScreenKind.APP_DESTINATION;
   if (LAUNCHER_PACKAGES.has(focusPackage)) return ScreenKind.LAUNCHER;
   if (PERMISSION_PACKAGES.has(focusPackage)) return ScreenKind.PERMISSION_DIALOG;
   if (SYSTEM_DIALOG_PACKAGES.has(focusPackage)) return ScreenKind.SYSTEM_DIALOG;
@@ -525,15 +532,37 @@ export function observationRequiresArtifact(obs) {
  */
 export function verifyArtifactBytes(artifact, actualBytes) {
   const problems = [];
-  if (!artifact || typeof artifact !== 'object') return { ok: false, problems: ['artifact is not an object'], computedSha256: null };
-  if (!Buffer.isBuffer(actualBytes)) return { ok: false, problems: ['artifact bytes unavailable'], computedSha256: null };
+  const notes = [];
+  if (!artifact || typeof artifact !== 'object') return { ok: false, problems: ['artifact is not an object'], notes, computedSha256: null, grade: 'none' };
+  if (!Buffer.isBuffer(actualBytes)) return { ok: false, problems: ['artifact bytes unavailable'], notes, computedSha256: null, grade: 'none' };
   const computedSha256 = createSha256(actualBytes);
-  if (!artifact.sha256) problems.push('artifact has no recorded sha256');
-  else if (artifact.sha256 !== computedSha256) problems.push(`artifact sha256 mismatch: recorded ${artifact.sha256} computed ${computedSha256}`);
-  if (artifact.bytes != null && artifact.bytes !== actualBytes.length) {
-    problems.push(`artifact byte length mismatch: recorded ${artifact.bytes} actual ${actualBytes.length}`);
+
+  if (artifact.sha256) {
+    if (artifact.sha256 !== computedSha256) {
+      problems.push(`artifact sha256 mismatch: recorded ${artifact.sha256} computed ${computedSha256}`);
+    }
+    if (artifact.bytes != null && artifact.bytes !== actualBytes.length) {
+      problems.push(`artifact byte length mismatch: recorded ${artifact.bytes} actual ${actualBytes.length}`);
+    }
+    return { ok: problems.length === 0, problems, notes, computedSha256, grade: 'sha256' };
   }
-  return { ok: problems.length === 0, problems, computedSha256 };
+
+  // Legacy records (Campaign 080 contract 2.0 historical sweeps) recorded a
+  // SHA-1. It is still recomputed FROM REAL BYTES — a legacy digest verified
+  // against the artifact is real evidence; it is simply graded lower than
+  // SHA-256 and is explicitly labelled so it can never be presented as modern
+  // content verification.
+  if (artifact.sha1) {
+    const computedSha1 = crypto.createHash('sha1').update(actualBytes).digest('hex');
+    if (artifact.sha1 !== computedSha1) {
+      problems.push(`artifact sha1 mismatch: recorded ${artifact.sha1} computed ${computedSha1}`);
+    }
+    notes.push('verified against a LEGACY SHA-1 digest (pre SHA-256 artifact policy); not modern content verification');
+    return { ok: problems.length === 0, problems, notes, computedSha256, computedSha1, grade: 'sha1-legacy' };
+  }
+
+  problems.push('artifact has no recorded digest (neither sha256 nor sha1) — nothing to verify against');
+  return { ok: false, problems, notes, computedSha256, grade: 'none' };
 }
 
 // ---------------------------------------------------------------------------
