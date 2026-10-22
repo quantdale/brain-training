@@ -91,6 +91,24 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/qa/validate-runtime-qa-contract.mjs
 
+      # Certification-engine contract tests (campaign 080). These are the
+      # adversarial negative controls for the EVIDENCE system that decides what
+      # may be certified: causal attribution, safe-exit proof, artifact
+      # integrity + CLI fail-closed exits, and the coverage merger. They are
+      # pure `node --test` (no emulator, no credentials, no network, no repo
+      # evidence required) so they belong on the hermetic push path. Without
+      # this step the certification engine's own protections were ungated: a
+      # regression there would silently re-open the false-certification classes
+      # the campaign was created to close.
+      - name: Certification-engine contract tests
+        working-directory: ${{ github.workspace }}
+        run: |
+          node --test \
+            scripts/qa/coverage-contract.test.mjs \
+            scripts/qa/coverage-contract.adversarial.test.mjs \
+            scripts/qa/merge-coverage.test.mjs \
+            scripts/qa/verify-artifacts.cli.test.mjs
+
       - name: Install dependencies
         run: npm ci
 

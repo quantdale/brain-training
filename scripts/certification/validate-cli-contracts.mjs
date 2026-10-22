@@ -115,6 +115,17 @@ const REGISTRY = [
     script: 'scripts/qa/validate-runtime-qa-contract.mjs',
     positiveProbes: ['--self-test'],
   },
+  // Campaign 080: the artifact-integrity verifier drives certification
+  // decisions, so its argument surface is held to the same contract as every
+  // other gate. `--help` is the only cheap offline positive probe (the script's
+  // real work needs a native evidence ledger, which a fresh checkout lacks);
+  // the fail-closed exit semantics are pinned separately by
+  // scripts/qa/verify-artifacts.cli.test.mjs, which runs in App CI.
+  {
+    script: 'scripts/qa/verify-artifacts.mjs',
+    acceptsPositionals: true, // <ledger.json ...>
+    positiveProbes: ['--help'],
+  },
   {
     script: 'scripts/certification/validate-cli-contracts.mjs',
     positiveProbes: ['--self-test'],
