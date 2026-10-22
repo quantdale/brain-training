@@ -54,6 +54,7 @@ import {
   observeState,
   stateFingerprint,
 } from './coverage-contract.mjs';
+import { planTutorialStep, SolveTier } from './tutorial-solver.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -352,24 +353,6 @@ function center(bounds) {
  * Family adapters: selectors (tap), ordered sequences (index order), keypad
  * (keys + submit), submit flows (select then check), passive (wait only).
  */
-/**
- * Per-game TUTORIAL DEMO contracts (prompt §7.2). Guided demos validate a
- * specific answer; blind tapping never clears them. Each hint derives the
- * demo's real answer from its deterministic contract (documented per game).
- */
-const TUTORIAL_DEMO_HINTS = {
-  // DemoBoard targets come from seed 'memory-grid-recall-tutorial-demo-v1'
-  // (components/tutorial.tsx TUTORIAL_DEMO_SEED: 2 of 9 via the game's own
-  // generator): the deterministic set is [3,5]. Rebuild = tap them in order.
-  'memory-grid-recall': (c) => ['cell.3', 'cell.5'].filter((k) => c[k] && c[k].bounds),
-  // Colour-matching demos: tap the button whose colour matches the shown label.
-  'speed-color-match': (c) => {
-    const label = ((c['label'] && (c['label'].text || c['label'].desc)) || '').trim().toLowerCase();
-    const match = Object.keys(c).find((k) => /^color-btn\./.test(k) && k.slice('color-btn.'.length).toLowerCase() === label);
-    return match && c[match].bounds ? [match] : [];
-  },
-};
-
 function chooseGameplayAction(controls, tappedThisRound) {
   const suffixes = Object.keys(controls);
   const has = (k) => controls[k] && center(controls[k].bounds);
@@ -456,34 +439,81 @@ async function driveGame(ctx) {
   emitEvent(ctx, { action: 'deeplink', target: `braintraining://game/${gameId}`, actionExecuted: true, actionAcknowledged: launchObs.observedGameId === gameId, before: ctx.observations[ctx.observations.length - 2], after: launchObs });
 
   // 2. Tutorial traversal — only while the OBSERVED state is 'tutorial'.
-  //    Guided demos (word-chain chains, reaction triggers, …) require DEMO
-  //    INTERACTION before tutorial-done appears; tapping the demo controls is
-  //    how the tutorial clears. Demo taps are never credited as gameplay input
-  //    (the contract only accepts input in the observed playing state).
+  //
+  //    Wave D replaced a generic blind-tap loop with the deterministic family
+  //    solvers in scripts/qa/tutorial-solver.mjs. That matters because a guided,
+  //    answer-driven demo validates a SPECIFIC answer: blind tapping cannot
+  //    clear one, which is why 24 games previously stalled at L0. The solver
+  //    proposes ONE step at a time with a stated reason and a solve TIER, and
+  //    the harness still has to PROVE every transition — a plan is a proposal,
+  //    never a certification.
+  //
+  //    Demo interaction is never credited as gameplay input: the contract only
+  //    accepts input in the observed 'playing' state, so a solved tutorial can
+  //    never inflate the gameplay axes. The tutorial-derived tier is recorded
+  //    on the run so a reveal-guided clear is never described as
+  //    knowledge-derived play.
   const tappedInTutorial = new Set();
-  for (let hop = 0; hop < 12; hop++) {
+  const tutorialSolveLog = [];
+  let enteredDigits = '';
+  let equationStaged = [];
+  let lastTutorialTarget = null;
+  for (let hop = 0; hop < 24; hop++) {
     const cur = ctx.observations[ctx.observations.length - 1];
     if (cur.state !== GameStates.TUTORIAL) break;
     const c = ctx.lastControls || parseControls(dumpHierarchy(serial), gameId);
-    const nav = ['tutorial-skip', 'tutorial-done', 'tutorial-next'].find((k) => c[k] && center(c[k].bounds));
-    if (nav) {
-      await act(`tutorial-${hop}`, 'tap', `${gameId}.${nav}`, center(c[nav].bounds), hop === 0);
-      continue;
+
+    // Build the solver's view of the CURRENT observation from the parsed
+    // control inventory (the same shape the recorded ledger uses).
+    const obsView = {
+      gameId,
+      phase: `tutorial-${hop}`,
+      controls: Object.keys(c),
+      controlDetails: Object.fromEntries(Object.keys(c).map((k) => [k, {
+        text: c[k].text || '',
+        desc: c[k].desc || '',
+      }])),
+      boardValues: [],
+    };
+    const plan = planTutorialStep(obsView, {
+      gameId,
+      tapped: tappedInTutorial,
+      enteredDigits,
+      equation: equationStaged,
+      lastTapped: lastTutorialTarget,
+    });
+
+    if (!plan) {
+      // No legitimate step exists. Record the gap honestly instead of tapping
+      // blindly — a blind tap here would be exactly the falsification the
+      // certification contract exists to prevent.
+      tutorialSolveLog.push({ hop, outcome: 'NO_LEGITIMATE_STEP', remaining: Object.keys(c).length });
+      break;
     }
-    // Demo surface: consult the game's documented demo contract first, then
-    // interact with the demo's own controls generically.
-    const hint = TUTORIAL_DEMO_HINTS[gameId];
-    const hinted = hint ? hint(c) : [];
-    const demo = hinted.length ? hinted : Object.keys(c).filter((k) =>
-      c[k].bounds && k !== 'tutorial' && !/^(tutorial-title|tutorial-text|tutorial-demo-status|tutorial-skip-lip|tutorial-done-lip)$/.test(k) &&
-      (SELECTOR_RE.test(k) || /^tutorial-(trigger|tile|card|slot|key|pad|button|choice|option)/.test(k)));
-    const target = demo.find((k) => !tappedInTutorial.has(k)) || demo[0];
-    if (target) {
-      tappedInTutorial.add(target);
-      await act(`tutorial-demo-${hop}`, 'tap', `${gameId}.${target}`, center(c[target].bounds), hop === 0);
-    } else {
-      break; // no navigable control at all — record and move on
+
+    // The solver may name a control that the parsed inventory has under a
+    // different key form; resolve it before tapping.
+    const key = c[plan.target] ? plan.target : Object.keys(c).find((k) => k === plan.target || k.endsWith(`.${plan.target}`));
+    if (!key || !center(c[key].bounds)) {
+      tutorialSolveLog.push({ hop, outcome: 'TARGET_NOT_TAPPABLE', target: plan.target });
+      break;
     }
+
+    tutorialSolveLog.push({
+      hop,
+      target: key,
+      tier: plan.tier,
+      reason: plan.reason,
+    });
+    tappedInTutorial.add(plan.target);
+    tappedInTutorial.add(key);
+    lastTutorialTarget = key;
+    if (/^digit\.\d$/.test(key)) enteredDigits += key.slice('digit.'.length);
+    if (key === 'submit') enteredDigits = '';
+    if (/^color\.\d$/.test(key)) equationStaged = [...equationStaged, key];
+    if (key === 'tutorial-submit') equationStaged = [];
+
+    await act(`tutorial-demo-${hop}`, 'tap', `${gameId}.${key}`, center(c[key].bounds), hop === 0);
   }
 
   // 3. Start the game from the intro (tap is recorded; entry is PROVEN only if
@@ -550,7 +580,38 @@ async function driveGame(ctx) {
     const after = ctx.observations[ctx.observations.length - 1];
     if (after.state === GameStates.EXITED || after.state === GameStates.LAUNCHER) break;
   }
+  // Wave D: the tutorial solve trail is persisted on the run. It records every
+  // proposed step WITH its solve tier, so an auditor can distinguish a
+  // knowledge-derived clear (DERIVED) from a reveal-guided one
+  // (REVEAL_GUIDED) — and can see exactly where a demo defeated automation.
+  ctx.tutorialSolveLog = tutorialSolveLog;
   return { terminalObs };
+}
+
+/**
+ * Summarise a tutorial solve trail for the run record.
+ *
+ * The tier counts are deliberately NOT combined: a `derivedSteps` count means
+ * the harness computed the answer, while `revealGuidedSteps` means the app
+ * showed it. Reporting a single "solved" number would let a reveal-guided clear
+ * be read as knowledge-derived play.
+ */
+function summariseTutorialSolve(log) {
+  const entries = Array.isArray(log) ? log : [];
+  const steps = entries.filter((e) => e && e.tier !== undefined);
+  const stalled = entries.find((e) => e && e.outcome && e.outcome !== undefined && e.tier === undefined) || null;
+  return {
+    attempted: steps.length > 0 || stalled !== null,
+    steps: steps.length,
+    derivedSteps: steps.filter((e) => e.tier === SolveTier.DERIVED).length,
+    revealGuidedSteps: steps.filter((e) => e.tier === SolveTier.REVEAL_GUIDED).length,
+    // The last step taken, so a reader sees WHAT cleared the demo.
+    last: steps.length ? steps[steps.length - 1] : null,
+    // Where automation gave up, if it did. This is an automation gap to fix,
+    // never an app defect to assume.
+    blocked: stalled ? stalled.outcome : null,
+    trail: entries,
+  };
 }
 
 // --- main ------------------------------------------------------------------
@@ -612,6 +673,9 @@ async function driveGame(ctx) {
         observations: ctx.observations,
         artifacts: ctx.artifacts,
         resilience: null,
+        // Wave D tutorial-solver trail (see driveGame step 2). Empty for a
+        // returning player whose tutorial does not appear this attempt.
+        tutorialSolve: summariseTutorialSolve(ctx.tutorialSolveLog),
       };
       const c = classifyRun(record);
       record.classification = { level: c.level, status: c.status, reasons: c.reasons };
