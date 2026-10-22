@@ -456,7 +456,7 @@ function solveGridRebuild(observation, ctx) {
   // is taken. If the harness instead keeps using its stale tapped-set, every
   // cell looks already-used and the demo can never be re-attempted — the exact
   // `NO_LEGITIMATE_STEP` stall observed on memory-grid-recall.
-  const retry = s.find((k) => /^tutorial-demo-retry$/.test(k));
+  const retry = s.find((k) => /^tutorial-(demo-)?retry$/.test(k));
   if (retry && !ctx.retriedThisDemo) {
     return {
       action: 'tap',
@@ -740,7 +740,14 @@ function solveCodeGuess(observation, ctx) {
 /** Timed target family: tap the target control. */
 function solveTimedTarget(observation, ctx) {
   const s = suffixesOf(observation);
-  const candidates = s.filter((k) => /(^|\.)(target|trigger|swatch|field)(\.\d+)?$/.test(k) && !ctx.tapped.has(k));
+  // Repeatable stimuli: the demo states a remaining count ("Tap the target
+  // (3 left)"), so the SAME control must be tapped repeatedly. Excluding
+  // already-tapped controls here made the 2nd+ tap impossible and the demo could
+  // never clear — a harness defect, not a gameplay limit.
+  const remaining = /(\d+)\s*left/i.exec(textOf((observation.controlDetails || {})['tutorial-demo-status']));
+  const repeatable = !!(remaining && Number(remaining[1]) > 0);
+  const candidates = s.filter((k) => /(^|\.)(target|trigger|swatch|field)(\.\d+)?$/.test(k)
+    && (repeatable || !ctx.tapped.has(k)));
   const target = candidates[0];
   if (!target) return null;
   // Colour-match demos pair a label with a matching swatch: derive it.

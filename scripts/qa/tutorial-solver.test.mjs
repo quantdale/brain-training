@@ -487,3 +487,38 @@ test('retry signals a board reset so the demo can be re-attempted', () => {
   });
   assert.notEqual(noDoubleRetry && noDoubleRetry.target, 'tutorial-demo-retry');
 });
+
+
+test('retry is recognised in both spellings (tutorial-retry / tutorial-demo-retry)', () => {
+  // `language-context-fit`, `language-word-match` and `language-word-scramble`
+  // emit `tutorial-retry`; grid demos emit `tutorial-demo-retry`. Only the latter
+  // was handled, so the retry-bearing demos could not reset and stalled.
+  for (const id of ['tutorial-retry', 'tutorial-demo-retry']) {
+    const o = obs(['tutorial', 'tutorial-grid', id, 'cell.0'], { 'cell.0': { desc: 'Wrong pick: Cell 1' } });
+    const plan = planTutorialStep(o, { gameId: 'memory-grid-recall', tapped: new Set(), retriedThisDemo: false });
+    assert.equal(plan.target, id, `${id} must be offered as the recovery path`);
+    assert.equal(plan.resetsTapped, true);
+  }
+});
+
+test('a repeatable timed stimulus stays tappable (Tap the target, 3 left)', () => {
+  // speed-tap-rush asks for REPEATED taps on the SAME control. Excluding
+  // already-tapped controls made the 2nd+ tap impossible, so the demo could
+  // never clear — a harness defect, not a gameplay limit.
+  const o = obs(
+    ['tutorial', 'tutorial-field', 'target', 'tutorial-demo-status'],
+    { 'tutorial-demo-status': { desc: 'Tap the target (2 left)' }, 'target': { desc: 'Target' } },
+  );
+  const tapped = new Set(['target']);
+  const plan = planTutorialStep(o, { gameId: 'speed-tap-rush', tapped });
+  assert.equal(plan.target, 'target', 'a repeatable stimulus must remain tappable');
+});
+
+test('a one-shot stimulus is NOT repeated once tapped', () => {
+  const o = obs(
+    ['tutorial', 'tutorial-field', 'target', 'tutorial-demo-status'],
+    { 'tutorial-demo-status': { desc: 'Tap the target' }, 'target': { desc: 'Target' } },
+  );
+  const plan = planTutorialStep(o, { gameId: 'speed-tap-rush', tapped: new Set(['target']) });
+  assert.equal(plan, null, 'without a remaining count the stimulus is one-shot');
+});
