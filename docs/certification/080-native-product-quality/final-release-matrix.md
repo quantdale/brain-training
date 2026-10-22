@@ -1,6 +1,6 @@
 # Final release matrix — Campaign 080
 
-**Final integrated SHA:** `a7226d75`
+**Final integrated SHA:** `753c3afe`
 **Branch:** `main` (clean, no temporary worktrees/branches)
 **Campaign status:** ACTIVE — engineering VALIDATED with explicit limitations
 
@@ -8,21 +8,26 @@
 
 ## 1. Hosted CI at the final integrated SHA
 
-All four required status checks are **SUCCESS** at `a7226d75` (observed, not
-assumed — `gh run list --branch main`):
+All four required status checks are **SUCCESS** at `753c3afe` (externally
+observed via `gh run list --branch main`, not assumed):
 
 | Workflow | Run ID | Status |
 |---|---|---|
-| Repository Integrity | `39824138213` | **SUCCESS** |
-| App CI | `39824138172` | **SUCCESS** |
-| Android Build Smoke | `39824138246` | **SUCCESS** |
-| iOS Build Smoke | `39824138168` | **SUCCESS** |
+| Repository Integrity | `39828991251` | **SUCCESS** |
+| App CI | `39828991247` | **SUCCESS** |
+| Android Build Smoke | `39828991224` | **SUCCESS** |
+| iOS Build Smoke | `39828991217` | **SUCCESS** |
+
+The immediately preceding checkpoint `a7226d75` also had all four green
+(Repository Integrity `39824138213`, App CI `39824138172`, Android Build Smoke
+`39824138246`, iOS Build Smoke `39824138168`); `753c3afe` is a docs-only commit
+on top of it, and its own runs are the authoritative record.
 
 App CI is the lane that executes the certification-engine test suite added this
 campaign (205 QA contract tests including the 40 CLI process-exit tests), so the
 fail-closed evidence gate is enforced on every push rather than only locally.
 
-## 2. Local gate results at `a7226d75`
+## 2. Local gate results at `753c3afe`
 
 | Gate | Result |
 |---|---|
