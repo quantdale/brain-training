@@ -984,23 +984,22 @@ test('CLI 20l: returning-player tutorial completion requires matching receipt-in
   assert.match(mismatch.stdout, /tutorial-state artifact query JSON does not match the typed seq0 tutorialStateEvidence/);
 });
 
-test('CLI 20n: native-source-inputs-02 manifest binds APK/source identity apart from harness HEAD', () => {
+test('CLI 20n: complete tracked-app manifest binds APK/source identity apart from harness HEAD', () => {
   const apk = writeArtifact('manifest-bound-test-apk', Buffer.from('packaged test APK'), 'apk');
   const build = { ...BUILD(), apkSha256: apk.sha256 };
   const { run } = baseRun({ attemptId: 'manifest-bound-build', build });
-  const inputRoots = ['apps/mobile/app.json', 'apps/mobile/package.json', 'apps/mobile/package-lock.json',
-    'apps/mobile/assets', 'apps/mobile/src'];
-  const trackedInputs = execFileSync('git', ['ls-files', '--', ...inputRoots], {
+  const trackedInputs = execFileSync('git', ['ls-files', '--', 'apps/mobile'], {
     cwd: REPO_ROOT, encoding: 'utf8', windowsHide: true,
   }).split(/\r?\n/).filter(Boolean).map((file) => ({
     file,
     sha256: sha256(fs.readFileSync(path.join(REPO_ROOT, ...file.split('/')))),
   }));
-  const manifestPath = path.join(FIXTURE_ROOT, 'manifests', 'native-source-inputs-02.json');
+  const manifestPath = path.join(FIXTURE_ROOT, 'manifests', 'native-source-inputs-02-complete.json');
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(manifestPath, JSON.stringify({
     sourceSha: build.gitSha,
     trackedStatus: '',
+    inputPolicy: 'all-tracked-app-files-v1',
     buildType: 'test release',
     apk: { file: apk.file, bytes: apk.bytes, sha256: apk.sha256 },
     files: trackedInputs,

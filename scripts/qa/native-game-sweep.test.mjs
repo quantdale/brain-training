@@ -123,20 +123,21 @@ test('persisted tutorial DB access uses root file reads or run-as only for confi
     'non-root, non-debuggable release remains UNKNOWN instead of invoking a failing run-as');
 });
 
-test('native-source-inputs-02 manifest validates APK identity and complete tracked app-input hashes', () => {
+test('complete app-input manifest validates APK identity and every tracked apps/mobile file', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-build-manifest-'));
   const relativeFiles = [
     'apps/mobile/app.json', 'apps/mobile/package.json', 'apps/mobile/package-lock.json',
-    'apps/mobile/assets/icon.png', 'apps/mobile/src/app.ts',
+    'apps/mobile/assets/icon.png', 'apps/mobile/src/app.ts', 'apps/mobile/metro.config.js',
+    'apps/mobile/tsconfig.json', 'apps/mobile/plugins/withExample.js',
   ];
   const inputs = new Map(relativeFiles.map((file) => [file, Buffer.from(`input:${file}`)]));
   const apkFile = 'qa-artifacts/080/final-convergence/releases/test.apk';
   const apkBytes = Buffer.from('packaged test APK');
-  const manifestFile = path.join(dir, 'qa-artifacts', '080', 'final-convergence', 'native-source-inputs-02.json');
+  const manifestFile = path.join(dir, 'qa-artifacts', '080', 'final-convergence', 'native-source-inputs-02-complete.json');
   const sourceSha = '22ae2f7c'.padEnd(40, '0');
   const writeManifest = (files = relativeFiles.map((file) => ({ file, sha256: hash(inputs.get(file)) }))) => {
     fs.writeFileSync(manifestFile, JSON.stringify({
-      sourceSha, trackedStatus: '', buildType: 'test release',
+      sourceSha, trackedStatus: '', inputPolicy: 'all-tracked-app-files-v1', buildType: 'test release',
       apk: { file: apkFile, bytes: apkBytes.length, sha256: hash(apkBytes) }, files,
     }));
   };
@@ -158,12 +159,17 @@ test('native-source-inputs-02 manifest validates APK identity and complete track
     assert.equal(manifest.apkSha256, hash(apkBytes));
     assert.equal(manifest.apkBytes, apkBytes.length);
     assert.equal(manifest.inputCount, relativeFiles.length);
+    assert.equal(manifest.inputPolicy, 'all-tracked-app-files-v1');
     const identity = bindBuildIdentityToManifest({ packageName: 'com.braintraining.app', apkSha256: manifest.apkSha256 }, manifest);
     assert.equal(identity.gitSha, manifest.sourceSha, 'build source SHA comes from the manifest, not harness HEAD');
     assert.throws(() => bindBuildIdentityToManifest({ apkSha256: 'f'.repeat(64) }, manifest), /installed APK digest does not match/);
 
     writeManifest(relativeFiles.slice(1).map((file) => ({ file, sha256: hash(inputs.get(file)) })));
     assert.throws(() => loadBuildManifest(manifestFile, dir), /app input coverage is incomplete/);
+    const withoutPolicy = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+    delete withoutPolicy.inputPolicy;
+    fs.writeFileSync(manifestFile, JSON.stringify(withoutPolicy));
+    assert.throws(() => loadBuildManifest(manifestFile, dir), /inputPolicy all-tracked-app-files-v1/);
     writeManifest();
     fs.writeFileSync(path.join(dir, 'apps/mobile/src/app.ts'), Buffer.from('drifted app source input'));
     assert.throws(() => loadBuildManifest(manifestFile, dir), /build manifest input drift/);

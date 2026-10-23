@@ -954,7 +954,9 @@ export async function main() {
     evidenceSource: 'runtime',
     harness: 'scripts/qa/native-game-sweep.mjs (contract 2.1)',
     harnessGitSha,
-    buildManifest: buildManifest ? { manifestSha256: buildManifest.manifestSha256, inputCount: buildManifest.inputCount } : null,
+    buildManifest: buildManifest ? {
+      manifestSha256: buildManifest.manifestSha256, inputPolicy: buildManifest.inputPolicy, inputCount: buildManifest.inputCount,
+    } : null,
     environment: { ...identity, ...device },
     runs,
   };

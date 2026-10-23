@@ -339,17 +339,18 @@ export function loadBuildManifest(file, repoRoot = process.cwd()) {
   const relativeManifest = path.relative(root, manifestPath);
   const manifestInsideRepo = relativeManifest !== '' && !relativeManifest.startsWith('..') && !path.isAbsolute(relativeManifest);
   const manifestPathKey = manifestPath.replace(/\\/g, '/').toLowerCase();
-  const expectedManifestSuffix = '/qa-artifacts/080/final-convergence/native-source-inputs-02.json';
+  const expectedManifestSuffix = '/qa-artifacts/080/final-convergence/native-source-inputs-02-complete.json';
   if (!manifestInsideRepo && !manifestPathKey.endsWith(expectedManifestSuffix)) {
-    throw new Error('external build manifest must be qa-artifacts/080/final-convergence/native-source-inputs-02.json');
+    throw new Error('external build manifest must be qa-artifacts/080/final-convergence/native-source-inputs-02-complete.json');
   }
   const buildRoot = manifestInsideRepo ? root : path.resolve(path.dirname(manifestPath), '..', '..', '..');
   if (!isRecord(manifest) || !gitShaShape(manifest.sourceSha) || manifest.trackedStatus !== ''
+      || manifest.inputPolicy !== 'all-tracked-app-files-v1'
       || typeof manifest.buildType !== 'string' || !manifest.buildType.trim()
       || !isRecord(manifest.apk) || typeof manifest.apk.file !== 'string'
       || !Number.isSafeInteger(manifest.apk.bytes) || manifest.apk.bytes < 1 || !sha256Shape(manifest.apk.sha256)
       || !Array.isArray(manifest.files) || manifest.files.length === 0) {
-    throw new Error('build manifest must contain sourceSha, clean trackedStatus, buildType, apk{file,bytes,sha256}, and files[{file,sha256}]');
+    throw new Error('build manifest must contain sourceSha, clean trackedStatus, inputPolicy all-tracked-app-files-v1, buildType, apk{file,bytes,sha256}, and files[{file,sha256}]');
   }
 
   const apkPath = resolveArtifactPath(manifest.apk.file, buildRoot);
@@ -364,9 +365,8 @@ export function loadBuildManifest(file, repoRoot = process.cwd()) {
 
   let trackedFiles;
   try {
-    trackedFiles = execFileSync('git', ['ls-files', '--', 'apps/mobile/app.json', 'apps/mobile/package.json',
-      'apps/mobile/package-lock.json', 'apps/mobile/assets', 'apps/mobile/src'],
-    { cwd: root, encoding: 'utf8', windowsHide: true }).split(/\r?\n/).filter(Boolean);
+    trackedFiles = execFileSync('git', ['ls-files', '--', 'apps/mobile'],
+      { cwd: root, encoding: 'utf8', windowsHide: true }).split(/\r?\n/).filter(Boolean);
   } catch (error) {
     throw new Error(`cannot enumerate tracked app inputs: ${error.stderr?.toString().trim() || error.message}`);
   }
@@ -399,6 +399,7 @@ export function loadBuildManifest(file, repoRoot = process.cwd()) {
     apkBytes: manifest.apk.bytes,
     inputCount: seen.size,
     buildType: manifest.buildType,
+    inputPolicy: manifest.inputPolicy,
     manifestSha256: computeSha256(bytes),
     manifestPath,
   };
