@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test, { after } from 'node:test';
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
+import { deflateSync } from 'node:zlib';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -36,7 +37,14 @@ const GAME_ID = 'memory-pair-recall';
 
 // --- temp workspace (never the repo) --------------------------------------
 const TMP_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'merge-coverage-test-'));
-after(() => fs.rmSync(TMP_ROOT, { recursive: true, force: true }));
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const ARTIFACT_ROOT = path.join(REPO_ROOT, 'qa-artifacts', '080', 'merge-coverage-test');
+const receiptEntries = new Map();
+let artifactSeq = 0;
+after(() => {
+  fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  fs.rmSync(ARTIFACT_ROOT, { recursive: true, force: true });
+});
 
 let fileSeq = 0;
 function tmpPath(label) {
@@ -56,7 +64,9 @@ function runMerger(inputFiles, extraArgs = []) {
   invocation += 1;
   const outPath = path.join(TMP_ROOT, `merged-${invocation}.json`);
   const mdPath = path.join(TMP_ROOT, `matrix-${invocation}.md`);
-  const args = [MERGER, ...inputFiles, '--out', outPath, '--matrix', mdPath, ...extraArgs];
+  const indexPath = path.join(TMP_ROOT, `capture-receipts-${invocation}.json`);
+  fs.writeFileSync(indexPath, JSON.stringify({ schemaVersion: 1, receipts: [...receiptEntries.values()] }, null, 2));
+  const args = [MERGER, ...inputFiles, '--capture-receipts', indexPath, '--out', outPath, '--matrix', mdPath, ...extraArgs];
   try {
     const stdout = execFileSync(process.execPath, args, { encoding: 'utf8' });
     return { status: 0, stdout, stderr: '', outPath, mdPath };
@@ -99,7 +109,7 @@ function deviceProfile(overrides = {}) {
 
 function observation(seq, {
   controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
-  timestamp, phase = 'play',
+  timestamp, phase = 'play', rawScreen, hierarchyArtifact,
 } = {}) {
   // Observations carry real provenance (timestamp + phase) and an artifact
   // binding — the repaired contract rejects unbound "proof".
@@ -120,13 +130,17 @@ function observation(seq, {
   };
   if (screenKind) o.screenKind = screenKind;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
+  if (rawScreen !== undefined) o.rawScreen = rawScreen;
+  if (hierarchyArtifact !== undefined) o.hierarchyArtifact = hierarchyArtifact;
   return o;
 }
 
 const gameObs = (seq, extra = {}) => observation(seq, { observedGameId: GAME_ID, ...extra });
 const introObs = (seq, extra = {}) => gameObs(seq, { controls: ['intro', 'start'], ...extra });
 const playingObs = (seq, extra = {}) => gameObs(seq, { controls: ['stage', 'pause', 'round.1', 'score'], ...extra });
-const resultsObs = (seq, extra = {}) => gameObs(seq, { controls: ['results', 'result-facts'], ...extra });
+// The current contract requires an explicit terminal-score fact when a
+// results screen's final score differs from the last gameplay observation.
+const resultsObs = (seq, extra = {}) => gameObs(seq, { controls: ['results', 'result-facts', 'score-final'], ...extra });
 // A PROVEN exit destination (foreground identity = app, game screen left).
 const exitedObs = (seq, extra = {}) =>
   observation(seq, { screenKind: 'app-destination', screenMarkers: ['games-title'], ...extra });
@@ -157,43 +171,83 @@ function runRecord(attemptId, overrides = {}) {
     artifacts: [],
     ...overrides,
   };
-  // P1-3 (artifact attestation): the merger now refuses to certify a run
-  // whose artifacts are absent/unreadable/mismatched, so fixture runs must
-  // cite REAL artifact bytes. Placeholder bindings are rebound to the
-  // byte-identical review fixtures (scripts/qa/test-fixtures/080-review/, see
-  // its README.md), and each run carries mandatory run-level screenshot +
-  // hierarchy artifacts so the capability artifact requirements can be
-  // independently verified.
+  // Every binding uses actual, complete PNG/XML bytes and an independently
+  // indexed per-artifact acquisition receipt (not the legacy signature-only
+  // reviewer PNG fixture).
+  const observationHierarchyArtifacts = [];
   rec.observations = (rec.observations || []).map((o) => {
-    if (!o || !o.evidenceArtifact || typeof o.evidenceArtifact !== 'object') return o;
-    return { ...o, evidenceArtifact: realArtifact(o.evidenceArtifact.kind, attemptId) };
+    if (!o || typeof o !== 'object') return o;
+    const mapped = { ...o };
+    if (o.evidenceArtifact && typeof o.evidenceArtifact === 'object') {
+      mapped.evidenceArtifact = realArtifact(o.evidenceArtifact.kind, attemptId, rec.buildIdentity);
+    }
+    if (o.hierarchyArtifact && typeof o.hierarchyArtifact === 'object') {
+      mapped.hierarchyArtifact = realArtifact('hierarchy', attemptId, rec.buildIdentity);
+      observationHierarchyArtifacts.push(mapped.hierarchyArtifact);
+    }
+    return mapped;
   });
   rec.artifacts = [
     ...(rec.artifacts || []),
-    { ...realArtifact('screenshot', attemptId), mandatory: true },
-    { ...realArtifact('hierarchy', attemptId), mandatory: true },
+    ...observationHierarchyArtifacts,
+    { ...realArtifact('screenshot', attemptId, rec.buildIdentity), mandatory: true },
+    { ...realArtifact('hierarchy', attemptId, rec.buildIdentity), mandatory: true },
   ];
   return rec;
 }
 
-// --- real artifact bindings (P1-3 attestation fixtures) -------------------
-const FIXTURE_REL = 'scripts/qa/test-fixtures/080-review';
-const REAL_ARTIFACTS = Object.fromEntries([
-  ['screenshot', 'cross-build.png'],
-  ['hierarchy', 'cross-build.xml'],
-].map(([kind, name]) => {
-  const abs = fileURLToPath(new URL(`./test-fixtures/080-review/${name}`, import.meta.url));
-  const bytes = fs.readFileSync(abs);
-  return [kind, {
-    file: `${FIXTURE_REL}/${name}`,
-    sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
-    bytes: bytes.length,
-    kind,
-  }];
-}));
-function realArtifact(kind, attemptId) {
-  const base = REAL_ARTIFACTS[kind === 'hierarchy' ? 'hierarchy' : 'screenshot'];
-  return { ...base, executionAttemptId: attemptId };
+// --- valid native-format test artifacts and receipts ----------------------
+const artifactCrc32 = (bytes) => {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+};
+const pngChunk = (type, payload) => {
+  const name = Buffer.from(type, 'ascii');
+  const length = Buffer.alloc(4); length.writeUInt32BE(payload.length);
+  const crc = Buffer.alloc(4); crc.writeUInt32BE(artifactCrc32(Buffer.concat([name, payload])));
+  return Buffer.concat([length, name, payload, crc]);
+};
+const PNG_BYTES = Buffer.concat([
+  Buffer.from('89504e470d0a1a0a', 'hex'),
+  pngChunk('IHDR', Buffer.from([0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0])),
+  pngChunk('IDAT', deflateSync(Buffer.from([0, 0, 0, 0, 255]))),
+  pngChunk('IEND', Buffer.alloc(0)),
+]);
+const XML_BYTES = Buffer.from('<hierarchy rotation="0"><node index="0" package="com.braintraining.app" /></hierarchy>');
+const FIXTURE_REL = path.relative(REPO_ROOT, ARTIFACT_ROOT).split(path.sep).join('/');
+function realArtifact(kind, attemptId, build) {
+  artifactSeq++;
+  const bytes = kind === 'hierarchy' ? XML_BYTES : PNG_BYTES;
+  const extension = kind === 'hierarchy' ? 'xml' : 'png';
+  const file = `${FIXTURE_REL}/capture-${artifactSeq}-${attemptId}.${extension}`;
+  const abs = path.join(REPO_ROOT, ...file.split('/'));
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, bytes);
+  const artifactSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  const receipt = {
+    schemaVersion: 1,
+    captureId: crypto.randomUUID(),
+    executionAttemptId: attemptId,
+    artifactSha256,
+    capturedAt: '2026-10-21T12:00:00.000Z',
+    gitSha: build.gitSha,
+    apkSha256: build.apkSha256,
+    artifactFile: file,
+  };
+  const receiptBytes = Buffer.from(JSON.stringify(receipt));
+  const receiptFile = `${FIXTURE_REL}/receipt-${artifactSeq}-${attemptId}.json`;
+  fs.writeFileSync(path.join(REPO_ROOT, ...receiptFile.split('/')), receiptBytes);
+  const receiptSha256 = crypto.createHash('sha256').update(receiptBytes).digest('hex');
+  receiptEntries.set(receiptFile.toLowerCase(), { file: receiptFile, sha256: receiptSha256 });
+  return {
+    file, sha256: artifactSha256, bytes: bytes.length, kind,
+    executionAttemptId: attemptId,
+    captureReceipt: { file: receiptFile, sha256: receiptSha256 },
+  };
 }
 
 // Minimal honest L2: an intro -> playing entry transition event PLUS one
@@ -255,8 +309,19 @@ function l3Run(attemptId, overrides = {}) {
 // entry controls rendered, and a Back event whose AFTER observation shows the
 // game screen was left (post-exit destination confirmed).
 function l1Run(attemptId, overrides = {}) {
+  const hierarchyBinding = { kind: 'hierarchy', file: 'pending-hierarchy.xml', sha256: 'a'.repeat(64), executionAttemptId: attemptId };
+  const packageName = buildIdentity().packageName;
+  const appScreen = {
+    expectedPackage: packageName,
+    focusPackage: `${packageName}/${packageName}.MainActivity`,
+    hierarchyStatus: 'ok',
+    appAlive: true,
+  };
   return runRecord(attemptId, {
-    observations: [introObs(1), exitedObs(2)],
+    observations: [
+      introObs(1, { rawScreen: { ...appScreen, controlCount: 2 }, hierarchyArtifact: hierarchyBinding }),
+      exitedObs(2, { rawScreen: { ...appScreen, controlCount: 0 }, hierarchyArtifact: hierarchyBinding }),
+    ],
     events: [
       event(1, attemptId, { action: 'deeplink', actionAcknowledged: null }),
       event(2, attemptId, { action: 'back', actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
@@ -464,8 +529,19 @@ test('M5: invalid run is retained and diagnosed but can never be the certifying 
     g.downgrades.some((d) => d.runId === 'attempt-legacy-hero-005' && d.claimedLevelLegacy === 3 && d.certifiedLevel === 0),
     'the inflated legacy claim must be explained as a downgrade',
   );
-  // Its L3-shaped evidence must not make the union look like one journey either.
-  assert.ok(out.diagnostics.some((d) => d.kind === 'cross-run-union-not-a-journey'));
+  // Under the current contract, incomplete build provenance is rejected before
+  // capability derivation. Older contract revisions retained derived axes only
+  // under historical observations; in neither case may the invalid run certify.
+  const invalidResultsVerified = ledgerEntry.axes.resultsCurrent === 'VERIFIED';
+  assert.equal(
+    out.diagnostics.some((d) => d.kind === 'cross-run-union-not-a-journey'),
+    invalidResultsVerified,
+    'cross-run warning must follow only the result-axis evidence actually retained for this invalid attempt',
+  );
+  if (!invalidResultsVerified) {
+    assert.equal(ledgerEntry.level, 0);
+    assert.equal(g.historicalObservations.resultsCurrent.status, 'NOT EXECUTED');
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -518,6 +594,12 @@ test('M7: schema-1 ledger is rejected — exit code 2 and reclassify-historical 
   const r2 = runMerger([v1WithRuns]);
   assert.equal(r2.status, 2, 'schema-1 run ledger must exit 2');
   assert.match(r2.stderr, /reclassify-historical/);
+
+  const nullLedger = tmpPath('m7-null-top-level');
+  fs.writeFileSync(nullLedger, 'null');
+  const r3 = runMerger([nullLedger]);
+  assert.equal(r3.status, 2, 'null top-level collections are malformed input, not an uncaught exception');
+  assert.match(r3.stderr, /top-level value must be an object or array/);
 });
 
 // ---------------------------------------------------------------------------
@@ -666,9 +748,9 @@ test('M13 (P1-3): certifying levels are impossible without artifact verification
   // level is suppressed until artifact verification passes.
   const missing = l3Run('attempt-p13-missing');
   for (const o of missing.observations) {
-    if (o.evidenceArtifact) o.evidenceArtifact.file = o.evidenceArtifact.file.replace(/cross-build\.(png|xml)$/, 'does-not-exist.$1');
+    if (o.evidenceArtifact) o.evidenceArtifact.file = `${FIXTURE_REL}/does-not-exist-${o.seq}.png`;
   }
-  for (const a of missing.artifacts) a.file = a.file.replace(/cross-build\.(png|xml)$/, 'does-not-exist.$1');
+  for (const a of missing.artifacts) a.file = `${FIXTURE_REL}/does-not-exist-run-artifact.png`;
   const badLedger = writeLedger('m13-missing', [missing]);
   const bad = runMerger([badLedger]);
   assert.equal(bad.status, 0, 'without --strict the merge completes but reports non-certifying');
@@ -687,30 +769,39 @@ test('M13 (P1-3): certifying levels are impossible without artifact verification
   assert.match(strictBad.stderr, /artifact attestation/);
 });
 
-test('M14 (P1-3): reviewer valid-artifact fixture attests CERTIFYING; missing/mismatched fixtures are NON_CERTIFYING', () => {
-  // The reviewer's fixture shapes, copied to scripts/qa/test-fixtures/080-review/
-  // (see its README.md for the minimal documented adaptations).
+test('M14 (P1-3): exact reviewer fixtures fail closed; valid PNG/XML receipts certify; missing/mismatched fixtures do not', () => {
   const fixture = (name) => fileURLToPath(new URL(`./test-fixtures/080-review/${name}`, import.meta.url));
 
-  // Path A — artifacts present and hashing: the run attests and may certify.
-  const validLedger = fixture('valid-artifact-ledger.json');
+  // A fresh, complete PNG/XML acquisition is the positive artifact-attestation
+  // control. It passes only with both bytes and its indexed receipts.
+  const validLedger = writeLedger('m14-valid-real-artifacts', [l3Run('attempt-m14-valid')]);
   const valid = runMerger([validLedger]);
   assert.equal(valid.status, 0);
   const outValid = readMerged(valid);
   assert.equal(outValid.artifactAttestation.verdict, 'CERTIFYING');
   assert.equal(outValid.validatedPerRunLedger[0].artifactAttestation.certifying, true);
-  assert.equal(outValid.artifactAttestation.verifiedArtifacts, 2);
+  assert.ok(outValid.artifactAttestation.verifiedArtifacts >= 2);
   assert.equal(outValid.games[0].certified.artifactAttested, true);
   assert.equal(runMerger([validLedger], ['--strict']).status, 0);
 
-  // Path B — mandatory artifact absent: the run is NON-CERTIFYING.
+  // The reviewer's purported valid fixture has only a PNG signature plus an
+  // invalid IDAT CRC and no capture receipts; real parsing correctly refuses it.
+  const reviewerValidLedger = fixture('valid-artifact-ledger.json');
+  const reviewerValid = runMerger([reviewerValidLedger]);
+  const reviewerOut = readMerged(reviewerValid);
+  assert.equal(reviewerOut.artifactAttestation.verdict, 'NON_CERTIFYING');
+  assert.equal(reviewerOut.games[0].certified.level, 0);
+  assert.ok((reviewerOut.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) >= 1);
+  assert.equal(runMerger([reviewerValidLedger], ['--strict']).status, 1);
+
+  // Exact reviewer missing-artifact fixture stays non-certifying.
   const missingLedger = fixture('missing-artifact-ledger.json');
   const missing = runMerger([missingLedger]);
   assert.equal(missing.status, 0);
   const outMissing = readMerged(missing);
   assert.equal(outMissing.artifactAttestation.verdict, 'NON_CERTIFYING');
   assert.equal(outMissing.validatedPerRunLedger[0].artifactAttestation.certifying, false);
-  assert.equal((outMissing.validatedPerRunLedger[0].artifactAttestation.counters.unreadable || 0) >= 1, true);
+  assert.ok((outMissing.validatedPerRunLedger[0].artifactAttestation.counters.unreadable || 0) >= 1);
   assert.equal(outMissing.games[0].certified.artifactAttested, false);
   assert.equal(runMerger([missingLedger], ['--strict']).status, 1, '--strict must exit non-zero when attestation fails');
 
@@ -720,5 +811,54 @@ test('M14 (P1-3): reviewer valid-artifact fixture attests CERTIFYING; missing/mi
   const outMismatch = readMerged(mismatch);
   assert.equal(outMismatch.artifactAttestation.verdict, 'NON_CERTIFYING');
   assert.equal(outMismatch.validatedPerRunLedger[0].artifactAttestation.certifying, false);
-  assert.equal((outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.mismatch || 0) >= 1, true);
+  assert.ok((outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.mismatch || 0) >= 1);
+});
+
+test('M15 (P2-B4): duplicate attempts from separate ledgers are invalid and --strict exits nonzero', () => {
+  const duplicateId = 'attempt-duplicate-across-ledgers';
+  const first = writeLedger('m15-first', [l2Run(duplicateId)]);
+  const second = writeLedger('m15-second', [l3Run(duplicateId)]);
+  const merged = runMerger([first, second]);
+  assert.equal(merged.status, 0, 'non-strict merge retains diagnostics without certifying duplicates');
+  const out = readMerged(merged);
+  assert.equal(out.totals.validRuns, 0);
+  assert.equal(out.games[0].certified.level, 0);
+  assert.ok(out.validatedPerRunLedger.every((run) => run.artifactAttestation.runValid === false && run.artifactAttestation.certifying === false));
+  assert.equal(out.artifactAttestation.runsAttested, 0);
+  assert.ok(out.diagnostics.some((item) => item.kind === 'duplicate-execution-attempt-id'));
+  assert.ok(out.diagnostics.some((item) => item.kind === 'invalid-run' && /duplicate executionAttemptId/.test(item.detail)));
+  const strict = runMerger([first, second], ['--strict']);
+  assert.equal(strict.status, 1);
+  assert.match(strict.stderr, /contract-invalid runs/);
+});
+
+test('M16 (P2-B4): corrupt collections and unknown game ids are retained, rejected, and never throw', () => {
+  const corrupt = l2Run('attempt-corrupt-collection');
+  corrupt.events = {};
+  const unknown = l2Run('attempt-unknown-game', { gameId: 'made-up-game' });
+  unknown.knownGameId = true;
+  const ledger = writeLedger('m16-corrupt-and-unknown', [null, corrupt, unknown]);
+  const merged = runMerger([ledger], ['--strict']);
+  assert.equal(merged.status, 1);
+  const out = readMerged(merged);
+  assert.equal(out.rawPerRunLedger.length, 3);
+  assert.equal(out.totals.validRuns, 0);
+  assert.ok(out.diagnostics.some((item) => item.kind === 'corrupt-run-entry'));
+  assert.ok(out.diagnostics.some((item) => item.kind === 'invalid-run' && /events must be an array/.test(item.detail)));
+  assert.ok(out.diagnostics.some((item) => item.kind === 'invalid-run' && /unknown game id/.test(item.detail)));
+});
+
+test('M17: v1-v7 ledgers remain quarantined while a v8-named ledger gets ordinary checks only', () => {
+  const historical = path.resolve(REPO_ROOT, 'scripts/qa/native-coverage-ledger-v2.json');
+  const rejected = runMerger([historical], ['--strict']);
+  assert.equal(rejected.status, 1);
+  const historicalOutput = readMerged(rejected);
+  assert.ok(historicalOutput.diagnostics.some((item) => item.kind === 'invalid-run' && /quarantined/.test(item.detail)));
+  assert.equal(historicalOutput.games.every((game) => game.certified.level === 0), true);
+
+  const v8Named = path.join(TMP_ROOT, 'native-coverage-ledger-v8.json');
+  fs.writeFileSync(v8Named, JSON.stringify({ schemaVersion: 2, runs: [l3Run('attempt-v8-no-exemption')] }));
+  const checked = runMerger([v8Named], ['--strict']);
+  assert.equal(checked.status, 0, checked.stdout + checked.stderr);
+  assert.equal(readMerged(checked).games[0].certified.level, 3);
 });

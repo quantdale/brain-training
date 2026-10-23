@@ -65,12 +65,18 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+import { inflateSync } from 'node:zlib';
+import { isQuarantinedRun, loadEvidenceGameRegistry, validateEvidenceRun } from './artifact-policy.mjs';
 import {
   ARTIFACT_REQUIRED_PHASES,
   CAPABILITY_ARTIFACT_REQUIREMENTS as CONTRACT_CAPABILITY_REQUIREMENTS,
   deriveCapabilities,
   observationRequiresArtifact,
 } from './coverage-contract.mjs';
+
+const require = createRequire(new URL('../../apps/mobile/package.json', import.meta.url));
+const { SaxesParser } = require('saxes');
 
 // ---------------------------------------------------------------------------
 // Verdict vocabulary — one authoritative list
@@ -199,7 +205,9 @@ export function isCertificationSuccess(result) {
 export function certifiesNativeEvidence(result) {
   return !!result
     && result.verdict === VerificationVerdict.PASS
-    && result.mode !== EvidenceMode.SOURCE;
+    && result.mode !== EvidenceMode.SOURCE
+    && result.buildScope === BuildScope.SINGLE
+    && result.currentIdentityVerified === true;
 }
 
 // ---------------------------------------------------------------------------
@@ -275,12 +283,30 @@ export function resolveArtifactPath(file, repoRoot) {
   if (path.win32.isAbsolute(file)) return { ok: false, reason: 'artifact path is absolute (win32)' };
 
   const root = path.resolve(repoRoot);
-  const absolute = path.resolve(root, file);
+  // Treat both slash spellings as separators even when auditing Windows ledgers
+  // on POSIX. Windows strips trailing dots/spaces and supports ADS; reject those
+  // aliases instead of allowing them to evade ownership tracking.
+  const components = file.replace(/\\/g, '/').split('/');
+  if (components.some((part) => /[. ]$/.test(part) && part !== '.' && part !== '..') || file.includes(':')) {
+    return { ok: false, reason: 'artifact path contains a Windows alias or alternate data stream' };
+  }
+  const absolute = path.resolve(root, ...components);
   const rel = path.relative(root, absolute);
   if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) {
     return { ok: false, reason: 'artifact path escapes the repository root' };
   }
-  return { ok: true, absolute, relative: rel.split(path.sep).join('/') };
+  // Resolve symlink/junction aliases before assigning ownership. Existing paths
+  // must stay inside the real repository; a lexical prefix is not sufficient.
+  let canonical = absolute;
+  try {
+    canonical = fs.realpathSync(absolute);
+    const realRoot = fs.realpathSync(root);
+    const realRel = path.relative(realRoot, canonical);
+    if (realRel.startsWith('..') || path.isAbsolute(realRel)) return { ok: false, reason: 'artifact symlink escapes the repository root' };
+  } catch (error) {
+    if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') return { ok: false, reason: `cannot resolve artifact ownership: ${error.code || error.message}` };
+  }
+  return { ok: true, absolute, relative: rel.split(path.sep).join('/'), ownershipKey: canonical.replace(/\\/g, '/').toLowerCase() };
 }
 
 // ---------------------------------------------------------------------------
@@ -358,21 +384,94 @@ export function verifyArtifactBytes(artifact, bytes) {
  * that contains arbitrary bytes is not a screenshot, and a filename that
  * resembles the expected artifact is never accepted on its own.
  */
-export function sniffScreenshot(bytes) {
-  if (!Buffer.isBuffer(bytes) || bytes.length < 8) return { ok: false, reason: 'not a PNG: too short' };
-  const isPng = bytes[0] === 0x89
-    && bytes.toString('latin1', 1, 4) === 'PNG'
-    && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
-  return isPng ? { ok: true } : { ok: false, reason: 'not a PNG: signature missing' };
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let i = 0; i < 8; i++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
-/** Is a hierarchy artifact actually a UIAutomator-style XML document? */
-export function sniffHierarchy(bytes) {
-  if (!Buffer.isBuffer(bytes) || bytes.length === 0) return { ok: false, reason: 'not XML: empty' };
-  const head = bytes.toString('utf8', 0, Math.min(bytes.length, 4096));
-  if (head.includes('\0')) return { ok: false, reason: 'not XML: binary content' };
-  if (!/<(hierarchy|node)\b/.test(head)) return { ok: false, reason: 'not XML: no hierarchy/node root element' };
+export function sniffScreenshot(bytes) {
+  const bad = (reason) => ({ ok: false, reason: `not a valid PNG: ${reason}` });
+  if (!Buffer.isBuffer(bytes) || !bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))) return bad('signature missing');
+  let offset = 8;
+  let header;
+  let ended = false;
+  let palette = false;
+  let dataEnded = false;
+  const data = [];
+  while (offset < bytes.length) {
+    if (offset + 12 > bytes.length) return bad('truncated chunk');
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.toString('ascii', offset + 4, offset + 8);
+    if (!/^[A-Za-z]{4}$/.test(type) || offset + length + 12 > bytes.length) return bad('invalid chunk length/type');
+    const payload = bytes.subarray(offset + 8, offset + 8 + length);
+    if (crc32(bytes.subarray(offset + 4, offset + 8 + length)) !== bytes.readUInt32BE(offset + 8 + length)) return bad(`${type} CRC mismatch`);
+    if (!header && type !== 'IHDR') return bad('IHDR must be first');
+    if (type === 'IHDR') {
+      if (header || length !== 13) return bad('invalid/duplicate IHDR');
+      const width = payload.readUInt32BE(0), height = payload.readUInt32BE(4);
+      const depth = payload[8], color = payload[9];
+      const depths = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+      if (!width || !height || width > 32768 || height > 32768 || !depths[color]?.includes(depth) || payload[10] || payload[11] || payload[12] > 1) return bad('invalid IHDR dimensions/encoding');
+      header = { width, height, depth, color, interlace: payload[12] };
+    } else if (type === 'PLTE') {
+      if (palette || data.length || !length || length % 3 || length > 768 || [0, 4].includes(header.color)) return bad('invalid palette');
+      palette = true;
+    } else if (type === 'IDAT') {
+      if (dataEnded || (header.color === 3 && !palette)) return bad('invalid IDAT order/palette');
+      data.push(payload);
+    } else if (type === 'IEND') {
+      if (length || !data.length || offset + 12 !== bytes.length) return bad('invalid IEND or trailing bytes');
+      ended = true;
+    } else {
+      if (data.length) dataEnded = true;
+      if (type[0] === type[0].toUpperCase()) return bad(`unknown critical chunk ${type}`);
+    }
+    offset += length + 12;
+  }
+  if (!ended || !header) return bad('missing IHDR/IDAT/IEND');
+  const channels = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[header.color];
+  const passes = header.interlace ? [[0,0,8,8],[4,0,8,8],[0,4,4,8],[2,0,4,4],[0,2,2,4],[1,0,2,2],[0,1,1,2]] : [[0,0,1,1]];
+  const rows = passes.map(([x,y,dx,dy]) => {
+    const width = Math.max(0, Math.ceil((header.width - x) / dx));
+    const height = Math.max(0, Math.ceil((header.height - y) / dy));
+    return { height: width ? height : 0, stride: 1 + Math.ceil(width * channels * header.depth / 8) };
+  });
+  const size = rows.reduce((n, row) => n + row.height * row.stride, 0);
+  if (size > 128 * 1024 * 1024) return bad('decoded image exceeds verification bound');
+  try {
+    const compressed = Buffer.concat(data);
+    const result = inflateSync(compressed, { maxOutputLength: Math.max(1, size), info: true });
+    if (result.engine.bytesWritten !== compressed.length || result.buffer.length !== size) return bad('incorrect compressed/pixel length');
+    let at = 0;
+    for (const row of rows) for (let y = 0; y < row.height; y++, at += row.stride) if (result.buffer[at] > 4) return bad('invalid scanline filter');
+  } catch (error) { return bad(`invalid compressed pixels (${error.message})`); }
   return { ok: true };
+}
+
+/** Strict XML parsing, not prefix sniffing. DTDs/entities are never evaluated. */
+export function sniffHierarchy(bytes) {
+  const bad = (reason) => ({ ok: false, reason: `not valid hierarchy XML: ${reason}` });
+  if (!Buffer.isBuffer(bytes) || !bytes.length) return bad('empty');
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { return bad('invalid UTF-8'); }
+  let root = null, nodes = 0, depth = 0, problem = null;
+  const parser = new SaxesParser({ xmlns: false });
+  parser.on('error', (error) => { problem = error.message; });
+  parser.on('doctype', () => { problem = 'DOCTYPE is forbidden'; });
+  parser.on('opentag', (tag) => {
+    if (depth++ === 0) root = tag.name;
+    if (!['hierarchy', 'node'].includes(tag.name)) problem = `unexpected element ${tag.name}`;
+    if (tag.name === 'node') nodes++;
+  });
+  parser.on('closetag', () => { depth--; });
+  parser.on('text', (value) => { if (value.trim()) problem = 'unexpected text content'; });
+  try { parser.write(text).close(); } catch (error) { problem = error.message; }
+  return problem || !['hierarchy', 'node'].includes(root) || !nodes || depth !== 0
+    ? bad(problem || 'missing populated hierarchy/node root') : { ok: true };
 }
 
 /** Empty hierarchy dumps are a known tooling failure, never a valid state. */
@@ -382,6 +481,74 @@ export function hierarchyIsEmpty(bytes) {
   if (!/<node\b/.test(text)) return true;
   // A hierarchy with zero node elements (or a single bare root) proves nothing.
   return false;
+}
+
+const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const sha256Shape = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
+const gitShaShape = (value) => typeof value === 'string' && /^[a-f0-9]{40}$/i.test(value);
+
+/** Load and verify the externally supplied acquisition index. */
+function loadCaptureReceiptIndex(input, repoRoot, readArtifact) {
+  if (input === undefined || input === null || input === '') return { present: false, valid: false, entries: new Map(), errors: [] };
+  let document = input;
+  if (typeof input === 'string') {
+    try { document = JSON.parse(fs.readFileSync(path.resolve(input), 'utf8')); }
+    catch (error) { return { present: true, valid: false, entries: new Map(), errors: [`cannot read capture-receipts index: ${error.code || error.message}`] }; }
+  }
+  if (!isRecord(document) || document.schemaVersion !== 1 || !Array.isArray(document.receipts)) {
+    return { present: true, valid: false, entries: new Map(), errors: ['capture-receipts index must be {schemaVersion:1,receipts:[{file,sha256}]}'] };
+  }
+  const entries = new Map();
+  const captureIds = new Map();
+  const errors = [];
+  for (const [index, entry] of document.receipts.entries()) {
+    if (!isRecord(entry) || typeof entry.file !== 'string' || !sha256Shape(entry.sha256)) {
+      errors.push(`capture-receipts[${index}] must contain a repository-relative file and SHA-256`);
+      continue;
+    }
+    const resolved = resolveArtifactPath(entry.file, repoRoot);
+    if (!resolved.ok) { errors.push(`capture-receipts[${index}] has unsafe path: ${resolved.reason}`); continue; }
+    if (entries.has(resolved.ownershipKey)) { errors.push(`capture-receipts index repeats canonical receipt path '${entry.file}'`); continue; }
+    let bytes;
+    try { bytes = readArtifact(resolved.absolute); }
+    catch (error) { errors.push(`capture receipt '${entry.file}' is unreadable: ${error.code || error.message}`); continue; }
+    if (!Buffer.isBuffer(bytes)) bytes = Buffer.from(bytes);
+    const actualSha = computeSha256(bytes);
+    if (actualSha !== entry.sha256.toLowerCase()) { errors.push(`capture receipt '${entry.file}' SHA-256 mismatch`); continue; }
+    let receipt;
+    try { receipt = JSON.parse(bytes.toString('utf8')); }
+    catch { errors.push(`capture receipt '${entry.file}' is not valid JSON`); continue; }
+    if (!isRecord(receipt)
+        || receipt.schemaVersion !== 1
+        || typeof receipt.captureId !== 'string' || !receipt.captureId.trim()
+        || typeof receipt.executionAttemptId !== 'string' || !receipt.executionAttemptId.trim()
+        || !sha256Shape(receipt.artifactSha256)
+        || typeof receipt.capturedAt !== 'string' || !Number.isFinite(Date.parse(receipt.capturedAt))
+        || !gitShaShape(receipt.gitSha)
+        || !sha256Shape(receipt.apkSha256)) {
+      errors.push(`capture receipt '${entry.file}' does not match schemaVersion 1 receipt fields`);
+      continue;
+    }
+    if (captureIds.has(receipt.captureId)) {
+      errors.push(`captureId '${receipt.captureId}' is not unique per artifact acquisition`);
+      continue;
+    }
+    captureIds.set(receipt.captureId, resolved.ownershipKey);
+    let artifactOwnershipKey = null;
+    if (receipt.artifactFile !== undefined) {
+      if (typeof receipt.artifactFile !== 'string') { errors.push(`capture receipt '${entry.file}' artifactFile must be a path`); continue; }
+      const artifactPath = resolveArtifactPath(receipt.artifactFile, repoRoot);
+      if (!artifactPath.ok) { errors.push(`capture receipt '${entry.file}' has unsafe artifactFile: ${artifactPath.reason}`); continue; }
+      artifactOwnershipKey = artifactPath.ownershipKey;
+    }
+    entries.set(resolved.ownershipKey, {
+      indexFile: entry.file,
+      indexSha256: entry.sha256.toLowerCase(),
+      receipt,
+      artifactOwnershipKey,
+    });
+  }
+  return { present: true, valid: errors.length === 0, entries, errors };
 }
 
 // ---------------------------------------------------------------------------
@@ -405,6 +572,15 @@ function emptyCounters() {
     incompleteIdentity: 0,
     capabilityUnbound: 0,
     mixedBuild: 0,
+    invalidRun: 0,
+    quarantinedRun: 0,
+    noMeaningfulArtifact: 0,
+    captureReceiptInvalid: 0,
+    captureReceiptUnindexed: 0,
+    captureReceiptIndexInvalid: 0,
+    captureReceiptIndexMissing: 0,
+    currentIdentityMissing: 0,
+    invalidExpectedIdentity: 0,
     // Informational only: byte-identical artifacts at DIFFERENT paths. The
     // emulator renders the same screen to the same pixels, so two attempts that
     // both sit on the launcher legitimately produce identical bytes. That is
@@ -427,10 +603,17 @@ const INTEGRITY_COUNTERS = Object.freeze([
   'badContent',
   'incompleteIdentity',
   'capabilityUnbound',
+  'invalidRun',
+  'quarantinedRun',
+  'noMeaningfulArtifact',
+  'captureReceiptInvalid',
+  'captureReceiptUnindexed',
+  'captureReceiptIndexInvalid',
+  'invalidExpectedIdentity',
 ]);
 
-/** Counters that make a LOCAL run BLOCKED (evidence absent on this machine). */
-const ABSENCE_COUNTERS = Object.freeze(['missing', 'unreadable']);
+/** Counters that make native verification unavailable rather than successful. */
+const ABSENCE_COUNTERS = Object.freeze(['missing', 'unreadable', 'captureReceiptIndexMissing', 'currentIdentityMissing']);
 
 /**
  * Verify a set of run records.
@@ -441,6 +624,9 @@ const ABSENCE_COUNTERS = Object.freeze(['missing', 'unreadable']);
  * @param {boolean} [opts.strict=false]         strict certification request
  * @param {string} [opts.buildScope='single']   BuildScope
  * @param {string} [opts.repoRoot=process.cwd()]
+ * @param {string|object} [opts.captureReceipts] externally supplied schemaVersion-1 acquisition index
+ * @param {string} [opts.expectedGitSha]        externally supplied current source identity
+ * @param {string} [opts.expectedApkSha256]     externally supplied current APK identity
  * @param {boolean} [opts.sniffContent=true]    validate artifact content shape
  * @param {(absPath: string) => Buffer} [opts.readArtifactBytes]  injectable
  *        byte reader (defaults to fs.readFileSync; tests inject to exercise
@@ -458,37 +644,94 @@ export function verifyArtifactLedger(runs, opts = {}) {
   if (!EVIDENCE_MODES.includes(mode)) throw new Error(`bad evidence mode '${mode}'`);
   if (!BUILD_SCOPES.includes(buildScope)) throw new Error(`bad build scope '${buildScope}'`);
 
-  const list = Array.isArray(runs) ? runs.filter((r) => r && typeof r === 'object') : [];
+  const inputIsArray = Array.isArray(runs);
+  const list = inputIsArray ? runs : [];
   const findings = [];
   const counters = emptyCounters();
   const record = (kind, detail) => findings.push({ kind, detail });
+  let knownGames = null;
+  try { knownGames = loadEvidenceGameRegistry(); }
+  catch (error) { record('registry-unavailable', `authoritative game registry could not be loaded: ${error.message}`); }
+  if (!inputIsArray) {
+    counters.invalidRun++;
+    record('malformed-run-collection', 'run collection must be an array; no entries were accepted');
+  }
+  const receiptIndex = loadCaptureReceiptIndex(opts.captureReceipts, repoRoot, readArtifact);
+  if (mode !== EvidenceMode.SOURCE && !receiptIndex.present) {
+    counters.captureReceiptIndexMissing++;
+    record('capture-receipt-index-missing', 'native artifact verification requires an externally supplied capture-receipts index');
+  } else if (receiptIndex.present && !receiptIndex.valid) {
+    counters.captureReceiptIndexInvalid++;
+    for (const error of receiptIndex.errors) record('capture-receipt-index-invalid', error);
+  }
+  const expectedGitSha = opts.expectedGitSha;
+  const expectedApkSha256 = opts.expectedApkSha256;
+  if (buildScope === BuildScope.SINGLE && mode !== EvidenceMode.SOURCE) {
+    if (expectedGitSha === undefined || expectedApkSha256 === undefined) {
+      counters.currentIdentityMissing++;
+      record('current-build-identity-missing', 'single-build native verification requires externally supplied expectedGitSha and expectedApkSha256');
+    } else if (!gitShaShape(expectedGitSha) || !sha256Shape(expectedApkSha256)) {
+      counters.invalidExpectedIdentity++;
+      record('current-build-identity-invalid', 'expected source SHA must be 40 hexadecimal characters and expected APK SHA-256 must be 64 hexadecimal characters');
+    }
+  }
 
   // -- duplicate execution attempts ----------------------------------------
   // The same executionAttemptId twice is either a copy/paste error or a
   // fabricated attempt. Either way one attempt plus one attempt is one attempt.
   const attemptSeen = new Map();
+  const duplicateAttempts = new Set();
   for (const run of list) {
+    if (!isRecord(run)) {
+      counters.invalidRun++;
+      record('invalid-run-shape', 'run entry must be an object; malformed entry was retained and rejected');
+      continue;
+    }
     const id = run.executionAttemptId;
-    if (!id) { counters.incompleteIdentity++; record('missing-attempt-id', 'a run carries no executionAttemptId'); continue; }
+    if (typeof id !== 'string' || !id.trim()) { counters.incompleteIdentity++; record('missing-attempt-id', 'a run carries no executionAttemptId'); continue; }
     if (attemptSeen.has(id)) {
       counters.duplicateAttempt++;
+      duplicateAttempts.add(id);
       record('duplicate-attempt-id', `executionAttemptId '${id}' appears more than once — duplicate attempts never certify`);
     }
     attemptSeen.set(id, run);
   }
 
+  // -- input/run policy validation -----------------------------------------
+  const runValidations = new Map();
+  for (const [index, run] of list.entries()) {
+    const validation = validateEvidenceRun(run, knownGames);
+    runValidations.set(index, validation);
+    if (!validation.valid) {
+      counters.invalidRun++;
+      record('invalid-run', `run[${index}] rejected before artifact/capability derivation: ${validation.errors.join('; ')}`);
+    }
+    if (isRecord(run) && isQuarantinedRun(run)) {
+      counters.quarantinedRun++;
+      record('quarantined-run', `run[${index}] matches quarantined historical v1-v7 evidence and cannot certify`);
+    }
+  }
+
   // -- build identity completeness ----------------------------------------
   for (const run of list) {
+    if (!isRecord(run)) continue;
     const missing = missingBuildFields(run.buildIdentity);
     if (missing.length) {
       counters.incompleteIdentity++;
       counters.wrongBuild++;
       record('incomplete-build-identity', `${run.executionAttemptId || '(missing attempt)'}: buildIdentity missing ${missing.join(', ')} — cannot bind evidence to a build`);
     }
+    if (buildScope === BuildScope.SINGLE && mode !== EvidenceMode.SOURCE
+        && gitShaShape(expectedGitSha) && sha256Shape(expectedApkSha256)
+        && (String(run.buildIdentity?.gitSha).toLowerCase() !== expectedGitSha.toLowerCase()
+          || String(run.buildIdentity?.apkSha256).toLowerCase() !== expectedApkSha256.toLowerCase())) {
+      counters.wrongBuild++;
+      record('unexpected-current-build', `${run.executionAttemptId || '(missing attempt)'}: claimed source/APK identity does not match the externally supplied expected identity`);
+    }
   }
 
   // -- build scope ---------------------------------------------------------
-  const { partitions, unidentifiable } = partitionByBuild(list);
+  const { partitions, unidentifiable } = partitionByBuild(list.filter(isRecord));
   counters.mixedBuild = partitions.size > 1 ? partitions.size : 0;
   const buildPartitionReport = [];
   for (const [key, members] of partitions) {
@@ -526,13 +769,68 @@ export function verifyArtifactLedger(runs, opts = {}) {
   // -- cross-attempt evidence reuse ---------------------------------------
   // A screenshot produced by attempt A is evidence for A only. If attempt B
   // cites the same file, one of the two observations was never actually made.
-  const fileOwner = new Map(); // relative path -> {attempt, digest}
+  const fileOwner = new Map(); // canonical Windows ownership key -> {attempt, digest}
+  const receiptOwner = new Map(); // canonical receipt path -> execution attempt
   const observedDigests = new Map(); // digest -> Set(attemptId) for reuse detection
+  let meaningfulArtifacts = 0;
+  const verifyCaptureReceipt = (artifact, resolvedArtifact, actualSha256, run, label) => {
+    if (mode === EvidenceMode.SOURCE && artifact.captureReceipt === undefined) return true;
+    if (mode === EvidenceMode.SOURCE && !receiptIndex.present) return true;
+    if (!isRecord(artifact.captureReceipt)
+        || typeof artifact.captureReceipt.file !== 'string'
+        || !sha256Shape(artifact.captureReceipt.sha256)) {
+      if (mode === EvidenceMode.SOURCE && !receiptIndex.present) return true;
+      counters.unbound++;
+      record('capture-receipt-missing', `${run.executionAttemptId}: ${label} has no valid captureReceipt {file,sha256}`);
+      return false;
+    }
+    if (!receiptIndex.present) {
+      record('capture-receipt-index-unavailable', `${run.executionAttemptId}: ${label} receipt cannot be checked without the external index`);
+      return false;
+    }
+    if (!receiptIndex.valid) return false;
+    const resolvedReceipt = resolveArtifactPath(artifact.captureReceipt.file, repoRoot);
+    if (!resolvedReceipt.ok) {
+      counters.unsafePath++;
+      record('unsafe-capture-receipt-path', `${run.executionAttemptId}: ${label} — ${resolvedReceipt.reason}`);
+      return false;
+    }
+    const indexed = receiptIndex.entries.get(resolvedReceipt.ownershipKey);
+    if (!indexed || indexed.indexSha256 !== artifact.captureReceipt.sha256.toLowerCase()) {
+      counters.captureReceiptUnindexed++;
+      record('capture-receipt-unindexed', `${run.executionAttemptId}: ${label} receipt is absent from the supplied capture-receipts index or has a different digest`);
+      return false;
+    }
+    const priorReceiptOwner = receiptOwner.get(resolvedReceipt.ownershipKey);
+    if (priorReceiptOwner && priorReceiptOwner !== run.executionAttemptId) {
+      counters.reusedEvidence++;
+      record('capture-receipt-reused-across-attempts', `${run.executionAttemptId}: ${label} reuses capture receipt owned by '${priorReceiptOwner}'`);
+      return false;
+    }
+    receiptOwner.set(resolvedReceipt.ownershipKey, run.executionAttemptId);
+    const receipt = indexed.receipt;
+    const build = run.buildIdentity || {};
+    if (receipt.executionAttemptId !== run.executionAttemptId
+        || receipt.artifactSha256.toLowerCase() !== actualSha256
+        || String(receipt.gitSha).toLowerCase() !== String(build.gitSha || '').toLowerCase()
+        || String(receipt.apkSha256).toLowerCase() !== String(build.apkSha256 || '').toLowerCase()
+        || (indexed.artifactOwnershipKey && indexed.artifactOwnershipKey !== resolvedArtifact.ownershipKey)) {
+      counters.captureReceiptInvalid++;
+      record('capture-receipt-binding-mismatch', `${run.executionAttemptId}: ${label} receipt does not bind this artifact, attempt, source/APK build, and path`);
+      return false;
+    }
+    return true;
+  };
 
   // -- per-run verification ------------------------------------------------
-  for (const run of list) {
+  for (const [runIndex, run] of list.entries()) {
+    if (!isRecord(run)) continue;
+    const validation = runValidations.get(runIndex);
+    if (!validation?.valid || isQuarantinedRun(run)) continue;
     const attemptId = run.executionAttemptId || '(missing)';
     const buildOk = missingBuildFields(run.buildIdentity).length === 0;
+    let runMeaningfulArtifacts = 0;
+    let runMeaningfulBindings = 0;
     // Absence in local mode is a BLOCKED condition, not an integrity violation.
     // The capability-sufficiency check below must not double-report the same
     // absence as a FAIL: if any required artifact was simply not present, the
@@ -552,6 +850,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
         }
         return null;
       }
+      if ((artifact.kind === 'screenshot' || artifact.kind === 'hierarchy') && typeof artifact.file === 'string' && artifact.file.trim()) runMeaningfulBindings++;
       if (!artifact.file) {
         counters.unbound++;
         record('unbound-artifact', `${attemptId}: ${label} records a digest but no file binding — cannot be independently verified`);
@@ -572,7 +871,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
       }
       // Reuse detection (per-file). A later attempt citing the same file with a
       // different digest is additionally a contradiction.
-      const owner = fileOwner.get(resolved.relative);
+      const owner = fileOwner.get(resolved.ownershipKey);
       if (owner && owner.attempt !== attemptId) {
         counters.reusedEvidence++;
         record('artifact-reused-across-attempts', `${attemptId}: ${label} cites '${resolved.relative}' already owned by attempt '${owner.attempt}' — evidence cannot be reused between attempts`);
@@ -583,7 +882,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
         record('artifact-contradictory-digest', `${attemptId}: ${label} cites '${resolved.relative}' with a digest that contradicts an earlier citation`);
         return null;
       }
-      fileOwner.set(resolved.relative, { attempt: attemptId, digest: artifact.sha256 || artifact.sha1 || null });
+      fileOwner.set(resolved.ownershipKey, { attempt: attemptId, digest: artifact.sha256 || artifact.sha1 || null });
 
       let bytes;
       try {
@@ -629,9 +928,14 @@ export function verifyArtifactLedger(runs, opts = {}) {
         }
       }
 
-      // Digest reuse across DIFFERENT paths is reported, never failed: the
-      // emulator is deterministic, so identical screens legitimately produce
-      // identical bytes. Failing on that would punish a correct harness.
+      // A valid acquisition receipt is per artifact and binds the actual bytes,
+      // attempt, and build. Receipts are an auditable external-index trust
+      // boundary, not cryptographic proof that a native device produced them.
+      if (!verifyCaptureReceipt(artifact, resolved, res.computedSha256, run, label)) return null;
+
+      // Digest reuse across DIFFERENT paths is reported, never failed: two
+      // independently receipted captures may legitimately render identical
+      // static frames. A shared canonical path remains invalid above.
       const digestKey = res.grade === 'sha256' ? res.computedSha256 : `sha1:${computeSha1(bytes)}`;
       if (!observedDigests.has(digestKey)) observedDigests.set(digestKey, new Set());
       const owners = observedDigests.get(digestKey);
@@ -647,6 +951,10 @@ export function verifyArtifactLedger(runs, opts = {}) {
         record('artifact-legacy-digest', `${attemptId}: ${label} verified against a LEGACY SHA-1 — real evidence, but not modern SHA-256 content verification`);
       } else {
         counters.verified++;
+      }
+      if (artifact.kind === 'screenshot' || artifact.kind === 'hierarchy') {
+        meaningfulArtifacts++;
+        runMeaningfulArtifacts++;
       }
       return { grade: res.grade, kind: artifact.kind || null, relative: resolved.relative };
     };
@@ -667,6 +975,14 @@ export function verifyArtifactLedger(runs, opts = {}) {
       const mandatory = a.mandatory === true;
       const ok = verifyOne(a, label, mandatory);
       if (ok && ok.kind) verifiedKinds.add(ok.kind);
+    }
+
+    if (runMeaningfulArtifacts === 0 && runMeaningfulBindings === 0) {
+      counters.noMeaningfulArtifact++;
+      record('no-meaningful-artifact', `${attemptId}: no screenshot or hierarchy artifact is bound to this run`);
+    } else if (runMeaningfulArtifacts === 0 && !absenceInRun && receiptIndex.present) {
+      counters.noMeaningfulArtifact++;
+      record('no-meaningful-artifact', `${attemptId}: no screenshot or hierarchy artifact was independently verified`);
     }
 
     // Capability-level artifact sufficiency (P1-C). A capability the contract
@@ -703,7 +1019,8 @@ export function verifyArtifactLedger(runs, opts = {}) {
   const absenceProblems = ABSENCE_COUNTERS.reduce((n, k) => n + (counters[k] || 0), 0);
 
   let verdict;
-  if (list.length === 0) verdict = VerificationVerdict.NO_EVIDENCE;
+  if (!inputIsArray) verdict = VerificationVerdict.FAIL;
+  else if (list.length === 0) verdict = VerificationVerdict.NO_EVIDENCE;
   else if (integrityProblems > 0) verdict = VerificationVerdict.FAIL;
   else if (mode === EvidenceMode.LOCAL) {
     // Local mode: required evidence must be present. Absence is BLOCKED — a
@@ -721,12 +1038,22 @@ export function verifyArtifactLedger(runs, opts = {}) {
   }
 
   const exitCode = deriveVerificationExitCode(verdict, { mode, strict, buildScope });
+  const currentIdentityMatches = buildScope === BuildScope.SINGLE
+    && mode !== EvidenceMode.SOURCE
+    && gitShaShape(expectedGitSha)
+    && sha256Shape(expectedApkSha256)
+    && list.length > 0
+    && list.every((run) => isRecord(run)
+      && String(run.buildIdentity?.gitSha).toLowerCase() === expectedGitSha.toLowerCase()
+      && String(run.buildIdentity?.apkSha256).toLowerCase() === expectedApkSha256.toLowerCase());
+  const currentIdentityVerified = currentIdentityMatches && verdict === VerificationVerdict.PASS;
 
   return {
     verdict,
     strict,
     mode,
     buildScope,
+    currentIdentityVerified,
     exitCode,
     runsInspected: list.length,
     buildsInspected: partitions.size,
@@ -735,14 +1062,20 @@ export function verifyArtifactLedger(runs, opts = {}) {
     findings,
     // Honest scope statement: what this result does and does not certify.
     scope: buildScope === BuildScope.SINGLE
-      ? (partitions.size === 1 ? 'single build' : 'mixed/undetermined builds — NOT single-build certification')
+      ? (currentIdentityMatches
+        ? 'single build matches externally supplied expected source/APK identities'
+        : 'mixed/undetermined or externally unbound/mismatched build — NOT current-revision certification')
       : 'multi-build archive — partitions verified independently; this does NOT describe the current application revision',
-    certifiesNativeEvidence: mode !== EvidenceMode.SOURCE && verdict === VerificationVerdict.PASS,
+    certifiesNativeEvidence: certifiesNativeEvidence({ verdict, mode, buildScope, currentIdentityVerified }),
+    meaningfulArtifacts,
+    captureReceiptTrustBoundary: 'The supplied capture-receipts index binds independently recorded receipt files to artifact bytes, attempts, and builds. It is an auditable acquisition record, not cryptographic proof of native capture.',
     note: mode === EvidenceMode.PORTABLE
       ? 'portable mode: absent git-ignored native evidence is reported as NOT_VERIFIABLE, never as a pass and never as a false fail'
       : mode === EvidenceMode.SOURCE
         ? 'source mode: artifact presence is advisory; structure, binding and digests of present artifacts are still validated; a source pass is never native certification'
-        : 'local mode: every mandatory artifact must exist and hash to its recorded digest',
+        : buildScope === BuildScope.ARCHIVE
+          ? 'archive scope: partitions were checked, but this is explicitly non-current and non-certifying for the application revision'
+          : 'local mode: mandatory artifacts and indexed capture receipts must exist and verify against externally expected source/APK identities',
   };
 }
 

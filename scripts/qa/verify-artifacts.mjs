@@ -52,13 +52,15 @@
  * Usage:
  *   node scripts/qa/verify-artifacts.mjs <ledger.json> [more.json ...]
  *        [--mode local|portable|source] [--build-scope single|archive]
- *        [--strict] [--json OUT] [--verbose]
+ *        [--capture-receipts INDEX] [--expected-git-sha SHA]
+ *        [--expected-apk-sha256 SHA256] [--strict] [--json OUT] [--verbose]
  */
 'use strict';
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isQuarantinedLedger } from './artifact-policy.mjs';
 import {
   BUILD_SCOPES,
   EVIDENCE_MODES,
@@ -72,7 +74,7 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
-const USAGE = 'usage: verify-artifacts.mjs <ledger.json> [...] [--mode local|portable|source] [--build-scope single|archive] [--strict] [--json OUT] [--verbose]';
+const USAGE = 'usage: verify-artifacts.mjs <ledger.json> [...] [--mode local|portable|source] [--build-scope single|archive] [--capture-receipts INDEX] [--expected-git-sha SHA] [--expected-apk-sha256 SHA256] [--strict] [--json OUT] [--verbose]';
 
 /** Print usage to stderr and exit 2 (usage/malformed-input class). */
 function usageError(message) {
@@ -88,6 +90,9 @@ let mode = EvidenceMode.PORTABLE;
 let buildScope = BuildScope.SINGLE;
 let strict = false;
 let jsonOut = null;
+let captureReceipts = null;
+let expectedGitSha;
+let expectedApkSha256;
 let verbose = false;
 
 for (let i = 0; i < argv.length; i++) {
@@ -98,6 +103,16 @@ for (let i = 0; i < argv.length; i++) {
   } else if (a === '--build-scope') {
     buildScope = String(argv[++i] ?? '');
     if (!BUILD_SCOPES.includes(buildScope)) usageError(`bad --build-scope '${buildScope}'`);
+  } else if (a === '--capture-receipts') {
+    const index = argv[++i];
+    if (!index || index.startsWith('-')) usageError('--capture-receipts requires a path');
+    captureReceipts = path.resolve(index);
+  } else if (a === '--expected-git-sha') {
+    expectedGitSha = argv[++i];
+    if (!expectedGitSha || expectedGitSha.startsWith('-')) usageError('--expected-git-sha requires a SHA');
+  } else if (a === '--expected-apk-sha256') {
+    expectedApkSha256 = argv[++i];
+    if (!expectedApkSha256 || expectedApkSha256.startsWith('-')) usageError('--expected-apk-sha256 requires a SHA-256');
   } else if (a === '--strict') strict = true;
   else if (a === '--verbose') verbose = true;
   else if (a === '--json') {
@@ -127,18 +142,28 @@ for (const file of inputs) {
   // invent an empty-but-successful evidence set out of a wrong document shape.
   let list = null;
   if (Array.isArray(doc)) list = doc;
-  else if (Array.isArray(doc.runs)) list = doc.runs;
+  else if (doc !== null && typeof doc === 'object' && Array.isArray(doc.runs)) list = doc.runs;
   if (!list) {
     console.error(`[verify-artifacts] malformed ledger ${file}: expected { runs: [...] }`);
     process.exit(2);
   }
-  for (const r of list) if (r && typeof r === 'object') runs.push(r);
+  const quarantinedLedger = isQuarantinedLedger(file, doc);
+  for (const r of list) {
+    // Keep malformed entries intact for explicit rejection by run-shape policy;
+    // never filter null/primitive entries into a partial successful ledger.
+    runs.push(quarantinedLedger && r && typeof r === 'object' && !Array.isArray(r)
+      ? { ...r, _quarantined: true }
+      : r);
+  }
 }
 
 // --- verify ----------------------------------------------------------------
 let result;
 try {
-  result = verifyArtifactLedger(runs, { mode, strict, buildScope, repoRoot: REPO_ROOT });
+  result = verifyArtifactLedger(runs, {
+    mode, strict, buildScope, repoRoot: REPO_ROOT,
+    captureReceipts, expectedGitSha, expectedApkSha256,
+  });
 } catch (e) {
   console.error(`[verify-artifacts] verifier error: ${e.message}`);
   process.exit(2);
@@ -152,9 +177,10 @@ if (jsonOut) {
 const c = result.counters;
 console.log(`[verify-artifacts] mode=${mode} buildScope=${buildScope} strict=${strict} runs=${result.runsInspected} builds=${result.buildsInspected}`);
 console.log(`[verify-artifacts] verdict=${result.verdict} exit=${result.exitCode}`);
-console.log(`[verify-artifacts] verified=${c.verified} verifiedLegacySha1=${c.verifiedLegacy} mismatch=${c.mismatch} missing=${c.missing} unreadable=${c.unreadable} wrongAttempt=${c.wrongAttempt} wrongBuild=${c.wrongBuild} unbound=${c.unbound} unsafePath=${c.unsafePath} reused=${c.reusedEvidence} duplicateAttempt=${c.duplicateAttempt} badContent=${c.badContent} capabilityUnbound=${c.capabilityUnbound} mixedBuild=${c.mixedBuild}`);
+console.log(`[verify-artifacts] verified=${c.verified} verifiedLegacySha1=${c.verifiedLegacy} mismatch=${c.mismatch} missing=${c.missing} unreadable=${c.unreadable} wrongAttempt=${c.wrongAttempt} wrongBuild=${c.wrongBuild} unbound=${c.unbound} unsafePath=${c.unsafePath} reused=${c.reusedEvidence} duplicateAttempt=${c.duplicateAttempt} badContent=${c.badContent} capabilityUnbound=${c.capabilityUnbound} mixedBuild=${c.mixedBuild} invalidRun=${c.invalidRun} quarantinedRun=${c.quarantinedRun} noMeaningfulArtifact=${c.noMeaningfulArtifact} captureReceiptInvalid=${c.captureReceiptInvalid} captureReceiptUnindexed=${c.captureReceiptUnindexed} currentIdentityMissing=${c.currentIdentityMissing}`);
 console.log(`[verify-artifacts] scope: ${result.scope}`);
 console.log(`[verify-artifacts] certifiesNativeEvidence=${result.certifiesNativeEvidence} — ${result.note}`);
+console.log(`[verify-artifacts] capture receipt trust boundary: ${result.captureReceiptTrustBoundary}`);
 
 const shown = result.findings.filter((f) => f.kind !== 'artifact-legacy-digest');
 const limit = verbose ? shown.length : 25;

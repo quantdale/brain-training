@@ -35,7 +35,7 @@
  *
  * Usage:
  *   node scripts/qa/merge-coverage.mjs <runLedger.json> [more.json ...]
- *        [--out FILE] [--matrix FILE] [--strict]
+ *        [--capture-receipts INDEX] [--out FILE] [--matrix FILE] [--strict]
  *
  * Artifact attestation (Campaign 080 P1-3): certification additionally
  * requires a per-run PASS from the independent artifact verifier
@@ -44,8 +44,8 @@
  * contributes to no certified level or capability axis. The merged output
  * carries an explicit `artifactAttestation` block (verified counts + verdict).
  *
- * Exit codes: 0 = merged, 2 = usage/invalid input, 1 = --strict and at least
- * one run failed contract validation OR lacks a PASS artifact attestation.
+ * Exit codes: 0 = merged, 2 = usage/invalid top-level input, 1 = --strict and at least
+ * one run failed contract/registry/quarantine validation OR lacks a PASS artifact attestation.
  */
 'use strict';
 
@@ -61,45 +61,33 @@ import {
   or3,
 } from './coverage-contract.mjs';
 import { EvidenceMode, verifyArtifactLedger } from './artifact-integrity.mjs';
+import { isQuarantinedLedger, isQuarantinedRun, loadEvidenceGameRegistry, validateEvidenceRun } from './artifact-policy.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
-
-/**
- * AUTHORITATIVE game-id registry (B1). `knownGameId` is a caller-supplied flag
- * and must never be trusted on its own; ids are validated against the real
- * generated game modules instead. When the registry cannot be resolved the
- * merger says so explicitly rather than silently trusting the caller.
- */
-function loadGameRegistry() {
-  try {
-    const ids = [];
-    for (const d of fs.readdirSync(GAMES_DIR)) {
-      const metaPath = path.join(GAMES_DIR, d, 'game.json');
-      if (!fs.existsSync(metaPath)) continue;
-      try {
-        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-        if (meta && typeof meta.id === 'string') ids.push(meta.id);
-      } catch { /* a corrupt game.json is reported by the registry gate, not here */ }
-    }
-    return ids.length ? new Set(ids) : null;
-  } catch {
-    return null;
-  }
+function describeRunEntry(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'an array';
+  return typeof value;
 }
 
 // --- args ------------------------------------------------------------------
 function usage() {
-  console.log('usage: merge-coverage.mjs <runLedger.json> [...] [--out FILE] [--matrix FILE] [--strict]');
+  console.log('usage: merge-coverage.mjs <runLedger.json> [...] [--capture-receipts INDEX] [--out FILE] [--matrix FILE] [--strict]');
 }
 const argv = process.argv.slice(2);
 const inputs = [];
 let outJson = 'scripts/qa/native-coverage-merged.json';
 let outMatrix = null;
+let captureReceipts = null;
 let strict = false;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === '--out') outJson = path.resolve(argv[++i] || '');
   else if (argv[i] === '--matrix') outMatrix = path.resolve(argv[++i] || '');
+  else if (argv[i] === '--capture-receipts') {
+    const index = argv[++i];
+    if (!index || index.startsWith('-')) { console.error('--capture-receipts requires a path'); usage(); process.exit(2); }
+    captureReceipts = path.resolve(index);
+  }
   else if (argv[i] === '--strict') strict = true;
   else if (argv[i] === '-h' || argv[i] === '--help') { usage(); process.exit(0); }
   else if (argv[i].startsWith('--')) { console.error(`unknown option '${argv[i]}'`); usage(); process.exit(2); }
@@ -123,6 +111,11 @@ for (const file of inputs) {
     console.error(`[merge] unreadable input ${file}: ${e.message}`);
     process.exit(2);
   }
+  if (doc === null || typeof doc !== 'object') {
+    diagnostics.push({ kind: 'malformed-ledger', file, detail: 'top-level ledger must be an object or array', fatal: true });
+    console.error(`[merge] malformed ledger ${file}: top-level value must be an object or array`);
+    process.exit(2);
+  }
   // Order matters: a REAL v1 ledger has no `runs[]` (it is a flat array of
   // game records), so the schemaVersion check must come FIRST — otherwise the
   // mandated `reclassify-historical.mjs` guidance is unreachable and the input
@@ -132,14 +125,17 @@ for (const file of inputs) {
     console.error(`[merge] ${file} is not a schemaVersion 2 run ledger; run scripts/qa/reclassify-historical.mjs for v1 evidence`);
     process.exit(2);
   }
-  const fileRuns = Array.isArray(doc) ? doc : Array.isArray(doc.runs) ? doc.runs : null;
+  let fileRuns = null;
+  if (Array.isArray(doc)) fileRuns = doc;
+  else if (Array.isArray(doc.runs)) fileRuns = doc.runs;
   if (!fileRuns) {
     diagnostics.push({ kind: 'malformed-ledger', file, detail: 'no runs[] array (schemaVersion 2 ledger required)', fatal: true });
     console.error(`[merge] malformed ledger ${file}: expected { runs: [...] }`);
     process.exit(2);
   }
   const sha256 = crypto.createHash('sha256').update(raw).digest('hex');
-  inputManifest.push({ file: path.basename(file), sha256, runCount: fileRuns.length, generatedAt: doc.generatedAt || null, evidenceSource: doc.evidenceSource || 'runtime' });
+  const quarantinedLedger = isQuarantinedLedger(file, doc);
+  inputManifest.push({ file: path.basename(file), sha256, runCount: fileRuns.length, generatedAt: doc.generatedAt || null, evidenceSource: doc.evidenceSource || 'runtime', quarantined: quarantinedLedger });
   fileRuns.forEach((r, i) => {
     // B4: a type-corrupt entry must produce a deterministic, actionable
     // validation result — never an uncontrolled crash downstream and never a
@@ -149,23 +145,25 @@ for (const file of inputs) {
         kind: 'corrupt-run-entry',
         file: path.basename(file),
         runId: `(entry ${i})`,
-        detail: `run entry is ${r === null ? 'null' : Array.isArray(r) ? 'an array' : typeof r}, not an object`,
+        detail: `run entry is ${describeRunEntry(r)}, not an object`,
         effect: 'retained as an invalid run; excluded from certification',
       });
       runs.push({ executionAttemptId: `(corrupt-entry-${i})`, gameId: '(missing)', events: [], observations: [], _corrupt: true, _sourceFile: path.basename(file), _sourceSha256: sha256 });
       return;
     }
-    runs.push({ ...r, _sourceFile: path.basename(file), _sourceSha256: sha256 });
+    const quarantined = quarantinedLedger || isQuarantinedRun(r);
+    runs.push({ ...r, ...(quarantined ? { _quarantined: true } : {}), _sourceFile: path.basename(file), _sourceSha256: sha256 });
   });
 }
 
 // --- authoritative registry (B1) -------------------------------------------
-const knownGames = loadGameRegistry();
-if (!knownGames) {
+let knownGames = null;
+try { knownGames = loadEvidenceGameRegistry(); }
+catch (error) {
   diagnostics.push({
     kind: 'registry-unavailable',
-    detail: `authoritative game registry not resolvable at ${GAMES_DIR}; knownGameId caller flags were NOT independently verified`,
-    effect: 'game-id validation degraded to caller assertion — this is NOT a registry-enforced certification',
+    detail: `authoritative game registry could not be loaded: ${error.message}`,
+    effect: 'all runs are non-certifying until registry validation is available',
   });
 }
 
@@ -175,6 +173,7 @@ for (const r of runs) {
   const id = r.executionAttemptId || '(missing)';
   attemptIdCount.set(id, (attemptIdCount.get(id) || 0) + 1);
 }
+const duplicateAttemptIds = new Set([...attemptIdCount].filter(([, count]) => count > 1).map(([id]) => id));
 for (const [id, n] of attemptIdCount) {
   if (n > 1) {
     diagnostics.push({
@@ -188,15 +187,27 @@ for (const [id, n] of attemptIdCount) {
 
 // --- validate + classify every run ----------------------------------------
 const validatedRuns = runs.map((r) => {
-  const c = classifyRun(r, { knownGames: knownGames || undefined });
+  const shape = validateEvidenceRun(r, knownGames);
+  const errors = [...(shape.errors || [])];
+  const attemptId = r.executionAttemptId || '(missing)';
+  const quarantined = isQuarantinedRun(r);
+  if (r._corrupt) errors.push('ledger entry is malformed and was retained as a non-certifying run');
+  if (quarantined && !errors.some((error) => error.includes('quarantined'))) errors.push('historical v1-v7 evidence is quarantined');
+  if (duplicateAttemptIds.has(attemptId)) errors.push(`duplicate executionAttemptId '${attemptId}' appears in this merge input`);
+  const valid = shape.valid && !r._corrupt && !quarantined && !duplicateAttemptIds.has(attemptId);
+  let c = { level: 0, status: 'FAILED', axes: {}, reasons: ['invalid, duplicate, or quarantined run is non-certifying'] };
+  if (shape.safeToDerive) {
+    try { c = classifyRun(r, { knownGames }); }
+    catch { c = { level: 0, status: 'FAILED', axes: {}, reasons: ['run could not be safely classified'] }; }
+  }
   return {
     run: r,
-    executionAttemptId: r.executionAttemptId || '(missing)',
+    executionAttemptId: attemptId,
     gameId: r.gameId || '(missing)',
-    valid: c.validation.valid,
-    errors: c.validation.errors,
-    warnings: c.validation.warnings,
-    notes: c.validation.notes || [],
+    valid,
+    errors,
+    warnings: shape.warnings || [],
+    notes: shape.notes || [],
     level: c.level,
     status: c.status,
     axes: c.axes,
@@ -223,16 +234,18 @@ for (const v of validatedRuns.filter((x) => !x.valid)) {
 // (bytes re-read from disk and re-hashed against the recorded digests) before
 // it may certify ANYTHING. Absent/unreadable/mismatched mandatory artifacts
 // make the run NON-CERTIFYING; in --strict mode such a run also fails the CLI.
-function attestRunArtifact(r) {
+function attestRunArtifact(r, runValid) {
   try {
     const res = verifyArtifactLedger([r], {
       mode: EvidenceMode.LOCAL,
       repoRoot: REPO_ROOT,
-      buildScope: 'single',
+      buildScope: 'archive',
+      captureReceipts,
     });
     return {
       verdict: res.verdict,
-      certifying: res.verdict === 'PASS',
+      certifying: runValid && res.verdict === 'PASS',
+      runValid,
       verifiedArtifacts: (res.counters.verified || 0) + (res.counters.verifiedLegacy || 0),
       counters: res.counters,
       findings: (res.findings || []).slice(0, 10),
@@ -243,6 +256,7 @@ function attestRunArtifact(r) {
     return {
       verdict: 'ATTESTATION_ERROR',
       certifying: false,
+      runValid,
       verifiedArtifacts: 0,
       counters: {},
       findings: [{ kind: 'attestation-error', detail: String(e.message || e) }],
@@ -252,7 +266,7 @@ function attestRunArtifact(r) {
 }
 
 for (const v of validatedRuns) {
-  v.artifactAttestation = attestRunArtifact(v.run);
+  v.artifactAttestation = attestRunArtifact(v.run, v.valid);
 }
 for (const v of validatedRuns.filter((x) => !x.artifactAttestation.certifying)) {
   const c = v.artifactAttestation.counters || {};
@@ -486,7 +500,10 @@ const nonCertifyingRuns = validatedRuns
   .map((v) => ({ runId: v.executionAttemptId, gameId: v.gameId, verdict: v.artifactAttestation.verdict }));
 const artifactAttestation = {
   mode: EvidenceMode.LOCAL,
-  policy: 'every run must PASS independent per-run artifact verification (artifact bytes re-read from disk and re-hashed against the recorded digests); a run without a PASS attestation is NON-CERTIFYING and contributes to no certified level or capability axis',
+  buildScope: 'archive',
+  nativeCurrentCertification: false,
+  trustBoundary: 'capture receipts and the receipt index establish independent acquisition records but are not cryptographic proof of native capture; current-source certification requires verify-artifacts --build-scope single with externally supplied expected source/APK identities',
+  policy: 'every run must PASS independent per-run artifact verification (artifact bytes re-read from disk, re-hashed, checked against an indexed per-artifact capture receipt); a run without a PASS attestation is NON-CERTIFYING and contributes to no certified level or capability axis',
   runsInspected: validatedRuns.length,
   runsAttested: attestedRuns.length,
   runsNonCertifying: nonCertifyingRuns.length,
@@ -509,6 +526,8 @@ const merged = {
     conflicts: 'preserved with the authoritative observation rule',
     resilience: 'independent subcapabilities; may union across runs with per-run provenance',
     artifactAttestation: 'per-run independent artifact verification (P1-3); a run without a PASS attestation is non-certifying and its levels are suppressed',
+    nativeCurrentCertification: 'not performed by this multi-build merger; require verify-artifacts single scope with externally supplied expected source and APK hashes',
+    captureReceiptTrustBoundary: 'indexed acquisition receipts are independently read and checked but are not cryptographic proof of native capture',
   },
   inputs: inputManifest,
   artifactAttestation,
@@ -582,7 +601,7 @@ if (outMatrix) {
     '## Downgrade explanations (legacy claimed level -> certified level)',
     '',
     downgrades.length
-      ? '| Game | Run | Claimed (v1) | Certified (v2) | Explanation |\n|---|---|---|---|---|\n' + downgrades.join('\n')
+      ? `| Game | Run | Claimed (v1) | Certified (v2) | Explanation |\n|---|---|---|---|---|\n${downgrades.join('\n')}`
       : '_No legacy claims in these inputs._',
     '',
     '## Coverage-validation diagnostics',
