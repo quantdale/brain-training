@@ -1,3 +1,31 @@
+# Campaign080 production convergence — 2026-10-23
+
+Checkpoint source gates: full Jest713 suites/8030 tests passed,0failed,
+5 classified skips,5 unchanged snapshots; global typecheck and lint exit0.
+Driver Node suite, repo-state, registry, runtime-QA, ownership, provenance PASS.
+This checkpoint precedes integration of the42-callsite session-marker seam.
+
+- Integrated focused contract/sweep/verifier/merger/tutorial/gameplay/portability
+  Node suites PASS after ef1c5245 (raw log `integrated-qa-contracts.log`). This
+  does not supersede independent round3 REJECT: executable probes reproduced
+  seven uncovered paths/four P1s; repair and re-review remain mandatory.
+- Product native journey `import-native-attempt-09.json`: exit0,10/10 observed,
+  actual Replace plus Merge twice, four visible invalid-backup rejections,
+  row-level logical equivalence across14 relations and restart;49sessions,
+  815 sessionXP,158ledger/balance. Full wipe run retained FAILED UI-message
+  assertion; stopped SQLite independently confirms zero sessions/balance.
+  `product-wipe-recovery-12.json`: exit0, real product Replace restoration and
+  restart verified against substantive pre-wipe baseline; no raw DB restore.
+- Responsive matrix `responsive-qualified-04`:42/42 bracketed captures, actual
+  light/dark theme witnesses, compact320/font2/reduced-motion, seven surfaces.
+  Audits compact/font2 exit0; reduced-motion exit1 on46×27dp sensory Switch.
+  Source48dp correction regression red-before/green-after, focused settings
+  Jest/typecheck/scoped lint PASS; native-after on rebuilt APK NOT VALIDATED.
+- TalkBack not installed; ARTEMIS doctor BLOCKED on missing external provider
+  credential. System UI ANR blocked earlier default capture; original evidence
+  retained. No physical Android/iOS runtime,60fps, comprehensive a11y, final
+  release artifact/final-SHA CI, or campaign completion claim.
+
 # Fresh-machine dev-environment qualification + Repository Integrity repair — 2026-10-21
 
 Fresh Windows host, clean origin/main. ONBOARDING §6 baseline: typecheck

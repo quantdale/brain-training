@@ -10,7 +10,7 @@
 
 - [ ] 2.1 Enumerate the live 42-game registry programmatically and generate the native QA matrix from actual `game.json` metadata.
 - [ ] 2.2 Fix the automation bottleneck: build a reusable native sweep harness on the `gameId.control` semantic surface (deep-link entry, pre-captured hierarchy, deterministic emulator-local input, out-of-band screenshots) with negative controls.
-- [x] 2.3 Run the sweep across all 42 games; record per-game test level, result, artifact hashes, and remaining gaps in a machine-readable coverage ledger — DONE: all 42 at ≥L1 (native smoke), 38 at L2 (interaction), 1 at L3 (lifecycle); merged ledger + matrix delivered. 4 games (code-cracker, running-order, color-match, reaction-time) remain L1 (timed/keypad input shapes).
+- [ ] 2.3 Run a fresh authoritative sweep across all42 games under the final repaired contract. Earlier first-wave42≥L1/38L2/1L3 figures are historical and invalidated by overwritten evidence; v8's dated verified distribution was7L3/13L2/8L1/14L0, not current final certification. Round3 independent defects require another strict sweep after repair.
 
 ## 3. Critical end-to-end journeys (Workstream B)
 
@@ -36,14 +36,14 @@
 ## 6. Accessibility and responsive (Workstream E)
 
 - [ ] 6.1 Exercise representative profiles (standard/compact portrait, large font, light/dark, reduced motion, landscape) with evidence.
-- [x] 6.2 Verify real usability (visibility, clipping, scrolling, touch targets, focus, contrast, motion reduction); investigate TalkBack on emulator — PARTIAL (default-profile layout + rich semantic labels verified across 42 games; TalkBack runtime + large-font/compact/dark/motion/landscape not re-driven).
+- [ ] 6.2 Verify real usability, scrolling, focus, contrast and motion reduction. Native42/42 compact320/font2/reduced-motion × actual light/dark × seven surface captures executed (responsive-convergence.md); static frames do not establish interactive gameplay/workout/confirmation/TalkBack acceptance. TalkBack absent. Confirmed sensory-switch46×27dp target source-fixed; rebuilt-native proof pending.
 - [ ] 6.3 Fix confirmed accessibility/responsive defects, prioritizing shared controls — no confirmed shared-primitive defect found; a11y odd-item label is a positive accommodation.
 
 ## 7. Data integrity, persistence, offline, recovery (Workstream F)
 
-- [ ] 7.1 Establish safe test isolation before state-mutating testing; preserve owner/emulator data.
-- [x] 7.2 Persistence: session/score/workout/quest/reward/rating/analytics durability, termination/restart, upgrade/install, migration, interruption recovery — PARTIAL (session/progression durability + offline restart verified; upgrade/migration/interruption source-covered, not re-driven live).
-- [ ] 7.3 Backup/restore with controlled fixtures: export/import correctness, malformed rejection, transactional recovery — PARTIAL 2026-10-23: export/wipe/backup-retention/recovery/fixture-rejection VERIFIED natively (persistence-backup-migration.md "Phase D EXECUTED"); the product's import ACTION remains AUTOMATION-LIMITED (preview verified; action never observed to execute under automation after harness root-cause fixes; not claimed as pass or fail).
+- [x] 7.1 Establish safe test isolation before state-mutating testing; explicit selected disposable emulator, verified app-data anchors and SQLite baselines; all49 QA sessions restored via real product Import and restart. Owner data not used.
+- [ ] 7.2 Persistence: session/score/workout/quest/reward/rating/analytics restart and product restore row-level durability verified; prior-release upgrade/migration and native process-kill DURING import remain not re-driven (fixture coverage is separate).
+- [x] 7.3 Product backup/restore with controlled fixtures EXECUTED: export, actual Replace, Merge twice, four visible rejection cases with exact row invariance, logical-row/count/balance reconciliation and restart (10/10 steps, exit0). Later wipe reached zero sessions/balance; wipe-message assertion FAILED and retained. Explicit real-product Replace recovery from saved backup restored all logical rows and survived restart (exit0). No raw DB restore; details/remaining interruption and migration limits in import-convergence.md.
 
 ## 8. Platform certification and governance (Workstreams G, H)
 

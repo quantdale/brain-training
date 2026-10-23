@@ -97,6 +97,7 @@ export function parseDataControls(xml) {
   }
   const nodes = {};
   const stack = [];
+  let observedStatus = null;
   const decode = (text) => text.replace(/&(quot|apos|lt|gt|amp);/g,
     (_, entity) => ({ quot: '"', apos: "'", lt: '<', gt: '>', amp: '&' })[entity]);
   for (const match of xml.matchAll(/<node\b[^>]*>|<\/node>/g)) {
@@ -115,6 +116,11 @@ export function parseDataControls(xml) {
       enabled: attrs.enabled === 'true', clickable: attrs.clickable === 'true',
       content: [attrs.text, attrs['content-desc']].filter(Boolean).join(' '),
     };
+    // Compressed UIAutomator trees flatten the non-accessible data-message
+    // View into an empty sibling of its TextView. Read the actual app-owned
+    // status text rather than requiring a parent-child relation Android removed.
+    if (attrs.package === 'com.braintraining.app' &&
+        /^(?:Replace complete:|Merge complete:|All local training data wiped\.)/.test(node.text)) observedStatus = node;
     for (const parent of stack) parent.content += ` ${node.content}`;
     if (id) {
       if (nodes[id]) throw new Error(`Duplicate control '${id}'`);
@@ -123,7 +129,55 @@ export function parseDataControls(xml) {
     if (!tag.endsWith('/>')) stack.push(node);
   }
   if (stack.length) throw new Error('Unclosed hierarchy nodes');
+  if (observedStatus && !nodes['data-message']?.content.trim()) {
+    nodes['data-message'] = { ...observedStatus, id: 'data-message' };
+  }
   return nodes;
+}
+
+/** API 36 uses `Frames: ... frame=`, older Android uses `mFrame=`.
+ * Edge-to-edge app frames include system bars, so intersect visible bar bounds.
+ */
+export function parseDataViewport(windowDump, packageName) {
+  const blocks = windowDump.split(/Window #/);
+  const rect = (block) => /(?:\bmFrame|\bframe)=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(block)?.slice(1).map(Number);
+  const app = blocks.find((block) => block.split('\n')[0].includes(`${packageName}/`) &&
+    /isVisible=true/.test(block) && rect(block));
+  const frame = app && rect(app);
+  if (!frame) throw new Error('Cannot establish visible app window bounds');
+  const [left, top, right, bottom] = frame;
+  const viewport = { left, top, right, bottom };
+  for (const block of blocks) {
+    if (!/\b(?:StatusBar|NavigationBar|Taskbar)\b/.test(block.split('\n')[0]) || !/isVisible=true/.test(block)) continue;
+    const bar = rect(block);
+    if (!bar) throw new Error('Visible system bar has no measurable frame');
+    const [x1, y1, x2, y2] = bar;
+    if (x1 <= left && x2 >= right) {
+      if (y1 <= top && y2 > top && y2 < bottom) viewport.top = Math.max(viewport.top, y2);
+      if (y2 >= bottom && y1 > top && y1 < bottom) viewport.bottom = Math.min(viewport.bottom, y1);
+    } else if (y1 <= top && y2 >= bottom) {
+      if (x1 <= left && x2 > left && x2 < right) viewport.left = Math.max(viewport.left, x2);
+      if (x2 >= right && x1 > left && x1 < right) viewport.right = Math.min(viewport.right, x1);
+    }
+  }
+  if (viewport.right <= viewport.left || viewport.bottom <= viewport.top) throw new Error('Invalid app content viewport');
+  return viewport;
+}
+
+/** UIAutomator can retain fully clipped RN nodes above a ScrollView. Their
+ * top is clamped to the content edge while their bottom remains offscreen.
+ * Ignore only those provably outside nodes; inverted in-window bounds still fail.
+ */
+export function visibleDataBoundsHealthy(nodes, viewport) {
+  return Object.values(nodes).every((node) => {
+    if (!node.bounds) return true;
+    const [x1, y1, x2, y2] = node.bounds;
+    if (x2 >= x1 && y2 >= y1) return true;
+    return (y1 === viewport.top && y2 <= viewport.top) ||
+      (y2 === viewport.bottom && y1 >= viewport.bottom) ||
+      (x1 === viewport.left && x2 <= viewport.left) ||
+      (x2 === viewport.right && x1 >= viewport.right);
+  });
 }
 
 /** Entire rectangle must be in the current app window, never the system bars. */
@@ -157,11 +211,11 @@ export async function applyPreviewedImport(mode, io) {
   const armedAt = io.now();
   await io.tap(nodes, actionId);
   if (mode === 'replace') {
-    // ConfirmButton expires after 4000ms. Leave dispatch headroom and fail
+    // ConfirmButton expires after 4000ms. Reserve 100ms dispatch headroom and fail
     // rather than treating a slow dump followed by a re-arm as an import.
     nodes = await io.read();
     io.boundary('replace-arm-observed', nodes);
-    if (!/Tap again to erase and restore/.test(nodeContent(nodes[actionId])) || io.now() - armedAt >= 3000) {
+    if (!/Tap again to erase and restore/.test(nodeContent(nodes[actionId])) || io.now() - armedAt >= 3900) {
       throw new Error('Replace arm missing or confirmation capture exceeded safe time budget');
     }
     await io.tap(nodes, actionId);
@@ -202,6 +256,16 @@ function hasCompleteSnapshot(snapshot) {
 }
 
 /** Reject freshly seeded/empty QA profiles: equal empty snapshots prove no recovery. */
+export function wipedWorkoutsAreFresh(rows, previousMaxCreatedAt) {
+  try {
+    return Array.isArray(rows) && rows.length <= 1 && rows.every((row) => {
+      const skipped = row.skipped_indices_json ? JSON.parse(row.skipped_indices_json) : [];
+      return row.status === 'active' && row.current_index === 0 && row.reroll_attempt === 0 &&
+        row.created_at > previousMaxCreatedAt && Array.isArray(skipped) && skipped.length === 0;
+    });
+  } catch { return false; }
+}
+
 export function hasSubstantiveSnapshot(snapshot) {
   return hasCompleteSnapshot(snapshot) && snapshot.counts.profile > 0 &&
     snapshot.counts.game_sessions > 0 && snapshot.counts.currency_ledger > 0;
@@ -240,14 +304,19 @@ let outFile = path.join(RUN_ROOT, 'data-management-journey.json');
 let skipWipe = false;
 let serial = '';
 let qaProfileConfirmed = false;
+let recoveryBackup = null;
+let baselineSnapshot = null;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === '--out') outFile = path.resolve(argv[++i] || outFile);
   else if (argv[i] === '--skip-wipe') skipWipe = true;
   else if (argv[i] === '--serial') serial = argv[++i] || '';
   else if (argv[i] === '--confirm-qa-profile') qaProfileConfirmed = true;
+  else if (argv[i] === '--recover-backup') recoveryBackup = argv[++i];
+  else if (argv[i] === '--baseline-snapshot') baselineSnapshot = argv[++i];
   else { console.error(`unknown option '${argv[i]}'`); process.exit(2); }
 }
 
+if (!!recoveryBackup !== !!baselineSnapshot) throw new Error('Recovery requires both --recover-backup and --baseline-snapshot');
 if (!validateRunConsent(serial, qaProfileConfirmed)) {
   console.error('Require --serial emulator-N --confirm-qa-profile (dedicated disposable profile only)');
   process.exitCode = 2;
@@ -276,12 +345,29 @@ function adb(sub, opts = {}) {
 let captureSeq = 0;
 const actions = [];
 function dumpControls() {
-  const remote = '/sdcard/bt-data-dump.xml';
-  // Failed removal/dump must never reuse an earlier tree.
-  adb(['shell', 'rm', '-f', remote]);
-  adb(['shell', 'uiautomator', 'dump', remote], { timeout: 60000 });
-  const xml = adb(['shell', 'cat', remote]);
   fs.mkdirSync(RUN_ROOT, { recursive: true });
+  let xml;
+  const acquisitionFailures = [];
+  // UIAutomator sometimes exits 0 without creating XML while scrolling is
+  // settling. Poll fresh observations only; never replay an input or reuse a
+  // failed dump. Preserve every acquisition failure instead of hiding a retry.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const remote = `/sdcard/bt-data-dump-${Date.now()}-${captureSeq}-${attempt}.xml`;
+    try {
+      adb(['shell', 'rm', '-f', remote]);
+      const output = adb(['shell', 'uiautomator', 'dump', '--compressed', remote], { timeout: 60000 });
+      try { xml = adb(['shell', 'cat', remote]); }
+      catch (error) { error.message += `; acquisition output: ${output.trim()}`; throw error; }
+      break;
+    } catch (error) {
+      acquisitionFailures.push({ attempt, timestamp: new Date().toISOString(), error: error.message });
+    }
+  }
+  if (acquisitionFailures.length) {
+    fs.writeFileSync(path.join(RUN_ROOT, `acquisition-failures-before-${captureSeq + 1}.json`),
+      JSON.stringify(acquisitionFailures, null, 2));
+  }
+  if (xml === undefined) throw new Error('Fresh hierarchy unavailable after three recorded acquisition failures');
   const file = path.join(RUN_ROOT, `hierarchy-${++captureSeq}.xml`);
   fs.writeFileSync(file, xml);
   const nodes = parseDataControls(xml);
@@ -290,13 +376,10 @@ function dumpControls() {
   return nodes;
 }
 
-// WindowManager's app frame excludes system bars; never guess the framebuffer.
+// Derive the visible content window from current WindowManager evidence.
 const windowDump = adb(['shell', 'dumpsys', 'window', 'windows']);
-const appWindow = windowDump.split(/Window #/).find((block) => block.includes(PACKAGE) && /mFrame=/.test(block));
-const frame = /mFrame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(appWindow || '');
-if (!frame) throw new Error('Cannot establish app window bounds; open Backups & data before running');
-const [left, top, right, bottom] = frame.slice(1).map(Number);
-const viewport = { left, top, right, bottom };
+const viewport = parseDataViewport(windowDump, PACKAGE);
+const { left, top, right, bottom } = viewport;
 function tap(nodes, key) {
   const node = nodes[key];
   const point = safeTapPoint(node, viewport);
@@ -323,13 +406,12 @@ function tap(nodes, key) {
  * tapped or asserted. (Same lesson the workout driver learned.)
  */
 function layoutHealthy(nodes) {
-  // A corrupted RN a11y layout reports inverted bounds (observed bottom =
-  // -5792) and the platform dumper then skips whole subtrees as invisible.
-  return Object.values(nodes).every((v) => !v.bounds ||
-    (v.bounds[2] >= v.bounds[0] && v.bounds[3] >= v.bounds[1]));
+  return visibleDataBoundsHealthy(nodes, viewport);
 }
 
-const centerX = Math.round((left + right) / 2);
+// The center crosses the multiline backup TextInput, whose own scrolling
+// consumes swipes. Use the content-window gutter to scroll the outer page.
+const centerX = right - Math.max(1, Math.round((right - left) * 0.01));
 const upperY = Math.round(top + (bottom - top) * 0.35);
 const lowerY = Math.round(top + (bottom - top) * 0.6);
 const GENTLE_UP = ['shell', 'input', 'swipe', centerX, upperY, centerX, lowerY, 450].map(String);
@@ -448,7 +530,9 @@ function snapshotDb(tag) {
     ledgerSum: sqliteJson(local, 'SELECT COALESCE(SUM(amount),0) AS s FROM currency_ledger')?.[0]?.s ?? null,
     balance: sqliteJson(local, 'SELECT balance FROM currency_balance')?.[0]?.balance ?? null,
   };
-  const summary = { tag, capturedAt: new Date().toISOString(), integrity, counts, aggregates, rowDigests, portableRowDigests };
+  const workoutRows = sqliteJson(local, snapshotRowsSql('workout_instances'));
+  const workoutMaxCreatedAt = Math.max(0, ...workoutRows.map((row) => row.created_at));
+  const summary = { tag, capturedAt: new Date().toISOString(), integrity, counts, aggregates, rowDigests, portableRowDigests, workoutRows, workoutMaxCreatedAt };
   fs.writeFileSync(path.join(DB_ROOT, `${tag}.summary.json`), JSON.stringify(summary, null, 2));
   console.log(`[data] db snapshot '${tag}'`);
   return summary;
@@ -463,7 +547,11 @@ function anchorAppData(tag) {
     execFileSync(ADB, ['-s', SERIAL, 'pull', '/sdcard/bt-data-anchor.tgz', local],
       { timeout: 120000, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const buf = fs.readFileSync(local);
-    const listing = execFileSync('tar', ['-tzf', local], { encoding: 'utf8', windowsHide: true });
+    // GNU tar treats a Windows drive colon as a remote host. A basename
+    // under an explicit cwd is local on both GNU tar and Windows bsdtar.
+    const listing = execFileSync('tar', ['-tzf', path.basename(local)], {
+      cwd: path.dirname(local), encoding: 'utf8', windowsHide: true,
+    });
     if (!listing.includes(`${PACKAGE}/files/SQLite/brain-training.db`)) return null;
     return { file: path.relative(REPO_ROOT, local).replace(/\\/g, '/'), bytes: buf.length, sha256: sha256(buf) };
   } catch { return null; }
@@ -508,8 +596,14 @@ const importIo = {
   },
 };
 async function loadBackup(name) {
+  // Loading a different backup invalidates preview consent anyway. Re-enter
+  // from a cold route so a long import card cannot leave the saved-file list
+  // several screens ABOVE a search that only scrolls downward.
+  adb(['shell', 'am', 'force-stop', PACKAGE]);
+  adb(['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'braintraining://data-management']);
+  await sleep(2500);
   const key = `data-backup-load-${name}`;
-  const nodes = await scrollUntil(exactControl(key), 24, true);
+  const nodes = await scrollUntil(exactControl(key), 24, false);
   tap(nodes, key);
   await sleep(500);
 }
@@ -539,8 +633,35 @@ await (async function main() {
     await sleep(4000);
   }, (n) => !!n['data-management-title'] && !!n['data-export-button']);
 
-  const baseline = snapshotDb('baseline');
+  const currentBaseline = snapshotDb('baseline');
+  const baseline = recoveryBackup ? JSON.parse(fs.readFileSync(path.resolve(baselineSnapshot), 'utf8')) : currentBaseline;
   result.baseline = baseline;
+  if (recoveryBackup) {
+    if (!hasSubstantiveSnapshot(baseline) || !listBackups().includes(recoveryBackup)) {
+      throw new Error('Recovery requires a substantive preserved baseline and an existing saved backup');
+    }
+    let restored;
+    await step('restore-after-wipe', async () => {
+      restored = await importBackup(recoveryBackup, 'replace');
+    }, () => restored?.completionObserved === true);
+    result.restoreAfterWipe = qualifyImportRoundTrip([restored], baseline, snapshotDb('after-recovery'), 'replace');
+    await step('recovery-persistence-restart', async () => {
+      adb(['shell', 'am', 'force-stop', PACKAGE]);
+      adb(['shell', 'am', 'start', '-n', `${PACKAGE}/.MainActivity`]);
+      await sleep(3000);
+    }, (nodes) => !!nodes['home-title'] || !!nodes['tab-home']);
+    result.persistence = snapshotComparison(baseline, snapshotDb('after-recovery-restart'));
+    result.steps = steps;
+    result.actions = actions;
+    result.importBoundaries = importBoundaries;
+    result.summary = { scope: 'product-recovery-only',
+      verified: result.restoreAfterWipe.verified && result.persistence.verified &&
+        steps.every((entry) => entry.observed === true) };
+    fs.writeFileSync(outFile, JSON.stringify(result, null, 2));
+    if (!result.summary.verified) process.exitCode = 1;
+    console.log(`[data] product recovery verified=${result.summary.verified}; evidence -> ${outFile}`);
+    return;
+  }
   if (!hasSubstantiveSnapshot(baseline)) {
     throw new Error('Refusing an empty/unseeded profile; require profile, session and currency-ledger rows before testing restore');
   }
@@ -594,43 +715,6 @@ await (async function main() {
     }
     result.backupFile = { name: b1Name, local: path.relative(REPO_ROOT, b1Path).replace(/\\/g, '/'), envelope: envelope ? { format: envelope.format, schemaVersion: envelope.schemaVersion, engineVersion: envelope.engineVersion, version: envelope.version } : null, integrity };
 
-    // 3. Failure matrix: each fixture is rejected visibly through the product's Load path.
-    const cases = [];
-    const raw = fs.readFileSync(b1Path, 'utf8');
-    const fixtures = buildFailureFixtures(raw);
-    for (const fx of fixtures) {
-      const localFx = path.join(RUN_ROOT, fx.name);
-      fs.writeFileSync(localFx, fx.content);
-      pushBackup(localFx, fx.name);
-    }
-    for (const fx of fixtures) {
-      const pre = snapshotDb(`pre-${fx.name.slice(0, 12)}`);
-      let rejected = false;
-      await step(`reject-${fx.name}`, async () => {
-        // Refresh inventory, then actually validate the loaded file. Loading
-        // alone cannot prove invalid input was rejected by the engine.
-        adb(['shell', 'am', 'force-stop', PACKAGE]);
-        adb(['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'braintraining://data-management']);
-        await sleep(2500);
-        await loadBackup(fx.name);
-        const nodes = await importIo.find('data-preview-merge');
-        tap(nodes, 'data-preview-merge');
-        const previewNodes = await importIo.find('data-preview-output');
-        const preview = nodeContent(previewNodes['data-preview-output']);
-        rejected = preview.includes(`Preview (merge): Invalid (${fx.expectedKind})`);
-        if (!rejected) throw new Error(`Fixture was not rejected as ${fx.expectedKind}: ${preview || fx.name}`);
-      }, () => rejected);
-      const post = snapshotDb(`post-${fx.name.slice(0, 12)}`);
-      cases.push({
-        fixture: fx.name,
-        expectedRejectionKind: fx.expectedKind,
-        rejectionObserved: rejected,
-        uiMessages: steps[steps.length - 1].ui,
-        stateUnchanged: JSON.stringify(pre.rowDigests) === JSON.stringify(post.rowDigests),
-      });
-    }
-    result.failureMatrix = cases;
-
     // 4. Equal DB counts are not a round trip without observed completion.
     let replaced;
     await step('replace-import', async () => {
@@ -649,17 +733,45 @@ await (async function main() {
     const afterMerge = snapshotDb('after-merge');
     result.mergeIdempotency = qualifyImportRoundTrip(merges, afterReplace, afterMerge, 'merge');
 
+    // Reject invalid backups after the real product round trip. Independent
+    // failed acquisition must not prevent us from observing the main action.
+    const cases = [];
+    const fixtures = buildFailureFixtures(fs.readFileSync(b1Path, 'utf8'));
+    for (const fx of fixtures) {
+      const localFx = path.join(RUN_ROOT, fx.name);
+      fs.writeFileSync(localFx, fx.content);
+      pushBackup(localFx, fx.name);
+    }
+    for (const fx of fixtures) {
+      const pre = snapshotDb(`pre-${fx.name.slice(0, 12)}`);
+      let rejected = false;
+      await step(`reject-${fx.name}`, async () => {
+        adb(['shell', 'am', 'force-stop', PACKAGE]);
+        adb(['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', 'braintraining://data-management']);
+        await sleep(2500);
+        await loadBackup(fx.name);
+        const nodes = await importIo.find('data-preview-merge');
+        tap(nodes, 'data-preview-merge');
+        const previewNodes = await importIo.find('data-preview-output');
+        const preview = nodeContent(previewNodes['data-preview-output']);
+        rejected = preview.includes(`Preview (merge): Invalid (${fx.expectedKind})`);
+        if (!rejected) throw new Error(`Fixture was not rejected as ${fx.expectedKind}: ${preview || fx.name}`);
+      }, () => rejected);
+      const post = snapshotDb(`post-${fx.name.slice(0, 12)}`);
+      cases.push({ fixture: fx.name, expectedRejectionKind: fx.expectedKind,
+        rejectionObserved: rejected, uiMessages: steps[steps.length - 1].ui,
+        stateUnchanged: JSON.stringify(pre.rowDigests) === JSON.stringify(post.rowDigests) });
+    }
+    result.failureMatrix = cases;
+
     // 6. Wipe + restore into the wiped target (destructive round trip).
     if (!skipWipe) {
       const wiped = await step('wipe-local-data', async () => {
-        let nodes = await scrollUntil(/data-wipe-button/, 18, true);
-        if (nodes['data-wipe-confirm']) {
-          tap(nodes, 'data-wipe-confirm');
-          await sleep(800);
-          adb(['shell', 'input', 'text', 'DELETE'], { tolerant: true });
-          await sleep(800);
-        }
-        const n2 = dumpControls();
+        const nodes = await scrollUntil(/^data-wipe-confirm$/, 24, true);
+        tap(nodes, 'data-wipe-confirm');
+        adb(['shell', 'input', 'text', 'DELETE']);
+        adb(['shell', 'input', 'keyevent', 'KEYCODE_BACK']);
+        const n2 = await scrollUntil(/^data-wipe-button$/, 12, false, (node) => node.enabled);
         tap(n2, 'data-wipe-button');
         await sleep(4000);
       }, (n) => Object.values(n).some((node) => node.id === 'data-message' &&
@@ -674,11 +786,13 @@ await (async function main() {
       // RESEEDS zero-progress rows for its shipped quests after a wipe (9 rows
       // here), which is catalog rehydration, not surviving user data.
       const userTables = ['game_sessions', 'xp_awards', 'currency_ledger', 'rating_history',
-        'domain_ratings', 'tutorial_state', 'game_favorites', 'workout_instances',
+        'domain_ratings', 'tutorial_state', 'game_favorites',
         'achievement_unlocks'];
       result.wipe = {
         counts: afterWipe.counts,
-        dataGone: userTables.every((t) => (afterWipe.counts[t] || 0) === 0),
+        dataGone: userTables.every((t) => (afterWipe.counts[t] || 0) === 0) &&
+          wipedWorkoutsAreFresh(afterWipe.workoutRows, baseline.workoutMaxCreatedAt),
+        reseededWorkoutsFresh: wipedWorkoutsAreFresh(afterWipe.workoutRows, baseline.workoutMaxCreatedAt),
         reseededCatalog: { quests: afterWipe.counts.quests, achievements: afterWipe.counts.achievements, profile: afterWipe.counts.profile },
       };
       let restored;

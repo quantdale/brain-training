@@ -3,6 +3,17 @@
 **Campaign id:** `080-native-product-quality`
 **Status:** ACTIVE
 **Mode:** day
+
+**Production-convergence wave (2026-10-23, current):** Product Import/Replace/
+Merge action gap closed by actual native actions, row-level reconciliation,
+invalid rejection and restart; wipe reached zero sessions/balance and real
+product recovery restored all49 sessions/815XP/158coins. Failed wipe-message
+assertion is preserved. Native responsive matrix42/42 captured with actual theme
+witness; confirmed sensory switch target correction requires rebuilt-native
+proof. Independent EXECUTABLE round3 review at ef1c5245 returned REJECT with
+seven reproduced paths/four P1s; three isolated repair lanes active. No campaign
+closure, final CI, fresh catalog or release-candidate PASS is claimed. Current
+evidence: `import-convergence.md`, `responsive-convergence.md` under080 docs.
 **Starting SHA:** `f8ae95dd`
 **Ending SHA:** _(pending final integration — latest checkpoint `77972354`)_
 **Change:** `openspec/changes/080-native-product-quality`

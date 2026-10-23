@@ -34,6 +34,7 @@ export function SensorySettingsCard({ title = 'Settings' }: { title?: string }) 
           </View>
           <Switch
             testID={`settings-${row.key}`}
+            style={styles.toggle}
             value={settings[row.key]}
             onValueChange={(value) => setSetting(row.key, value)}
             // Label carries the caption too: the switch is the only focusable
@@ -59,6 +60,12 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.three,
+  },
+  // Android's intrinsic switch is only about 46×27dp. Expand the native
+  // control's frame (not its drawing scale) so focus and touch share a 48dp target.
+  toggle: {
+    minWidth: 48,
+    minHeight: 48,
   },
   text: {
     flex: 1,

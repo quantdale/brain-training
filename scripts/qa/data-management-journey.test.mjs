@@ -2,12 +2,51 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { test } from 'node:test';
 import {
-  applyPreviewedImport, buildFailureFixtures, hasSubstantiveSnapshot, parseDataControls,
+  applyPreviewedImport, buildFailureFixtures, hasSubstantiveSnapshot, parseDataControls, parseDataViewport,
   portableRows, qualifyImportRoundTrip, safeTapPoint, SNAPSHOT_TABLES, snapshotRowsSql,
-  validateRunConsent,
+  validateRunConsent, visibleDataBoundsHealthy, wipedWorkoutsAreFresh,
 } from './data-management-journey.mjs';
 
+test('wipe allows only a newly seeded empty workout, never old or progressed rows', () => {
+  const row = { status: 'active', current_index: 0, reroll_attempt: 0, created_at: 200, skipped_indices_json: null };
+  assert.equal(wipedWorkoutsAreFresh([], 100), true);
+  assert.equal(wipedWorkoutsAreFresh([row], 100), true);
+  for (const patch of [{ created_at: 100 }, { current_index: 1 }, { reroll_attempt: 1 },
+    { skipped_indices_json: '[0]' }, { skipped_indices_json: '{bad' }, { status: 'completed' }]) {
+    assert.equal(wipedWorkoutsAreFresh([{ ...row, ...patch }], 100), false);
+  }
+  assert.equal(wipedWorkoutsAreFresh([row, row], 100), false);
+});
+
+test('compressed hierarchy preserves app-owned completion text flattened outside the status container', () => {
+  const xml = '<hierarchy><node resource-id="data-message" package="com.braintraining.app" bounds="[84,500][996,700]" />' +
+    '<node text="Replace complete: current data was erased and 49 sessions restored" package="com.braintraining.app" bounds="[84,500][996,700]" /></hierarchy>';
+  assert.match(parseDataControls(xml)['data-message'].content, /^Replace complete:/);
+  assert.equal(parseDataControls(xml.replace('package="com.braintraining.app" bounds="[84,500][996,700]" /></hierarchy>', 'package="android" bounds="[84,500][996,700]" /></hierarchy>'))['data-message'].content, '');
+});
+
+test('API 36 edge-to-edge app viewport excludes visible status and navigation bars', () => {
+  const dump = 'Window #0 Window{a u0 StatusBar}:\nFrames: frame=[0,0][1080,63]\nisVisible=true\n' +
+    'Window #1 Window{b u0 Taskbar}:\nFrames: frame=[0,1794][1080,1920]\nisVisible=true\n' +
+    'Window #2 Window{c u0 com.braintraining.app/com.braintraining.app.MainActivity}:\nFrames: parent=[0,0][1080,1920] frame=[0,0][1080,1920]\nisVisible=true';
+  assert.deepEqual(parseDataViewport(dump, 'com.braintraining.app'), { left: 0, top: 63, right: 1080, bottom: 1794 });
+  assert.throws(() => parseDataViewport(dump.replace('isVisible=true', 'isVisible=false').replace(/isVisible=true/g, 'isVisible=false'), 'com.braintraining.app'), /visible app/);
+});
+
+test('legacy app frame remains measurable without accepting another package', () => {
+  const dump = 'Window #1 Window{c u0 com.braintraining.app/.MainActivity}:\nmFrame=[0,63][1080,1794]\nisVisible=true';
+  assert.deepEqual(parseDataViewport(dump, 'com.braintraining.app'), { left: 0, top: 63, right: 1080, bottom: 1794 });
+  assert.throws(() => parseDataViewport(dump, 'another.app'), /visible app/);
+});
+
 const viewport = { left: 0, top: 60, right: 1080, bottom: 1800 };
+test('fully top-clipped RN nodes do not invalidate healthy visible controls, but cannot be tapped', () => {
+  const clipped = { enabled: true, clickable: true, bounds: [84, 60, 254, 46] };
+  assert.equal(visibleDataBoundsHealthy({ clipped }, viewport), true);
+  assert.equal(safeTapPoint(clipped, viewport), null);
+  assert.equal(visibleDataBoundsHealthy({ bad: { bounds: [84, 800, 254, 790] } }, viewport), false);
+});
+
 const button = (id, extra = {}) => ({ id, enabled: true, clickable: true, bounds: [40, 800, 1040, 940], content: '', ...extra });
 
 function importHarness(mode, options = {}) {

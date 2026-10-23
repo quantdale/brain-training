@@ -8,7 +8,7 @@
  * RNTL v14 `render` is async — every render is awaited.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
@@ -131,6 +131,16 @@ describe('Web tab bar accessibility', () => {
 });
 
 describe('SensorySettingsCard accessibility', () => {
+  it('gives native switches a 48dp focus and touch frame without duplicating accessibility nodes', async () => {
+    await render(<SettingsProvider><SensorySettingsCard /></SettingsProvider>);
+    for (const id of ['settings-sfx', 'settings-haptics']) {
+      const toggle = screen.getByTestId(id);
+      const style = StyleSheet.flatten(toggle.props.style);
+      expect(style?.minWidth).toBeGreaterThanOrEqual(48);
+      expect(style?.minHeight).toBeGreaterThanOrEqual(48);
+    }
+  });
+
   it('labels each switch with its row label AND caption (the switch is the only focusable element)', async () => {
     await render(
       <SettingsProvider>

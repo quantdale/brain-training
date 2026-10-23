@@ -1,5 +1,38 @@
 # Durable Project State
 
+## Campaign 080 production-convergence wave — 2026-10-23 (ACTIVE)
+
+Current integrated certification repair commits: `292f60f1` (safe import driver),
+`530a9e81` (state contract), `ef1c5245` (artifact verifier/policy/merger).
+Product Import action gap is now **CLOSED BY NATIVE EXECUTION**: export → real
+Replace → real Merge twice → four visible invalid-backup rejections → restart,
+10/10 observed steps, all 14 measured relations' logical rows/counts/aggregates
+match (49 sessions, 815 session XP, 158 ledger/balance). A subsequent wipe
+executed (SQLite integrity ok, zero sessions/balance), while its UI-message
+assertion failed after layout contraction; the failure remains retained. An
+explicit real-product Replace recovery then restored all logical rows and
+survived restart (`product-wipe-recovery-12.json`, verified=true). No raw DB
+restore was used. See `import-convergence.md` for source/APK/evidence/limits.
+
+Accessibility/responsive: 42/42 actual bracketed captures across compact 320dp,
+font 2 and reduced motion × actual light/dark × seven surfaces; themes bound
+to installed APK and preserved SQLite settings. A native 46×27dp sensory-switch
+focus frame is confirmed; 48dp source correction passes red-before/green-after
+regression/typecheck/scoped lint, rebuilt-native proof pending. TalkBack absent;
+ARTEMIS provider credential missing remains BLOCKED_EXTERNAL. System UI ANR
+and prior incomplete/UNKNOWN-theme captures are retained, not app-crash claims.
+
+**Independent executable round-3 review: REJECT at `ef1c5245`.** Actual historical
+and current probes plus 82 contract/51 artifact/17 merger/6 sweep tests ran.
+Seven uncovered paths (four P1): identityless L2; unbound tutorial applicability/
+prior completion; same-attempt stale capture replay; equal-score stale results;
+uncontracted passive L2; empty strict merge exit 0; permissive ISO timestamps.
+Three isolated GPT-6 Luna/max lanes are repairing these plus actual core
+session-id observability; no finding is closed merely by implementation.
+Campaign stays ACTIVE. Fresh catalog sweep, performance/memory, final native
+build/acceptance, full final gates/CI and accepting re-review are still OPEN.
+
+
 ## Campaign 080 final-engineering continuation — 2026-10-23 (WORKOUT V3 VERIFIED, ADVERSARIAL REVIEW REJECT→P1 REPAIRED, DATA-MANAGEMENT QUALIFIED WITH GAPS)
 
 Continuation checkpoint after the owner's final-engineering directive. Work
