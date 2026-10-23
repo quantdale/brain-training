@@ -358,6 +358,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

@@ -413,6 +413,7 @@ export default function LogicDeductionScreen(
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={inSession ? "session" : state.phase === "results" ? "results" : "intro"}
       paused={state.paused}

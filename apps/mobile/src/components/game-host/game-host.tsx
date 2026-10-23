@@ -91,6 +91,8 @@ const DIFFICULTY_LABEL: Record<DifficultyLevel, string> = {
 export interface GameHostProps {
   /** Stable game id (testIDs, pause overlay spec). */
   readonly gameId: string;
+  /** Existing reducer-owned identity for this core session. The host must not synthesize a substitute. */
+  readonly sessionId?: string | null;
   /** Game description shown on the intro view (optional in game.json). */
   readonly description?: string;
   /** Top-level view to render; `results` renders `children` verbatim. */
@@ -141,6 +143,7 @@ export interface GameHostProps {
 
 export function GameHost({
   gameId,
+  sessionId,
   description,
   view,
   paused,
@@ -424,6 +427,19 @@ export function GameHost({
         {view === 'results' ? children : null}
       </View>}
 
+      {(view === 'session' || view === 'results') && sessionId ? (
+        // Read-only correlation marker: keep it in the native hierarchy without
+        // changing layout, accepting input, or adding player-facing content.
+        <View
+          testID={`${gameId}.session-token.${encodeURIComponent(sessionId)}`}
+          nativeID={`${gameId}.host-phase.${view}.tutorial-phase.${tutorialOpen ? 'open' : 'closed'}`}
+          collapsable={false}
+          pointerEvents="none"
+          accessible={false}
+          style={styles.sessionMetadata}
+        />
+      ) : null}
+
       {paused && view === 'session' ? (
         <PauseOverlay gameId={gameId} onResume={onResume} onQuit={onQuit} />
       ) : null}
@@ -435,6 +451,12 @@ export function GameHost({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  sessionMetadata: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
   },
   // This is a page in the route's reading flow, not a bottom sheet. Short
   // steps start at the top; taller steps grow the same accessible scroll range.

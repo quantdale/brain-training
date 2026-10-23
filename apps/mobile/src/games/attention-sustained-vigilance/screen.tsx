@@ -379,6 +379,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

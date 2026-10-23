@@ -141,6 +141,78 @@ describe('GameHost hardware-back guard', () => {
   });
 });
 
+describe('GameHost session observability', () => {
+  beforeEach(() => {
+    captureBackHandler();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('exposes the reducer-owned session token in both gameplay and its results', async () => {
+    const gameId = 'memory-pair-recall';
+    const sessionId = 'memory-pair-recall/core-run-1';
+    const tokenTestId = `${gameId}.session-token.${encodeURIComponent(sessionId)}`;
+    const utils = await render(
+      <GameHost
+        {...hostProps({ gameId, sessionId, view: 'session', interceptBack: false })}
+      />,
+    );
+
+    const marker = screen.getByTestId(tokenTestId);
+    expect(marker).toHaveProp('nativeID', `${gameId}.host-phase.session.tutorial-phase.closed`);
+    expect(marker).toHaveProp('collapsable', false);
+    expect(marker).toHaveProp('pointerEvents', 'none');
+    expect(marker).toHaveProp('accessible', false);
+    expect(marker).not.toHaveProp('accessibilityLabel');
+    expect(StyleSheet.flatten(marker.props.style)).toMatchObject({
+      position: 'absolute',
+      width: 1,
+      height: 1,
+      opacity: 0,
+    });
+    expect(screen.queryByText(sessionId)).toBeNull();
+
+    await utils.rerender(
+      <GameHost
+        {...hostProps({
+          gameId,
+          sessionId,
+          view: 'results',
+          tutorialOpen: true,
+          interceptBack: false,
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId(tokenTestId)).toHaveProp(
+      'nativeID',
+      `${gameId}.host-phase.results.tutorial-phase.open`,
+    );
+  });
+
+  it('does not invent a token before the reducer identity exists or on intro', async () => {
+    const gameId = 'memory-pair-recall';
+    const utils = await render(
+      <GameHost {...hostProps({ gameId, sessionId: null, view: 'session' })} />,
+    );
+    expect(screen.queryByTestId(/^memory-pair-recall\.session-token\./)).toBeNull();
+
+    await utils.rerender(
+      <GameHost
+        {...hostProps({
+          gameId,
+          sessionId: 'memory-pair-recall-core-1',
+          view: 'intro',
+          interceptBack: false,
+        })}
+      />,
+    );
+    expect(screen.queryByTestId(/^memory-pair-recall\.session-token\./)).toBeNull();
+  });
+});
+
 describe('GameHost chrome mounting', () => {
   beforeEach(() => {
     captureBackHandler();

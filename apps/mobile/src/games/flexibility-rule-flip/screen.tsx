@@ -436,6 +436,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       view={
         state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session'
       }

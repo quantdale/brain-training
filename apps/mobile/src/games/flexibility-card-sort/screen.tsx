@@ -410,6 +410,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

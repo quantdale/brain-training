@@ -372,6 +372,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={inSession ? 'session' : state.phase === 'results' ? 'results' : 'intro'}
       paused={state.paused}

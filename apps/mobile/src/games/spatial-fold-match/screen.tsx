@@ -401,6 +401,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

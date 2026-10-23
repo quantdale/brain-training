@@ -9,9 +9,9 @@ import { resolve } from 'node:path';
  * cannot silently omit the shared identity guard.
  */
 describe('catalog session lifecycle guard', () => {
-  it('guards every game screen persistence callback by the current session id', () => {
+  const catalogScreens = () => {
     const gamesDir = resolve(__dirname, '../../../games');
-    const screenFiles = readdirSync(gamesDir)
+    return readdirSync(gamesDir)
       .map((gameId) => resolve(gamesDir, gameId, 'screen.tsx'))
       .filter((file) => {
         try {
@@ -20,10 +20,23 @@ describe('catalog session lifecycle guard', () => {
           return false;
         }
       });
+  };
 
+  it('guards every game screen persistence callback by the current session id', () => {
+    const screenFiles = catalogScreens();
     expect(screenFiles).toHaveLength(42);
     for (const file of screenFiles) {
       expect(readFileSync(file, 'utf8')).toContain('session.isCurrentSession(record.id)');
+    }
+  });
+
+  it('forwards each reducer-owned sessionId to its GameHost', () => {
+    const screenFiles = catalogScreens();
+    expect(screenFiles).toHaveLength(42);
+    for (const file of screenFiles) {
+      expect(readFileSync(file, 'utf8')).toMatch(
+        /<GameHost\s+gameId=\{GAME_ID\}\s+sessionId=\{state\.sessionId\}/,
+      );
     }
   });
 });

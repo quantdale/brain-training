@@ -378,6 +378,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       view={view}
       paused={state.paused}
       difficulty={state.difficulty}

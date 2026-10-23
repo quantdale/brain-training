@@ -407,6 +407,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

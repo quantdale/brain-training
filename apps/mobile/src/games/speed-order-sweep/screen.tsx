@@ -517,6 +517,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      sessionId={state.sessionId}
       description={gameDefinition.description}
       view={view}
       paused={state.paused}
