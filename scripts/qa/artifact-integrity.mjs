@@ -65,6 +65,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { inflateSync } from 'node:zlib';
 import {
@@ -323,6 +324,86 @@ export function computeSha256(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
 
+/** Load the parent build manifest, verify its APK and every tracked app input. */
+export function loadBuildManifest(file, repoRoot = process.cwd()) {
+  const manifestPath = path.resolve(file);
+  const root = path.resolve(repoRoot);
+  let bytes;
+  let manifest;
+  try {
+    bytes = fs.readFileSync(manifestPath);
+    manifest = JSON.parse(bytes.toString('utf8'));
+  } catch (error) {
+    throw new Error(`cannot read build manifest: ${error.code || error.message}`);
+  }
+  const relativeManifest = path.relative(root, manifestPath);
+  const manifestInsideRepo = relativeManifest !== '' && !relativeManifest.startsWith('..') && !path.isAbsolute(relativeManifest);
+  const manifestPathKey = manifestPath.replace(/\\/g, '/').toLowerCase();
+  const expectedManifestSuffix = '/qa-artifacts/080/final-convergence/native-source-inputs-02.json';
+  if (!manifestInsideRepo && !manifestPathKey.endsWith(expectedManifestSuffix)) {
+    throw new Error('external build manifest must be qa-artifacts/080/final-convergence/native-source-inputs-02.json');
+  }
+  const buildRoot = manifestInsideRepo ? root : path.resolve(path.dirname(manifestPath), '..', '..', '..');
+  if (!isRecord(manifest) || !gitShaShape(manifest.sourceSha) || manifest.trackedStatus !== ''
+      || typeof manifest.buildType !== 'string' || !manifest.buildType.trim()
+      || !isRecord(manifest.apk) || typeof manifest.apk.file !== 'string'
+      || !Number.isSafeInteger(manifest.apk.bytes) || manifest.apk.bytes < 1 || !sha256Shape(manifest.apk.sha256)
+      || !Array.isArray(manifest.files) || manifest.files.length === 0) {
+    throw new Error('build manifest must contain sourceSha, clean trackedStatus, buildType, apk{file,bytes,sha256}, and files[{file,sha256}]');
+  }
+
+  const apkPath = resolveArtifactPath(manifest.apk.file, buildRoot);
+  if (!apkPath.ok) throw new Error(`build manifest APK has unsafe path: ${apkPath.reason}`);
+  let apkBytes;
+  try { apkBytes = fs.readFileSync(apkPath.absolute); }
+  catch (error) { throw new Error(`build manifest APK is unreadable: ${error.code || error.message}`); }
+  const apkSha256 = computeSha256(apkBytes);
+  if (apkBytes.length !== manifest.apk.bytes || apkSha256 !== manifest.apk.sha256.toLowerCase()) {
+    throw new Error(`build manifest APK drift: expected ${manifest.apk.bytes} bytes/${manifest.apk.sha256}, found ${apkBytes.length} bytes/${apkSha256}`);
+  }
+
+  let trackedFiles;
+  try {
+    trackedFiles = execFileSync('git', ['ls-files', '--', 'apps/mobile/app.json', 'apps/mobile/package.json',
+      'apps/mobile/package-lock.json', 'apps/mobile/assets', 'apps/mobile/src'],
+    { cwd: root, encoding: 'utf8', windowsHide: true }).split(/\r?\n/).filter(Boolean);
+  } catch (error) {
+    throw new Error(`cannot enumerate tracked app inputs: ${error.stderr?.toString().trim() || error.message}`);
+  }
+  const expectedInputs = new Set(trackedFiles);
+  const seen = new Set();
+  for (const [index, input] of manifest.files.entries()) {
+    const fileName = input?.file;
+    if (!isRecord(input) || typeof fileName !== 'string' || !sha256Shape(input.sha256)) {
+      throw new Error(`build manifest files[${index}] must contain file and sha256`);
+    }
+    const resolved = resolveArtifactPath(fileName, root);
+    if (!resolved.ok) throw new Error(`build manifest files[${index}] has unsafe path: ${resolved.reason}`);
+    if (seen.has(resolved.ownershipKey)) throw new Error(`build manifest repeats input path '${fileName}'`);
+    seen.add(resolved.ownershipKey);
+    if (!expectedInputs.has(resolved.relative)) throw new Error(`build manifest input '${fileName}' is not a tracked app build input`);
+    let currentBytes;
+    try { currentBytes = fs.readFileSync(resolved.absolute); }
+    catch (error) { throw new Error(`build manifest input '${fileName}' is unreadable: ${error.code || error.message}`); }
+    const actual = computeSha256(currentBytes);
+    if (actual !== input.sha256.toLowerCase()) {
+      throw new Error(`build manifest input drift for '${fileName}': expected ${input.sha256}, found ${actual}`);
+    }
+  }
+  const missingInputs = [...expectedInputs].filter((input) => !seen.has(resolveArtifactPath(input, root).ownershipKey));
+  if (missingInputs.length) throw new Error(`build manifest app input coverage is incomplete (${missingInputs.length} missing; first: ${missingInputs[0]})`);
+
+  return {
+    sourceSha: manifest.sourceSha.toLowerCase(),
+    apkSha256: manifest.apk.sha256.toLowerCase(),
+    apkBytes: manifest.apk.bytes,
+    inputCount: seen.size,
+    buildType: manifest.buildType,
+    manifestSha256: computeSha256(bytes),
+    manifestPath,
+  };
+}
+
 export function computeSha1(bytes) {
   return crypto.createHash('sha1').update(bytes).digest('hex');
 }
@@ -566,44 +647,57 @@ function hierarchyObservationProblems(parsed, run, observation, gameMetadata, ex
   return problems;
 }
 
-const TUTORIAL_STATE_QUERY = 'SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?';
+const TUTORIAL_STATE_QUERY = 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?';
 
-function tutorialStateArtifactProblems(bytes, run) {
-  const problems = [];
+function canonicalJson(value) {
+  if (Array.isArray(value)) return value.map(canonicalJson);
+  if (isRecord(value)) return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalJson(value[key])]));
+  return value;
+}
+
+function tutorialStateArtifactProblems(bytes, run, artifact) {
   let snapshot;
   try { snapshot = JSON.parse(bytes.toString('utf8')); }
   catch { return ['tutorial-state artifact is not valid JSON']; }
-  if (!isRecord(snapshot) || snapshot.schemaVersion !== 1 || snapshot.source !== 'sqlite-query'
-      || snapshot.query !== TUTORIAL_STATE_QUERY || !Array.isArray(snapshot.parameters)
-      || snapshot.parameters.length !== 1 || snapshot.parameters[0] !== run.gameId
-      || snapshot.gameId !== run.gameId || typeof snapshot.completed !== 'boolean'
-      || !(snapshot.row === null || isRecord(snapshot.row))) {
-    return ['tutorial-state artifact does not match the bound SQLite query schema/gameId'];
+  const evidence = run.tutorialStateEvidence;
+  const artifactEvidence = evidence?.artifact;
+  if (!isRecord(snapshot) || !isRecord(evidence) || evidence.schemaVersion !== 1
+      || snapshot.schemaVersion !== 1 || snapshot.executionAttemptId !== run.executionAttemptId
+      || snapshot.gameId !== run.gameId || evidence.executionAttemptId !== run.executionAttemptId
+      || evidence.gameId !== run.gameId || snapshot.observationSeq !== 0 || evidence.observationSeq !== 0
+      || !isIsoTimestamp(snapshot.observationTimestamp) || snapshot.observationTimestamp !== evidence.observationTimestamp
+      || !isIsoTimestamp(snapshot.capturedAt) || snapshot.capturedAt !== evidence.capturedAt
+      || snapshot.capturedAt !== snapshot.observationTimestamp
+      || !isRecord(snapshot.query) || !isRecord(evidence.query)
+      || JSON.stringify(canonicalJson(snapshot.query)) !== JSON.stringify(canonicalJson(evidence.query))) {
+    return ['tutorial-state artifact query JSON does not match the typed seq0 tutorialStateEvidence'];
   }
-  let completed = false, replayRequested = false, version = null;
-  if (snapshot.row !== null) {
-    const row = snapshot.row;
-    if ((row.game_id !== undefined && row.game_id !== run.gameId)
-        || ![0, 1].includes(row.completed)
+  const query = snapshot.query;
+  if (query.sql !== TUTORIAL_STATE_QUERY || query.table !== 'tutorial_state'
+      || JSON.stringify(query.columns) !== JSON.stringify(['game_id', 'completed', 'replay_requested', 'version', 'updated_at'])
+      || query.where?.game_id !== run.gameId || !(query.row === null || isRecord(query.row))) {
+    return ['tutorial-state artifact does not match the bound game-specific SQLite query'];
+  }
+  if (query.row !== null) {
+    const row = query.row;
+    if (row.game_id !== run.gameId || ![0, 1].includes(row.completed)
         || ![0, 1].includes(row.replay_requested)
-        || (row.version !== null && typeof row.version !== 'string')) {
+        || (row.version !== null && typeof row.version !== 'string')
+        || !Number.isSafeInteger(row.updated_at)) {
       return ['tutorial-state artifact row is not a valid tutorial_state query result'];
     }
-    completed = row.completed === 1;
-    replayRequested = row.replay_requested === 1;
-    version = row.version;
   }
-  const previouslyCompleted = completed && !replayRequested && version === '1.0.0';
-  if (snapshot.completed !== completed) problems.push('tutorial-state JSON completed value does not match its SQLite row');
-  const claim = run.tutorialState;
-  if (!isRecord(claim)) return [...problems, 'tutorial-state artifact has no corresponding run tutorialState claim'];
-  if (claim.previouslyCompleted !== previouslyCompleted) problems.push('tutorialState.previouslyCompleted does not match the captured SQLite row');
-  if (claim.completed !== completed) problems.push('tutorialState.completed does not match the captured SQLite row');
-  if (claim.replayRequested !== replayRequested) problems.push('tutorialState.replayRequested does not match the captured SQLite row');
-  if (claim.version !== version) problems.push('tutorialState.version does not match the captured SQLite row');
-  if (claim.source !== 'tutorial_state') problems.push('tutorialState source does not identify the tutorial_state SQLite row');
-  if (claim.gameId !== undefined && claim.gameId !== run.gameId) problems.push('tutorialState.gameId does not match the run gameId');
-  return problems;
+  if (!isRecord(artifactEvidence) || artifactEvidence.kind !== 'tutorial-state'
+      || artifactEvidence.executionAttemptId !== evidence.executionAttemptId
+      || artifactEvidence.observationSeq !== evidence.observationSeq
+      || artifactEvidence.observationTimestamp !== evidence.observationTimestamp
+      || artifactEvidence.file !== artifact.file || artifactEvidence.bytes !== artifact.bytes
+      || artifactEvidence.sha256 !== artifact.sha256
+      || artifactEvidence.captureReceipt?.file !== artifact.captureReceipt?.file
+      || artifactEvidence.captureReceipt?.sha256 !== artifact.captureReceipt?.sha256) {
+    return ['tutorial-state artifact binding does not match typed tutorialStateEvidence'];
+  }
+  return [];
 }
 
 /** Empty hierarchy dumps are a known tooling failure, never a valid state. */
@@ -660,6 +754,7 @@ function loadCaptureReceiptIndex(input, repoRoot, readArtifact) {
         || !Number.isSafeInteger(receipt.observationSeq) || receipt.observationSeq < 0
         || !isIsoTimestamp(receipt.observationTimestamp)
         || typeof receipt.artifactFile !== 'string' || !receipt.artifactFile.trim()
+        || typeof receipt.artifactKind !== 'string' || !receipt.artifactKind.trim()
         || !gitShaShape(receipt.gitSha)
         || !sha256Shape(receipt.apkSha256)) {
       errors.push(`capture receipt '${entry.file}' does not match schemaVersion 1 artifact/observation binding fields`);
@@ -954,13 +1049,28 @@ export function verifyArtifactLedger(runs, opts = {}) {
     const matchingObservations = (run.observations || []).filter((candidate) => candidate
       && candidate.seq === receipt.observationSeq
       && candidate.timestamp === receipt.observationTimestamp);
-    const observation = explicitObservation || (matchingObservations.length === 1 ? matchingObservations[0] : null);
-    if (!observation || observation.seq !== receipt.observationSeq || observation.timestamp !== receipt.observationTimestamp) {
+    const typedTutorialState = artifact.kind === 'tutorial-state' ? run.tutorialStateEvidence : null;
+    const binding = explicitObservation || typedTutorialState
+      || (matchingObservations.length === 1 ? matchingObservations[0] : null);
+    const bindingSeq = binding?.seq ?? binding?.observationSeq;
+    const bindingTimestamp = binding?.timestamp ?? binding?.observationTimestamp;
+    if (!binding || bindingSeq !== receipt.observationSeq || bindingTimestamp !== receipt.observationTimestamp
+        || (!explicitObservation && !typedTutorialState && matchingObservations.length !== 1)) {
       counters.captureReceiptInvalid++;
       record('capture-receipt-observation-mismatch', `${run.executionAttemptId}: ${label} receipt is not bound to the exact observation sequence and timestamp`);
       return false;
     }
-    const observationKey = `${run.executionAttemptId}\u0000${observation.seq}\u0000${observation.timestamp}`;
+    const laterObservations = (run.observations || []).filter((candidate) => candidate && candidate.seq > bindingSeq)
+      .sort((a, b) => a.seq - b.seq);
+    const intervalEnd = laterObservations[0]?.timestamp || run.endedAt;
+    const captureMs = Date.parse(receipt.capturedAt);
+    if (!intervalEnd || captureMs < Date.parse(bindingTimestamp) || captureMs > Date.parse(intervalEnd)) {
+      counters.captureReceiptInvalid++;
+      record('capture-receipt-outside-observation-interval', `${run.executionAttemptId}: ${label} capturedAt falls outside its bound observation interval`);
+      return false;
+    }
+    const observation = explicitObservation || (typedTutorialState ? null : binding);
+    const observationKey = `${run.executionAttemptId}\u0000${bindingSeq}\u0000${bindingTimestamp}`;
     const priorReceiptOwner = receiptOwner.get(resolvedReceipt.ownershipKey);
     if (priorReceiptOwner && (priorReceiptOwner.attempt !== run.executionAttemptId || priorReceiptOwner.observationKey !== observationKey)) {
       counters.reusedEvidence++;
@@ -969,6 +1079,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
     }
     if (receipt.executionAttemptId !== run.executionAttemptId
         || receipt.artifactSha256.toLowerCase() !== actualSha256
+        || receipt.artifactKind !== artifact.kind
         || String(receipt.gitSha).toLowerCase() !== String(build.gitSha || '').toLowerCase()
         || String(receipt.apkSha256).toLowerCase() !== String(build.apkSha256 || '').toLowerCase()
         || (indexed.artifactOwnershipKey && indexed.artifactOwnershipKey !== resolvedArtifact.ownershipKey)) {
@@ -1107,7 +1218,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
         }
         if (receiptBinding.observation?.observedGameId === run.gameId) verifiedHierarchyIdentity = true;
       } else if (artifact.kind === 'tutorial-state') {
-        const stateProblems = tutorialStateArtifactProblems(bytes, run);
+        const stateProblems = tutorialStateArtifactProblems(bytes, run, artifact);
         if (stateProblems.length) {
           counters.badContent++;
           record('tutorial-state-artifact-mismatch', `${attemptId}: ${label} — ${stateProblems.join('; ')}`);
@@ -1160,11 +1271,6 @@ export function verifyArtifactLedger(runs, opts = {}) {
       const ok = verifyOne(a, label, mandatory);
       if (ok && ok.kind) verifiedKinds.add(ok.kind);
     }
-    if (run.tutorialStateArtifact && typeof run.tutorialStateArtifact === 'object') {
-      const ok = verifyOne(run.tutorialStateArtifact, 'artifact[tutorial-state]', true);
-      if (ok && ok.kind) verifiedKinds.add(ok.kind);
-    }
-
     if (runMeaningfulArtifacts === 0 && runMeaningfulBindings === 0) {
       counters.noMeaningfulArtifact++;
       record('no-meaningful-artifact', `${attemptId}: no screenshot or hierarchy artifact is bound to this run`);

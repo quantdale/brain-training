@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import {
@@ -13,9 +14,12 @@ import {
   parseHierarchyGameData,
   queryTutorialStateFromDatabaseBytes,
   readTutorialStateFromDatabaseBytes,
+  tutorialDatabaseReadCommand,
   tutorialStateFromPersistedRow,
+  bindBuildIdentityToManifest,
   writeCaptureReceiptIndex,
 } from './native-game-sweep.mjs';
+import { loadBuildManifest } from './artifact-integrity.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const requireFromMobile = createRequire(path.join(REPO_ROOT, 'apps/mobile/package.json'));
@@ -104,6 +108,69 @@ test('SQLite snapshot reader uses the persisted tutorial_state row and returns u
     assert.equal(readTutorialStateFromDatabaseBytes(Buffer.from('not sqlite'), null, 'memory-pair-recall', dir), null);
   } finally {
     try { db?.close(); } catch { /* test cleanup */ }
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('persisted tutorial DB access uses root file reads or run-as only for confirmed debug builds', () => {
+  assert.deepEqual(tutorialDatabaseReadCommand('0', false, 'brain-training.db'), [
+    'exec-out', 'cat', '/data/user/0/com.braintraining.app/files/SQLite/brain-training.db',
+  ]);
+  assert.deepEqual(tutorialDatabaseReadCommand('2000', true, 'brain-training.db-wal'), [
+    'exec-out', 'run-as', 'com.braintraining.app', 'cat', 'files/SQLite/brain-training.db-wal',
+  ]);
+  assert.equal(tutorialDatabaseReadCommand('2000', false, 'brain-training.db'), null,
+    'non-root, non-debuggable release remains UNKNOWN instead of invoking a failing run-as');
+});
+
+test('native-source-inputs-02 manifest validates APK identity and complete tracked app-input hashes', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-build-manifest-'));
+  const relativeFiles = [
+    'apps/mobile/app.json', 'apps/mobile/package.json', 'apps/mobile/package-lock.json',
+    'apps/mobile/assets/icon.png', 'apps/mobile/src/app.ts',
+  ];
+  const inputs = new Map(relativeFiles.map((file) => [file, Buffer.from(`input:${file}`)]));
+  const apkFile = 'qa-artifacts/080/final-convergence/releases/test.apk';
+  const apkBytes = Buffer.from('packaged test APK');
+  const manifestFile = path.join(dir, 'qa-artifacts', '080', 'final-convergence', 'native-source-inputs-02.json');
+  const sourceSha = '22ae2f7c'.padEnd(40, '0');
+  const writeManifest = (files = relativeFiles.map((file) => ({ file, sha256: hash(inputs.get(file)) }))) => {
+    fs.writeFileSync(manifestFile, JSON.stringify({
+      sourceSha, trackedStatus: '', buildType: 'test release',
+      apk: { file: apkFile, bytes: apkBytes.length, sha256: hash(apkBytes) }, files,
+    }));
+  };
+  try {
+    for (const [file, bytes] of inputs) {
+      const absolute = path.join(dir, ...file.split('/'));
+      fs.mkdirSync(path.dirname(absolute), { recursive: true });
+      fs.writeFileSync(absolute, bytes);
+    }
+    const absoluteApk = path.join(dir, ...apkFile.split('/'));
+    fs.mkdirSync(path.dirname(absoluteApk), { recursive: true });
+    fs.writeFileSync(absoluteApk, apkBytes);
+    execFileSync('git', ['init', '--quiet'], { cwd: dir });
+    execFileSync('git', ['add', ...relativeFiles], { cwd: dir });
+    writeManifest();
+
+    const manifest = loadBuildManifest(manifestFile, dir);
+    assert.equal(manifest.sourceSha, sourceSha);
+    assert.equal(manifest.apkSha256, hash(apkBytes));
+    assert.equal(manifest.apkBytes, apkBytes.length);
+    assert.equal(manifest.inputCount, relativeFiles.length);
+    const identity = bindBuildIdentityToManifest({ packageName: 'com.braintraining.app', apkSha256: manifest.apkSha256 }, manifest);
+    assert.equal(identity.gitSha, manifest.sourceSha, 'build source SHA comes from the manifest, not harness HEAD');
+    assert.throws(() => bindBuildIdentityToManifest({ apkSha256: 'f'.repeat(64) }, manifest), /installed APK digest does not match/);
+
+    writeManifest(relativeFiles.slice(1).map((file) => ({ file, sha256: hash(inputs.get(file)) })));
+    assert.throws(() => loadBuildManifest(manifestFile, dir), /app input coverage is incomplete/);
+    writeManifest();
+    fs.writeFileSync(path.join(dir, 'apps/mobile/src/app.ts'), Buffer.from('drifted app source input'));
+    assert.throws(() => loadBuildManifest(manifestFile, dir), /build manifest input drift/);
+    fs.writeFileSync(path.join(dir, 'apps/mobile/src/app.ts'), inputs.get('apps/mobile/src/app.ts'));
+    fs.writeFileSync(absoluteApk, Buffer.from('changed APK bytes'));
+    assert.throws(() => loadBuildManifest(manifestFile, dir), /build manifest APK drift/);
+  } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });

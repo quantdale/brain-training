@@ -45,6 +45,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { loadBuildManifest } from './artifact-integrity.mjs';
 import {
   CONTRACT_VERSION,
   GameStates,
@@ -96,7 +97,7 @@ const PACKAGE = 'com.braintraining.app';
 
 // --- args ------------------------------------------------------------------
 function usage() {
-  console.log('usage: native-game-sweep.mjs [--games a,b,c] [--out FILE] [--serial S] [--steps N] [--dry-run] [--capture-receipts FILE]');
+  console.log('usage: native-game-sweep.mjs [--games a,b,c] [--out FILE] [--serial S] [--steps N] [--dry-run] [--capture-receipts FILE] [--build-manifest FILE]');
 }
 const argv = IS_MAIN ? process.argv.slice(2) : [];
 let onlyGames = null;
@@ -105,11 +106,17 @@ let serialOverride = null;
 let steps = 12;
 let dryRun = false;
 let captureReceiptsFile = null;
+let buildManifestFile = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--games') onlyGames = String(argv[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
   else if (a === '--out') outFile = path.resolve(argv[++i] || DEFAULT_OUT);
   else if (a === '--capture-receipts') captureReceiptsFile = path.resolve(argv[++i]);
+  else if (a === '--build-manifest') {
+    const file = argv[++i];
+    if (!file || file.startsWith('-')) { console.error('--build-manifest requires a path'); usage(); process.exit(2); }
+    buildManifestFile = path.resolve(file);
+  }
   else if (a === '--serial') serialOverride = argv[++i];
   else if (a === '--steps') steps = Number(argv[++i]) || 12;
   else if (a === '--dry-run') dryRun = true;
@@ -214,11 +221,22 @@ export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, game
   return query ? tutorialStateFromPersistedRow(query.row) : null;
 }
 
+export function tutorialDatabaseReadCommand(uid, debuggable, fileName) {
+  if (String(uid).trim() === '0') return ['exec-out', 'cat', `/data/user/0/${PACKAGE}/files/SQLite/${fileName}`];
+  if (debuggable === true) return ['exec-out', 'run-as', PACKAGE, 'cat', `files/SQLite/${fileName}`];
+  return null;
+}
+
 function persistedTutorialState(serial, gameId, ctx) {
   try {
-    const db = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db']);
+    const uid = adb(serial, ['shell', 'id', '-u'], { tolerant: true }).trim();
+    const packageInfo = adb(serial, ['shell', 'dumpsys', 'package', PACKAGE], { tolerant: true, timeout: 30000 });
+    const debuggable = /\bDEBUGGABLE\b/.test(packageInfo);
+    const dbCommand = tutorialDatabaseReadCommand(uid, debuggable, 'brain-training.db');
+    if (!dbCommand) return null;
+    const db = adbBuffer(serial, dbCommand);
     let wal = null;
-    try { wal = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db-wal']); } catch { /* no WAL is a valid checkpointed database */ }
+    try { wal = adbBuffer(serial, tutorialDatabaseReadCommand(uid, debuggable, 'brain-training.db-wal')); } catch { /* no WAL is a valid checkpointed database */ }
     const query = queryTutorialStateFromDatabaseBytes(db, wal, gameId);
     if (!query) return null;
     const observationTimestamp = new Date().toISOString();
@@ -265,7 +283,16 @@ function buildIdentity(serial) {
     const out = adb(serial, ['shell', 'sha256sum', pkgPath], { tolerant: true, timeout: 60000 });
     apkSha256 = (/^([0-9a-f]{64})/.exec(out.trim()) || [])[1] || null;
   }
-  return { gitSha: gitSha(), packageName: PACKAGE, versionName, versionCode: versionCode ? Number(versionCode) : null, apkSha256, installedApkPath: pkgPath };
+  return { gitSha: null, packageName: PACKAGE, versionName, versionCode: versionCode ? Number(versionCode) : null, apkSha256, installedApkPath: pkgPath };
+}
+
+export function bindBuildIdentityToManifest(installedIdentity, manifest) {
+  if (!manifest || !/^[a-f0-9]{40}$/i.test(manifest.sourceSha || '')
+      || !/^[a-f0-9]{64}$/i.test(manifest.apkSha256 || '')) throw new Error('validated source/APK build manifest is required');
+  if (String(installedIdentity?.apkSha256 || '').toLowerCase() !== manifest.apkSha256.toLowerCase()) {
+    throw new Error('installed APK digest does not match the build manifest');
+  }
+  return { ...installedIdentity, gitSha: manifest.sourceSha.toLowerCase(), apkSha256: manifest.apkSha256.toLowerCase() };
 }
 
 function deviceProfile(serial) {
@@ -370,12 +397,16 @@ export function captureArtifact(ctx, file, bytes, kind, observation) {
   }
   const digest = sha256(bytes);
   if (sha256(fs.readFileSync(file)) !== digest) throw new Error('captured artifact bytes differ from the acquired file');
+  const capturedAt = new Date().toISOString();
+  if (Date.parse(capturedAt) < Date.parse(observation.timestamp)) {
+    throw new Error('capture receipt predates its bound observation');
+  }
   const receipt = {
     schemaVersion: 1, captureId: crypto.randomUUID(),
     executionAttemptId: ctx.attemptId, artifactSha256: digest,
     artifactFile: path.relative(REPO_ROOT, file).split(path.sep).join('/'), artifactKind: kind,
     observationSeq: observation.seq, observationTimestamp: observation.timestamp,
-    capturedAt: new Date().toISOString(),
+    capturedAt,
     gitSha: ctx.buildIdentity.gitSha, apkSha256: ctx.buildIdentity.apkSha256,
   };
   if (!isIsoTimestamp(receipt.capturedAt)) throw new Error('capture receipt timestamp is invalid');
@@ -819,17 +850,31 @@ export async function main() {
   }
   if (games.length === 0) { console.error('[sweep] no games matched'); process.exit(2); }
 
-  const identity = buildIdentity(serial);
-  const device = deviceProfile(serial);
-  console.log(`[sweep] adb=${ADB}\n[sweep] serial=${serial}\n[sweep] steps=${steps}`);
-  console.log(`[sweep] build: git=${identity.gitSha} pkg=${identity.packageName} v=${identity.versionName} (${identity.versionCode}) apk-sha256=${identity.apkSha256}`);
-  if (!identity.gitSha || !identity.apkSha256 || !identity.versionCode) {
-    console.error('[sweep] REFUSING to sweep: provenance incomplete (F-080-005) — git SHA, APK hash and versionCode are all required');
+  let buildManifest = null;
+  if (buildManifestFile) {
+    try { buildManifest = loadBuildManifest(buildManifestFile, REPO_ROOT); }
+    catch (error) { console.error(`[sweep] REFUSING to sweep: ${error.message}`); process.exit(3); }
+  }
+  if (!buildManifest && !dryRun) {
+    console.error('[sweep] REFUSING to sweep: --build-manifest is required to bind the installed APK to the packaged source inputs');
     process.exit(3);
   }
+  let identity = buildIdentity(serial);
+  if (buildManifest) {
+    try { identity = bindBuildIdentityToManifest(identity, buildManifest); }
+    catch (error) { console.error(`[sweep] REFUSING to sweep: ${error.message}`); process.exit(3); }
+  }
+  const harnessGitSha = gitSha();
+  const device = deviceProfile(serial);
+  console.log(`[sweep] adb=${ADB}\n[sweep] serial=${serial}\n[sweep] steps=${steps}`);
+  console.log(`[sweep] build: source=${identity.gitSha || '(dry-run unbound)'} apk-sha256=${identity.apkSha256 || '(unavailable)'} harness=${harnessGitSha || '(unknown)'}`);
   if (dryRun) {
     for (const g of games) console.log(`  would sweep ${g.meta.id} (${g.meta.name})`);
     process.exit(0);
+  }
+  if (!identity.gitSha || !identity.apkSha256 || !identity.versionCode) {
+    console.error('[sweep] REFUSING to sweep: provenance incomplete (F-080-005) — manifest source SHA, installed APK hash and versionCode are required');
+    process.exit(3);
   }
 
   fs.mkdirSync(ARTIFACT_ROOT, { recursive: true });
@@ -908,6 +953,8 @@ export async function main() {
     generatedAt: new Date().toISOString(),
     evidenceSource: 'runtime',
     harness: 'scripts/qa/native-game-sweep.mjs (contract 2.1)',
+    harnessGitSha,
+    buildManifest: buildManifest ? { manifestSha256: buildManifest.manifestSha256, inputCount: buildManifest.inputCount } : null,
     environment: { ...identity, ...device },
     runs,
   };

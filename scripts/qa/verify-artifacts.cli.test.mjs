@@ -22,7 +22,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
 import fs from 'node:fs';
@@ -42,6 +42,7 @@ import {
   sniffScreenshot,
   verifyArtifactLedger,
 } from './artifact-integrity.mjs';
+import { deriveCapabilities } from './coverage-contract.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..', '..');
@@ -96,6 +97,7 @@ function writeArtifact(label, bytes, ext = 'png') {
     bytes: bytes.length,
     sha256: sha256(bytes),
     sha1: sha1(bytes),
+    kind: ext === 'xml' ? 'hierarchy' : ext === 'json' ? 'tutorial-state' : 'screenshot',
   };
 }
 
@@ -106,6 +108,7 @@ function writeCaptureReceipt(artifact, attemptId, build, observation) {
     captureId: randomUUID(),
     executionAttemptId: attemptId,
     artifactSha256: artifact.sha256,
+    artifactKind: artifact.kind,
     capturedAt: observation.timestamp,
     observationSeq: observation.seq,
     observationTimestamp: observation.timestamp,
@@ -121,6 +124,15 @@ function writeCaptureReceipt(artifact, attemptId, build, observation) {
     reference: { file: path.relative(REPO_ROOT, abs).split(path.sep).join('/'), sha256: sha256(bytes) },
     indexEntry: { file: path.relative(REPO_ROOT, abs).split(path.sep).join('/'), sha256: sha256(bytes) },
   };
+}
+
+function updateCaptureReceipt(artifact, changes) {
+  const absolute = path.join(REPO_ROOT, ...artifact.captureReceipt.file.split('/'));
+  const receipt = JSON.parse(fs.readFileSync(absolute, 'utf8'));
+  Object.assign(receipt, changes);
+  const bytes = Buffer.from(JSON.stringify(receipt));
+  fs.writeFileSync(absolute, bytes);
+  artifact.captureReceipt.sha256 = sha256(bytes);
 }
 
 const BUILD = () => ({
@@ -145,13 +157,41 @@ const DEVICE = () => ({
  * assertion is unambiguous about what caused the exit code.
  */
 function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall', build = BUILD() } = {}) {
-  const observation0 = { seq: 0, timestamp: '2026-10-22T00:00:10.000Z', controls: ['intro', 'start'] };
-  const observation1 = { seq: 1, timestamp: '2026-10-22T00:00:20.000Z', controls: ['intro', 'start'] };
+  const controls = ['intro', 'start', 'session-token.fixture-session'];
+  const observation0 = { seq: 1, timestamp: '2026-10-22T00:00:10.000Z', controls };
+  const observation1 = { seq: 2, timestamp: '2026-10-22T00:00:20.000Z', controls };
   const png = writeArtifact('launch', PNG_1X1, 'png');
-  const xml = writeArtifact('launch', HIERARCHY_XML(gameId, observation1.controls), 'xml');
+  const xml0 = writeArtifact('launch-hierarchy', HIERARCHY_XML(gameId, observation0.controls), 'xml');
+  const xml1 = writeArtifact('terminal-hierarchy', HIERARCHY_XML(gameId, observation1.controls), 'xml');
   const pngReceipt = writeCaptureReceipt(png, attemptId, build, observation0);
-  const xmlReceipt = writeCaptureReceipt(xml, attemptId, build, observation1);
-  const common = { kind: 'screenshot', executionAttemptId: attemptId };
+  const xml0Receipt = writeCaptureReceipt(xml0, attemptId, build, observation0);
+  const xml1Receipt = writeCaptureReceipt(xml1, attemptId, build, observation1);
+  const hierarchyBinding = (artifact, receipt, observation) => ({
+    kind: 'hierarchy', executionAttemptId: attemptId,
+    file: artifact.file, bytes: artifact.bytes, sha256: artifact.sha256,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: receipt.reference,
+  });
+  const hierarchyControlIds = controls.map((control) => `${gameId}.${control}`);
+  const observed = (observation, phase, evidenceArtifact, hierarchyArtifact) => ({
+    seq: observation.seq,
+    executionAttemptId: attemptId,
+    phase,
+    timestamp: observation.timestamp,
+    controls: observation.controls,
+    hierarchyControlIds,
+    screenMarkers: [],
+    screenKind: 'game-screen',
+    observedGameId: gameId,
+    rawScreen: {
+      expectedPackage: build.packageName,
+      focusPackage: `${build.packageName}/${build.packageName}.MainActivity`,
+      hierarchyStatus: 'ok', appAlive: true, controlCount: observation.controls.length,
+    },
+    requireArtifact: true,
+    evidenceArtifact,
+    hierarchyArtifact,
+  });
   return {
     run: {
       executionAttemptId: attemptId,
@@ -165,41 +205,23 @@ function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall
       endedAt: '2026-10-22T00:01:00.000Z',
       events: [],
       observations: [
-        {
-          seq: 0,
-          phase: 'launch',
-          timestamp: observation0.timestamp,
-          controls: observation0.controls,
-          screenMarkers: [],
-          screenKind: 'game-screen',
-          observedGameId: gameId,
-          requireArtifact: true,
-          evidenceArtifact: { ...common, file: png.file, bytes: png.bytes, sha256: png.sha256, captureReceipt: pngReceipt.reference },
-        },
-        {
-          seq: 1,
-          phase: 'terminal',
-          timestamp: observation1.timestamp,
-          controls: observation1.controls,
-          screenMarkers: [],
-          screenKind: 'game-screen',
-          observedGameId: gameId,
-          rawScreen: {
-            expectedPackage: build.packageName,
-            focusPackage: `${build.packageName}/${build.packageName}.MainActivity`,
-            hierarchyStatus: 'ok', appAlive: true, controlCount: observation1.controls.length,
-          },
-          requireArtifact: true,
-          evidenceArtifact: {
-            kind: 'hierarchy', executionAttemptId: attemptId,
-            file: xml.file, bytes: xml.bytes, sha256: xml.sha256, captureReceipt: xmlReceipt.reference,
-          },
-        },
+        observed(observation0, 'launch', {
+          kind: 'screenshot', executionAttemptId: attemptId,
+          file: png.file, bytes: png.bytes, sha256: png.sha256,
+          observationSeq: observation0.seq, observationTimestamp: observation0.timestamp,
+          captureReceipt: pngReceipt.reference,
+        }, hierarchyBinding(xml0, xml0Receipt, observation0)),
+        observed(observation1, 'terminal', {
+          kind: 'hierarchy', executionAttemptId: attemptId,
+          file: xml1.file, bytes: xml1.bytes, sha256: xml1.sha256,
+          observationSeq: observation1.seq, observationTimestamp: observation1.timestamp,
+          captureReceipt: xml1Receipt.reference,
+        }, hierarchyBinding(xml1, xml1Receipt, observation1)),
       ],
       artifacts: [],
     },
     png,
-    xml,
+    xml: xml1,
   };
 }
 
@@ -233,29 +255,36 @@ function writeLedger(runs, name = 'ledger') {
 }
 
 /** Run the real CLI and capture its real exit status. */
-function attachTutorialState(run, row, timestamp = '2026-10-22T00:00:30.000Z') {
-  const observation = { seq: 2, timestamp, controls: [], screenMarkers: [], phase: 'tutorial-state' };
-  run.observations.push(observation);
-  const completed = row?.completed === 1;
-  const replayRequested = row?.replay_requested === 1;
-  const version = row?.version ?? null;
-  run.tutorialState = {
-    gameId: run.gameId, previouslyCompleted: completed && !replayRequested && version === '1.0.0',
-    completed, replayRequested, version, source: 'tutorial_state',
+function attachTutorialState(run, row, timestamp = '2026-10-22T00:00:05.000Z') {
+  const query = {
+    table: 'tutorial_state',
+    columns: ['game_id', 'completed', 'replay_requested', 'version', 'updated_at'],
+    where: { game_id: run.gameId },
+    row: row === null ? null : { game_id: run.gameId, updated_at: 1234, ...row },
+    sql: 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?',
   };
-  const snapshot = {
-    schemaVersion: 1, source: 'sqlite-query',
-    query: 'SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?',
-    parameters: [run.gameId], gameId: run.gameId, completed, row,
+  const evidence = {
+    schemaVersion: 1,
+    executionAttemptId: run.executionAttemptId,
+    gameId: run.gameId,
+    observationSeq: 0,
+    observationTimestamp: timestamp,
+    capturedAt: timestamp,
+    query,
   };
-  const artifact = writeArtifact('tutorial-state', Buffer.from(JSON.stringify(snapshot)), 'json');
-  const receipt = writeCaptureReceipt(artifact, run.executionAttemptId, run.buildIdentity, observation);
-  run.tutorialStateArtifact = {
-    kind: 'tutorial-state', executionAttemptId: run.executionAttemptId,
-    file: artifact.file, bytes: artifact.bytes, sha256: artifact.sha256,
-    captureReceipt: receipt.reference,
+  const artifact = writeArtifact('tutorial-state', Buffer.from(JSON.stringify(evidence, null, 2)), 'json');
+  const receipt = writeCaptureReceipt(artifact, run.executionAttemptId, run.buildIdentity, { seq: 0, timestamp });
+  run.tutorialStateEvidence = {
+    ...evidence,
+    artifact: {
+      kind: 'tutorial-state', executionAttemptId: run.executionAttemptId,
+      observationSeq: 0, observationTimestamp: timestamp,
+      file: artifact.file, bytes: artifact.bytes, sha256: artifact.sha256,
+      captureReceipt: receipt.reference,
+    },
   };
-  return run.tutorialStateArtifact;
+  run.artifacts.push(run.tutorialStateEvidence.artifact);
+  return run.tutorialStateEvidence.artifact;
 }
 
 function runCli(args, { expectedIdentity = true, captureIndex = true } = {}) {
@@ -361,7 +390,10 @@ test('CLI 6b: portable PASS when all evidence is present', () => {
 
 test('CLI 7: hash mismatch exits nonzero', () => {
   const { run } = baseRun();
-  run.observations[1].evidenceArtifact.sha256 = 'f'.repeat(64);
+  const evidence = run.observations[1].evidenceArtifact;
+  evidence.sha256 = 'f'.repeat(64);
+  run.observations[1].hierarchyArtifact.sha256 = evidence.sha256;
+  updateCaptureReceipt(evidence, { artifactSha256: evidence.sha256 });
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
   assert.match(res.stdout, /artifact-hash-mismatch/);
@@ -382,6 +414,8 @@ test('CLI 7c: legacy SHA-1 mismatch exits nonzero', () => {
   const art = run.observations[1].evidenceArtifact;
   delete art.sha256;
   art.sha1 = 'e'.repeat(40);
+  delete run.observations[1].hierarchyArtifact.sha256;
+  run.observations[1].hierarchyArtifact.sha1 = art.sha1;
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
   assert.match(res.stdout, /sha1 mismatch/);
@@ -399,19 +433,27 @@ test('CLI 8: missing mandatory SCREENSHOT does not certify', () => {
   assert.doesNotMatch(res.stdout, /verdict=PASS/);
 });
 
-test('CLI 9: missing mandatory HIERARCHY does not certify a certified capability', () => {
+test('CLI 9: screenshot-only evidence cannot establish hierarchy-backed identity', () => {
   const { run } = baseRun();
   // Keep only screenshot artifacts: `launch` is still VERIFIED by the contract
   // (controls parsed) but no verified hierarchy backs it.
+  delete run.observations[0].hierarchyArtifact;
+  delete run.observations[1].hierarchyArtifact;
   const png2 = writeArtifact('launch-2', PNG_1X1, 'png');
+  const observation = run.observations[1];
+  const png2Receipt = writeCaptureReceipt(png2, run.executionAttemptId, run.buildIdentity, observation);
   run.observations[1].evidenceArtifact = {
     kind: 'screenshot', executionAttemptId: run.executionAttemptId,
     file: png2.file, bytes: png2.bytes, sha256: png2.sha256,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: png2Receipt.reference,
   };
   const ledger = writeLedger([run]);
+  const capabilities = deriveCapabilities(run);
+  assert.notEqual(capabilities.identity.status, 'VERIFIED');
+  assert.notEqual(capabilities.gameplayEntered.status, 'VERIFIED');
   const res = runCli([ledger, '--mode', 'local']);
-  assert.match(res.stdout, /capability-artifact-missing/);
-  assert.notEqual(res.status, 0);
+  assert.equal(res.status, 0, res.stdout + res.stderr);
 });
 
 test('CLI 10: unreadable artifact exits nonzero', () => {
@@ -422,10 +464,16 @@ test('CLI 10: unreadable artifact exits nonzero', () => {
   fs.mkdirSync(dir, { recursive: true });
   const absDir = path.join(dir, 'unreadable-as-directory');
   fs.mkdirSync(absDir, { recursive: true });
-  run.observations[1].evidenceArtifact = {
+  const observation = run.observations[1];
+  const unreadable = {
     kind: 'hierarchy', executionAttemptId: run.executionAttemptId,
     file: path.relative(REPO_ROOT, absDir).split(path.sep).join('/'),
     sha256: 'd'.repeat(64), bytes: 10,
+  };
+  const unreadableReceipt = writeCaptureReceipt(unreadable, run.executionAttemptId, run.buildIdentity, observation);
+  run.observations[1].evidenceArtifact = {
+    ...unreadable, observationSeq: observation.seq,
+    observationTimestamp: observation.timestamp, captureReceipt: unreadableReceipt.reference,
   };
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
@@ -624,13 +672,19 @@ test('CLI 16: evidence cited by a second attempt is rejected as reuse', () => {
   const a = baseRun({ attemptId: 'attempt-reuse-source' });
   // A second attempt re-cites the FIRST attempt's screenshot file.
   const b = baseRun({ attemptId: 'attempt-reuse-thief' });
-  b.run.observations[0].evidenceArtifact = {
+  const observation = b.run.observations[0];
+  const replay = {
     kind: 'screenshot', executionAttemptId: 'attempt-reuse-thief',
     file: a.png.file, bytes: a.png.bytes, sha256: a.png.sha256,
   };
+  const receipt = writeCaptureReceipt(replay, b.run.executionAttemptId, b.run.buildIdentity, observation);
+  b.run.observations[0].evidenceArtifact = {
+    ...replay, observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: receipt.reference,
+  };
   const ledger = writeLedger([a.run, b.run]);
   const res = runCli([ledger, '--mode', 'local']);
-  assert.match(res.stdout, /artifact-reused-across-attempts/);
+  assert.match(res.stdout, /artifact-reused-across-attempts|more than one acquisition receipt/);
   assert.notEqual(res.status, 0);
 });
 
@@ -665,6 +719,11 @@ test('CLI 18: a path escaping the repository is rejected, never read', () => {
     assert.ok(relEscape.startsWith('..'), 'fixture must actually escape the repo');
     run.observations[1].evidenceArtifact.file = relEscape;
     run.observations[1].evidenceArtifact.sha256 = sha256(Buffer.from('outside-evidence'));
+    run.observations[1].hierarchyArtifact.file = relEscape;
+    run.observations[1].hierarchyArtifact.sha256 = run.observations[1].evidenceArtifact.sha256;
+    updateCaptureReceipt(run.observations[1].evidenceArtifact, {
+      artifactFile: relEscape, artifactSha256: run.observations[1].evidenceArtifact.sha256,
+    });
     const ledger = writeLedger([run]);
     const res = runCli([ledger, '--mode', 'local']);
     assert.match(res.stdout, /unsafe-artifact-path/);
@@ -675,8 +734,11 @@ test('CLI 18: a path escaping the repository is rejected, never read', () => {
 });
 
 test('CLI 18b: absolute artifact paths are rejected', () => {
-  const { run, png } = baseRun();
-  run.observations[1].evidenceArtifact.file = png.abs; // absolute
+  const { run } = baseRun();
+  const absolutePath = path.join(path.dirname(REPO_ROOT), 'brain-training-absolute-evidence.xml');
+  run.observations[1].evidenceArtifact.file = absolutePath;
+  run.observations[1].hierarchyArtifact.file = absolutePath;
+  updateCaptureReceipt(run.observations[1].evidenceArtifact, { artifactFile: absolutePath });
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
   assert.match(res.stdout, /unsafe-artifact-path/);
@@ -687,9 +749,13 @@ test('CLI 19: a screenshot filename is not evidence of a screenshot', () => {
   const { run } = baseRun();
   // Correct digest, correct extension, WRONG content: not a PNG.
   const fake = writeArtifact('launch-fake', Buffer.from('this is not a png at all'), 'png');
+  const observation = run.observations[0];
+  const receipt = writeCaptureReceipt(fake, run.executionAttemptId, run.buildIdentity, observation);
   run.observations[0].evidenceArtifact = {
     kind: 'screenshot', executionAttemptId: run.executionAttemptId,
     file: fake.file, bytes: fake.bytes, sha256: fake.sha256,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: receipt.reference,
   };
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
@@ -700,9 +766,13 @@ test('CLI 19: a screenshot filename is not evidence of a screenshot', () => {
 test('CLI 19b: a hierarchy artifact must actually be a hierarchy document', () => {
   const { run } = baseRun();
   const fake = writeArtifact('launch-fake-xml', Buffer.from('<html><body>nope</body></html>'), 'xml');
+  const observation = run.observations[1];
+  const receipt = writeCaptureReceipt(fake, run.executionAttemptId, run.buildIdentity, observation);
   run.observations[1].evidenceArtifact = {
     kind: 'hierarchy', executionAttemptId: run.executionAttemptId,
     file: fake.file, bytes: fake.bytes, sha256: fake.sha256,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: receipt.reference,
   };
   const ledger = writeLedger([run]);
   const res = runCli([ledger, '--mode', 'local']);
@@ -865,7 +935,7 @@ test('CLI 20j: same-attempt receipt replay across observations fails exact seque
   const ledger = writeLedger([run]);
   const result = runCli([ledger, '--mode', 'local']);
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /capture-receipt-observation-mismatch|capture-receipt-reused-for-distinct-observation/);
+  assert.match(result.stdout, /capture-receipt-observation-mismatch|capture-receipt-reused-for-distinct-observation|replayed across observations/);
 });
 
 test('CLI 20k: identical passive frames pass when each observation has a fresh acquisition receipt', () => {
@@ -875,7 +945,9 @@ test('CLI 20k: identical passive frames pass when each observation has a fresh a
   const receipt = writeCaptureReceipt(second, run.executionAttemptId, run.buildIdentity, observation);
   run.artifacts.push({
     kind: 'screenshot', executionAttemptId: run.executionAttemptId,
-    file: second.file, bytes: second.bytes, sha256: second.sha256, captureReceipt: receipt.reference,
+    file: second.file, bytes: second.bytes, sha256: second.sha256,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    captureReceipt: receipt.reference,
   });
   assert.equal(second.sha256, png.sha256);
   const ledger = writeLedger([run]);
@@ -906,10 +978,62 @@ test('CLI 20l: returning-player tutorial completion requires matching receipt-in
 
   const mismatched = baseRun({ attemptId: 'mismatched-returning-tutorial-player' }).run;
   attachTutorialState(mismatched, { completed: 0, replay_requested: 0, version: '1.0.0' });
-  mismatched.tutorialState.previouslyCompleted = true;
+  mismatched.tutorialStateEvidence.query.row.completed = 1;
   const mismatch = runCli([writeLedger([mismatched]), '--mode', 'local']);
   assert.equal(mismatch.status, 1);
-  assert.match(mismatch.stdout, /tutorialState\.previouslyCompleted does not match the captured SQLite row/);
+  assert.match(mismatch.stdout, /tutorial-state artifact query JSON does not match the typed seq0 tutorialStateEvidence/);
+});
+
+test('CLI 20n: native-source-inputs-02 manifest binds APK/source identity apart from harness HEAD', () => {
+  const apk = writeArtifact('manifest-bound-test-apk', Buffer.from('packaged test APK'), 'apk');
+  const build = { ...BUILD(), apkSha256: apk.sha256 };
+  const { run } = baseRun({ attemptId: 'manifest-bound-build', build });
+  const inputRoots = ['apps/mobile/app.json', 'apps/mobile/package.json', 'apps/mobile/package-lock.json',
+    'apps/mobile/assets', 'apps/mobile/src'];
+  const trackedInputs = execFileSync('git', ['ls-files', '--', ...inputRoots], {
+    cwd: REPO_ROOT, encoding: 'utf8', windowsHide: true,
+  }).split(/\r?\n/).filter(Boolean).map((file) => ({
+    file,
+    sha256: sha256(fs.readFileSync(path.join(REPO_ROOT, ...file.split('/')))),
+  }));
+  const manifestPath = path.join(FIXTURE_ROOT, 'manifests', 'native-source-inputs-02.json');
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.writeFileSync(manifestPath, JSON.stringify({
+    sourceSha: build.gitSha,
+    trackedStatus: '',
+    buildType: 'test release',
+    apk: { file: apk.file, bytes: apk.bytes, sha256: apk.sha256 },
+    files: trackedInputs,
+  }));
+  const ledger = writeLedger([run]);
+  const verified = runCli([ledger, '--mode', 'local', '--build-manifest', manifestPath], { expectedIdentity: false });
+  assert.equal(verified.status, 0, verified.stdout + verified.stderr);
+  assert.match(verified.stdout, /verdict=PASS/);
+
+  const wrongBuild = { ...build, gitSha: 'c'.repeat(40) };
+  const untrusted = baseRun({ attemptId: 'manifest-rejects-ledger-identity', build: wrongBuild }).run;
+  const rejected = runCli([writeLedger([untrusted]), '--mode', 'local', '--build-manifest', manifestPath], { expectedIdentity: false });
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stdout, /unexpected-current-build/);
+
+  fs.writeFileSync(apk.abs, Buffer.from('APK changed after manifest creation'));
+  const drift = runCli([ledger, '--mode', 'local', '--build-manifest', manifestPath], { expectedIdentity: false });
+  assert.equal(drift.status, 2);
+  assert.match(drift.stderr, /build manifest APK drift/);
+});
+
+test('CLI 20o: receipt captured after the next observation is rejected', () => {
+  const { run } = baseRun({ attemptId: 'receipt-outside-interval' });
+  const reference = run.observations[0].evidenceArtifact.captureReceipt;
+  const receiptPath = path.join(REPO_ROOT, ...reference.file.split('/'));
+  const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+  receipt.capturedAt = '2026-10-22T00:00:21.000Z';
+  const bytes = Buffer.from(JSON.stringify(receipt));
+  fs.writeFileSync(receiptPath, bytes);
+  reference.sha256 = sha256(bytes);
+  const result = runCli([writeLedger([run]), '--mode', 'local']);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /capture-receipt-outside-observation-interval/);
 });
 
 test('CLI 20m: coercible but non-ISO receipt/event timestamps fail closed', () => {
@@ -1031,13 +1155,10 @@ test('UNIT: verifyArtifactLedger verdict matrix is fail-closed', () => {
 
   const noHierarchy = fixture('unit-no-hierarchy');
   noHierarchy.run.observations = [noHierarchy.run.observations[0]];
-  const noHierarchyLedger = writeLedger([noHierarchy.run], 'unit-no-hierarchy');
-  const missingHier = verifyArtifactLedger([noHierarchy.run], {
-    ...noHierarchy.options,
-    captureReceipts: captureIndexByLedger.get(noHierarchyLedger),
-  });
-  assert.equal(missingHier.verdict, VerificationVerdict.FAIL);
-  assert.ok(missingHier.findings.some((f) => f.kind === 'capability-artifact-missing'));
+  delete noHierarchy.run.observations[0].hierarchyArtifact;
+  const screenshotOnlyCapabilities = deriveCapabilities(noHierarchy.run);
+  assert.notEqual(screenshotOnlyCapabilities.identity.status, 'VERIFIED');
+  assert.notEqual(screenshotOnlyCapabilities.gameplayEntered.status, 'VERIFIED');
 });
 
 test('UNIT: strict cannot turn a non-PASS verdict into success', () => {

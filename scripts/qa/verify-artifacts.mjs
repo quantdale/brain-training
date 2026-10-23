@@ -52,8 +52,9 @@
  * Usage:
  *   node scripts/qa/verify-artifacts.mjs <ledger.json> [more.json ...]
  *        [--mode local|portable|source] [--build-scope single|archive]
- *        [--capture-receipts INDEX] [--expected-git-sha SHA]
- *        [--expected-apk-sha256 SHA256] [--strict] [--json OUT] [--verbose]
+ *        [--capture-receipts INDEX] [--build-manifest FILE]
+ *        [--expected-git-sha SHA] [--expected-apk-sha256 SHA256]
+ *        [--strict] [--json OUT] [--verbose]
  */
 'use strict';
 
@@ -68,13 +69,14 @@ import {
   BuildScope,
   VerificationVerdict,
   deriveVerificationExitCode,
+  loadBuildManifest,
   verifyArtifactLedger,
 } from './artifact-integrity.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
-const USAGE = 'usage: verify-artifacts.mjs <ledger.json> [...] [--mode local|portable|source] [--build-scope single|archive] [--capture-receipts INDEX] [--expected-git-sha SHA] [--expected-apk-sha256 SHA256] [--strict] [--json OUT] [--verbose]';
+const USAGE = 'usage: verify-artifacts.mjs <ledger.json> [...] [--mode local|portable|source] [--build-scope single|archive] [--capture-receipts INDEX] [--build-manifest FILE] [--expected-git-sha SHA] [--expected-apk-sha256 SHA256] [--strict] [--json OUT] [--verbose]';
 
 /** Print usage to stderr and exit 2 (usage/malformed-input class). */
 function usageError(message) {
@@ -91,6 +93,7 @@ let buildScope = BuildScope.SINGLE;
 let strict = false;
 let jsonOut = null;
 let captureReceipts = null;
+let buildManifestFile = null;
 let expectedGitSha;
 let expectedApkSha256;
 let verbose = false;
@@ -107,6 +110,10 @@ for (let i = 0; i < argv.length; i++) {
     const index = argv[++i];
     if (!index || index.startsWith('-')) usageError('--capture-receipts requires a path');
     captureReceipts = path.resolve(index);
+  } else if (a === '--build-manifest') {
+    const file = argv[++i];
+    if (!file || file.startsWith('-')) usageError('--build-manifest requires a path');
+    buildManifestFile = path.resolve(file);
   } else if (a === '--expected-git-sha') {
     expectedGitSha = argv[++i];
     if (!expectedGitSha || expectedGitSha.startsWith('-')) usageError('--expected-git-sha requires a SHA');
@@ -160,6 +167,15 @@ for (const file of inputs) {
 // --- verify ----------------------------------------------------------------
 let result;
 try {
+  if (buildManifestFile) {
+    const manifest = loadBuildManifest(buildManifestFile, REPO_ROOT);
+    if ((expectedGitSha && expectedGitSha.toLowerCase() !== manifest.sourceSha)
+        || (expectedApkSha256 && expectedApkSha256.toLowerCase() !== manifest.apkSha256)) {
+      usageError('explicit expected identity conflicts with --build-manifest');
+    }
+    expectedGitSha = manifest.sourceSha;
+    expectedApkSha256 = manifest.apkSha256;
+  }
   result = verifyArtifactLedger(runs, {
     mode, strict, buildScope, repoRoot: REPO_ROOT,
     captureReceipts, expectedGitSha, expectedApkSha256,

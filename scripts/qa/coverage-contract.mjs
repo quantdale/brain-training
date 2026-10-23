@@ -102,8 +102,9 @@ function observationHasCapturedHierarchy(observation) {
 function tutorialEvidenceRow(record) {
   const evidence = record?.tutorialStateEvidence;
   if (!evidence || evidence.schemaVersion !== 1 || evidence.executionAttemptId !== record.executionAttemptId ||
-      evidence.gameId !== record.gameId || !Number.isInteger(evidence.observationSeq) ||
-      !isIsoTimestamp(evidence.observationTimestamp) || evidence.capturedAt !== evidence.observationTimestamp) return null;
+      evidence.gameId !== record.gameId || evidence.observationSeq !== 0 ||
+      !isIsoTimestamp(evidence.observationTimestamp) || evidence.capturedAt !== evidence.observationTimestamp ||
+      (Array.isArray(record.observations) && record.observations.some((observation) => observation?.seq === evidence.observationSeq))) return null;
   const query = evidence.query;
   const row = query?.row;
   if (query?.table !== 'tutorial_state' || query?.sql !== TUTORIAL_STATE_SQL || query?.where?.game_id !== record.gameId ||
@@ -876,6 +877,16 @@ export function validateRunRecord(r, opts = {}) {
   }
 
   const observationsBySeq = new Map(r.observations.map((o) => [o.seq, o]));
+  const tutorialEvidence = r.tutorialStateEvidence;
+  if (tutorialEvidence && tutorialEvidenceRow(r)) {
+    const nextObservation = r.observations.filter((observation) => observation.seq > tutorialEvidence.observationSeq)
+      .sort((a, b) => a.seq - b.seq)[0];
+    const endTime = nextObservation?.timestamp || r.endedAt;
+    const captureTime = Date.parse(tutorialEvidence.capturedAt);
+    if (startedMs !== null && captureTime < startedMs) errors.push('tutorialStateEvidence.capturedAt predates attempt');
+    if (endTime && captureTime > Date.parse(endTime)) errors.push('tutorialStateEvidence.capturedAt follows its bound observation interval');
+    if (!endTime) errors.push('tutorialStateEvidence has no next observation or run end to bound capture time');
+  }
   for (const [kind, list] of [['events', r.events], ['observations', r.observations]]) {
     let previousSeq = -1;
     let previousTime = -Infinity;

@@ -173,6 +173,7 @@ function runRecord(overrides = {}) {
     buildIdentity: buildIdentity(),
     deviceProfile: deviceProfile(),
     startedAt: '2026-10-21T12:00:00Z',
+    endedAt: '2026-10-21T12:05:00Z',
     events: [],
     observations: [],
     ...overrides,

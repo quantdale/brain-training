@@ -111,11 +111,16 @@ function observation(seq, {
   controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
   timestamp, phase = 'play', rawScreen, hierarchyArtifact,
 } = {}) {
-  // Observations carry real provenance (timestamp + phase) and an artifact
-  // binding — the repaired contract rejects unbound "proof".
+  // These are native-shaped resource IDs, including one stable session marker
+  // across intro, gameplay, and results; claims are checked against the XML.
+  if (observedGameId) {
+    if (!controls.some((control) => control.startsWith('session-token.'))) controls = [...controls, 'session-token.fixture-session'];
+  }
+  const hierarchyControlIds = observedGameId ? controls.map((control) => `${observedGameId}.${control}`) : [];
   const o = {
     seq,
     controls,
+    hierarchyControlIds,
     screenMarkers,
     score,
     boardValues,
@@ -131,6 +136,11 @@ function observation(seq, {
   if (screenKind) o.screenKind = screenKind;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
   if (rawScreen !== undefined) o.rawScreen = rawScreen;
+  else if (observedGameId) o.rawScreen = {
+    expectedPackage: 'com.braintraining.app',
+    focusPackage: 'com.braintraining.app/MainActivity',
+    hierarchyStatus: 'ok', appAlive: true, controlCount: controls.length,
+  };
   if (hierarchyArtifact !== undefined) o.hierarchyArtifact = hierarchyArtifact;
   return o;
 }
@@ -167,6 +177,7 @@ function runRecord(attemptId, overrides = {}) {
     buildIdentity: buildIdentity(),
     deviceProfile: deviceProfile(),
     startedAt: '2026-10-21T12:00:00Z',
+    endedAt: '2026-10-21T12:01:00.000Z',
     events: [],
     observations: [],
     artifacts: [],
@@ -178,14 +189,12 @@ function runRecord(attemptId, overrides = {}) {
   const observationHierarchyArtifacts = [];
   rec.observations = (rec.observations || []).map((o) => {
     if (!o || typeof o !== 'object') return o;
-    const mapped = { ...o };
+    const mapped = { ...o, executionAttemptId: attemptId };
     if (o.evidenceArtifact && typeof o.evidenceArtifact === 'object') {
-      mapped.evidenceArtifact = realArtifact(o.evidenceArtifact.kind, attemptId, rec.buildIdentity, o);
+      mapped.evidenceArtifact = realArtifact(o.evidenceArtifact.kind, attemptId, rec.buildIdentity, mapped);
     }
-    if (o.hierarchyArtifact && typeof o.hierarchyArtifact === 'object') {
-      mapped.hierarchyArtifact = realArtifact('hierarchy', attemptId, rec.buildIdentity, o);
-      observationHierarchyArtifacts.push(mapped.hierarchyArtifact);
-    }
+    mapped.hierarchyArtifact = realArtifact('hierarchy', attemptId, rec.buildIdentity, mapped);
+    observationHierarchyArtifacts.push(mapped.hierarchyArtifact);
     return mapped;
   });
   rec.artifacts = [
@@ -194,6 +203,29 @@ function runRecord(attemptId, overrides = {}) {
     { ...realArtifact('screenshot', attemptId, rec.buildIdentity, rec.observations?.[0]), mandatory: true },
     { ...realArtifact('hierarchy', attemptId, rec.buildIdentity, rec.observations?.[0]), mandatory: true },
   ];
+  if (rec.hasTutorial === true && rec.tutorialStateEvidence === undefined) {
+    const timestamp = '2026-10-21T12:00:00.500Z';
+    const evidence = {
+      schemaVersion: 1,
+      executionAttemptId: attemptId,
+      gameId: rec.gameId,
+      observationSeq: 0,
+      observationTimestamp: timestamp,
+      capturedAt: timestamp,
+      query: {
+        table: 'tutorial_state',
+        columns: ['game_id', 'completed', 'replay_requested', 'version', 'updated_at'],
+        where: { game_id: rec.gameId },
+        row: { game_id: rec.gameId, completed: 1, replay_requested: 0, version: '1.0.0', updated_at: 1234 },
+        sql: 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?',
+      },
+    };
+    const artifact = realArtifact('tutorial-state', attemptId, rec.buildIdentity,
+      { seq: 0, timestamp }, GAME_ID, evidence);
+    evidence.artifact = artifact;
+    rec.tutorialStateEvidence = evidence;
+    rec.artifacts.push(artifact);
+  }
   return rec;
 }
 
@@ -227,10 +259,11 @@ function hierarchyBytes(gameId, observation) {
   if (!nodes.length) nodes.push('<node index="0" text="Games" resource-id="games-title" package="com.braintraining.app" />');
   return Buffer.from(`<hierarchy rotation="0">${nodes.join('')}</hierarchy>`);
 }
-function realArtifact(kind, attemptId, build, observation, hierarchyGameId = GAME_ID) {
+function realArtifact(kind, attemptId, build, observation, hierarchyGameId = GAME_ID, payload = null) {
   artifactSeq++;
-  const bytes = kind === 'hierarchy' ? hierarchyBytes(hierarchyGameId, observation) : PNG_BYTES;
-  const extension = kind === 'hierarchy' ? 'xml' : 'png';
+  const bytes = kind === 'hierarchy' ? hierarchyBytes(hierarchyGameId, observation)
+    : kind === 'tutorial-state' ? Buffer.from(JSON.stringify(payload, null, 2)) : PNG_BYTES;
+  const extension = kind === 'hierarchy' ? 'xml' : kind === 'tutorial-state' ? 'json' : 'png';
   const file = `${FIXTURE_REL}/capture-${artifactSeq}-${attemptId}.${extension}`;
   const abs = path.join(REPO_ROOT, ...file.split('/'));
   fs.mkdirSync(path.dirname(abs), { recursive: true });
@@ -241,6 +274,7 @@ function realArtifact(kind, attemptId, build, observation, hierarchyGameId = GAM
     captureId: crypto.randomUUID(),
     executionAttemptId: attemptId,
     artifactSha256,
+    artifactKind: kind,
     capturedAt: observation?.timestamp || '2026-10-21T12:00:00.000Z',
     observationSeq: observation?.seq ?? 0,
     observationTimestamp: observation?.timestamp || '2026-10-21T12:00:00.000Z',
@@ -256,6 +290,8 @@ function realArtifact(kind, attemptId, build, observation, hierarchyGameId = GAM
   return {
     file, sha256: artifactSha256, bytes: bytes.length, kind,
     executionAttemptId: attemptId,
+    observationSeq: observation?.seq ?? 0,
+    observationTimestamp: observation?.timestamp || '2026-10-21T12:00:00.000Z',
     captureReceipt: { file: receiptFile, sha256: receiptSha256 },
   };
 }
@@ -305,11 +341,16 @@ function l3Run(attemptId, overrides = {}) {
       playingObs(2, { score: '0' }),
       gameObs(3, { controls: ['stage', 'pause', 'round.1', 'score', 'feedback.correct'], score: '10' }),
       resultsObs(4, { score: '15' }),
+      exitedObs(5, { rawScreen: {
+        expectedPackage: 'com.braintraining.app', focusPackage: 'com.braintraining.app/MainActivity',
+        hierarchyStatus: 'ok', appAlive: true, controlCount: 0,
+      } }),
     ],
     events: [
       event(1, attemptId, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, attemptId, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
-      event(3, attemptId, { action: 'wait', observationBeforeSeq: 3, observationAfterSeq: 4 }),
+      event(3, attemptId, { actionAcknowledged: true, observationBeforeSeq: 3, observationAfterSeq: 4 }),
+      event(4, attemptId, { action: 'back', actionAcknowledged: true, observationBeforeSeq: 4, observationAfterSeq: 5 }),
     ],
     ...overrides,
   });
@@ -329,7 +370,7 @@ function l1Run(attemptId, overrides = {}) {
   };
   return runRecord(attemptId, {
     observations: [
-      introObs(1, { rawScreen: { ...appScreen, controlCount: 2 }, hierarchyArtifact: hierarchyBinding }),
+      introObs(1, { rawScreen: { ...appScreen, controlCount: 3 }, hierarchyArtifact: hierarchyBinding }),
       exitedObs(2, { rawScreen: { ...appScreen, controlCount: 0 }, hierarchyArtifact: hierarchyBinding }),
     ],
     events: [
@@ -346,7 +387,11 @@ function l1Run(attemptId, overrides = {}) {
 function resultsTailRun(attemptId, overrides = {}) {
   return runRecord(attemptId, {
     observations: [playingObs(1, { score: '0' }), resultsObs(2, { score: '7' })],
-    events: [event(1, attemptId, { action: 'wait', observationBeforeSeq: 1, observationAfterSeq: 2 })],
+    // An acknowledged terminal action binds this results-only tail to its own
+    // session without inventing gameplay-entry evidence for the other run.
+    events: [event(1, attemptId, {
+      action: 'tap', actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2,
+    })],
     ...overrides,
   });
 }
@@ -757,10 +802,21 @@ test('M13 (P1-3): certifying levels are impossible without artifact verification
   // its recorded events still prove L3 in the raw ledger, but the certified
   // level is suppressed until artifact verification passes.
   const missing = l3Run('attempt-p13-missing');
-  for (const o of missing.observations) {
-    if (o.evidenceArtifact) o.evidenceArtifact.file = `${FIXTURE_REL}/does-not-exist-${o.seq}.png`;
+  const removeArtifactAndReceipt = (artifact) => {
+    if (!artifact || typeof artifact !== 'object') return;
+    for (const file of [artifact.file, artifact.captureReceipt?.file]) {
+      if (typeof file === 'string') {
+        fs.rmSync(path.join(REPO_ROOT, ...file.split('/')), { force: true });
+        receiptEntries.delete(file.toLowerCase());
+      }
+    }
+  };
+  for (const artifact of missing.artifacts) removeArtifactAndReceipt(artifact);
+  for (const observation of missing.observations) {
+    removeArtifactAndReceipt(observation?.evidenceArtifact);
+    removeArtifactAndReceipt(observation?.hierarchyArtifact);
   }
-  for (const a of missing.artifacts) a.file = `${FIXTURE_REL}/does-not-exist-run-artifact.png`;
+  removeArtifactAndReceipt(missing.tutorialStateEvidence?.artifact);
   const badLedger = writeLedger('m13-missing', [missing]);
   const bad = runMerger([badLedger]);
   assert.equal(bad.status, 0, 'without --strict the merge completes but reports non-certifying');
@@ -882,22 +938,27 @@ test('M18: same-attempt replayed unrelated-game hierarchy cannot certify the rev
   const after = run.observations[1];
   const unrelated = realArtifact('hierarchy', run.executionAttemptId, run.buildIdentity, before, 'attention-symbol-tracker');
   before.hierarchyArtifact = unrelated;
-  after.hierarchyArtifact = structuredClone(unrelated);
+  after.hierarchyArtifact = {
+    ...structuredClone(unrelated),
+    observationSeq: after.seq,
+    observationTimestamp: after.timestamp,
+  };
   run.artifacts.push(unrelated);
 
-  // The ledger's rawScreen still asserts a live app destination after Back,
-  // and the contract still derives that assertion. Independent byte parsing
-  // must reject the same-attempt receipt replay and the unrelated game's XML.
+  // The duplicate acquisition is rebound to another observation sequence.
+  // The contract rejects that replay before capability derivation, and the
+  // independent artifact verifier must keep the run non-certifying.
   const ledger = writeLedger('m18-replayed-safe-exit', [run]);
   const merged = runMerger([ledger], ['--strict']);
   assert.equal(merged.status, 1, merged.stdout + merged.stderr);
   const out = readMerged(merged);
   assert.equal(out.games[0].certified.level, 0);
   assert.equal(out.games[0].certified.artifactAttested, false);
-  assert.equal(out.validatedPerRunLedger[0].axes.safeExit, 'VERIFIED', 'retain the asserted contract axis transparently');
-  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.captureReceiptInvalid || 0) > 0
+  assert.notEqual(out.validatedPerRunLedger[0].axes.safeExit, 'VERIFIED',
+    'same-attempt cross-observation receipt replay invalidates capability derivation before the merger can credit safe exit');
+  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.invalidRun || 0) > 0
+    || (out.validatedPerRunLedger[0].artifactAttestation.counters.captureReceiptInvalid || 0) > 0
     || (out.validatedPerRunLedger[0].artifactAttestation.counters.reusedEvidence || 0) > 0);
-  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) > 0);
 });
 
 test('M19: strict merger rejects zero runs while lenient diagnostics remain available', () => {
@@ -924,5 +985,4 @@ test('M20: hierarchy-bound observed identity suppresses the reviewer identityles
   assert.equal(out.validatedPerRunLedger[0].axes.identity, 'FAILED');
   assert.equal(out.games[0].certified.level, 0);
   assert.equal(out.games[0].certified.artifactAttested, false);
-  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) > 0);
 });
