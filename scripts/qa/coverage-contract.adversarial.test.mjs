@@ -195,9 +195,11 @@ test('A2 (P1-A): causality classification covers every mandated shape', () => {
     after: base(['stage', 'pause', 'round.1', 'score']),
   }).verdict, CausalityVerdict.NO_RESPONSE);
 
-  // 3. Correct tap producing answer feedback.
+  // 3. Correct tap producing answer feedback. Execution is PROVEN — since
+  //    P1-1/NF-080-001 an INPUT_ACCEPTED verdict requires actionExecuted ===
+  //    true and a non-failed acknowledgement.
   const correct = classifyInputCausality({
-    target: 'option.1', action: 'tap',
+    target: 'option.1', action: 'tap', actionExecuted: true, actionAcknowledged: true,
     before: base(['stage', 'pause', 'round.1', 'score'], { score: '0' }),
     after: base(['stage', 'pause', 'round.1', 'score', 'verdict-correct'], { score: '10' }),
   });
@@ -207,7 +209,7 @@ test('A2 (P1-A): causality classification covers every mandated shape', () => {
   // 4. Incorrect tap producing answer feedback — "accepted" means the app
   //    received and processed the input, not that the answer was right.
   const wrong = classifyInputCausality({
-    target: 'option.2', action: 'tap',
+    target: 'option.2', action: 'tap', actionExecuted: true, actionAcknowledged: true,
     before: base(['stage', 'pause', 'round.1', 'score']),
     after: base(['stage', 'pause', 'round.1', 'score', 'verdict-wrong']),
   });
@@ -279,6 +281,96 @@ test('A5 (P1-A): target-control identity change IS attributable', () => {
     ],
   });
   assert.equal(deriveCapabilities(rec).inputAccepted.status, AxisStatus.VERIFIED);
+});
+
+// ===========================================================================
+// P1-1 / NF-080-001 — FAILED COMMANDS MUST NOT ATTRIBUTE ACTION-CAUSED
+// MILESTONES (second independent review of Campaign 080).
+//
+// Reviewer fixture shape (review-scratch/adversarial-probes.mjs, probe
+// `failed-tap-input`): a tap with `actionExecuted:false` /
+// `actionAcknowledged:false` whose observation window coincidentally shows a
+// score change AND answer feedback. Before this repair the window classified
+// INPUT_ACCEPTED / VERIFIED because neither classifyInputCausality() nor
+// deriveCapabilities() ever consulted execution state. Invariant now pinned:
+// action-caused milestones (inputAccepted, feedbackObserved, gameplayEntered,
+// sessionEnded, resultsCurrent) require a PROVEN EXECUTED command; passive/
+// autonomous transitions are represented as autonomous events instead.
+// ===========================================================================
+
+test('P1-1 + NF-080-001: a FAILED tap with coincidental score/feedback change is never accepted input [reviewer failed-tap fixture]', () => {
+  // Exact reviewer fixture shape: obs2 -> obs3 shows score 0 -> 10 and a fresh
+  // `verdict-correct`, but evt#2 (the tap that supposedly caused it) FAILED.
+  const failedTap = runRecord({
+    observations: [
+      introObs(1),
+      playingObs(2, { controls: ['stage', 'pause', 'round.1', 'score', 'option.1'], score: '0' }),
+      gameObs(3, { controls: ['stage', 'pause', 'round.1', 'score', 'option.1', 'verdict-correct'], score: '10' }),
+    ],
+    events: [
+      event(1, { action: 'tap', target: 'memory-pair-recall.start', actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { action: 'tap', target: 'memory-pair-recall.option.1', actionExecuted: false, actionAcknowledged: false, observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+
+  // Direct classification with the FAILED command's execution state.
+  const failed = classifyInputCausality({
+    target: 'option.1', action: 'tap',
+    actionExecuted: false, actionAcknowledged: false,
+    before: failedTap.observations[1], after: failedTap.observations[2],
+  });
+  assert.notEqual(failed.verdict, CausalityVerdict.INPUT_ACCEPTED,
+    'a failed tap must never be classified INPUT_ACCEPTED');
+  assert.ok(failed.signals.includes('command-execution-unproven'));
+
+  // Even when execution state is entirely UNKNOWN the classifier fails closed
+  // (reviewer's direct probe passes only target/action/before/after).
+  const unknown = classifyInputCausality({
+    target: 'option.1', action: 'tap',
+    before: failedTap.observations[1], after: failedTap.observations[2],
+  });
+  assert.notEqual(unknown.verdict, CausalityVerdict.INPUT_ACCEPTED,
+    'unproven execution must fail closed — never accepted input');
+
+  const axes = deriveCapabilities(failedTap);
+  assert.notEqual(axes.inputAccepted.status, AxisStatus.VERIFIED,
+    'inputAccepted must not be VERIFIED off a failed tap');
+  assert.equal(axes.inputAccepted.status, AxisStatus.FAILED);
+  assert.notEqual(axes.feedbackObserved.status, AxisStatus.VERIFIED,
+    'feedback after a failed tap is autonomous coincidence, never input feedback');
+  // The coincidental change IS represented honestly — as an autonomous event.
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED,
+    'passive/autonomous transitions must be represented as autonomous events, never accepted input');
+  assert.match(axes.autonomousGameplayEvent.note, /unexecuted-command/);
+  // The genuinely executed Start tap may still prove gameplay entry.
+  assert.equal(axes.gameplayEntered.status, AxisStatus.VERIFIED);
+});
+
+test('NF-080-001: failed Start/transition events never verify gameplayEntered, sessionEnded or resultsCurrent [reviewer stale-results fixture]', () => {
+  // Reviewer fixture shape (`stale-results-and-failed-actions`): BOTH events
+  // failed (actionExecuted:false) yet previously fed gameplayEntered,
+  // sessionEnded and resultsCurrent.
+  const staleResults = runRecord({
+    observations: [
+      introObs(1),
+      playingObs(2, { score: '5' }),
+      resultsObs(3, { score: '99' }),
+    ],
+    events: [
+      event(1, { action: 'tap', target: 'memory-pair-recall.start', actionExecuted: false, actionAcknowledged: false, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { action: 'back', actionExecuted: false, actionAcknowledged: false, observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  const axes = deriveCapabilities(staleResults);
+  assert.notEqual(axes.gameplayEntered.status, AxisStatus.VERIFIED,
+    'a failed Start transition never proves gameplay entry');
+  assert.notEqual(axes.sessionEnded.status, AxisStatus.VERIFIED,
+    'a failed transition event never proves session end');
+  assert.notEqual(axes.resultsCurrent.status, AxisStatus.VERIFIED,
+    'results reached through failed commands are not attributable to this session');
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED,
+    'the unattributed transitions are represented as autonomous events');
+  assert.ok(deriveLevel(staleResults).level < 3);
 });
 
 // ===========================================================================

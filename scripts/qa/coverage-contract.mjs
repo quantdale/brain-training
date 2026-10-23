@@ -362,9 +362,14 @@ function controlIdentity(obs, suffix) {
  * @param {object} args.before observation before the command
  * @param {object} args.after observation after the command
  * @param {string} [args.action] 'tap' | 'type' | 'key' | ...
+ * @param {boolean} [args.actionExecuted] whether the command was PROVEN
+ *        executed. INPUT_ACCEPTED requires this to be exactly `true` — a
+ *        missing/unset value is unproven and fails closed (P1-1/NF-080-001).
+ * @param {boolean|null} [args.actionAcknowledged] explicit `false` rejects
+ *        attribution even when `actionExecuted` is true.
  * @returns {{verdict: string, outcome: string|null, signals: string[], note: string}}
  */
-export function classifyInputCausality({ target, before, after, action } = {}) {
+export function classifyInputCausality({ target, before, after, action, actionExecuted, actionAcknowledged } = {}) {
   const signals = [];
   if (!before || !after) {
     return { verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY, outcome: null, signals, note: 'before/after observation missing — causality unprovable' };
@@ -437,6 +442,21 @@ export function classifyInputCausality({ target, before, after, action } = {}) {
 
   const attributable = targetChanged || scoreDelta || answerFb.length;
   if (attributable) {
+    // P1-1 / NF-080-001 invariant: an action-caused milestone may only be
+    // attributed to a command that was PROVEN executed. `actionExecuted` must
+    // be exactly `true` (unknown/missing counts as unproven and fails closed)
+    // and the command must not have been explicitly un-acknowledged. A failed
+    // tap with a coincidental score/feedback change is coincidence (or an
+    // autonomous transition), NEVER accepted input.
+    const executionProven = actionExecuted === true && actionAcknowledged !== false;
+    if (!executionProven) {
+      return {
+        verdict: CausalityVerdict.AMBIGUOUS_CAUSALITY,
+        outcome: null,
+        signals: [...signals, 'command-execution-unproven'],
+        note: `command not proven executed (actionExecuted=${actionExecuted === undefined ? 'missing' : String(actionExecuted)}, actionAcknowledged=${actionAcknowledged === undefined ? 'missing' : String(actionAcknowledged)}) — the observed change is autonomous/coincidental, never accepted input`,
+      };
+    }
     // Only an answer-family action may be credited through answer feedback;
     // a `back`/`wait` command that happens to sit in front of a verdict surface
     // is coincidental, not causal.
@@ -780,6 +800,17 @@ function axis(status, runIds, note, evidence) {
 }
 
 /**
+ * P1-1 / NF-080-001 invariant: an action-caused milestone may only be
+ * attributed to a command that was PROVEN executed (`actionExecuted === true`,
+ * and not explicitly un-acknowledged). A missing/unknown execution flag is
+ * unproven and fails closed. Transitions observed across unexecuted commands
+ * are passive/autonomous coincidences — they are represented as autonomous
+ * events (`autonomousGameplayEvent`), never as accepted input or as an
+ * action-attributed milestone.
+ */
+const eventSucceeded = (e) => !!e && e.actionExecuted === true && e.actionAcknowledged !== false;
+
+/**
  * Derive the evidence axes strictly from one execution attempt. Every axis
  * names the observation/event sequences that prove it.
  */
@@ -838,7 +869,11 @@ export function deriveCapabilities(record) {
     tutorialExit ? [`evt#${tutorialExit.seq}`] : []);
 
   // -- gameplay entry -------------------------------------------------------
+  // P1-1/NF-080-001: entry is ACTION-CAUSED, so it requires a proven executed
+  // command. A failed Start tap whose window coincidentally shows intro ->
+  // playing is an autonomous transition, never gameplay-entry proof.
   const gameplayEntry = events.find((e) => {
+    if (!eventSucceeded(e)) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
     if (!before || !after) return false;
@@ -869,7 +904,17 @@ export function deriveCapabilities(record) {
   const causal = playingInputEvents.map((e) => {
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    return { e, before, after, c: classifyInputCausality({ target: targetSuffix(e), before, after, action: e.action }) };
+    // Execution proof is forwarded so a failed/unacknowledged command can
+    // never be classified INPUT_ACCEPTED (P1-1/NF-080-001).
+    return {
+      e,
+      before,
+      after,
+      c: classifyInputCausality({
+        target: targetSuffix(e), before, after, action: e.action,
+        actionExecuted: e.actionExecuted, actionAcknowledged: e.actionAcknowledged,
+      }),
+    };
   });
   const accepted = causal.filter((x) => x.c.verdict === CausalityVerdict.INPUT_ACCEPTED);
   const autonomousTimeouts = causal.filter((x) => x.c.verdict === CausalityVerdict.AUTONOMOUS_TIMEOUT);
@@ -911,8 +956,11 @@ export function deriveCapabilities(record) {
     feedback ? [`evt#${feedback.e.seq}`, `obs#${feedback.after.seq}`] : []);
 
   // -- round advancement ----------------------------------------------------
+  // P1-1/NF-080-001: round advancement attributed to an input event requires
+  // that event to be proven executed (same invariant as inputAccepted).
   let roundAdvanced = null;
   for (const e of playingInputEvents) {
+    if (!eventSucceeded(e)) continue;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
     if (!before || !after) continue;
@@ -928,14 +976,40 @@ export function deriveCapabilities(record) {
   // Deliberately NOT globally rejecting timeouts: a passive/timed game may
   // legitimately progress without input. Such a progression is credited here
   // (the autonomous-gameplay capability), never fabricated as tap acceptance.
+  // P1-1/NF-080-001: only PROVEN EXECUTED input events count as an
+  // explanation for a state change. A change observed across an unexecuted
+  // command is autonomous/coincidental and is represented HERE — never as
+  // accepted input or an action-attributed milestone.
   let autonomous = null;
   for (let i = 1; i < states.length; i++) {
     const prev = states[i - 1];
     const cur = states[i];
     if (prev.s.state !== GameStates.PLAYING || cur.s.state !== GameStates.PLAYING) continue;
-    const inputBetween = playingInputEvents.some((e) => e.observationBeforeSeq >= prev.o.seq && e.observationAfterSeq <= cur.o.seq);
+    const inputBetween = playingInputEvents.some((e) => eventSucceeded(e) && e.observationBeforeSeq >= prev.o.seq && e.observationAfterSeq <= cur.o.seq);
     if (inputBetween) continue;
-    if (stateFingerprint(prev.o) !== stateFingerprint(cur.o)) { autonomous = { prev: prev.o, cur: cur.o, kind: 'unattended' }; break; }
+    if (stateFingerprint(prev.o) !== stateFingerprint(cur.o)) {
+      const failedCommandBetween = events.some((e) => !eventSucceeded(e) && e.observationBeforeSeq >= prev.o.seq && e.observationAfterSeq <= cur.o.seq);
+      autonomous = { prev: prev.o, cur: cur.o, kind: failedCommandBetween ? 'change-across-unexecuted-command' : 'unattended' };
+      break;
+    }
+  }
+  // Transitions OUTSIDE playing (e.g. a failed Start tap whose window shows
+  // intro -> playing, or a failed exit command coincident with a results
+  // surface) are likewise autonomous events when NO proven executed command
+  // explains them.
+  if (!autonomous) {
+    for (let i = 1; i < states.length; i++) {
+      const prev = states[i - 1];
+      const cur = states[i];
+      const inWindow = (e) => e.observationBeforeSeq >= prev.o.seq && e.observationAfterSeq <= cur.o.seq;
+      const failedCommandBetween = events.some((e) => !eventSucceeded(e) && inWindow(e));
+      if (!failedCommandBetween) continue;
+      if (events.some((e) => eventSucceeded(e) && inWindow(e))) continue;
+      if (stateFingerprint(prev.o) !== stateFingerprint(cur.o)) {
+        autonomous = { prev: prev.o, cur: cur.o, kind: 'change-across-unexecuted-command' };
+        break;
+      }
+    }
   }
   if (!autonomous && autonomousTimeouts.length) {
     const x = autonomousTimeouts[0];
@@ -948,7 +1022,11 @@ export function deriveCapabilities(record) {
     autonomous ? [`obs#${autonomous.prev.seq}->obs#${autonomous.cur.seq}`] : []);
 
   // -- session end / results currency --------------------------------------
+  // P1-1/NF-080-001: session end is ACTION-CAUSED — it requires a proven
+  // executed command witnessing playing -> results. A failed transition event
+  // in front of a results surface never verifies sessionEnded.
   const sessionEnd = events.find((e) => {
+    if (!eventSucceeded(e)) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
     if (!before || !after) return false;
@@ -996,6 +1074,17 @@ export function deriveCapabilities(record) {
     const cand = resultsAll[i];
     const lastPlayingBefore = [...playingObs].filter((p) => p.o.seq < cand.o.seq).pop();
     if (!lastPlayingBefore) continue;
+    // P1-1/NF-080-001: results are only ACTION-ATTRIBUTABLE to this session
+    // when a PROVEN EXECUTED command witnessed the playing -> results
+    // transition landing on this results observation. A failed Start/Back/
+    // transition event is never sufficient.
+    const endWitness = events.some((e) => {
+      if (!eventSucceeded(e)) return false;
+      if (e.observationAfterSeq !== cand.o.seq) return false;
+      const before = seqObs.get(e.observationBeforeSeq);
+      return !!before && observeState({ ...before, gameId: record.gameId }).state === GameStates.PLAYING;
+    });
+    if (!endWitness) continue;
     const INTERRUPTING = new Set([
       GameStates.EXITED, GameStates.LAUNCHER, GameStates.UNKNOWN,
       GameStates.INTRO, GameStates.TUTORIAL,

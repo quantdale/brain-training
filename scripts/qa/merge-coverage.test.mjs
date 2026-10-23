@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { after } from 'node:test';
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -144,7 +145,7 @@ function event(seq, attemptId, fields = {}) {
 }
 
 function runRecord(attemptId, overrides = {}) {
-  return {
+  const rec = {
     executionAttemptId: attemptId,
     gameId: GAME_ID,
     knownGameId: true,
@@ -156,6 +157,43 @@ function runRecord(attemptId, overrides = {}) {
     artifacts: [],
     ...overrides,
   };
+  // P1-3 (artifact attestation): the merger now refuses to certify a run
+  // whose artifacts are absent/unreadable/mismatched, so fixture runs must
+  // cite REAL artifact bytes. Placeholder bindings are rebound to the
+  // byte-identical review fixtures (scripts/qa/test-fixtures/080-review/, see
+  // its README.md), and each run carries mandatory run-level screenshot +
+  // hierarchy artifacts so the capability artifact requirements can be
+  // independently verified.
+  rec.observations = (rec.observations || []).map((o) => {
+    if (!o || !o.evidenceArtifact || typeof o.evidenceArtifact !== 'object') return o;
+    return { ...o, evidenceArtifact: realArtifact(o.evidenceArtifact.kind, attemptId) };
+  });
+  rec.artifacts = [
+    ...(rec.artifacts || []),
+    { ...realArtifact('screenshot', attemptId), mandatory: true },
+    { ...realArtifact('hierarchy', attemptId), mandatory: true },
+  ];
+  return rec;
+}
+
+// --- real artifact bindings (P1-3 attestation fixtures) -------------------
+const FIXTURE_REL = 'scripts/qa/test-fixtures/080-review';
+const REAL_ARTIFACTS = Object.fromEntries([
+  ['screenshot', 'cross-build.png'],
+  ['hierarchy', 'cross-build.xml'],
+].map(([kind, name]) => {
+  const abs = fileURLToPath(new URL(`./test-fixtures/080-review/${name}`, import.meta.url));
+  const bytes = fs.readFileSync(abs);
+  return [kind, {
+    file: `${FIXTURE_REL}/${name}`,
+    sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+    bytes: bytes.length,
+    kind,
+  }];
+}));
+function realArtifact(kind, attemptId) {
+  const base = REAL_ARTIFACTS[kind === 'hierarchy' ? 'hierarchy' : 'screenshot'];
+  return { ...base, executionAttemptId: attemptId };
 }
 
 // Minimal honest L2: an intro -> playing entry transition event PLUS one
@@ -594,11 +632,93 @@ test('M12: --strict exits 1 when an invalid run is included; default mode exits 
 
   const strictRun = runMerger([ledger], ['--strict']);
   assert.equal(strictRun.status, 1, '--strict must fail on contract-invalid runs');
-  assert.match(strictRun.stderr, /contract-invalid runs present/);
+  assert.match(strictRun.stderr, /contract-invalid runs/);
 
   const lenientRun = runMerger([ledger]);
   assert.equal(lenientRun.status, 0, 'without --strict the merge still succeeds and retains the invalid run');
   const out = readMerged(lenientRun);
   assert.equal(out.totals.invalidRuns, 1);
   assert.equal(out.totals.validRuns, 1);
+});
+
+// ---------------------------------------------------------------------------
+// M13/M14 (Campaign 080 P1-3) — ARTIFACT ATTESTATION. The second independent
+// review merged the v8 ledger to exit 0 / 7x L3 in a checkout where
+// verify-artifacts reported BLOCKED with 1119 unreadable artifacts. Since
+// this repair that is impossible: a run without a PASS per-run artifact
+// attestation is NON-CERTIFYING and its certified levels are suppressed.
+// ---------------------------------------------------------------------------
+test('M13 (P1-3): certifying levels are impossible without artifact verification [reviewer v8 regression]', () => {
+  // Baseline: the SAME fully proven L3 run WITH intact, hash-correct artifacts
+  // certifies L3 and attests CERTIFYING.
+  const goodLedger = writeLedger('m13-good', [l3Run('attempt-p13-good')]);
+  const good = runMerger([goodLedger]);
+  assert.equal(good.status, 0);
+  const outGood = readMerged(good);
+  assert.equal(outGood.artifactAttestation.verdict, 'CERTIFYING');
+  assert.equal(outGood.artifactAttestation.verifiedArtifacts > 0, true);
+  assert.equal(outGood.games[0].certified.level, 3);
+  assert.equal(outGood.games[0].certified.artifactAttested, true);
+  assert.equal(runMerger([goodLedger], ['--strict']).status, 0, 'a fully attested merge passes --strict');
+
+  // The same run whose mandatory artifacts are ABSENT must never certify:
+  // its recorded events still prove L3 in the raw ledger, but the certified
+  // level is suppressed until artifact verification passes.
+  const missing = l3Run('attempt-p13-missing');
+  for (const o of missing.observations) {
+    if (o.evidenceArtifact) o.evidenceArtifact.file = o.evidenceArtifact.file.replace(/cross-build\.(png|xml)$/, 'does-not-exist.$1');
+  }
+  for (const a of missing.artifacts) a.file = a.file.replace(/cross-build\.(png|xml)$/, 'does-not-exist.$1');
+  const badLedger = writeLedger('m13-missing', [missing]);
+  const bad = runMerger([badLedger]);
+  assert.equal(bad.status, 0, 'without --strict the merge completes but reports non-certifying');
+  const outBad = readMerged(bad);
+  assert.equal(outBad.artifactAttestation.verdict, 'NON_CERTIFYING');
+  assert.equal(outBad.validatedPerRunLedger[0].artifactAttestation.certifying, false);
+  assert.equal(outBad.validatedPerRunLedger[0].level, 3, 'the raw recorded depth is retained for transparency');
+  assert.equal(outBad.games[0].certified.level, 0, 'certified levels must be suppressed when attestation fails');
+  assert.equal(outBad.games[0].certified.artifactAttested, false);
+  assert.equal(outBad.totals.artifactAttestedRuns, 0);
+  const diag = outBad.diagnostics.find((d) => d.kind === 'artifact-attestation-failed' && d.runId === 'attempt-p13-missing');
+  assert.ok(diag, "diagnostics must contain kind 'artifact-attestation-failed'");
+
+  const strictBad = runMerger([badLedger], ['--strict']);
+  assert.equal(strictBad.status, 1, '--strict must exit non-zero when attestation fails');
+  assert.match(strictBad.stderr, /artifact attestation/);
+});
+
+test('M14 (P1-3): reviewer valid-artifact fixture attests CERTIFYING; missing/mismatched fixtures are NON_CERTIFYING', () => {
+  // The reviewer's fixture shapes, copied to scripts/qa/test-fixtures/080-review/
+  // (see its README.md for the minimal documented adaptations).
+  const fixture = (name) => fileURLToPath(new URL(`./test-fixtures/080-review/${name}`, import.meta.url));
+
+  // Path A — artifacts present and hashing: the run attests and may certify.
+  const validLedger = fixture('valid-artifact-ledger.json');
+  const valid = runMerger([validLedger]);
+  assert.equal(valid.status, 0);
+  const outValid = readMerged(valid);
+  assert.equal(outValid.artifactAttestation.verdict, 'CERTIFYING');
+  assert.equal(outValid.validatedPerRunLedger[0].artifactAttestation.certifying, true);
+  assert.equal(outValid.artifactAttestation.verifiedArtifacts, 2);
+  assert.equal(outValid.games[0].certified.artifactAttested, true);
+  assert.equal(runMerger([validLedger], ['--strict']).status, 0);
+
+  // Path B — mandatory artifact absent: the run is NON-CERTIFYING.
+  const missingLedger = fixture('missing-artifact-ledger.json');
+  const missing = runMerger([missingLedger]);
+  assert.equal(missing.status, 0);
+  const outMissing = readMerged(missing);
+  assert.equal(outMissing.artifactAttestation.verdict, 'NON_CERTIFYING');
+  assert.equal(outMissing.validatedPerRunLedger[0].artifactAttestation.certifying, false);
+  assert.equal((outMissing.validatedPerRunLedger[0].artifactAttestation.counters.unreadable || 0) >= 1, true);
+  assert.equal(outMissing.games[0].certified.artifactAttested, false);
+  assert.equal(runMerger([missingLedger], ['--strict']).status, 1, '--strict must exit non-zero when attestation fails');
+
+  // Mismatched digests are equally non-certifying.
+  const mismatchLedger = fixture('hash-mismatch-ledger.json');
+  const mismatch = runMerger([mismatchLedger]);
+  const outMismatch = readMerged(mismatch);
+  assert.equal(outMismatch.artifactAttestation.verdict, 'NON_CERTIFYING');
+  assert.equal(outMismatch.validatedPerRunLedger[0].artifactAttestation.certifying, false);
+  assert.equal((outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.mismatch || 0) >= 1, true);
 });

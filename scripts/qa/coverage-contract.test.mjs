@@ -880,9 +880,11 @@ test('B5: a correct selection is unambiguous accepted-answer feedback', () => {
 test('B5: a wrong selection is NOT misreported as a timeout in causal attribution', () => {
   // A tap that produces `trial-wrong` must not be credited as autonomous
   // timeout, and must not be credited as accepted input either (ambiguous).
+  // The tap is PROVEN executed — execution proof is now mandatory for any
+  // INPUT_ACCEPTED verdict (P1-1/NF-080-001), so it is supplied explicitly.
   const before = { seq: 0, phase: 'play-0', controls: ['color-btn.red', 'trial-status'], score: 'Score 0' };
   const wrongTap = { seq: 1, phase: 'play-0', controls: ['color-btn.red', 'trial-status', 'trial-wrong'], score: 'Score 0' };
-  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: wrongTap, action: 'tap' });
+  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: wrongTap, action: 'tap', actionExecuted: true, actionAcknowledged: true });
   assert.notEqual(c.verdict, CausalityVerdict.AUTONOMOUS_TIMEOUT,
     'a wrong COLOUR pick is an answered trial, never an autonomous timeout');
   assert.notEqual(c.verdict, CausalityVerdict.INPUT_ACCEPTED,
@@ -901,6 +903,7 @@ test('B5: an expired stimulus IS attributed as an autonomous timeout', () => {
 test('B5: a successful response remains correctly scored as accepted', () => {
   const before = { seq: 0, phase: 'play-0', controls: ['color-btn.red', 'trial-status'], score: 'Score 0' };
   const hit = { seq: 1, phase: 'play-0', controls: ['color-btn.red', 'trial-status', 'trial-correct'], score: 'Score 10' };
-  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: hit, action: 'tap' });
+  // INPUT_ACCEPTED requires PROVEN execution (P1-1/NF-080-001) — supplied here.
+  const c = classifyInputCausality({ target: 'color-btn.blue', before, after: hit, action: 'tap', actionExecuted: true, actionAcknowledged: true });
   assert.equal(c.verdict, CausalityVerdict.INPUT_ACCEPTED);
 });

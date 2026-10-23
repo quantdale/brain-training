@@ -37,8 +37,15 @@
  *   node scripts/qa/merge-coverage.mjs <runLedger.json> [more.json ...]
  *        [--out FILE] [--matrix FILE] [--strict]
  *
+ * Artifact attestation (Campaign 080 P1-3): certification additionally
+ * requires a per-run PASS from the independent artifact verifier
+ * (scripts/qa/artifact-integrity.mjs). A run whose mandatory artifacts are
+ * absent, unreadable or hash-mismatched is marked NON-CERTIFYING and
+ * contributes to no certified level or capability axis. The merged output
+ * carries an explicit `artifactAttestation` block (verified counts + verdict).
+ *
  * Exit codes: 0 = merged, 2 = usage/invalid input, 1 = --strict and at least
- * one run failed contract validation.
+ * one run failed contract validation OR lacks a PASS artifact attestation.
  */
 'use strict';
 
@@ -53,6 +60,7 @@ import {
   classifyRun,
   or3,
 } from './coverage-contract.mjs';
+import { EvidenceMode, verifyArtifactLedger } from './artifact-integrity.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
@@ -206,6 +214,57 @@ for (const v of validatedRuns.filter((x) => !x.valid)) {
   });
 }
 
+// --- per-run artifact attestation (Campaign 080 P1-3) ---------------------
+// INVARIANT: merge-coverage must NEVER report a certifying level for evidence
+// whose artifacts were not independently verified. The second independent
+// review merged the v8 ledger to 7x L3 in a checkout where every referenced
+// artifact was absent (verify-artifacts: BLOCKED, unreadable=1119). That is
+// now impossible: each run must PASS independent artifact verification
+// (bytes re-read from disk and re-hashed against the recorded digests) before
+// it may certify ANYTHING. Absent/unreadable/mismatched mandatory artifacts
+// make the run NON-CERTIFYING; in --strict mode such a run also fails the CLI.
+function attestRunArtifact(r) {
+  try {
+    const res = verifyArtifactLedger([r], {
+      mode: EvidenceMode.LOCAL,
+      repoRoot: REPO_ROOT,
+      buildScope: 'single',
+    });
+    return {
+      verdict: res.verdict,
+      certifying: res.verdict === 'PASS',
+      verifiedArtifacts: (res.counters.verified || 0) + (res.counters.verifiedLegacy || 0),
+      counters: res.counters,
+      findings: (res.findings || []).slice(0, 10),
+      findingsTotal: (res.findings || []).length,
+    };
+  } catch (e) {
+    // Fail closed: an attestation that cannot run is never a PASS.
+    return {
+      verdict: 'ATTESTATION_ERROR',
+      certifying: false,
+      verifiedArtifacts: 0,
+      counters: {},
+      findings: [{ kind: 'attestation-error', detail: String(e.message || e) }],
+      findingsTotal: 1,
+    };
+  }
+}
+
+for (const v of validatedRuns) {
+  v.artifactAttestation = attestRunArtifact(v.run);
+}
+for (const v of validatedRuns.filter((x) => !x.artifactAttestation.certifying)) {
+  const c = v.artifactAttestation.counters || {};
+  diagnostics.push({
+    kind: 'artifact-attestation-failed',
+    runId: v.executionAttemptId,
+    gameId: v.gameId,
+    detail: `per-run artifact attestation ${v.artifactAttestation.verdict} (verified=${v.artifactAttestation.verifiedArtifacts}, mismatch=${c.mismatch || 0}, missing=${c.missing || 0}, unreadable=${c.unreadable || 0})`,
+    effect: 'run is NON-CERTIFYING: it contributes to no certified level or capability axis',
+  });
+}
+
 // --- consolidation ---------------------------------------------------------
 const AXIS_ORDER = [
   'launch', 'identity', 'render',
@@ -239,6 +298,9 @@ function runSummary(v) {
     level: v.level,
     status: v.status,
     valid: v.valid,
+    // P1-3: every run carries its own artifact attestation so a reader can
+    // see exactly why a run is or is not certifying.
+    artifactAttestation: v.artifactAttestation,
     errors: v.errors,
     reasons: v.reasons,
     axes: Object.fromEntries(AXIS_ORDER.map((a) => [a, v.axes[a] ? v.axes[a].status : AxisStatus.NOT_EXECUTED])),
@@ -255,16 +317,32 @@ for (const v of validatedRuns) {
 }
 
 const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([id, list]) => {
-  const valid = list.filter((v) => v.valid);
-  // CERTIFIED level: deepest FULLY proven level from ONE valid run.
-  const best = valid.reduce((acc, v) => (v.level > (acc ? acc.level : -1) ? v : acc), null);
+  // CERTIFYING runs are contract-valid AND artifact-attested (P1-3). A run
+  // without a PASS artifact attestation is NON-CERTIFYING even when its
+  // recorded events/observations would otherwise prove a level — the v8
+  // regression: levels must never be reported without verified artifacts.
+  const certifiable = list.filter((v) => v.valid && v.artifactAttestation.certifying);
+  // CERTIFIED level: deepest FULLY proven level from ONE certifying run.
+  const best = certifiable.reduce((acc, v) => (v.level > (acc ? acc.level : -1) ? v : acc), null);
   const certified = best
-    ? { level: best.level, levelName: LEVEL_NAME[best.level], status: best.status, runId: best.executionAttemptId, reasons: best.reasons }
-    : { level: 0, levelName: LEVEL_NAME[0], status: 'FAILED', runId: null, reasons: ['no contract-valid execution attempt'] };
+    ? { level: best.level, levelName: LEVEL_NAME[best.level], status: best.status, runId: best.executionAttemptId, reasons: best.reasons, artifactAttested: true }
+    : {
+        level: 0,
+        levelName: LEVEL_NAME[0],
+        status: 'FAILED',
+        runId: null,
+        reasons: [
+          list.some((v) => v.valid)
+            ? 'contract-valid run(s) present but NONE passed per-run artifact attestation — levels are suppressed (non-certifying)'
+            : 'no contract-valid execution attempt',
+        ],
+        artifactAttested: false,
+      };
 
   // ------------------------------------------------------------------
-  // B2: CERTIFIED capability axes come from CONTRACT-VALID runs ONLY.
-  // Historical invalid runs remain visible for transparency (in
+  // B2: CERTIFIED capability axes come from CERTIFYING runs ONLY
+  // (contract-valid AND artifact-attested). Runs that are contract-invalid
+  // OR lack a PASS artifact attestation remain visible for transparency (in
   // `historicalObservations`) but must never make a certified capability
   // column look verified.
   // ------------------------------------------------------------------
@@ -272,9 +350,9 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
   const historicalObservations = {};
   const conflicts = [];
   for (const a of AXIS_ORDER) {
-    const perRun = list.map((v) => ({ runId: v.executionAttemptId, valid: v.valid, status: v.axes[a] ? v.axes[a].status : AxisStatus.NOT_EXECUTED, note: v.axes[a] ? v.axes[a].note : '' }));
-    const validPerRun = perRun.filter((p) => p.valid);
-    const invalidPerRun = perRun.filter((p) => !p.valid);
+    const perRun = list.map((v) => ({ runId: v.executionAttemptId, valid: v.valid, artifactAttested: v.artifactAttestation.certifying, status: v.axes[a] ? v.axes[a].status : AxisStatus.NOT_EXECUTED, note: v.axes[a] ? v.axes[a].note : '' }));
+    const validPerRun = perRun.filter((p) => p.valid && p.artifactAttested);
+    const invalidPerRun = perRun.filter((p) => !(p.valid && p.artifactAttested));
 
     const topOf = (set) => {
       let top = AxisStatus.NOT_EXECUTED;
@@ -289,13 +367,14 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     const certified = topOf(validPerRun);
     certifiedUnion[a] = { status: certified.status, runs: certified.runs, perRun: validPerRun, provenance: 'certified-valid-runs' };
 
-    // Historical / invalid runs: recorded separately, explicitly non-certifying.
+    // Uncertifiable runs (contract-invalid and/or artifact attestation
+    // failed): recorded separately, explicitly non-certifying.
     const historical = topOf(invalidPerRun);
     historicalObservations[a] = {
       status: historical.status,
       runs: historical.runs,
       perRun: invalidPerRun,
-      provenance: 'historical-uncertifiable',
+      provenance: 'uncertifiable (contract-invalid and/or failed artifact attestation)',
       certifying: false,
     };
 
@@ -312,7 +391,7 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     if (invalidPerRun.some((p) => p.status === AxisStatus.VERIFIED)) {
       conflicts.push({
         axis: a,
-        detail: 'an INVALID (uncertifiable) run reports this capability as VERIFIED',
+        detail: 'an UNCERTIFIABLE run (contract-invalid or artifact attestation failed) reports this capability as VERIFIED',
         authoritativeRule: 'excluded from the certified column entirely; shown only under historicalObservations for transparency',
         runs: invalidPerRun,
       });
@@ -328,7 +407,7 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
     list.some((v) => v.axes.gameplayEntered && v.axes.gameplayEntered.status === AxisStatus.VERIFIED) &&
     list.some((v) => v.axes.sessionEnded && v.axes.sessionEnded.status === AxisStatus.VERIFIED) &&
     list.some((v) => v.axes.resultsCurrent && v.axes.resultsCurrent.status === AxisStatus.VERIFIED);
-  const singleRunL3 = valid.some((v) => v.level >= 3);
+  const singleRunL3 = certifiable.some((v) => v.level >= 3);
   if (unionLooksComplete && !singleRunL3) {
     diagnostics.push({
       kind: 'cross-run-union-not-a-journey',
@@ -357,7 +436,7 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
   // fabrication is already impossible, but a reader must not mistake a mixed
   // evidence set for one coherent build's behaviour.
   const builds = new Map();
-  for (const v of valid) {
+  for (const v of certifiable) {
     const b = v.run.buildIdentity || {};
     const key = `${b.gitSha || '?'}|${b.apkSha256 || '?'}|${b.versionCode ?? '?'}`;
     if (!builds.has(key)) builds.set(key, []);
@@ -394,24 +473,51 @@ const games = [...byGame.entries()].sort((a, b) => a[0].localeCompare(b[0])).map
 const dist = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
 for (const g of games) dist[g.certified.level] = (dist[g.certified.level] || 0) + 1;
 
+// --- artifact attestation summary (P1-3) ---------------------------------
+const attestedRuns = validatedRuns.filter((v) => v.artifactAttestation.certifying);
+const attestationCounters = {};
+for (const v of validatedRuns) {
+  for (const [k, n] of Object.entries(v.artifactAttestation.counters || {})) {
+    attestationCounters[k] = (attestationCounters[k] || 0) + (Number(n) || 0);
+  }
+}
+const nonCertifyingRuns = validatedRuns
+  .filter((v) => !v.artifactAttestation.certifying)
+  .map((v) => ({ runId: v.executionAttemptId, gameId: v.gameId, verdict: v.artifactAttestation.verdict }));
+const artifactAttestation = {
+  mode: EvidenceMode.LOCAL,
+  policy: 'every run must PASS independent per-run artifact verification (artifact bytes re-read from disk and re-hashed against the recorded digests); a run without a PASS attestation is NON-CERTIFYING and contributes to no certified level or capability axis',
+  runsInspected: validatedRuns.length,
+  runsAttested: attestedRuns.length,
+  runsNonCertifying: nonCertifyingRuns.length,
+  verifiedArtifacts: (attestationCounters.verified || 0) + (attestationCounters.verifiedLegacy || 0),
+  counters: attestationCounters,
+  verdict: validatedRuns.length > 0 && nonCertifyingRuns.length === 0 ? 'CERTIFYING' : 'NON_CERTIFYING',
+  nonCertifyingRuns,
+};
+
 const merged = {
   schemaVersion: 2,
   contractVersion: CONTRACT_VERSION,
   generatedAt: new Date().toISOString(),
   campaign: '080-native-product-quality',
   mergerSemantics: {
-    certifiedLevel: 'deepest fully proven level from ONE contract-valid execution attempt (never a cross-run blend)',
+    certifiedLevel: 'deepest fully proven level from ONE contract-valid, artifact-attested execution attempt (never a cross-run blend)',
     capabilityUnion: 'union of observations across runs — explicitly NOT a continuous session',
     booleanUnion: 'or3 (true > false > unknown); object-precedence overwrite is forbidden',
     invalidRuns: 'retained and diagnosed, excluded from certification',
     conflicts: 'preserved with the authoritative observation rule',
     resilience: 'independent subcapabilities; may union across runs with per-run provenance',
+    artifactAttestation: 'per-run independent artifact verification (P1-3); a run without a PASS attestation is non-certifying and its levels are suppressed',
   },
   inputs: inputManifest,
+  artifactAttestation,
   totals: {
     runs: runs.length,
     validRuns: validatedRuns.filter((v) => v.valid).length,
     invalidRuns: validatedRuns.filter((v) => !v.valid).length,
+    artifactAttestedRuns: attestedRuns.length,
+    nonCertifyingRuns: nonCertifyingRuns.length,
     games: games.length,
     byLevel: dist,
   },
@@ -455,7 +561,9 @@ if (outMatrix) {
     'continuous session. Cell legend: V=VERIFIED, O=OBSERVED, A=ATTEMPTED,',
     'F=FAILED, B=BLOCKED, NE=NOT EXECUTED.',
     '',
-    `**Totals (certified, single-run proven):** ${games.length} games — L1 ${dist[1]}, L2 ${dist[2]}, L3 ${dist[3]}, L4 ${dist[4]}, below-L1 ${dist[0]}. Runs: ${merged.totals.runs} (${merged.totals.validRuns} valid / ${merged.totals.invalidRuns} invalid).`,
+    `**Totals (certified, single-run proven):** ${games.length} games — L1 ${dist[1]}, L2 ${dist[2]}, L3 ${dist[3]}, L4 ${dist[4]}, below-L1 ${dist[0]}. Runs: ${merged.totals.runs} (${merged.totals.validRuns} valid / ${merged.totals.invalidRuns} invalid / ${merged.totals.artifactAttestedRuns} artifact-attested).`,
+    '',
+    `**Artifact attestation (P1-3):** ${artifactAttestation.verdict} — ${artifactAttestation.runsAttested}/${artifactAttestation.runsInspected} runs passed independent artifact verification (${artifactAttestation.verifiedArtifacts} artifacts re-hashed; mismatch ${artifactAttestation.counters.mismatch || 0}, missing ${artifactAttestation.counters.missing || 0}, unreadable ${artifactAttestation.counters.unreadable || 0}). Runs without a PASS attestation are NON-CERTIFYING: their certified levels are suppressed.`,
     '',
     '## Level definitions (contract 2.0)',
     '',
@@ -483,13 +591,23 @@ if (outMatrix) {
       ? diagnostics.map((d) => `- **${d.kind}**${d.gameId ? ` (${d.gameId})` : ''}${d.runId ? ` (run ${d.runId})` : ''}: ${d.detail}${d.effect ? ` — ${d.effect}` : ''}`).join('\n')
       : '_None._',
     '',
+    '## Artifact attestation per run (P1-3)',
+    '',
+    '| Run id | Game | Attestation | Certifying | Verified artifacts | Mismatch | Missing | Unreadable |',
+    '|---|---|---|---|---|---|---|---|',
+    ...validatedRuns.map((v) => {
+      const a = v.artifactAttestation;
+      const c = a.counters || {};
+      return `| \`${v.executionAttemptId}\` | \`${v.gameId}\` | ${a.verdict} | ${a.certifying ? 'yes' : '**NO — non-certifying**'} | ${a.verifiedArtifacts} | ${c.mismatch || 0} | ${c.missing || 0} | ${c.unreadable || 0} |`;
+    }),
+    '',
   ].join('\n');
   fs.mkdirSync(path.dirname(outMatrix), { recursive: true });
   fs.writeFileSync(outMatrix, md);
   console.log(`[merge] matrix -> ${outMatrix}`);
 }
 
-if (strict && validatedRuns.some((v) => !v.valid)) {
-  console.error('[merge] --strict: contract-invalid runs present (see diagnostics)');
+if (strict && (validatedRuns.some((v) => !v.valid) || validatedRuns.some((v) => !v.artifactAttestation.certifying))) {
+  console.error('[merge] --strict: contract-invalid runs and/or runs without a PASS artifact attestation present (see diagnostics)');
   process.exit(1);
 }

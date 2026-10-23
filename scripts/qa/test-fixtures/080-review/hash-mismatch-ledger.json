@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 2,
+  "runs": [
+    {
+      "executionAttemptId": "cli-valid",
+      "gameId": "memory-pair-recall",
+      "buildIdentity": {
+        "gitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "apkSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "packageName": "com.braintraining.app",
+        "versionName": "1.0.0",
+        "versionCode": 1000
+      },
+      "deviceProfile": {
+        "serial": "emulator-5554",
+        "model": "test",
+        "abi": "x86_64",
+        "display": "1080x1920",
+        "density": "420"
+      },
+      "events": [],
+      "observations": [
+        {
+          "seq": 0,
+          "phase": "launch",
+          "timestamp": "2026-10-23T00:00:00.000Z",
+          "controls": [],
+          "evidenceArtifact": {
+            "file": "scripts/qa/test-fixtures/080-review/cross-build.png",
+            "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "bytes": 70,
+            "kind": "screenshot",
+            "executionAttemptId": "cli-valid"
+          }
+        },
+        {
+          "seq": 1,
+          "phase": "terminal",
+          "timestamp": "2026-10-23T00:00:01.000Z",
+          "controls": [],
+          "evidenceArtifact": {
+            "file": "scripts/qa/test-fixtures/080-review/cross-build.xml",
+            "sha256": "39bf18a4b88b9a1ceeae8a2342f9555d4e93d36f5c3c0bba6ec0e6bc70a7f015",
+            "bytes": 64,
+            "kind": "hierarchy",
+            "executionAttemptId": "cli-valid"
+          }
+        }
+      ]
+    }
+  ]
+}
