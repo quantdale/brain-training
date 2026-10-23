@@ -97,8 +97,8 @@ export const LEVEL_NAME = Object.freeze({
  *            identityVerified: boolean, markers: string[]}}
  */
 export function observeState(obs) {
-  const controls = (obs && obs.controls) || [];
-  const markers = (obs && obs.screenMarkers) || [];
+  const controls = Array.isArray(obs?.controls) ? obs.controls.filter((c) => typeof c === 'string') : [];
+  const markers = Array.isArray(obs?.screenMarkers) ? obs.screenMarkers : [];
   const gameId = (obs && obs.gameId) || '';
   const observedGameId = obs && obs.observedGameId;
   const identityVerified =
@@ -140,7 +140,7 @@ export function observeState(obs) {
       const gamePresent = controls.length > 0 || (observedGameId != null && observedGameId === gameId);
       if (!gamePresent) { state = GameStates.UNKNOWN; break; }
       if (has('results') || has('result-facts')) state = GameStates.RESULTS;
-      else if (has('tutorial')) state = GameStates.TUTORIAL;
+      else if (controls.some((c) => /(^|[.-])(tutorial|demo)([.-]|$)/i.test(c))) state = GameStates.TUTORIAL;
       else if (
         has('pause') &&
         (has('stage') || has('round-result') || has('round-failed') || has('round-result-board') || feedbackMarkers.length > 0) &&
@@ -241,10 +241,10 @@ const SYSTEM_DIALOG_PACKAGES = new Set(['com.android.systemui', 'android', 'com.
  */
 export function deriveScreenKind(input) {
   const {
-    expectedPackage, focusPackage, hierarchyStatus = 'ok', controlCount = 0, appAlive,
+    expectedPackage, focusPackage, hierarchyStatus, controlCount = 0, appAlive,
   } = input || {};
   if (hierarchyStatus === 'adb-failure') return ScreenKind.ADB_FAILURE;
-  if (hierarchyStatus === 'empty' || hierarchyStatus === 'malformed') return ScreenKind.HIERARCHY_FAILURE;
+  if (hierarchyStatus !== 'ok') return ScreenKind.HIERARCHY_FAILURE;
   // A dead process cannot be showing a live game screen: any controls parsed in
   // that situation are stale, so liveness outranks the control inventory.
   if (appAlive === false) return ScreenKind.CRASH;
@@ -259,7 +259,7 @@ export function deriveScreenKind(input) {
   // matched, so every genuine app destination fell through to UNKNOWN and safe
   // exits could not be proven. Compare the package portion only.
   const focusPkg = String(focusPackage).split('/')[0];
-  if (expectedPackage && focusPkg === expectedPackage) return ScreenKind.APP_DESTINATION;
+  if (expectedPackage && focusPkg === expectedPackage && appAlive === true) return ScreenKind.APP_DESTINATION;
   if (LAUNCHER_PACKAGES.has(focusPkg)) return ScreenKind.LAUNCHER;
   if (PERMISSION_PACKAGES.has(focusPkg)) return ScreenKind.PERMISSION_DIALOG;
   if (SYSTEM_DIALOG_PACKAGES.has(focusPkg)) return ScreenKind.SYSTEM_DIALOG;
@@ -275,18 +275,18 @@ export function deriveScreenKind(input) {
  * emitted by the harness with foreground-identity proof — may be an exit.
  */
 function screenKindOf(obs) {
-  if (obs && obs.screenKind) return obs.screenKind;
-  const m = (obs && obs.screenMarkers) || [];
+  const m = Array.isArray(obs?.screenMarkers) ? obs.screenMarkers : [];
+  // Negative raw facts outrank a cached screenKind, including dialogs drawn
+  // over a still-mounted game. Positive labels alone prove nothing.
   if (m.includes('adb-failure')) return ScreenKind.ADB_FAILURE;
   if (m.includes('hierarchy-failure') || m.includes('malformed-hierarchy')) return ScreenKind.HIERARCHY_FAILURE;
   if (m.includes('crash') || m.includes('app-crashed')) return ScreenKind.CRASH;
   if (m.includes('permission-dialog')) return ScreenKind.PERMISSION_DIALOG;
   if (m.includes('system-dialog')) return ScreenKind.SYSTEM_DIALOG;
+  const controlCount = Array.isArray(obs?.controls) ? obs.controls.length : 0;
+  if (obs?.rawScreen) return deriveScreenKind({ ...obs.rawScreen, controlCount });
   if (m.includes('launcher')) return ScreenKind.LAUNCHER;
-  if (m.includes('app-destination')) return ScreenKind.APP_DESTINATION;
-  if (m.includes('non-game-app-screen')) return ScreenKind.UNKNOWN;
-  // Legacy / implicit: game controls parsed => the game screen itself.
-  if (((obs && obs.controls) || []).length > 0) return ScreenKind.GAME_SCREEN;
+  if (controlCount > 0) return ScreenKind.GAME_SCREEN;
   return ScreenKind.UNKNOWN;
 }
 
@@ -598,6 +598,14 @@ export function verifyArtifactBytes(artifact, actualBytes) {
   return { ok: false, problems, notes, computedSha256, grade: 'none' };
 }
 
+/** One complete numeric score, optionally labelled Score (not parseFloat's prefix). */
+export function exactScore(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value !== 'string') return null;
+  const match = /^(?:Score\s*:?\s*)?(-?\d+(?:\.\d+)?)$/i.exec(value.trim());
+  return match && Number.isFinite(Number(match[1])) ? Number(match[1]) : null;
+}
+
 // ---------------------------------------------------------------------------
 // Structured evidence events
 // ---------------------------------------------------------------------------
@@ -615,7 +623,11 @@ export function validateEvent(e) {
   for (const f of ['actionRequested', 'actionExecuted', 'executionAttemptId', 'timestamp']) {
     if (e[f] === undefined || e[f] === null) errors.push(`missing ${f}`);
   }
+  if (e.actionRequested !== true && e.actionRequested !== false) errors.push('actionRequested must be boolean');
+  if (!Number.isInteger(e.seq) || e.seq < 0) errors.push('seq must be a nonnegative integer');
+  if (!Number.isFinite(Date.parse(e.timestamp))) errors.push('timestamp must be a valid date');
   if (e.actionExecuted !== true && e.actionExecuted !== false) errors.push('actionExecuted must be boolean');
+  if (e.actionRequested === false && e.actionExecuted === true) errors.push('an unrequested action cannot be executed');
   if (e.actionAcknowledged !== true && e.actionAcknowledged !== false && e.actionAcknowledged !== null) {
     errors.push('actionAcknowledged must be true/false/null');
   }
@@ -689,6 +701,50 @@ export function validateRunRecord(r, opts = {}) {
   if (!Array.isArray(r.events)) errors.push('missing events[]');
   if (!Array.isArray(r.observations)) errors.push('missing observations[]');
 
+  if (r.hasTutorial !== undefined && typeof r.hasTutorial !== 'boolean') errors.push('hasTutorial must be boolean when present');
+  if (r.tutorialState !== undefined && r.tutorialState !== null &&
+      (!r.tutorialState || typeof r.tutorialState !== 'object' || Array.isArray(r.tutorialState) ||
+       typeof r.tutorialState.previouslyCompleted !== 'boolean')) {
+    errors.push('tutorialState must contain a boolean previouslyCompleted fact');
+  }
+  if (Array.isArray(r.observations)) {
+    for (const [i, o] of r.observations.entries()) {
+      if (!o || typeof o !== 'object' || Array.isArray(o)) { errors.push(`observations[${i}]: not an object`); continue; }
+      for (const field of ['controls', 'screenMarkers', 'boardValues']) {
+        if ((field === 'controls' || o[field] !== undefined) &&
+            (!Array.isArray(o[field]) || o[field].some((v) => typeof v !== 'string'))) {
+          errors.push(`observations[${i}]: ${field} must be a string array`);
+        }
+      }
+      if (o.controlDetails !== undefined && (!o.controlDetails || typeof o.controlDetails !== 'object' || Array.isArray(o.controlDetails))) errors.push(`observations[${i}]: invalid controlDetails`);
+      if (o.rawScreen !== undefined) {
+        const raw = o.rawScreen;
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) errors.push(`observations[${i}]: invalid rawScreen`);
+        else {
+          if (typeof raw.expectedPackage !== 'string' || !raw.expectedPackage) errors.push(`observations[${i}]: rawScreen.expectedPackage missing`);
+          if (raw.focusPackage !== undefined && typeof raw.focusPackage !== 'string') errors.push(`observations[${i}]: rawScreen.focusPackage must be a string`);
+          if (!['ok', 'empty', 'malformed', 'adb-failure'].includes(raw.hierarchyStatus)) errors.push(`observations[${i}]: invalid rawScreen.hierarchyStatus`);
+          if (raw.appAlive !== undefined && typeof raw.appAlive !== 'boolean') errors.push(`observations[${i}]: rawScreen.appAlive must be boolean`);
+        }
+      }
+      if (o.hierarchyArtifact !== undefined && (!o.hierarchyArtifact || typeof o.hierarchyArtifact !== 'object' || Array.isArray(o.hierarchyArtifact))) {
+        errors.push(`observations[${i}]: invalid hierarchyArtifact`);
+      }
+    }
+  }
+  if (errors.length) return { valid: false, errors, warnings, notes, boundArtifactCount: 0 };
+
+  const parseTimestamp = (value, field) => {
+    if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) {
+      errors.push(`${field} must be a valid ISO timestamp`);
+      return null;
+    }
+    return Date.parse(value);
+  };
+  const startedMs = r.startedAt === undefined ? null : parseTimestamp(r.startedAt, 'startedAt');
+  const endedMs = r.endedAt === undefined ? null : parseTimestamp(r.endedAt, 'endedAt');
+  if (startedMs !== null && endedMs !== null && endedMs < startedMs) errors.push('endedAt predates startedAt');
+
   const build = r.buildIdentity || {};
   for (const f of REQUIRED_BUILD_FIELDS) {
     if (build[f] === undefined || build[f] === null || build[f] === '') errors.push(`missing buildIdentity.${f}`);
@@ -708,6 +764,30 @@ export function validateRunRecord(r, opts = {}) {
     if (attemptIds.size > 1) errors.push('events span multiple executionAttemptIds (not one coherent attempt)');
     if (attemptIds.size === 1 && r.executionAttemptId && !attemptIds.has(r.executionAttemptId)) {
       errors.push('event executionAttemptId does not match run executionAttemptId');
+    }
+  }
+
+  const observationsBySeq = new Map(r.observations.map((o) => [o.seq, o]));
+  for (const [kind, list] of [['events', r.events], ['observations', r.observations]]) {
+    let previousSeq = -1;
+    let previousTime = -Infinity;
+    for (const [i, item] of list.entries()) {
+      if (!item || typeof item !== 'object') continue;
+      if (!Number.isInteger(item.seq) || item.seq < 0 || item.seq <= previousSeq) errors.push(`${kind}[${i}]: seq must be unique and strictly ordered`);
+      previousSeq = item.seq;
+      const time = Date.parse(item.timestamp);
+      if (!Number.isFinite(time) || time < previousTime) errors.push(`${kind}[${i}]: timestamp invalid or out of order`);
+      previousTime = time;
+      if (r.startedAt && time < Date.parse(r.startedAt)) errors.push(`${kind}[${i}]: timestamp predates attempt`);
+      if (r.endedAt && time > Date.parse(r.endedAt)) errors.push(`${kind}[${i}]: timestamp follows attempt`);
+    }
+  }
+  for (const [i, e] of r.events.entries()) {
+    if (!e || typeof e !== 'object') continue;
+    const before = observationsBySeq.get(e.observationBeforeSeq);
+    const after = observationsBySeq.get(e.observationAfterSeq);
+    if (e.observationBeforeSeq !== undefined || e.observationAfterSeq !== undefined || e.actionAcknowledged === true) {
+      if (!before || !after || !(after.seq > before.seq)) errors.push(`events[${i}]: broken or reversed observation references`);
     }
   }
 
@@ -734,24 +814,44 @@ export function validateRunRecord(r, opts = {}) {
       }
       // --- artifact binding (P1-C) -------------------------------------
       const required = observationRequiresArtifact(o);
-      const art = o.evidenceArtifact;
-      if (art && typeof art === 'object') {
-        boundArtifactCount++;
-        if (!art.sha256 && !art.sha1) errors.push(`observations[${i}]: evidenceArtifact missing digest`);
-        if (!art.file) errors.push(`observations[${i}]: evidenceArtifact missing file binding`);
+      const observationArtifacts = [
+        ['evidenceArtifact', o.evidenceArtifact],
+        ['hierarchyArtifact', o.hierarchyArtifact],
+      ].filter(([, artifact]) => artifact !== undefined && artifact !== null);
+      const seenObservationArtifacts = new Set();
+      for (const [field, art] of observationArtifacts) {
+        if (!art || typeof art !== 'object' || Array.isArray(art)) {
+          errors.push(`observations[${i}]: ${field} must be an artifact object`);
+          continue;
+        }
+        const key = `${art.file || ''}\0${art.sha256 || art.sha1 || ''}`;
+        if (!seenObservationArtifacts.has(key)) boundArtifactCount++;
+        seenObservationArtifacts.add(key);
+        if (!art.sha256 && !art.sha1) errors.push(`observations[${i}]: ${field} missing digest`);
+        if (typeof art.file !== 'string' || !art.file) errors.push(`observations[${i}]: ${field} missing file binding`);
         if (art.kind && !Object.values(ArtifactKind).includes(art.kind)) {
           errors.push(`observations[${i}]: unknown artifact kind '${art.kind}'`);
+        }
+        if (field === 'hierarchyArtifact' && art.kind !== ArtifactKind.HIERARCHY) {
+          errors.push(`observations[${i}]: hierarchyArtifact must have kind '${ArtifactKind.HIERARCHY}'`);
         }
         if (art.executionAttemptId && r.executionAttemptId && art.executionAttemptId !== r.executionAttemptId) {
           errors.push(`observations[${i}]: artifact belongs to a different execution attempt (${art.executionAttemptId})`);
         }
+        if (art.captureReceipt !== undefined &&
+            (!art.captureReceipt || typeof art.captureReceipt !== 'object' || Array.isArray(art.captureReceipt) ||
+             typeof art.captureReceipt.file !== 'string' || !art.captureReceipt.file ||
+             !/^[a-f0-9]{64}$/i.test(art.captureReceipt.sha256 || ''))) {
+          errors.push(`observations[${i}]: ${field}.captureReceipt must bind a receipt file and sha256`);
+        }
         // A self-asserted digest is never "verified" by comparing two values
         // copied from the same record. Hash equality is checked independently
-        // by verifyArtifactBytes() against real file bytes.
+        // by the artifact verifier against real file bytes.
         if (evidenceMode === 'local' && art.sha256 && art.verifiedSha256 && art.verifiedSha256 !== art.sha256) {
           errors.push(`observations[${i}]: artifact hash mismatch (recorded ${art.sha256} != independently computed ${art.verifiedSha256})`);
         }
-      } else if (required) {
+      }
+      if (!observationArtifacts.length && required) {
         if (evidenceMode === 'local') errors.push(`observations[${i}]: required evidence artifact missing`);
         else {
           warnings.push(`observations[${i}]: required evidence artifact missing`);
@@ -766,6 +866,12 @@ export function validateRunRecord(r, opts = {}) {
       if (!a || typeof a !== 'object' || Array.isArray(a)) { errors.push(`artifacts[${i}]: not an object`); return; }
       if (!a.sha256 && !a.sha1) errors.push(`artifacts[${i}]: missing digest`);
       if (!a.file) errors.push(`artifacts[${i}]: missing file binding`);
+      if (a.captureReceipt !== undefined &&
+          (!a.captureReceipt || typeof a.captureReceipt !== 'object' || Array.isArray(a.captureReceipt) ||
+           typeof a.captureReceipt.file !== 'string' || !a.captureReceipt.file ||
+           !/^[a-f0-9]{64}$/i.test(a.captureReceipt.sha256 || ''))) {
+        errors.push(`artifacts[${i}]: captureReceipt must bind a receipt file and sha256`);
+      }
       if (a.executionAttemptId && r.executionAttemptId && a.executionAttemptId !== r.executionAttemptId) {
         errors.push(`artifacts[${i}]: artifact belongs to a different execution attempt`);
       }
@@ -815,6 +921,14 @@ const eventSucceeded = (e) => !!e && e.actionExecuted === true && e.actionAcknow
  * names the observation/event sequences that prove it.
  */
 export function deriveCapabilities(record) {
+  const validation = validateRunRecord(record);
+  if (!validation.valid) {
+    return Object.fromEntries(['launch', 'identity', 'render', 'tutorialObserved', 'tutorialCompleted', 'tutorialStatus',
+      'gameplayEntered', 'inputAttempted', 'inputAccepted', 'inputCausality', 'feedbackObserved',
+      'roundAdvanced', 'autonomousGameplayEvent', 'sessionEnded', 'resultsCurrent', 'safeExit',
+      'backgroundRelaunch', 'interruptionRecovery', 'offlineContinuity', 'a11yProfile', 'responsiveTransition']
+      .map((name) => [name, axis(AxisStatus.NOT_EXECUTED, record?.executionAttemptId, `invalid record: ${validation.errors.join('; ')}`)]));
+  }
   const seqObs = obsBySeq(record);
   const events = [...(record.events || [])].sort((a, b) => (a.seq || 0) - (b.seq || 0));
   const observations = [...(record.observations || [])].sort((a, b) => (a.seq || 0) - (b.seq || 0));
@@ -846,6 +960,7 @@ export function deriveCapabilities(record) {
   // -- tutorial -------------------------------------------------------------
   const tutorialObs = firstState((s) => s.state === GameStates.TUTORIAL);
   const tutorialExit = events.find((e) => {
+    if (!eventSucceeded(e)) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
     if (!before || !after) return false;
@@ -856,17 +971,23 @@ export function deriveCapabilities(record) {
   axes.tutorialObserved = axis(tutorialObs ? AxisStatus.OBSERVED : AxisStatus.NOT_EXECUTED, attemptId,
     tutorialObs ? 'tutorial surface observed' : 'no tutorial observed',
     tutorialObs ? [`obs#${tutorialObs.o.seq}`] : []);
-  let tutorialCompletedStatus = AxisStatus.NOT_EXECUTED;
-  let tutorialCompletedNote = '';
-  if (tutorialExit) {
-    tutorialCompletedStatus = AxisStatus.VERIFIED;
-    tutorialCompletedNote = 'tutorial -> gameplay/intro transition observed';
-  } else if (tutorialObs) {
-    tutorialCompletedStatus = AxisStatus.FAILED;
-    tutorialCompletedNote = 'tutorial seen but never cleared in-run';
+  const tutorialStatus = deriveTutorialStatus({
+    hasTutorial: record.hasTutorial, tutorialState: record.tutorialState,
+    tutorialObserved: !!tutorialObs, tutorialCleared: !!tutorialExit,
+  });
+  axes.tutorialStatus = { ...axis(AxisStatus.OBSERVED, attemptId, tutorialStatus), value: tutorialStatus };
+  if (tutorialStatus === TutorialStatus.COMPLETED_THIS_ATTEMPT) {
+    axes.tutorialCompleted = axis(AxisStatus.VERIFIED, attemptId, 'tutorial cleared during this attempt',
+      tutorialExit ? [`evt#${tutorialExit.seq}`] : []);
+  } else if (tutorialStatus === TutorialStatus.PREVIOUSLY_COMPLETED) {
+    axes.tutorialCompleted = axis(AxisStatus.VERIFIED, attemptId, 'persisted tutorial_state confirms prior completion', ['tutorialState']);
+  } else if (tutorialStatus === TutorialStatus.NOT_REQUIRED) {
+    axes.tutorialCompleted = axis(AxisStatus.OBSERVED, attemptId, 'game metadata says no tutorial is required');
+  } else if (tutorialStatus === TutorialStatus.REQUIRED_NOT_CLEARED) {
+    axes.tutorialCompleted = axis(AxisStatus.FAILED, attemptId, tutorialObs ? 'tutorial observed but not cleared this attempt' : 'persisted tutorial_state says required tutorial is incomplete');
+  } else {
+    axes.tutorialCompleted = axis(AxisStatus.NOT_EXECUTED, attemptId, 'tutorial applicability or persisted state is unknown');
   }
-  axes.tutorialCompleted = axis(tutorialCompletedStatus, attemptId, tutorialCompletedNote,
-    tutorialExit ? [`evt#${tutorialExit.seq}`] : []);
 
   // -- gameplay entry -------------------------------------------------------
   // P1-1/NF-080-001: entry is ACTION-CAUSED, so it requires a proven executed
@@ -1022,102 +1143,97 @@ export function deriveCapabilities(record) {
     autonomous ? [`obs#${autonomous.prev.seq}->obs#${autonomous.cur.seq}`] : []);
 
   // -- session end / results currency --------------------------------------
-  // P1-1/NF-080-001: session end is ACTION-CAUSED — it requires a proven
-  // executed command witnessing playing -> results. A failed transition event
-  // in front of a results surface never verifies sessionEnded.
-  const sessionEnd = events.find((e) => {
-    if (!eventSucceeded(e)) return false;
-    const before = seqObs.get(e.observationBeforeSeq);
-    const after = seqObs.get(e.observationAfterSeq);
-    if (!before || !after) return false;
-    return (
-      observeState({ ...before, gameId: record.gameId }).state === GameStates.PLAYING &&
-      observeState({ ...after, gameId: record.gameId }).state === GameStates.RESULTS
-    );
-  });
-  const resultsObsAllFound = (list) => list.length > 0;
-  // A results surface reached by an event whose transition is unproven is
-  // ATTEMPTED; nothing results-shaped in-run is NOT EXECUTED. sessionEnded is
-  // never VERIFIED without the playing -> results transition itself.
-  const resultsReachedEvent = events.find((e) => {
-    const after = seqObs.get(e.observationAfterSeq);
-    return after && observeState({ ...after, gameId: record.gameId }).state === GameStates.RESULTS;
-  });
-  const lastObs = states.length ? states[states.length - 1] : null;
-  const interruptedWhilePlaying = !!(lastObs && lastObs.s.state === GameStates.PLAYING);
-  let sessionEndedStatus = AxisStatus.NOT_EXECUTED;
-  let sessionEndedNote = 'no results surface reached in-run';
-  if (sessionEnd) {
-    sessionEndedStatus = AxisStatus.VERIFIED;
-    sessionEndedNote = 'playing -> results transition observed in-run';
-  } else if (resultsReachedEvent) {
-    sessionEndedStatus = AxisStatus.ATTEMPTED;
-    sessionEndedNote = 'a results surface was reached but the playing -> results transition was not proven';
-  } else if (interruptedWhilePlaying) {
-    sessionEndedStatus = AxisStatus.ATTEMPTED;
-    sessionEndedNote = 'run interrupted while still in gameplay — session end attempted, never proven';
-  }
-  axes.sessionEnded = axis(sessionEndedStatus, attemptId, sessionEndedNote,
-    sessionEnd ? [`evt#${sessionEnd.seq}`] : []);
-
-  // Results currency (B3): not merely event order. The results surface must
-  // belong to THIS execution attempt, THIS session and THIS game:
-  //   - it follows a playing observation of the same attempt;
-  //   - no intervening restart / unexpected intro / tutorial / exit / unknown
-  //     capture failure between the last playing state and the results;
-  //   - the results identity matches the expected game;
-  //   - the results score does not contradict the session's observed score.
-  // Where stronger attribution is impossible the behaviour stays conservative.
+  // Terminal results may be reached by an input or passively by a timed game.
+  // A passive transition is credited from the adjacent, game-identified
+  // PLAYING -> RESULTS observations themselves; no synthetic tap/wait action is
+  // created. If a command did span those observations, only its successful
+  // event can explain the transition (P1-1/NF-080-001).
   const resultsAll = states.filter((x) => x.s.state === GameStates.RESULTS);
   let resultsObs = null;
   for (let i = resultsAll.length - 1; i >= 0; i--) {
     const cand = resultsAll[i];
+    const stateIndex = states.findIndex((x) => x.o.seq === cand.o.seq);
+    const previousState = stateIndex > 0 ? states[stateIndex - 1] : null;
     const lastPlayingBefore = [...playingObs].filter((p) => p.o.seq < cand.o.seq).pop();
     if (!lastPlayingBefore) continue;
-    // P1-1/NF-080-001: results are only ACTION-ATTRIBUTABLE to this session
-    // when a PROVEN EXECUTED command witnessed the playing -> results
-    // transition landing on this results observation. A failed Start/Back/
-    // transition event is never sufficient.
-    const endWitness = events.some((e) => {
-      if (!eventSucceeded(e)) return false;
-      if (e.observationAfterSeq !== cand.o.seq) return false;
-      const before = seqObs.get(e.observationBeforeSeq);
-      return !!before && observeState({ ...before, gameId: record.gameId }).state === GameStates.PLAYING;
-    });
-    if (!endWitness) continue;
+
     const INTERRUPTING = new Set([
       GameStates.EXITED, GameStates.LAUNCHER, GameStates.UNKNOWN,
       GameStates.INTRO, GameStates.TUTORIAL,
     ]);
     const gapClean = states.every((x) => !(x.o.seq > lastPlayingBefore.o.seq && x.o.seq < cand.o.seq && INTERRUPTING.has(x.s.state)));
     if (!gapClean) continue;
-    // identity binding: the results screen must be the expected game
-    if (cand.o.observedGameId != null && cand.o.observedGameId !== record.gameId) continue;
-    // score binding: on a HIGHER-IS-BETTER scale a results score below the
-    // highest observed playing score contradicts this session (it belongs to an
-    // earlier one). Games on a lower-is-better scale (e.g. reaction time in ms)
-    // are exempt — a blanket rule would create false negatives there.
-    const resultsScore = Number.parseFloat(String(cand.o.score ?? ''));
-    const playingScores = playingObs
-      .map((p) => Number.parseFloat(String(p.o.score ?? '')))
-      .filter((n) => Number.isFinite(n));
-    const maxPlaying = playingScores.length ? Math.max(...playingScores) : null;
-    const higherIsBetter = record.scoreSemantics === 'higher-is-better';
-    if (higherIsBetter && Number.isFinite(resultsScore) && maxPlaying != null && resultsScore < maxPlaying) continue;
-    resultsObs = { ...cand, boundTo: lastPlayingBefore };
+    if (cand.o.observedGameId !== record.gameId || lastPlayingBefore.o.observedGameId !== record.gameId) continue;
+
+    const transitionEvents = events.filter((e) =>
+      e.observationBeforeSeq === lastPlayingBefore.o.seq && e.observationAfterSeq === cand.o.seq);
+    const actionWitness = transitionEvents.find((e) => eventSucceeded(e));
+    const passiveWitness = previousState?.o.seq === lastPlayingBefore.o.seq &&
+      previousState.s.state === GameStates.PLAYING && transitionEvents.length === 0;
+    if (!actionWitness && !passiveWitness) continue;
+
+    // Legacy UI has no session token. Exact finite score equality is the
+    // backward-compatible binding. When a game's final score legitimately
+    // changes at termination, the explicit score-final semantic control on the
+    // observed results screen binds that value to the terminal state instead.
+    // This works for either scoring direction and for autonomous completion.
+    const resultScore = exactScore(cand.o.score);
+    const terminalScore = exactScore(lastPlayingBefore.o.score);
+    if (resultScore === null || terminalScore === null) continue;
+    const legacyScoreMatch = resultScore === terminalScore;
+    const explicitFinalScore = Array.isArray(cand.o.controls) && cand.o.controls.includes('score-final');
+    if (!legacyScoreMatch && !explicitFinalScore) continue;
+
+    resultsObs = {
+      ...cand,
+      boundTo: lastPlayingBefore,
+      terminalWitness: actionWitness ? `evt#${actionWitness.seq}` : `obs#${lastPlayingBefore.o.seq}->obs#${cand.o.seq}`,
+      scoreBinding: legacyScoreMatch ? 'exact-score-match' : 'observed-score-final',
+    };
     break;
   }
+
   let resultsCurrentStatus = AxisStatus.NOT_EXECUTED;
   let resultsCurrentNote = '';
   if (resultsObs) {
     resultsCurrentStatus = AxisStatus.VERIFIED;
-    resultsCurrentNote = `results bound to this session (follows obs#${resultsObs.boundTo.o.seq}, game identity and score consistent)`;
-  } else if (resultsObsAllFound(resultsAll)) {
+    resultsCurrentNote = `results bound to this session (${resultsObs.scoreBinding}; ${resultsObs.terminalWitness}; game identity consistent)`;
+  } else if (resultsAll.length) {
     resultsCurrentStatus = AxisStatus.FAILED;
-    resultsCurrentNote = 'results screen observed but not attributable to this session/attempt';
+    resultsCurrentNote = 'results screen observed but terminal session, game identity or finite score binding was not proven';
   }
   axes.resultsCurrent = axis(resultsCurrentStatus, attemptId, resultsCurrentNote,
-    resultsObs ? [`obs#${resultsObs.o.seq}`, `obs#${resultsObs.boundTo.o.seq}`] : []);
+    resultsObs ? [`obs#${resultsObs.o.seq}`, `obs#${resultsObs.boundTo.o.seq}`, resultsObs.terminalWitness] : []);
+
+  let sessionEndedStatus = AxisStatus.NOT_EXECUTED;
+  let sessionEndedNote = 'no results surface reached in-run';
+  const resultsAfterGameplay = resultsAll.some((result) =>
+    playingObs.some((playing) => playing.o.seq < result.o.seq && playing.o.observedGameId === record.gameId));
+  const terminalActionWitness = resultsAll.some((result) => {
+    const priorPlaying = [...playingObs].filter((playing) => playing.o.seq < result.o.seq).pop();
+    return priorPlaying && events.some((e) =>
+      e.observationBeforeSeq === priorPlaying.o.seq && e.observationAfterSeq === result.o.seq && eventSucceeded(e));
+  });
+  if (resultsObs) {
+    sessionEndedStatus = AxisStatus.VERIFIED;
+    sessionEndedNote = `terminal results observed in-run (${resultsObs.terminalWitness})`;
+  } else if (terminalActionWitness) {
+    sessionEndedStatus = AxisStatus.VERIFIED;
+    sessionEndedNote = 'a successful transition action reached the results surface after gameplay, but current-score binding was not proven';
+  } else if (resultsAfterGameplay) {
+    sessionEndedStatus = AxisStatus.ATTEMPTED;
+    sessionEndedNote = 'a results surface followed this gameplay but its terminal transition was not bound to this session';
+  } else if (states.at(-1)?.s.state === GameStates.PLAYING) {
+    sessionEndedStatus = AxisStatus.ATTEMPTED;
+    sessionEndedNote = 'run interrupted while still in gameplay — session end attempted, never proven';
+  }
+  axes.sessionEnded = axis(sessionEndedStatus, attemptId, sessionEndedNote,
+    resultsObs ? [resultsObs.terminalWitness] : []);
+  if (resultsObs && resultsObs.terminalWitness.startsWith('obs#')) {
+    axes.autonomousGameplayEvent = axis(AxisStatus.VERIFIED, attemptId,
+      'terminal gameplay completed through an observed passive PLAYING -> RESULTS transition',
+      [`obs#${resultsObs.boundTo.o.seq}->obs#${resultsObs.o.seq}`]);
+  }
 
   // -- safe exit (F-080-002 + P1-B) -----------------------------------------
   // A safe exit is PROVEN, never assumed. It requires ALL of:
@@ -1139,6 +1255,13 @@ export function deriveCapabilities(record) {
   );
   const isExitIntent = (e) => e.action === 'back' || EXIT_TARGET_RE.test(e.target || '');
   const obsIsProven = (o) => !!(o && o.timestamp && o.seq !== undefined);
+  const hasFreshHierarchy = (o) => !!(
+    o?.rawScreen && o.rawScreen.hierarchyStatus === 'ok' &&
+    o.rawScreen.expectedPackage === record.buildIdentity?.packageName &&
+    o.hierarchyArtifact?.kind === ArtifactKind.HIERARCHY &&
+    o.hierarchyArtifact.file && (o.hierarchyArtifact.sha256 || o.hierarchyArtifact.sha1) &&
+    o.hierarchyArtifact.executionAttemptId === attemptId
+  );
 
   const exitAttempts = events.filter((e) => isExitIntent(e));
   const safeExit = exitAttempts.find((e) => {
@@ -1147,12 +1270,14 @@ export function deriveCapabilities(record) {
     if (e.actionAcknowledged === false) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    // (2)/(3) valid before AND after observations
+    // (2)/(3) valid before AND after observations and independently bound raw
+    // hierarchy evidence. Cached `screenKind` labels are never destinations.
     if (!obsIsProven(before) || !obsIsProven(after)) return false;
+    if (!hasFreshHierarchy(before) || !hasFreshHierarchy(after)) return false;
     const sb = observeState({ ...before, gameId: record.gameId });
     const sa = observeState({ ...after, gameId: record.gameId });
-    // a failed/malformed capture is UNKNOWN — never a destination
-    if (sb.state === GameStates.UNKNOWN) return false;
+    if (![GameStates.INTRO, GameStates.TUTORIAL, GameStates.PLAYING, GameStates.RESULTS].includes(sb.state) || !sb.identityVerified) return false;
+    if (sb.screenKind !== ScreenKind.GAME_SCREEN || sa.state === sb.state || sb.screenKind === sa.screenKind) return false;
     if (sa.state === GameStates.UNKNOWN) return false;
     // (5) crash / dialog / tooling failure is not navigation
     if ([ScreenKind.CRASH, ScreenKind.HIERARCHY_FAILURE, ScreenKind.ADB_FAILURE,
@@ -1230,6 +1355,7 @@ export function deriveTutorialStatus({ hasTutorial, tutorialState, tutorialObser
   }
   if (hasTutorial === false) return TutorialStatus.NOT_REQUIRED;
   if (tutorialState && tutorialState.previouslyCompleted === true) return TutorialStatus.PREVIOUSLY_COMPLETED;
+  if (hasTutorial === true && tutorialState?.previouslyCompleted === false) return TutorialStatus.REQUIRED_NOT_CLEARED;
   return TutorialStatus.UNKNOWN;
 }
 

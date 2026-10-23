@@ -11,6 +11,7 @@ import {
   deriveLevel,
   deriveScreenKind,
   deriveTutorialStatus,
+  exactScore,
   observeState,
   validateRunRecord,
   verifyArtifactBytes,
@@ -54,7 +55,23 @@ function observation(seq, {
   controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
   controlDetails, sha256, verifiedSha256, artifact = true, phase = 'play', requireArtifact,
 } = {}) {
-  const derived = observeState({ controls, screenMarkers, screenKind, gameId: GAME_ID, observedGameId });
+  const expectedPackage = 'com.braintraining.mobile';
+  const rawScreen = screenKind === 'app-destination'
+    ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
+    : screenKind === 'launcher'
+      ? { expectedPackage, focusPackage: 'com.android.launcher3/com.android.launcher3.Launcher', hierarchyStatus: 'ok', appAlive: true }
+      : screenKind === 'system-dialog'
+        ? { expectedPackage, focusPackage: 'com.android.systemui', hierarchyStatus: 'ok', appAlive: true }
+        : screenKind === 'permission-dialog'
+          ? { expectedPackage, focusPackage: 'com.android.permissioncontroller', hierarchyStatus: 'ok', appAlive: true }
+          : screenKind === 'hierarchy-failure'
+            ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'malformed', appAlive: true }
+            : screenKind === 'crash'
+              ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: false }
+              : controls.length > 0
+                ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
+                : undefined;
+  const derived = observeState({ controls, screenMarkers, rawScreen, gameId: GAME_ID, observedGameId });
   const o = {
     seq,
     state: derived.state,
@@ -66,6 +83,7 @@ function observation(seq, {
     timestamp: `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
   };
   if (screenKind) o.screenKind = screenKind;
+  if (rawScreen) o.rawScreen = rawScreen;
   if (controlDetails) o.controlDetails = controlDetails;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
   if (requireArtifact !== undefined) o.requireArtifact = requireArtifact;
@@ -78,6 +96,12 @@ function observation(seq, {
       executionAttemptId: ATTEMPT_ID,
     };
     if (verifiedSha256 !== undefined) o.evidenceArtifact.verifiedSha256 = verifiedSha256;
+    if (rawScreen) {
+      o.hierarchyArtifact = {
+        file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.xml`,
+        sha256: sha256Of(`hierarchy-${seq}`), bytes: 256, kind: 'hierarchy', executionAttemptId: ATTEMPT_ID,
+      };
+    }
   } else {
     o.evidenceArtifact = null;
   }
@@ -107,7 +131,7 @@ function event(seq, fields = {}) {
     actionExecuted: true,
     actionAcknowledged: null,
     executionAttemptId: ATTEMPT_ID,
-    timestamp: `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+    timestamp: `2026-10-21T12:00:${String(fields.observationAfterSeq ?? seq).padStart(2, '0')}Z`,
     ...fields,
   };
 }
@@ -128,6 +152,9 @@ function runRecord(overrides = {}) {
     if (o && o.evidenceArtifact && typeof o.evidenceArtifact === 'object' &&
         o.evidenceArtifact.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
       o.evidenceArtifact = { ...o.evidenceArtifact, executionAttemptId: rec.executionAttemptId };
+    }
+    if (o?.hierarchyArtifact?.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
+      o.hierarchyArtifact = { ...o.hierarchyArtifact, executionAttemptId: rec.executionAttemptId };
     }
   }
   return rec;
@@ -508,12 +535,12 @@ test('B11 (P1-B): deriveScreenKind maps every harness signal to the intended sem
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'malformed', controlCount: 0 }), ScreenKind.HIERARCHY_FAILURE);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'adb-failure' }), ScreenKind.ADB_FAILURE);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'ok', controlCount: 3 }), ScreenKind.GAME_SCREEN);
-  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.APP_DESTINATION);
+  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: pkg, hierarchyStatus: 'ok', controlCount: 0, appAlive: true }), ScreenKind.APP_DESTINATION);
   // `dumpsys window` reports a COMPONENT (`package/activity`), not a bare
   // package name. Regression: that comparison silently never matched, so every
   // real app destination fell through to UNKNOWN and safe exits were never
   // proven on device (32 of 42 games were downgraded to L0 for exactly this).
-  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: `${pkg}/${pkg}.MainActivity`, hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.APP_DESTINATION,
+  assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: `${pkg}/${pkg}.MainActivity`, hierarchyStatus: 'ok', controlCount: 0, appAlive: true }), ScreenKind.APP_DESTINATION,
     'a component name must resolve to its package before comparison');
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher', hierarchyStatus: 'ok', controlCount: 0 }), ScreenKind.LAUNCHER);
   assert.equal(deriveScreenKind({ expectedPackage: pkg, focusPackage: 'com.android.launcher3', hierarchyStatus: 'ok' }), ScreenKind.LAUNCHER);
@@ -651,7 +678,7 @@ test('W-B3: the authoritative tutorial-completion rule', () => {
   const returning = runRecord({
     hasTutorial: true,
     tutorialState: { previouslyCompleted: true },
-    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5' })],
+    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -681,6 +708,129 @@ test('W-B3: the authoritative tutorial-completion rule', () => {
     TutorialStatus.COMPLETED_THIS_ATTEMPT);
 });
 
+test('P2-B4/NF-080-008: duplicate sequences, invalid timestamps and broken references fail closed', () => {
+  const valid = runRecord({
+    observations: [introObs(1), playingObs(2), resultsObs(3)],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  const duplicate = structuredClone(valid);
+  duplicate.events.push(structuredClone(duplicate.events[1]));
+  const duplicateCheck = validateRunRecord(duplicate);
+  assert.equal(duplicateCheck.valid, false);
+  assert.ok(duplicateCheck.errors.some((message) => message.includes('seq must be unique and strictly ordered')));
+  assert.equal(deriveLevel(duplicate).level, 0);
+
+  const invalidEventTime = structuredClone(valid);
+  invalidEventTime.events[1].timestamp = 'not-a-timestamp';
+  assert.ok(validateRunRecord(invalidEventTime).errors.some((message) => message.includes('valid date')));
+  assert.equal(deriveLevel(invalidEventTime).level, 0);
+
+  const invalidObservationTime = structuredClone(valid);
+  invalidObservationTime.observations[2].timestamp = 'not-a-timestamp';
+  assert.ok(validateRunRecord(invalidObservationTime).errors.some((message) => message.includes('timestamp invalid')));
+  assert.equal(deriveLevel(invalidObservationTime).level, 0);
+
+  const brokenReference = structuredClone(valid);
+  brokenReference.events[1].observationAfterSeq = 99;
+  assert.ok(validateRunRecord(brokenReference).errors.some((message) => message.includes('broken or reversed observation references')));
+  assert.equal(deriveLevel(brokenReference).level, 0);
+});
+
+test('P2-B6: five tutorial states are represented on run capability axes', () => {
+  const notRequired = deriveCapabilities(runRecord({ hasTutorial: false }));
+  assert.equal(notRequired.tutorialStatus.value, TutorialStatus.NOT_REQUIRED);
+  assert.equal(notRequired.tutorialCompleted.status, AxisStatus.OBSERVED);
+
+  const completedThisAttempt = deriveCapabilities(runRecord({
+    hasTutorial: true, tutorialState: { previouslyCompleted: false },
+    observations: [observation(1, { observedGameId: GAME_ID, controls: ['tutorial', 'tutorial-next'] }), introObs(2)],
+    events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
+  }));
+  assert.equal(completedThisAttempt.tutorialStatus.value, TutorialStatus.COMPLETED_THIS_ATTEMPT);
+  assert.equal(completedThisAttempt.tutorialCompleted.status, AxisStatus.VERIFIED);
+
+  const previouslyCompleted = deriveCapabilities(runRecord({
+    hasTutorial: true, tutorialState: { previouslyCompleted: true },
+  }));
+  assert.equal(previouslyCompleted.tutorialStatus.value, TutorialStatus.PREVIOUSLY_COMPLETED);
+  assert.equal(previouslyCompleted.tutorialCompleted.status, AxisStatus.VERIFIED);
+
+  const requiredNotCleared = deriveCapabilities(runRecord({
+    hasTutorial: true, tutorialState: { previouslyCompleted: false },
+  }));
+  assert.equal(requiredNotCleared.tutorialStatus.value, TutorialStatus.REQUIRED_NOT_CLEARED);
+  assert.equal(requiredNotCleared.tutorialCompleted.status, AxisStatus.FAILED);
+
+  const unknown = deriveCapabilities(runRecord({ hasTutorial: true }));
+  assert.equal(unknown.tutorialStatus.value, TutorialStatus.UNKNOWN);
+  assert.equal(unknown.tutorialCompleted.status, AxisStatus.NOT_EXECUTED);
+});
+
+test('NF-080-007: a tutorial demo-status surface is not gameplay even without a tutorial id', () => {
+  const masquerade = runRecord({
+    hasTutorial: true,
+    observations: [
+      introObs(1),
+      gameObs(2, { controls: ['pause', 'stage', 'round.1', 'score', 'demo-status'] }),
+      gameObs(3, { controls: ['pause', 'stage', 'round.1', 'score', 'demo-status', 'verdict-correct'], score: '10' }),
+    ],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  assert.equal(observeState({ ...masquerade.observations[1], gameId: GAME_ID }).state, 'tutorial');
+  const axes = deriveCapabilities(masquerade);
+  assert.equal(axes.tutorialObserved.status, AxisStatus.OBSERVED);
+  assert.equal(axes.tutorialCompleted.status, AxisStatus.FAILED);
+  assert.ok(deriveLevel(masquerade).level < 2);
+});
+
+test('NF-080-002: safe exit rejects forged, no-op, dialog and hierarchy-unbound destinations', () => {
+  const makeExit = (before, after) => runRecord({
+    observations: [before, after],
+    events: [event(1, { action: 'back', actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
+  });
+
+  const forged = makeExit(introObs(1), exitedObs(2));
+  delete forged.observations[1].rawScreen;
+  assert.notEqual(deriveCapabilities(forged).safeExit.status, AxisStatus.VERIFIED);
+
+  const noOp = makeExit(exitedObs(1), exitedObs(2));
+  assert.notEqual(deriveCapabilities(noOp).safeExit.status, AxisStatus.VERIFIED);
+
+  const dialog = exitedObs(2);
+  dialog.screenMarkers = ['system-dialog'];
+  const dialogExit = makeExit(introObs(1), dialog);
+  assert.notEqual(deriveCapabilities(dialogExit).safeExit.status, AxisStatus.VERIFIED);
+
+  const noHierarchyArtifact = exitedObs(2);
+  delete noHierarchyArtifact.hierarchyArtifact;
+  const missingRawEvidence = makeExit(introObs(1), noHierarchyArtifact);
+  assert.notEqual(deriveCapabilities(missingRawEvidence).safeExit.status, AxisStatus.VERIFIED);
+});
+
+test('P2-B3: stale score 5 -> 99 is rejected without semantics while observed score-final can bind a legitimate change', () => {
+  const stale = runRecord({
+    observations: [introObs(1), playingObs(2, { score: '5' }), resultsObs(3, { score: '99' })],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  assert.notEqual(deriveCapabilities(stale).resultsCurrent.status, AxisStatus.VERIFIED);
+  assert.equal(exactScore('5 stale'), null);
+
+  const finalScore = structuredClone(stale);
+  finalScore.observations[2].controls.push('score-final');
+  finalScore.observations[2].state = observeState({ ...finalScore.observations[2], gameId: GAME_ID }).state;
+  assert.equal(deriveCapabilities(finalScore).resultsCurrent.status, AxisStatus.VERIFIED);
+  assert.equal(deriveCapabilities(finalScore).sessionEnded.status, AxisStatus.VERIFIED);
+});
+
 test('W-C1: multi-run evidence union is never a fabricated journey', () => {
   // Run A proves entry + input. Run B proves a terminal results surface but
   // never proves entry. Nothing in either run is a full session, and no union
@@ -697,7 +847,7 @@ test('W-C1: multi-run evidence union is never a fabricated journey', () => {
   // Run B reaches a terminal results surface but NEVER proves gameplay entry.
   const runB = runRecord({
     executionAttemptId: 'attempt-union-b',
-    observations: [playingObs(1, { score: '0' }), resultsObs(2, { score: '5' }), exitedObs(3)],
+    observations: [playingObs(1, { score: '0' }), resultsObs(2, { score: '5', controls: ['results', 'result-facts', 'score-final'] }), exitedObs(3)],
     events: [
       event(1, { executionAttemptId: 'attempt-union-b', action: 'wait', observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { executionAttemptId: 'attempt-union-b', action: 'back', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -759,7 +909,7 @@ test('W-C3: stale results never certify — by order AND by content', () => {
 test('W-C4: a lower-is-better score scale is not falsely rejected by score binding', () => {
   const reactionTime = runRecord({
     scoreSemantics: 'lower-is-better',
-    observations: [introObs(1), playingObs(2, { score: '420' }), resultsObs(3, { score: '310' })],
+    observations: [introObs(1), playingObs(2, { score: '420' }), resultsObs(3, { score: '310', controls: ['results', 'result-facts', 'score-final'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -819,7 +969,8 @@ test('MUTATION 2: weakening safe-exit to marker shape would wrongly certify a fa
 
 test('MUTATION 3: self-asserted artifact hashes do not verify — only real bytes do', () => {
   const claimed = { file: 'qa-artifacts/080/x.png', sha256: 'a'.repeat(64), bytes: 3 };
-  assert.equal(claimed.sha256 === claimed.sha256, true,
+  const copiedClaim = { ...claimed };
+  assert.equal(claimed.sha256 === copiedClaim.sha256, true,
     'self-comparison is vacuous — this is the removed dead `expectedSha1 !== sha1` check');
   assert.equal(verifyArtifactBytes(claimed, Buffer.from('real screenshot bytes')).ok, false,
     'the real verifier must recompute from bytes; if this fails, artifact binding was weakened');

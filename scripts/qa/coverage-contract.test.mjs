@@ -11,6 +11,7 @@ import {
   classifyRun,
   deriveCapabilities,
   deriveLevel,
+  exactScore,
   isAdvanceControl,
   observeState,
   or3,
@@ -56,7 +57,23 @@ function observation(seq, {
   controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
   controlDetails, sha256, verifiedSha256, artifact = true, phase = 'play', requireArtifact, timestamp,
 } = {}) {
-  const derived = observeState({ controls, screenMarkers, screenKind, gameId: GAME_ID, observedGameId });
+  const expectedPackage = 'com.braintraining.mobile';
+  const rawScreen = screenKind === 'app-destination'
+    ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
+    : screenKind === 'launcher'
+      ? { expectedPackage, focusPackage: 'com.android.launcher3/com.android.launcher3.Launcher', hierarchyStatus: 'ok', appAlive: true }
+      : screenKind === 'system-dialog'
+        ? { expectedPackage, focusPackage: 'com.android.systemui', hierarchyStatus: 'ok', appAlive: true }
+        : screenKind === 'permission-dialog'
+          ? { expectedPackage, focusPackage: 'com.android.permissioncontroller', hierarchyStatus: 'ok', appAlive: true }
+          : screenKind === 'hierarchy-failure'
+            ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'malformed', appAlive: true }
+            : screenKind === 'crash'
+              ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: false }
+              : controls.length > 0
+                ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
+                : undefined;
+  const derived = observeState({ controls, screenMarkers, rawScreen, gameId: GAME_ID, observedGameId });
   const o = {
     seq,
     state: derived.state,
@@ -68,6 +85,7 @@ function observation(seq, {
     timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
   };
   if (screenKind) o.screenKind = screenKind;
+  if (rawScreen) o.rawScreen = rawScreen;
   if (controlDetails) o.controlDetails = controlDetails;
   if (observedGameId !== undefined) o.observedGameId = observedGameId;
   if (requireArtifact !== undefined) o.requireArtifact = requireArtifact;
@@ -80,6 +98,12 @@ function observation(seq, {
       executionAttemptId: ATTEMPT_ID,
     };
     if (verifiedSha256 !== undefined) o.evidenceArtifact.verifiedSha256 = verifiedSha256;
+    if (rawScreen) {
+      o.hierarchyArtifact = {
+        file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.xml`,
+        sha256: sha256Of(`hierarchy-${seq}`), bytes: 256, kind: 'hierarchy', executionAttemptId: ATTEMPT_ID,
+      };
+    }
   } else {
     o.evidenceArtifact = null;
   }
@@ -103,7 +127,7 @@ function event(seq, fields = {}) {
     actionExecuted: true,
     actionAcknowledged: null,
     executionAttemptId: ATTEMPT_ID,
-    timestamp: `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+    timestamp: `2026-10-21T12:00:${String(fields.observationAfterSeq ?? seq).padStart(2, '0')}Z`,
     ...fields,
   };
 }
@@ -127,6 +151,9 @@ function runRecord(overrides = {}) {
     if (o && o.evidenceArtifact && typeof o.evidenceArtifact === 'object' &&
         o.evidenceArtifact.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
       o.evidenceArtifact = { ...o.evidenceArtifact, executionAttemptId: rec.executionAttemptId };
+    }
+    if (o?.hierarchyArtifact?.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
+      o.hierarchyArtifact = { ...o.hierarchyArtifact, executionAttemptId: rec.executionAttemptId };
     }
   }
   return rec;
@@ -318,7 +345,7 @@ test('N11: passive timeout completion is distinguishable from answer-driven comp
   // Timeout completion: two playing observations progress with NO gameplay
   // input; a wait event times out into results.
   const timeoutRun = runRecord({
-    observations: [introObs(1), playingObs(2, { score: '0' }), playingObs(3, { score: '45' }), resultsObs(4)],
+    observations: [introObs(1), playingObs(2, { score: '0' }), playingObs(3, { score: '45' }), resultsObs(4, { score: '45' })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { action: 'wait', observationBeforeSeq: 3, observationAfterSeq: 4 }),
@@ -331,7 +358,7 @@ test('N11: passive timeout completion is distinguishable from answer-driven comp
 
   // Answer-driven completion: input accepted into results.
   const answerRun = runRecord({
-    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5' })],
+    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final', 'verdict-correct'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -624,9 +651,45 @@ test('P3: passive timed gameplay — playing progression without any input award
   assert.equal(level.status, 'VERIFIED');
 });
 
+test('P2-B3/NF-080-005: exact finite scores and passive final-score completion are bound without a synthetic action', () => {
+  assert.equal(exactScore('Score: 310'), 310);
+  assert.equal(exactScore('310.5'), 310.5);
+  for (const invalid of ['99 stale', 'Score 99 points', 'Infinity', Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.equal(exactScore(invalid), null, `score parser must reject ${String(invalid)}`);
+  }
+
+  const passiveLowerIsBetter = runRecord({
+    scoreSemantics: 'lower-is-better',
+    observations: [
+      introObs(1),
+      playingObs(2, { score: 'Score 310' }),
+      resultsObs(3, { controls: ['results', 'result-facts', 'score-final'], score: 'Score: 298' }),
+    ],
+    // Only Start is an action. The terminal transition is directly observed.
+    events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
+  });
+  const axes = deriveCapabilities(passiveLowerIsBetter);
+  assert.equal(axes.inputAccepted.status, AxisStatus.NOT_EXECUTED);
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED);
+  assert.equal(axes.sessionEnded.status, AxisStatus.VERIFIED);
+  assert.equal(axes.resultsCurrent.status, AxisStatus.VERIFIED);
+  assert.equal(deriveLevel(passiveLowerIsBetter).level, 3);
+  assert.equal(passiveLowerIsBetter.events.length, 1, 'no wait/tap action is fabricated for passive completion');
+
+  const legacyExact = runRecord({
+    observations: [introObs(1), playingObs(2, { score: 'Score 5' }), resultsObs(3, { score: '5' })],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  assert.equal(deriveCapabilities(legacyExact).resultsCurrent.status, AxisStatus.VERIFIED,
+    'legacy score labels remain supported when exact finite values match');
+});
+
 test('P4: L3 completion — gameplay entered, playing -> results transition, results after playing', () => {
   const rec = runRecord({
-    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5' })],
+    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final', 'verdict-correct'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -641,7 +704,7 @@ test('P4: L3 completion — gameplay entered, playing -> results transition, res
 });
 
 test('P5: legitimate terminal failure session is still a verified L3 lifecycle', () => {
-  const failureResults = gameObs(3, { controls: ['results', 'result-facts', 'round-failed'], score: '5' });
+  const failureResults = gameObs(3, { controls: ['results', 'result-facts', 'score-final', 'round-failed'], score: '5' });
   const rec = runRecord({
     note: 'terminal failure: ran out of lives',
     observations: [introObs(1), playingObs(2, { score: '0' }), failureResults],
@@ -679,7 +742,7 @@ test('P6: resilience subcapabilities are independent axes that never fabricate a
 
   // Verified resilience unions with a proven session into L4.
   const fullSession = runRecord({
-    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5' })],
+    observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final', 'verdict-correct'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
@@ -756,7 +819,7 @@ test('R2: memory-pair-recall v1 milestones must not classify L2', () => {
     events: [
       event(1, { executionAttemptId: 'attempt-mpr-v1', actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { executionAttemptId: 'attempt-mpr-v1', actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
-      event(3, { executionAttemptId: 'attempt-mpr-v1', action: 'back', observationBeforeSeq: 3, observationAfterSeq: 3, actionAcknowledged: false }),
+      event(3, { executionAttemptId: 'attempt-mpr-v1', action: 'back', observationBeforeSeq: 3, observationAfterSeq: 4, actionAcknowledged: false }),
     ],
   });
   assert.equal(validateRunRecord(rec).valid, true);

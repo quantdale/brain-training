@@ -44,6 +44,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import {
   CONTRACT_VERSION,
   GameStates,
@@ -52,7 +53,6 @@ import {
   observationRequiresArtifact,
   createSha256,
   observeState,
-  pickAdvanceControl,
   stateFingerprint,
 } from './coverage-contract.mjs';
 import { planTutorialStep, SolveTier } from './tutorial-solver.mjs';
@@ -61,6 +61,10 @@ import { center, chooseGameplayAction } from './gameplay-actions.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const requireFromMobile = createRequire(path.join(REPO_ROOT, 'apps/mobile/package.json'));
+const { SaxesParser } = requireFromMobile('saxes');
+const BetterSqlite3 = requireFromMobile('better-sqlite3');
+const IS_MAIN = !!process.argv[1] && path.resolve(process.argv[1]) === __filename;
 const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
 const DEFAULT_OUT = path.join(REPO_ROOT, 'scripts', 'qa', 'native-coverage-ledger.json');
 /**
@@ -90,18 +94,20 @@ const PACKAGE = 'com.braintraining.app';
 
 // --- args ------------------------------------------------------------------
 function usage() {
-  console.log('usage: native-game-sweep.mjs [--games a,b,c] [--out FILE] [--serial S] [--steps N] [--dry-run]');
+  console.log('usage: native-game-sweep.mjs [--games a,b,c] [--out FILE] [--serial S] [--steps N] [--dry-run] [--capture-receipts FILE]');
 }
-const argv = process.argv.slice(2);
+const argv = IS_MAIN ? process.argv.slice(2) : [];
 let onlyGames = null;
 let outFile = DEFAULT_OUT;
 let serialOverride = null;
 let steps = 12;
 let dryRun = false;
+let captureReceiptsFile = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--games') onlyGames = String(argv[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
   else if (a === '--out') outFile = path.resolve(argv[++i] || DEFAULT_OUT);
+  else if (a === '--capture-receipts') captureReceiptsFile = path.resolve(argv[++i]);
   else if (a === '--serial') serialOverride = argv[++i];
   else if (a === '--steps') steps = Number(argv[++i]) || 12;
   else if (a === '--dry-run') dryRun = true;
@@ -122,7 +128,7 @@ function findAdb() {
   for (const c of candidates) if (fs.existsSync(c)) return c;
   throw new Error('adb not found; set ANDROID_SDK_ROOT');
 }
-const ADB = findAdb();
+const ADB = IS_MAIN ? findAdb() : null;
 
 function adb(serial, sub, opts = {}) {
   const argv2 = serial ? ['-s', serial, ...sub] : sub;
@@ -138,6 +144,15 @@ function adb(serial, sub, opts = {}) {
   }
 }
 
+function adbBuffer(serial, sub, opts = {}) {
+  const argv2 = serial ? ['-s', serial, ...sub] : sub;
+  return execFileSync(ADB, argv2, {
+    encoding: null, timeout: opts.timeout || 30000,
+    maxBuffer: 32 * 1024 * 1024, windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
 function resolveSerial() {
   if (serialOverride) return serialOverride;
   const out = adb(null, ['devices'], { timeout: 15000 });
@@ -148,6 +163,55 @@ function resolveSerial() {
 
 const sha256 = (buf) => createSha256(buf);
 const sha1 = (buf) => crypto.createHash('sha1').update(buf).digest('hex');
+
+/** Read the app's persisted tutorial fact without changing device state. */
+export function tutorialStateFromPersistedRow(row) {
+  if (row == null) {
+    return { previouslyCompleted: false, completed: false, replayRequested: false, version: null, source: 'tutorial_state' };
+  }
+  if (![0, 1].includes(row.completed) || ![0, 1].includes(row.replay_requested) ||
+      (row.version !== null && typeof row.version !== 'string')) return null;
+  const completed = row.completed === 1;
+  const replayRequested = row.replay_requested === 1;
+  // The SDK's createTutorialLifecycle default is 1.0.0; a replay request,
+  // incomplete row or different version means the current tutorial is due.
+  return {
+    previouslyCompleted: completed && !replayRequested && row.version === '1.0.0',
+    completed, replayRequested, version: row.version, source: 'tutorial_state',
+  };
+}
+
+/** Query a read-only local copy of the SQLite database and its WAL sidecar. */
+export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, gameId, tempRoot = os.tmpdir()) {
+  if (!Buffer.isBuffer(databaseBytes) || !gameId || typeof gameId !== 'string') return null;
+  const dir = fs.mkdtempSync(path.join(tempRoot, 'bt080-tutorial-state-'));
+  const databaseFile = path.join(dir, 'brain-training.db');
+  let db;
+  try {
+    fs.writeFileSync(databaseFile, databaseBytes);
+    if (Buffer.isBuffer(walBytes) && walBytes.length > 0) fs.writeFileSync(`${databaseFile}-wal`, walBytes);
+    db = new BetterSqlite3(databaseFile, { timeout: 2500 });
+    const row = db.prepare('SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?').get(gameId);
+    return tutorialStateFromPersistedRow(row ?? null);
+  } catch {
+    return null;
+  } finally {
+    try { db?.close(); } catch { /* best-effort close of disposable read copy */ }
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* disposable temp cleanup must not invent tutorial facts */ }
+  }
+}
+
+function persistedTutorialState(serial, gameId) {
+  try {
+    const db = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db']);
+    let wal = null;
+    try { wal = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db-wal']); } catch { /* no WAL is a valid checkpointed database */ }
+    return readTutorialStateFromDatabaseBytes(db, wal, gameId);
+  } catch {
+    // A failed read is UNKNOWN, never an invented completed tutorial.
+    return null;
+  }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // --- provenance (F-080-005) ----------------------------------------------
@@ -182,10 +246,33 @@ function deviceProfile(serial) {
 }
 
 // --- observations ----------------------------------------------------------
-function dumpHierarchy(serial) {
+export function hierarchyStatus(xml) {
+  if (typeof xml !== 'string' || !xml.trim()) return 'empty';
+  let root = null;
+  let depth = 0;
+  let nodes = 0;
+  let invalid = false;
+  const parser = new SaxesParser();
+  parser.on('error', () => { invalid = true; });
+  parser.on('doctype', () => { invalid = true; });
+  parser.on('opentag', (tag) => {
+    if (depth++ === 0) root = tag.name;
+    if (tag.name === 'node') nodes++;
+  });
+  parser.on('closetag', () => { depth--; });
+  try { parser.write(xml).close(); } catch { invalid = true; }
+  return invalid || root !== 'hierarchy' || depth !== 0 ? 'malformed' : nodes ? 'ok' : 'empty';
+}
+
+export function dumpHierarchy(serial, run = adb) {
   const remote = '/sdcard/bt-sweep-dump.xml';
-  adb(serial, ['shell', 'uiautomator', 'dump', remote], { timeout: 60000, tolerant: true });
-  return adb(serial, ['shell', 'cat', remote], { timeout: 30000, tolerant: true }) || '';
+  try {
+    // Never let a failed dump read the PREVIOUS capture. Every acquisition
+    // invalidates the remote path and all three commands must succeed.
+    run(serial, ['shell', 'rm', '-f', remote], { timeout: 15000 });
+    run(serial, ['shell', 'uiautomator', 'dump', remote], { timeout: 60000 });
+    return run(serial, ['shell', 'cat', remote], { timeout: 30000 }) || '';
+  } catch { return ''; }
 }
 
 function parseControls(xml, gameId) {
@@ -213,42 +300,56 @@ function currentFocus(serial) {
   return line ? line[1] : '';
 }
 
-function screenMarkersFor(serial, controls) {
-  const markers = [];
-  const focus = currentFocus(serial);
-  if (focus && !focus.startsWith(PACKAGE)) markers.push('launcher');
-  if (Object.keys(controls).length === 0 && markers.length === 0) markers.push('non-game-app-screen');
-  return markers;
+function rawScreenFor(serial, xml, appExpectedRunning = true) {
+  return {
+    expectedPackage: PACKAGE,
+    focusPackage: currentFocus(serial) || undefined,
+    hierarchyStatus: hierarchyStatus(xml),
+    appAlive: appExpectedRunning
+      ? !!adb(serial, ['shell', 'pidof', PACKAGE], { tolerant: true, timeout: 15000 }).trim()
+      : undefined,
+  };
 }
 
-/**
- * Proven screen classification (P1-B). A failed/malformed `uiautomator dump`
- * used to parse to zero game controls and was emitted as
- * `non-game-app-screen`, which the contract read as EXITED — so a failed Back
- * plus a failed dump "proved" a safe exit. The harness now reports the
- * foreground window identity, the hierarchy status and process liveness
- * explicitly, and the contract derives the screen kind from those facts.
- */
-function screenKindFor(serial, xml, controls, appExpectedRunning = true) {
-  let hierarchyStatus = 'ok';
-  if (!xml || !xml.trim()) hierarchyStatus = 'empty';
-  else if (!/<node\b/.test(xml)) hierarchyStatus = 'malformed';
-  const focus = currentFocus(serial);
-  // Liveness is only meaningful once the app is expected to be up: an app that
-  // has not been launched yet is not a crash.
-  let appAlive;
-  if (appExpectedRunning) {
-    try {
-      appAlive = !!adb(serial, ['shell', 'pidof', PACKAGE], { tolerant: true, timeout: 15000 }).trim();
-    } catch { appAlive = undefined; }
+/** Write a receipt only for bytes actually acquired by this attempt. The
+ * independent index is accumulated at acquisition, never reconstructed from
+ * the ledger's claims. Static frames may legitimately have identical pixels. */
+export function captureArtifact(ctx, file, bytes, kind, capturedAt = new Date().toISOString()) {
+  if (!Buffer.isBuffer(bytes) || !fs.existsSync(file)) throw new Error('capture receipt requires acquired artifact bytes on disk');
+  const digest = sha256(bytes);
+  if (sha256(fs.readFileSync(file)) !== digest) throw new Error('captured artifact bytes differ from the acquired file');
+  const receipt = {
+    schemaVersion: 1, captureId: crypto.randomUUID(),
+    executionAttemptId: ctx.attemptId, artifactSha256: digest, capturedAt,
+    gitSha: ctx.buildIdentity.gitSha, apkSha256: ctx.buildIdentity.apkSha256,
+  };
+  const receiptFile = `${file}.capture.json`;
+  const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2));
+  fs.writeFileSync(receiptFile, receiptBytes);
+  const ref = { file: path.relative(REPO_ROOT, receiptFile).split(path.sep).join('/'), sha256: sha256(receiptBytes) };
+  if (!Array.isArray(ctx.captureReceipts)) ctx.captureReceipts = [];
+  if (ctx.captureReceipts.some((existing) => existing.file === ref.file)) throw new Error(`duplicate capture receipt path: ${ref.file}`);
+  ctx.captureReceipts.push(ref);
+  return {
+    file: path.relative(REPO_ROOT, file).split(path.sep).join('/'), bytes: bytes.length,
+    sha256: digest, sha1: sha1(bytes), kind,
+    executionAttemptId: ctx.attemptId, captureReceipt: ref,
+  };
+}
+
+/** The sidecar index is the independent acquisition boundary, not proof by itself. */
+export function writeCaptureReceiptIndex(file, refs) {
+  const unique = new Set();
+  for (const ref of refs) {
+    if (!ref || typeof ref.file !== 'string' || !ref.file || !/^[a-f0-9]{64}$/i.test(ref.sha256 || '')) {
+      throw new Error('capture receipt index contains an invalid file/hash reference');
+    }
+    if (path.isAbsolute(ref.file) || ref.file.split(/[\\/]/).includes('..')) throw new Error('capture receipt index paths must be repo-relative');
+    if (unique.has(ref.file)) throw new Error(`duplicate capture receipt index path: ${ref.file}`);
+    unique.add(ref.file);
   }
-  return deriveScreenKind({
-    expectedPackage: PACKAGE,
-    focusPackage: focus || undefined,
-    hierarchyStatus,
-    controlCount: Object.keys(controls).length,
-    appAlive,
-  });
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify({ schemaVersion: 1, receipts: refs.map(({ file: receiptFile, sha256: digest }) => ({ file: receiptFile, sha256: digest })) }, null, 2));
 }
 
 /**
@@ -259,13 +360,15 @@ function screenKindFor(serial, xml, controls, appExpectedRunning = true) {
 function observe(ctx, phase, key) {
   const { serial, gameId, artDir } = ctx;
   const xml = dumpHierarchy(serial);
-  const controls = parseControls(xml, gameId);
+  const rawScreen = rawScreenFor(serial, xml, ctx.appLaunched === true);
+  const controls = rawScreen.hierarchyStatus === 'ok' ? parseControls(xml, gameId) : {};
   const suffixes = Object.keys(controls).sort();
-  const scoreControl = controls['score'];
+  const scoreControlId = ['score-final', 'score-live', 'score'].find((id) => controls[id]);
+  const scoreControl = scoreControlId ? controls[scoreControlId] : null;
   const boardValues = suffixes
     .filter((s) => /(tile|card|option|word|choice|cell|item|node|target-card|number|symbol|token|chip|key|display|board|sequence|status|problem|text|answer|label|prompt)(\.\d+)?$/.test(s))
     .map((s) => `${s}=${controls[s].text || controls[s].desc || ''}`);
-  const screenKind = screenKindFor(serial, xml, controls, ctx.appLaunched === true);
+  const screenKind = deriveScreenKind({ ...rawScreen, controlCount: suffixes.length });
   // Control identity (text/desc) is captured so the causality contract can
   // attribute a change to the SPECIFIC control that was tapped (P1-A).
   const controlDetails = Object.fromEntries(suffixes.map((s) => [s, {
@@ -277,11 +380,13 @@ function observe(ctx, phase, key) {
     phase,
     timestamp: new Date().toISOString(),
     controls: suffixes,
-    screenMarkers: screenMarkersFor(serial, controls),
+    screenMarkers: [],
+    rawScreen,
     screenKind,
     controlDetails,
     observedGameId: suffixes.length ? gameId : null,
     score: scoreControl ? (scoreControl.text || scoreControl.desc || null) : null,
+    scoreControlId: scoreControl ? scoreControlId : null,
     boardValues,
     evidenceArtifact: null,
     requireArtifact: false,
@@ -303,24 +408,19 @@ function observe(ctx, phase, key) {
       });
       fs.mkdirSync(artDir, { recursive: true });
       fs.writeFileSync(pngPath, buf);
-      const rel = path.relative(REPO_ROOT, pngPath).replace(/\\/g, '/');
-      const art = {
-        file: rel, bytes: buf.length, sha256: sha256(buf), sha1: sha1(buf),
-        kind: 'screenshot', executionAttemptId: ctx.attemptId,
-      };
+      const art = captureArtifact(ctx, pngPath, buf, 'screenshot');
       ctx.artifacts.push(art);
       obs.evidenceArtifact = { ...art };
     } catch { /* screenshot failure stays visible as evidenceArtifact: null */ }
-    const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
-    fs.mkdirSync(artDir, { recursive: true });
-    fs.writeFileSync(xmlPath, xml);
-    const relXml = path.relative(REPO_ROOT, xmlPath).replace(/\\/g, '/');
-    const xmlArt = {
-      file: relXml, bytes: Buffer.byteLength(xml), sha256: sha256(Buffer.from(xml)),
-      sha1: sha1(Buffer.from(xml)), kind: 'hierarchy', executionAttemptId: ctx.attemptId,
-    };
-    ctx.artifacts.push(xmlArt);
-    if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
+    if (rawScreen.hierarchyStatus === 'ok') {
+      const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
+      fs.mkdirSync(artDir, { recursive: true });
+      fs.writeFileSync(xmlPath, xml);
+      const xmlArt = captureArtifact(ctx, xmlPath, Buffer.from(xml), 'hierarchy', obs.timestamp);
+      ctx.artifacts.push(xmlArt);
+      obs.hierarchyArtifact = { ...xmlArt };
+      if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
+    }
   }
   ctx.observations.push(obs);
   return obs;
@@ -341,7 +441,7 @@ function emitEvent(ctx, e) {
     action: e.action,
     target: e.target,
     actionRequested: true,
-    actionExecuted: e.actionExecuted !== false,
+    actionExecuted: e.actionExecuted === true,
     actionAcknowledged: e.actionAcknowledged ?? null,
     observationBeforeSeq: e.before ? e.before.seq : undefined,
     observationAfterSeq: e.after ? e.after.seq : undefined,
@@ -643,7 +743,7 @@ function summariseTutorialSolve(log) {
 }
 
 // --- main ------------------------------------------------------------------
-(async function main() {
+export async function main() {
   let serial;
   try { serial = resolveSerial(); } catch (e) { console.error('[sweep] ' + e.message); process.exit(3); }
 
@@ -672,13 +772,16 @@ function summariseTutorialSolve(log) {
 
   fs.mkdirSync(ARTIFACT_ROOT, { recursive: true });
   const runs = [];
+  const captureReceipts = [];
+  captureReceiptsFile ||= `${outFile}.capture-receipts.json`;
   for (const g of games) {
     const id = g.meta.id;
     const artDir = path.join(ARTIFACT_ROOT, id);
     process.stdout.write(`[sweep] ${id} ... `);
     const attemptId = `sweep-${new Date().toISOString().replace(/[:.]/g, '')}--${id}`;
+    const tutorialState = g.meta.hasTutorial === true ? persistedTutorialState(serial, id) : null;
     const ctx = {
-      serial, gameId: id, artDir, attemptId,
+      serial, gameId: id, artDir, attemptId, buildIdentity: identity, captureReceipts, tutorialState,
       obsSeq: 0, eventSeq: 0,
       observations: [], events: [], artifacts: [],
     };
@@ -693,6 +796,7 @@ function summariseTutorialSolve(log) {
         name: g.meta.name,
         category: g.meta.primaryCategory,
         hasTutorial: g.meta.hasTutorial,
+        tutorialState,
         buildIdentity: identity,
         deviceProfile: device,
         startedAt: ctx.observations[0]?.timestamp || null,
@@ -719,6 +823,8 @@ function summariseTutorialSolve(log) {
         gameId: id,
         name: g.meta.name,
         category: g.meta.primaryCategory,
+        hasTutorial: g.meta.hasTutorial,
+        tutorialState,
         buildIdentity: identity,
         deviceProfile: device,
         startedAt: ctx.observations[0]?.timestamp || null,
@@ -746,6 +852,8 @@ function summariseTutorialSolve(log) {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify(ledger, null, 2));
 
+  writeCaptureReceiptIndex(captureReceiptsFile, captureReceipts);
+
   const dist = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
   for (const r of runs) {
     const lvl = r.classification?.level ?? 0;
@@ -753,4 +861,6 @@ function summariseTutorialSolve(log) {
   }
   console.log('\n[sweep] DONE. Certified distribution:', JSON.stringify(dist));
   console.log('[sweep] ledger ->', outFile);
-})();
+}
+
+if (IS_MAIN) await main();
