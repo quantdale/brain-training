@@ -61,7 +61,7 @@ import {
   or3,
 } from './coverage-contract.mjs';
 import { EvidenceMode, verifyArtifactLedger } from './artifact-integrity.mjs';
-import { isQuarantinedLedger, isQuarantinedRun, loadEvidenceGameRegistry, validateEvidenceRun } from './artifact-policy.mjs';
+import { isQuarantinedLedger, isQuarantinedRun, loadEvidenceGameMetadata, validateEvidenceRun } from './artifact-policy.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 function describeRunEntry(value) {
@@ -157,8 +157,12 @@ for (const file of inputs) {
 }
 
 // --- authoritative registry (B1) -------------------------------------------
+let gameMetadata = null;
 let knownGames = null;
-try { knownGames = loadEvidenceGameRegistry(); }
+try {
+  gameMetadata = loadEvidenceGameMetadata();
+  knownGames = new Set(gameMetadata.keys());
+}
 catch (error) {
   diagnostics.push({
     kind: 'registry-unavailable',
@@ -187,7 +191,7 @@ for (const [id, n] of attemptIdCount) {
 
 // --- validate + classify every run ----------------------------------------
 const validatedRuns = runs.map((r) => {
-  const shape = validateEvidenceRun(r, knownGames);
+  const shape = validateEvidenceRun(r, knownGames, gameMetadata);
   const errors = [...(shape.errors || [])];
   const attemptId = r.executionAttemptId || '(missing)';
   const quarantined = isQuarantinedRun(r);
@@ -626,7 +630,7 @@ if (outMatrix) {
   console.log(`[merge] matrix -> ${outMatrix}`);
 }
 
-if (strict && (validatedRuns.some((v) => !v.valid) || validatedRuns.some((v) => !v.artifactAttestation.certifying))) {
-  console.error('[merge] --strict: contract-invalid runs and/or runs without a PASS artifact attestation present (see diagnostics)');
+if (strict && (runs.length === 0 || validatedRuns.some((v) => !v.valid) || validatedRuns.some((v) => !v.artifactAttestation.certifying))) {
+  console.error(`[merge] --strict: ${runs.length === 0 ? 'zero runs present' : 'contract-invalid runs and/or runs without a PASS artifact attestation present'} (see diagnostics)`);
   process.exit(1);
 }

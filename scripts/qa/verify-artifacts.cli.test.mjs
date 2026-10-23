@@ -70,12 +70,12 @@ const PNG_1X1 = Buffer.concat([
   pngChunk('IDAT', deflateSync(Buffer.from([0, 255, 0, 0, 255]))),
   pngChunk('IEND', Buffer.alloc(0)),
 ]);
-const HIERARCHY_XML = (label) => Buffer.from(
-  `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0">`
-  + `<node index="0" text="${label}" resource-id="${label}" class="android.widget.TextView" `
-  + `package="com.braintraining.app" content-desc="" bounds="[0,0][1080,120]" /></hierarchy>`,
-  'utf8',
-);
+const HIERARCHY_XML = (gameId = 'memory-pair-recall', controls = ['intro', 'start'], markers = []) => {
+  const nodes = [...controls.map((control) => `<node index="0" text="${control}" resource-id="${gameId}.${control}" class="android.widget.TextView" package="com.braintraining.app" />`),
+    ...markers.map((marker) => `<node index="0" text="${marker}" resource-id="${marker}" class="android.widget.TextView" package="com.braintraining.app" />`)];
+  if (!nodes.length) nodes.push('<node index="0" text="Games" resource-id="games-title" class="android.widget.TextView" package="com.braintraining.app" />');
+  return Buffer.from(`<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0">${nodes.join('')}</hierarchy>`, 'utf8');
+};
 
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const sha1 = (buf) => createHash('sha1').update(buf).digest('hex');
@@ -99,14 +99,16 @@ function writeArtifact(label, bytes, ext = 'png') {
   };
 }
 
-function writeCaptureReceipt(artifact, attemptId, build) {
+function writeCaptureReceipt(artifact, attemptId, build, observation) {
   fixtureCounter += 1;
   const receipt = {
     schemaVersion: 1,
     captureId: randomUUID(),
     executionAttemptId: attemptId,
     artifactSha256: artifact.sha256,
-    capturedAt: '2026-10-23T00:00:30.000Z',
+    capturedAt: observation.timestamp,
+    observationSeq: observation.seq,
+    observationTimestamp: observation.timestamp,
     gitSha: build.gitSha,
     apkSha256: build.apkSha256,
     artifactFile: artifact.file,
@@ -143,10 +145,12 @@ const DEVICE = () => ({
  * assertion is unambiguous about what caused the exit code.
  */
 function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall', build = BUILD() } = {}) {
+  const observation0 = { seq: 0, timestamp: '2026-10-22T00:00:10.000Z', controls: ['intro', 'start'] };
+  const observation1 = { seq: 1, timestamp: '2026-10-22T00:00:20.000Z', controls: ['intro', 'start'] };
   const png = writeArtifact('launch', PNG_1X1, 'png');
-  const xml = writeArtifact('launch', HIERARCHY_XML('launch'), 'xml');
-  const pngReceipt = writeCaptureReceipt(png, attemptId, build);
-  const xmlReceipt = writeCaptureReceipt(xml, attemptId, build);
+  const xml = writeArtifact('launch', HIERARCHY_XML(gameId, observation1.controls), 'xml');
+  const pngReceipt = writeCaptureReceipt(png, attemptId, build, observation0);
+  const xmlReceipt = writeCaptureReceipt(xml, attemptId, build, observation1);
   const common = { kind: 'screenshot', executionAttemptId: attemptId };
   return {
     run: {
@@ -154,6 +158,7 @@ function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall
       evidenceSource: 'runtime',
       knownGameId: true,
       gameId,
+      hasTutorial: true,
       buildIdentity: build,
       deviceProfile: DEVICE(),
       startedAt: '2026-10-22T00:00:00.000Z',
@@ -163,8 +168,8 @@ function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall
         {
           seq: 0,
           phase: 'launch',
-          timestamp: '2026-10-22T00:00:10.000Z',
-          controls: ['intro', 'start'],
+          timestamp: observation0.timestamp,
+          controls: observation0.controls,
           screenMarkers: [],
           screenKind: 'game-screen',
           observedGameId: gameId,
@@ -174,11 +179,16 @@ function baseRun({ attemptId = 'fixture-attempt-1', gameId = 'memory-pair-recall
         {
           seq: 1,
           phase: 'terminal',
-          timestamp: '2026-10-22T00:00:20.000Z',
-          controls: ['intro', 'start'],
+          timestamp: observation1.timestamp,
+          controls: observation1.controls,
           screenMarkers: [],
           screenKind: 'game-screen',
           observedGameId: gameId,
+          rawScreen: {
+            expectedPackage: build.packageName,
+            focusPackage: `${build.packageName}/${build.packageName}.MainActivity`,
+            hierarchyStatus: 'ok', appAlive: true, controlCount: observation1.controls.length,
+          },
           requireArtifact: true,
           evidenceArtifact: {
             kind: 'hierarchy', executionAttemptId: attemptId,
@@ -207,7 +217,11 @@ function writeLedger(runs, name = 'ledger') {
       const receipt = observation?.evidenceArtifact?.captureReceipt;
       if (receipt?.file && receipt?.sha256) receiptEntries.set(receipt.file.toLowerCase(), { file: receipt.file, sha256: receipt.sha256 });
     }
-    for (const artifact of Array.isArray(run.artifacts) ? run.artifacts : []) {
+    for (const observation of Array.isArray(run.observations) ? run.observations : []) {
+      const receipt = observation?.hierarchyArtifact?.captureReceipt;
+      if (receipt?.file && receipt?.sha256) receiptEntries.set(receipt.file.toLowerCase(), { file: receipt.file, sha256: receipt.sha256 });
+    }
+    for (const artifact of [...(Array.isArray(run.artifacts) ? run.artifacts : []), run.tutorialStateArtifact]) {
       const receipt = artifact?.captureReceipt;
       if (receipt?.file && receipt?.sha256) receiptEntries.set(receipt.file.toLowerCase(), { file: receipt.file, sha256: receipt.sha256 });
     }
@@ -219,6 +233,31 @@ function writeLedger(runs, name = 'ledger') {
 }
 
 /** Run the real CLI and capture its real exit status. */
+function attachTutorialState(run, row, timestamp = '2026-10-22T00:00:30.000Z') {
+  const observation = { seq: 2, timestamp, controls: [], screenMarkers: [], phase: 'tutorial-state' };
+  run.observations.push(observation);
+  const completed = row?.completed === 1;
+  const replayRequested = row?.replay_requested === 1;
+  const version = row?.version ?? null;
+  run.tutorialState = {
+    gameId: run.gameId, previouslyCompleted: completed && !replayRequested && version === '1.0.0',
+    completed, replayRequested, version, source: 'tutorial_state',
+  };
+  const snapshot = {
+    schemaVersion: 1, source: 'sqlite-query',
+    query: 'SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?',
+    parameters: [run.gameId], gameId: run.gameId, completed, row,
+  };
+  const artifact = writeArtifact('tutorial-state', Buffer.from(JSON.stringify(snapshot)), 'json');
+  const receipt = writeCaptureReceipt(artifact, run.executionAttemptId, run.buildIdentity, observation);
+  run.tutorialStateArtifact = {
+    kind: 'tutorial-state', executionAttemptId: run.executionAttemptId,
+    file: artifact.file, bytes: artifact.bytes, sha256: artifact.sha256,
+    captureReceipt: receipt.reference,
+  };
+  return run.tutorialStateArtifact;
+}
+
 function runCli(args, { expectedIdentity = true, captureIndex = true } = {}) {
   const ledger = args.find((arg) => !String(arg).startsWith('-'));
   const effectiveArgs = [...args];
@@ -787,7 +826,7 @@ test('CLI 20g: exact reviewer artifact fixtures cannot pass without valid bytes 
     '--expected-git-sha', 'a'.repeat(40), '--expected-apk-sha256', 'a'.repeat(64),
   ]);
   assert.match(original.stdout, /not cryptographic proof of native capture/);
-  assert.match(original.stdout, /artifact-content-invalid/);
+  assert.match(original.stdout, /invalid-run|artifact-content-invalid/);
 });
 
 test('CLI 20h: duplicate captureIds cannot establish independent per-artifact acquisitions', () => {
@@ -817,7 +856,96 @@ test('CLI 20i: copied bytes at a new path cannot reuse another attempt\'s captur
   const ledger = writeLedger([a.run, b.run]);
   const result = runCli([ledger, '--mode', 'local']);
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /capture-receipt-binding-mismatch/);
+  assert.match(result.stdout, /artifact-reused-across-attempts|capture-receipt-binding-mismatch/);
+});
+
+test('CLI 20j: same-attempt receipt replay across observations fails exact sequence/time binding', () => {
+  const { run } = baseRun({ attemptId: 'same-attempt-observation-replay' });
+  run.observations[0].hierarchyArtifact = structuredClone(run.observations[1].evidenceArtifact);
+  const ledger = writeLedger([run]);
+  const result = runCli([ledger, '--mode', 'local']);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /capture-receipt-observation-mismatch|capture-receipt-reused-for-distinct-observation/);
+});
+
+test('CLI 20k: identical passive frames pass when each observation has a fresh acquisition receipt', () => {
+  const { run, png } = baseRun({ attemptId: 'same-attempt-fresh-identical-captures' });
+  const observation = run.observations[1];
+  const second = writeArtifact('same-attempt-identical-frame', fs.readFileSync(png.abs), 'png');
+  const receipt = writeCaptureReceipt(second, run.executionAttemptId, run.buildIdentity, observation);
+  run.artifacts.push({
+    kind: 'screenshot', executionAttemptId: run.executionAttemptId,
+    file: second.file, bytes: second.bytes, sha256: second.sha256, captureReceipt: receipt.reference,
+  });
+  assert.equal(second.sha256, png.sha256);
+  const ledger = writeLedger([run]);
+  const result = runCli([ledger, '--mode', 'local']);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /verdict=PASS/);
+});
+
+test('CLI 20l: returning-player tutorial completion requires matching receipt-indexed SQLite query JSON', () => {
+  const { run } = baseRun({ attemptId: 'returning-tutorial-player' });
+  attachTutorialState(run, { completed: 1, replay_requested: 0, version: '1.0.0' });
+  const ledger = writeLedger([run]);
+  const result = runCli([ledger, '--mode', 'local']);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+
+  const falseApplicability = baseRun({ attemptId: 'false-tutorial-applicability' }).run;
+  falseApplicability.hasTutorial = false;
+  attachTutorialState(falseApplicability, { completed: 1, replay_requested: 0, version: '1.0.0' });
+  const rejected = runCli([writeLedger([falseApplicability]), '--mode', 'local']);
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stdout, /hasTutorial claim false does not match authoritative metadata true/);
+
+  const missingCapture = baseRun({ attemptId: 'unbound-returning-tutorial-player' }).run;
+  missingCapture.tutorialState = { previouslyCompleted: true, completed: true, replayRequested: false, version: '1.0.0', source: 'tutorial_state' };
+  const missing = runCli([writeLedger([missingCapture]), '--mode', 'local']);
+  assert.equal(missing.status, 1);
+  assert.match(missing.stdout, /tutorialState claim requires a bound tutorial-state JSON artifact/);
+
+  const mismatched = baseRun({ attemptId: 'mismatched-returning-tutorial-player' }).run;
+  attachTutorialState(mismatched, { completed: 0, replay_requested: 0, version: '1.0.0' });
+  mismatched.tutorialState.previouslyCompleted = true;
+  const mismatch = runCli([writeLedger([mismatched]), '--mode', 'local']);
+  assert.equal(mismatch.status, 1);
+  assert.match(mismatch.stdout, /tutorialState\.previouslyCompleted does not match the captured SQLite row/);
+});
+
+test('CLI 20m: coercible but non-ISO receipt/event timestamps fail closed', () => {
+  const { run } = baseRun({ attemptId: 'non-iso-capture-time' });
+  const reference = run.observations[0].evidenceArtifact.captureReceipt;
+  const receiptFile = path.join(REPO_ROOT, ...reference.file.split('/'));
+  const receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'));
+  receipt.capturedAt = 'Fri, 23 Oct 2026 00:00:10 GMT';
+  const bytes = Buffer.from(JSON.stringify(receipt));
+  fs.writeFileSync(receiptFile, bytes);
+  reference.sha256 = sha256(bytes);
+  const ledger = writeLedger([run]);
+  const result = runCli([ledger, '--mode', 'local']);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /capture-receipt-index-invalid/);
+
+  const badEvent = baseRun({ attemptId: 'non-iso-event-time' }).run;
+  badEvent.events.push({ seq: 0, action: 'wait', actionRequested: true, actionExecuted: true,
+    actionAcknowledged: null, executionAttemptId: badEvent.executionAttemptId,
+    timestamp: 'Fri, 23 Oct 2026 00:00:10 GMT' });
+  const badEventResult = runCli([writeLedger([badEvent]), '--mode', 'local']);
+  assert.equal(badEventResult.status, 1);
+  assert.match(badEventResult.stdout, /events\[0\]\.timestamp must be an ISO-8601\/RFC-3339 timestamp/);
+
+  const stale = baseRun({ attemptId: 'iso-but-stale-observation-time' }).run;
+  const staleReference = stale.observations[0].evidenceArtifact.captureReceipt;
+  const staleReceiptPath = path.join(REPO_ROOT, ...staleReference.file.split('/'));
+  const staleReceipt = JSON.parse(fs.readFileSync(staleReceiptPath, 'utf8'));
+  staleReceipt.capturedAt = '2020-01-01T00:00:00.000Z';
+  staleReceipt.observationTimestamp = '2020-01-01T00:00:00.000Z';
+  const staleBytes = Buffer.from(JSON.stringify(staleReceipt));
+  fs.writeFileSync(staleReceiptPath, staleBytes);
+  staleReference.sha256 = sha256(staleBytes);
+  const staleResult = runCli([writeLedger([stale]), '--mode', 'local']);
+  assert.equal(staleResult.status, 1);
+  assert.match(staleResult.stdout, /capture-receipt-observation-mismatch/);
 });
 
 // ===========================================================================

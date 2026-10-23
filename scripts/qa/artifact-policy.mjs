@@ -10,29 +10,55 @@ const isRecord = (value) => value !== null && typeof value === 'object' && !Arra
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 const artifactKinds = new Set(Object.values(ArtifactKind));
 const HISTORICAL_LEDGER = /^native-coverage-ledger(?:-v([1-7]))?\.json$/i;
+const RFC3339_TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
 
-/** Read the checked-in game modules as the authoritative game-id registry. */
-export function loadEvidenceGameRegistry() {
+/** Accept only a full RFC-3339 timestamp with timezone, not Date.parse coercions. */
+export function isIsoTimestamp(value) {
+  if (typeof value !== 'string') return false;
+  const match = RFC3339_TIMESTAMP.exec(value);
+  if (!match || !Number.isFinite(Date.parse(value))) return false;
+  const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+  return month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth;
+}
+
+/** Read the checked-in game modules as the authoritative metadata registry. */
+export function loadEvidenceGameMetadata() {
   const dir = path.join(ROOT, 'apps/mobile/src/games');
-  const ids = new Set();
+  const metadataById = new Map();
   for (const name of fs.readdirSync(dir).sort()) {
     const file = path.join(dir, name, 'game.json');
     if (!fs.existsSync(file)) continue;
     const metadata = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (!hasText(metadata?.id) || ids.has(metadata.id)) {
+    if (!hasText(metadata?.id) || metadataById.has(metadata.id)) {
       throw new Error(`invalid or duplicate authoritative game id in ${file}`);
     }
-    ids.add(metadata.id);
+    metadataById.set(metadata.id, metadata);
   }
-  if (ids.size === 0) throw new Error('authoritative game registry is empty');
-  return ids;
+  if (metadataById.size === 0) throw new Error('authoritative game registry is empty');
+  return metadataById;
+}
+
+/** Game ids remain available to contract callers that need membership only. */
+export function loadEvidenceGameRegistry() {
+  return new Set(loadEvidenceGameMetadata().keys());
+}
+
+/** Read the actual Android package from the Expo application config. */
+export function loadExpectedApplicationPackage() {
+  const file = path.join(ROOT, 'apps/mobile/app.json');
+  const config = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const packageName = config?.expo?.android?.package;
+  if (!hasText(packageName)) throw new Error(`Android package is missing from ${file}`);
+  return packageName;
 }
 
 /**
  * Validate untrusted run shape before any contract derivation can iterate it.
  * Every malformed collection/member is an error; no caller may filter it away.
  */
-export function validateEvidenceRun(run, knownGames) {
+export function validateEvidenceRun(run, knownGames, metadataById = null) {
   const errors = [];
   if (!isRecord(run)) return { valid: false, errors: ['run must be an object (not null, array, or primitive)'] };
 
@@ -65,9 +91,40 @@ export function validateEvidenceRun(run, knownGames) {
     }
   }
 
+  if (metadataById instanceof Map) {
+    const metadata = metadataById.get(run.gameId);
+    if (!metadata) errors.push(`unknown game id '${run.gameId}' has no authoritative game metadata`);
+    else if (typeof metadata.hasTutorial !== 'boolean') errors.push(`authoritative metadata for '${run.gameId}' has no boolean hasTutorial`);
+    else if (run.hasTutorial !== metadata.hasTutorial) errors.push(`hasTutorial claim ${String(run.hasTutorial)} does not match authoritative metadata ${metadata.hasTutorial}`);
+    if (run.tutorialState !== undefined && run.tutorialState !== null) {
+      const artifact = run.tutorialStateArtifact;
+      if (!isRecord(artifact) || artifact.kind !== 'tutorial-state' || !hasText(artifact.file) || !/^[a-f0-9]{64}$/i.test(artifact.sha256 || '')) {
+        errors.push('tutorialState claim requires a bound tutorial-state JSON artifact');
+      }
+    } else if (run.tutorialStateArtifact !== undefined && run.tutorialStateArtifact !== null
+        && (!isRecord(run.tutorialStateArtifact) || run.tutorialStateArtifact.kind !== 'tutorial-state')) {
+      errors.push('tutorialStateArtifact must have kind tutorial-state');
+    }
+  }
+
+  for (const field of ['startedAt', 'endedAt']) {
+    if (run[field] !== undefined && run[field] !== null && !isIsoTimestamp(run[field])) {
+      errors.push(`${field} must be an ISO-8601/RFC-3339 timestamp with timezone`);
+    }
+  }
+  if (Array.isArray(run.events)) {
+    for (const [index, event] of run.events.entries()) {
+      if (isRecord(event) && !isIsoTimestamp(event.timestamp)) {
+        errors.push(`events[${index}].timestamp must be an ISO-8601/RFC-3339 timestamp with timezone`);
+      }
+    }
+  }
   if (Array.isArray(run.observations)) {
     for (const [index, observation] of run.observations.entries()) {
       if (!isRecord(observation)) continue;
+      if (!isIsoTimestamp(observation.timestamp)) {
+        errors.push(`observations[${index}].timestamp must be an ISO-8601/RFC-3339 timestamp with timezone`);
+      }
       for (const field of ['controls', 'screenMarkers', 'boardValues']) {
         const values = observation[field];
         if ((field === 'controls' || values !== undefined)

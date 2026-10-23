@@ -67,7 +67,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { inflateSync } from 'node:zlib';
-import { isQuarantinedRun, loadEvidenceGameRegistry, validateEvidenceRun } from './artifact-policy.mjs';
+import {
+  isIsoTimestamp,
+  isQuarantinedRun,
+  loadEvidenceGameMetadata,
+  loadExpectedApplicationPackage,
+  validateEvidenceRun,
+} from './artifact-policy.mjs';
 import {
   ARTIFACT_REQUIRED_PHASES,
   CAPABILITY_ARTIFACT_REQUIREMENTS as CONTRACT_CAPABILITY_REQUIREMENTS,
@@ -452,26 +458,152 @@ export function sniffScreenshot(bytes) {
   return { ok: true };
 }
 
-/** Strict XML parsing, not prefix sniffing. DTDs/entities are never evaluated. */
-export function sniffHierarchy(bytes) {
+/** Parse actual UIAutomator hierarchy bytes into root/node attributes. */
+export function parseHierarchy(bytes) {
   const bad = (reason) => ({ ok: false, reason: `not valid hierarchy XML: ${reason}` });
   if (!Buffer.isBuffer(bytes) || !bytes.length) return bad('empty');
   let text;
   try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { return bad('invalid UTF-8'); }
-  let root = null, nodes = 0, depth = 0, problem = null;
+  let root = null, depth = 0, problem = null;
+  const nodes = [];
   const parser = new SaxesParser({ xmlns: false });
   parser.on('error', (error) => { problem = error.message; });
   parser.on('doctype', () => { problem = 'DOCTYPE is forbidden'; });
   parser.on('opentag', (tag) => {
+    const attributes = Object.fromEntries(Object.entries(tag.attributes || {}).map(([key, value]) => [key, String(value)]));
     if (depth++ === 0) root = tag.name;
     if (!['hierarchy', 'node'].includes(tag.name)) problem = `unexpected element ${tag.name}`;
-    if (tag.name === 'node') nodes++;
+    if (tag.name === 'node') nodes.push(attributes);
   });
   parser.on('closetag', () => { depth--; });
   parser.on('text', (value) => { if (value.trim()) problem = 'unexpected text content'; });
   try { parser.write(text).close(); } catch (error) { problem = error.message; }
-  return problem || !['hierarchy', 'node'].includes(root) || !nodes || depth !== 0
-    ? bad(problem || 'missing populated hierarchy/node root') : { ok: true };
+  if (problem || root !== 'hierarchy' || nodes.length === 0 || depth !== 0) {
+    return bad(problem || 'missing populated hierarchy root');
+  }
+  return { ok: true, root, nodes };
+}
+
+/** Strict XML parsing, not prefix sniffing. DTDs/entities are never evaluated. */
+export function sniffHierarchy(bytes) {
+  const parsed = parseHierarchy(bytes);
+  return parsed.ok ? { ok: true } : { ok: false, reason: parsed.reason };
+}
+
+/** Compare ledger hierarchy claims with IDs and packages in captured XML bytes. */
+function hierarchyObservationProblems(parsed, run, observation, gameMetadata, expectedPackage) {
+  const problems = [];
+  if (!parsed?.ok || !observation) return ['hierarchy is not bound to a run observation'];
+  const nodes = parsed.nodes;
+  const packageNames = new Set(nodes.map((node) => node.package).filter(Boolean));
+  if (!expectedPackage || !packageNames.has(expectedPackage)) {
+    problems.push(`captured hierarchy has no node for expected application package '${expectedPackage || '(unknown)'}'`);
+  }
+  if (run.buildIdentity?.packageName !== expectedPackage) {
+    problems.push(`run package '${run.buildIdentity?.packageName || '(missing)'}' does not match application package '${expectedPackage || '(unknown)'}'`);
+  }
+
+  const controlsByGame = new Map();
+  const gameIds = [...(gameMetadata?.keys() || [])].sort((a, b) => b.length - a.length);
+  for (const node of nodes) {
+    const rawId = node['resource-id'] || node.resourceId || '';
+    const resourceId = rawId.includes(':id/') ? rawId.split(':id/').pop() : rawId.split('/').pop();
+    for (const gameId of gameIds) {
+      if (resourceId === gameId || resourceId.startsWith(`${gameId}.`)) {
+        if (!controlsByGame.has(gameId)) controlsByGame.set(gameId, new Set());
+        controlsByGame.get(gameId).add(resourceId === gameId ? 'screen' : resourceId.slice(gameId.length + 1));
+        break;
+      }
+    }
+  }
+  const detectedGameIds = [...controlsByGame.keys()];
+  if (detectedGameIds.length > 1) problems.push(`captured hierarchy contains controls for multiple games (${detectedGameIds.join(', ')})`);
+  const detectedGameId = detectedGameIds.length === 1 ? detectedGameIds[0] : null;
+  if ((detectedGameId && observation.observedGameId !== detectedGameId)
+      || (observation.observedGameId != null && observation.observedGameId !== detectedGameId)) {
+    problems.push(`observedGameId claim '${observation.observedGameId ?? '(none)'}' does not match captured hierarchy identity '${detectedGameId || '(none)'}'`);
+  }
+  const actualControls = [...(controlsByGame.get(run.gameId) || [])].sort();
+  const claimedControls = Array.isArray(observation.controls) ? [...observation.controls].sort() : [];
+  if (JSON.stringify(claimedControls) !== JSON.stringify(actualControls)) {
+    problems.push(`controls claim [${claimedControls.join(', ')}] does not match captured hierarchy [${actualControls.join(', ')}]`);
+  }
+
+  const raw = observation.rawScreen;
+  if (raw !== undefined) {
+    if (raw.expectedPackage !== expectedPackage) problems.push('rawScreen.expectedPackage does not match the application package');
+    if (raw.hierarchyStatus !== 'ok') problems.push('rawScreen.hierarchyStatus does not describe the parsed hierarchy bytes');
+    if (raw.controlCount !== undefined && raw.controlCount !== actualControls.length) problems.push('rawScreen.controlCount does not match game controls parsed from hierarchy bytes');
+    const focusPackage = typeof raw.focusPackage === 'string' ? raw.focusPackage.split('/')[0] : null;
+    if (focusPackage && focusPackage !== expectedPackage && detectedGameId) problems.push('rawScreen.focusPackage does not match the captured game application package');
+  }
+
+  const allGameControls = [...controlsByGame.values()].some((controls) => controls.size > 0);
+  const textualEvidence = nodes.flatMap((node) => [node.text, node['content-desc'], node['resource-id'], node.class, node.package].filter(Boolean)).join(' ');
+  const crashEvidence = /(?:has stopped|keeps stopping|isn['’]t responding|not responding|app crashed|application crashed)/i.test(textualEvidence);
+  const systemDialogEvidence = nodes.some((node) => {
+    const packageName = node.package || '';
+    const className = node.class || '';
+    const resourceId = node['resource-id'] || '';
+    const text = `${node.text || ''} ${node['content-desc'] || ''}`;
+    return /(?:permissioncontroller|packageinstaller)/i.test(packageName)
+      || /(?:alertdialog|permissiondialog|systemdialog)/i.test(className)
+      || /(?:permission|dialog)/i.test(resourceId)
+      || /(?:allow|deny|permission request|open settings)/i.test(text);
+  });
+  const markerList = Array.isArray(observation.screenMarkers) ? observation.screenMarkers : [];
+  const negativeScreenClaim = markerList.some((marker) => ['crash', 'app-crashed', 'system-dialog', 'permission-dialog', 'adb-failure', 'hierarchy-failure', 'malformed-hierarchy'].includes(marker));
+  const claimsDestination = observation.screenKind === 'app-destination' || markerList.includes('app-destination');
+  if (claimsDestination) {
+    if (!packageNames.has(expectedPackage)) problems.push('app destination is not rooted in captured nodes from the known application package');
+    if (allGameControls) problems.push('app destination hierarchy still contains game controls');
+    if (crashEvidence || systemDialogEvidence || negativeScreenClaim) problems.push('app destination hierarchy contains crash/system-dialog evidence');
+    if (!raw || raw.expectedPackage !== expectedPackage || raw.hierarchyStatus !== 'ok' || raw.appAlive !== true
+        || !raw.focusPackage || raw.focusPackage.split('/')[0] !== expectedPackage) {
+      problems.push('app destination lacks matching live foreground/package metadata');
+    }
+  }
+  return problems;
+}
+
+const TUTORIAL_STATE_QUERY = 'SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?';
+
+function tutorialStateArtifactProblems(bytes, run) {
+  const problems = [];
+  let snapshot;
+  try { snapshot = JSON.parse(bytes.toString('utf8')); }
+  catch { return ['tutorial-state artifact is not valid JSON']; }
+  if (!isRecord(snapshot) || snapshot.schemaVersion !== 1 || snapshot.source !== 'sqlite-query'
+      || snapshot.query !== TUTORIAL_STATE_QUERY || !Array.isArray(snapshot.parameters)
+      || snapshot.parameters.length !== 1 || snapshot.parameters[0] !== run.gameId
+      || snapshot.gameId !== run.gameId || typeof snapshot.completed !== 'boolean'
+      || !(snapshot.row === null || isRecord(snapshot.row))) {
+    return ['tutorial-state artifact does not match the bound SQLite query schema/gameId'];
+  }
+  let completed = false, replayRequested = false, version = null;
+  if (snapshot.row !== null) {
+    const row = snapshot.row;
+    if ((row.game_id !== undefined && row.game_id !== run.gameId)
+        || ![0, 1].includes(row.completed)
+        || ![0, 1].includes(row.replay_requested)
+        || (row.version !== null && typeof row.version !== 'string')) {
+      return ['tutorial-state artifact row is not a valid tutorial_state query result'];
+    }
+    completed = row.completed === 1;
+    replayRequested = row.replay_requested === 1;
+    version = row.version;
+  }
+  const previouslyCompleted = completed && !replayRequested && version === '1.0.0';
+  if (snapshot.completed !== completed) problems.push('tutorial-state JSON completed value does not match its SQLite row');
+  const claim = run.tutorialState;
+  if (!isRecord(claim)) return [...problems, 'tutorial-state artifact has no corresponding run tutorialState claim'];
+  if (claim.previouslyCompleted !== previouslyCompleted) problems.push('tutorialState.previouslyCompleted does not match the captured SQLite row');
+  if (claim.completed !== completed) problems.push('tutorialState.completed does not match the captured SQLite row');
+  if (claim.replayRequested !== replayRequested) problems.push('tutorialState.replayRequested does not match the captured SQLite row');
+  if (claim.version !== version) problems.push('tutorialState.version does not match the captured SQLite row');
+  if (claim.source !== 'tutorial_state') problems.push('tutorialState source does not identify the tutorial_state SQLite row');
+  if (claim.gameId !== undefined && claim.gameId !== run.gameId) problems.push('tutorialState.gameId does not match the run gameId');
+  return problems;
 }
 
 /** Empty hierarchy dumps are a known tooling failure, never a valid state. */
@@ -500,6 +632,7 @@ function loadCaptureReceiptIndex(input, repoRoot, readArtifact) {
   }
   const entries = new Map();
   const captureIds = new Map();
+  const artifactFiles = new Map();
   const errors = [];
   for (const [index, entry] of document.receipts.entries()) {
     if (!isRecord(entry) || typeof entry.file !== 'string' || !sha256Shape(entry.sha256)) {
@@ -523,10 +656,13 @@ function loadCaptureReceiptIndex(input, repoRoot, readArtifact) {
         || typeof receipt.captureId !== 'string' || !receipt.captureId.trim()
         || typeof receipt.executionAttemptId !== 'string' || !receipt.executionAttemptId.trim()
         || !sha256Shape(receipt.artifactSha256)
-        || typeof receipt.capturedAt !== 'string' || !Number.isFinite(Date.parse(receipt.capturedAt))
+        || !isIsoTimestamp(receipt.capturedAt)
+        || !Number.isSafeInteger(receipt.observationSeq) || receipt.observationSeq < 0
+        || !isIsoTimestamp(receipt.observationTimestamp)
+        || typeof receipt.artifactFile !== 'string' || !receipt.artifactFile.trim()
         || !gitShaShape(receipt.gitSha)
         || !sha256Shape(receipt.apkSha256)) {
-      errors.push(`capture receipt '${entry.file}' does not match schemaVersion 1 receipt fields`);
+      errors.push(`capture receipt '${entry.file}' does not match schemaVersion 1 artifact/observation binding fields`);
       continue;
     }
     if (captureIds.has(receipt.captureId)) {
@@ -534,13 +670,14 @@ function loadCaptureReceiptIndex(input, repoRoot, readArtifact) {
       continue;
     }
     captureIds.set(receipt.captureId, resolved.ownershipKey);
-    let artifactOwnershipKey = null;
-    if (receipt.artifactFile !== undefined) {
-      if (typeof receipt.artifactFile !== 'string') { errors.push(`capture receipt '${entry.file}' artifactFile must be a path`); continue; }
-      const artifactPath = resolveArtifactPath(receipt.artifactFile, repoRoot);
-      if (!artifactPath.ok) { errors.push(`capture receipt '${entry.file}' has unsafe artifactFile: ${artifactPath.reason}`); continue; }
-      artifactOwnershipKey = artifactPath.ownershipKey;
+    const artifactPath = resolveArtifactPath(receipt.artifactFile, repoRoot);
+    if (!artifactPath.ok) { errors.push(`capture receipt '${entry.file}' has unsafe artifactFile: ${artifactPath.reason}`); continue; }
+    if (artifactFiles.has(artifactPath.ownershipKey)) {
+      errors.push(`artifact '${receipt.artifactFile}' has more than one acquisition receipt`);
+      continue;
     }
+    artifactFiles.set(artifactPath.ownershipKey, resolved.ownershipKey);
+    const artifactOwnershipKey = artifactPath.ownershipKey;
     entries.set(resolved.ownershipKey, {
       indexFile: entry.file,
       indexSha256: entry.sha256.toLowerCase(),
@@ -649,9 +786,14 @@ export function verifyArtifactLedger(runs, opts = {}) {
   const findings = [];
   const counters = emptyCounters();
   const record = (kind, detail) => findings.push({ kind, detail });
+  let gameMetadata = null;
   let knownGames = null;
-  try { knownGames = loadEvidenceGameRegistry(); }
-  catch (error) { record('registry-unavailable', `authoritative game registry could not be loaded: ${error.message}`); }
+  let expectedApplicationPackage = null;
+  try {
+    gameMetadata = loadEvidenceGameMetadata();
+    knownGames = new Set(gameMetadata.keys());
+    expectedApplicationPackage = loadExpectedApplicationPackage();
+  } catch (error) { record('registry-unavailable', `authoritative game registry/package metadata could not be loaded: ${error.message}`); }
   if (!inputIsArray) {
     counters.invalidRun++;
     record('malformed-run-collection', 'run collection must be an array; no entries were accepted');
@@ -700,7 +842,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
   // -- input/run policy validation -----------------------------------------
   const runValidations = new Map();
   for (const [index, run] of list.entries()) {
-    const validation = validateEvidenceRun(run, knownGames);
+    const validation = validateEvidenceRun(run, knownGames, gameMetadata);
     runValidations.set(index, validation);
     if (!validation.valid) {
       counters.invalidRun++;
@@ -769,17 +911,23 @@ export function verifyArtifactLedger(runs, opts = {}) {
   // -- cross-attempt evidence reuse ---------------------------------------
   // A screenshot produced by attempt A is evidence for A only. If attempt B
   // cites the same file, one of the two observations was never actually made.
-  const fileOwner = new Map(); // canonical Windows ownership key -> {attempt, digest}
-  const receiptOwner = new Map(); // canonical receipt path -> execution attempt
+  const fileOwner = new Map(); // canonical Windows ownership key -> {attempt, observationKey, digest}
+  const receiptOwner = new Map(); // canonical receipt path -> { attempt, observationKey }
   const observedDigests = new Map(); // digest -> Set(attemptId) for reuse detection
   let meaningfulArtifacts = 0;
-  const verifyCaptureReceipt = (artifact, resolvedArtifact, actualSha256, run, label) => {
-    if (mode === EvidenceMode.SOURCE && artifact.captureReceipt === undefined) return true;
-    if (mode === EvidenceMode.SOURCE && !receiptIndex.present) return true;
+  const verifyCaptureReceipt = (artifact, resolvedArtifact, actualSha256, run, label, explicitObservation = null) => {
+    if (mode === EvidenceMode.SOURCE && artifact.captureReceipt === undefined) {
+      return { observation: explicitObservation, observationKey: explicitObservation ? `${run.executionAttemptId}\u0000${explicitObservation.seq}\u0000${explicitObservation.timestamp}` : null };
+    }
+    if (mode === EvidenceMode.SOURCE && !receiptIndex.present) {
+      return { observation: explicitObservation, observationKey: explicitObservation ? `${run.executionAttemptId}\u0000${explicitObservation.seq}\u0000${explicitObservation.timestamp}` : null };
+    }
     if (!isRecord(artifact.captureReceipt)
         || typeof artifact.captureReceipt.file !== 'string'
         || !sha256Shape(artifact.captureReceipt.sha256)) {
-      if (mode === EvidenceMode.SOURCE && !receiptIndex.present) return true;
+      if (mode === EvidenceMode.SOURCE && !receiptIndex.present) {
+        return { observation: explicitObservation, observationKey: explicitObservation ? `${run.executionAttemptId}\u0000${explicitObservation.seq}\u0000${explicitObservation.timestamp}` : null };
+      }
       counters.unbound++;
       record('capture-receipt-missing', `${run.executionAttemptId}: ${label} has no valid captureReceipt {file,sha256}`);
       return false;
@@ -801,15 +949,24 @@ export function verifyArtifactLedger(runs, opts = {}) {
       record('capture-receipt-unindexed', `${run.executionAttemptId}: ${label} receipt is absent from the supplied capture-receipts index or has a different digest`);
       return false;
     }
-    const priorReceiptOwner = receiptOwner.get(resolvedReceipt.ownershipKey);
-    if (priorReceiptOwner && priorReceiptOwner !== run.executionAttemptId) {
-      counters.reusedEvidence++;
-      record('capture-receipt-reused-across-attempts', `${run.executionAttemptId}: ${label} reuses capture receipt owned by '${priorReceiptOwner}'`);
-      return false;
-    }
-    receiptOwner.set(resolvedReceipt.ownershipKey, run.executionAttemptId);
     const receipt = indexed.receipt;
     const build = run.buildIdentity || {};
+    const matchingObservations = (run.observations || []).filter((candidate) => candidate
+      && candidate.seq === receipt.observationSeq
+      && candidate.timestamp === receipt.observationTimestamp);
+    const observation = explicitObservation || (matchingObservations.length === 1 ? matchingObservations[0] : null);
+    if (!observation || observation.seq !== receipt.observationSeq || observation.timestamp !== receipt.observationTimestamp) {
+      counters.captureReceiptInvalid++;
+      record('capture-receipt-observation-mismatch', `${run.executionAttemptId}: ${label} receipt is not bound to the exact observation sequence and timestamp`);
+      return false;
+    }
+    const observationKey = `${run.executionAttemptId}\u0000${observation.seq}\u0000${observation.timestamp}`;
+    const priorReceiptOwner = receiptOwner.get(resolvedReceipt.ownershipKey);
+    if (priorReceiptOwner && (priorReceiptOwner.attempt !== run.executionAttemptId || priorReceiptOwner.observationKey !== observationKey)) {
+      counters.reusedEvidence++;
+      record('capture-receipt-reused-for-distinct-observation', `${run.executionAttemptId}: ${label} reuses a capture receipt for a different observation`);
+      return false;
+    }
     if (receipt.executionAttemptId !== run.executionAttemptId
         || receipt.artifactSha256.toLowerCase() !== actualSha256
         || String(receipt.gitSha).toLowerCase() !== String(build.gitSha || '').toLowerCase()
@@ -819,7 +976,8 @@ export function verifyArtifactLedger(runs, opts = {}) {
       record('capture-receipt-binding-mismatch', `${run.executionAttemptId}: ${label} receipt does not bind this artifact, attempt, source/APK build, and path`);
       return false;
     }
-    return true;
+    receiptOwner.set(resolvedReceipt.ownershipKey, { attempt: run.executionAttemptId, observationKey });
+    return { observation, observationKey };
   };
 
   // -- per-run verification ------------------------------------------------
@@ -831,6 +989,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
     const buildOk = missingBuildFields(run.buildIdentity).length === 0;
     let runMeaningfulArtifacts = 0;
     let runMeaningfulBindings = 0;
+    let verifiedHierarchyIdentity = false;
     // Absence in local mode is a BLOCKED condition, not an integrity violation.
     // The capability-sufficiency check below must not double-report the same
     // absence as a FAIL: if any required artifact was simply not present, the
@@ -838,7 +997,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
     // machine that merely lacks the evidence.
     let absenceInRun = false;
 
-    const verifyOne = (artifact, label, mandatory) => {
+    const verifyOne = (artifact, label, mandatory, explicitObservation = null) => {
       if (!artifact || typeof artifact !== 'object') {
         // An absent NON-mandatory artifact is normal (a harness only captures
         // what it needs). Only a required one is a problem — and a missing
@@ -869,21 +1028,12 @@ export function verifyArtifactLedger(runs, opts = {}) {
         record('unsafe-artifact-path', `${attemptId}: ${label} — ${resolved.reason} (${artifact.file})`);
         return null;
       }
-      // Reuse detection (per-file). A later attempt citing the same file with a
-      // different digest is additionally a contradiction.
-      const owner = fileOwner.get(resolved.ownershipKey);
-      if (owner && owner.attempt !== attemptId) {
+      const priorPathOwner = fileOwner.get(resolved.ownershipKey);
+      if (priorPathOwner && priorPathOwner.attempt !== attemptId) {
         counters.reusedEvidence++;
-        record('artifact-reused-across-attempts', `${attemptId}: ${label} cites '${resolved.relative}' already owned by attempt '${owner.attempt}' — evidence cannot be reused between attempts`);
+        record('artifact-reused-across-attempts', `${attemptId}: ${label} cites '${resolved.relative}' already owned by attempt '${priorPathOwner.attempt}' — evidence cannot be reused between attempts`);
         return null;
       }
-      if (owner && owner.digest && artifact.sha256 && owner.digest !== artifact.sha256) {
-        counters.mismatch++;
-        record('artifact-contradictory-digest', `${attemptId}: ${label} cites '${resolved.relative}' with a digest that contradicts an earlier citation`);
-        return null;
-      }
-      fileOwner.set(resolved.ownershipKey, { attempt: attemptId, digest: artifact.sha256 || artifact.sha1 || null });
-
       let bytes;
       try {
         bytes = readArtifact(resolved.absolute);
@@ -928,10 +1078,42 @@ export function verifyArtifactLedger(runs, opts = {}) {
         }
       }
 
-      // A valid acquisition receipt is per artifact and binds the actual bytes,
-      // attempt, and build. Receipts are an auditable external-index trust
-      // boundary, not cryptographic proof that a native device produced them.
-      if (!verifyCaptureReceipt(artifact, resolved, res.computedSha256, run, label)) return null;
+      // A valid acquisition receipt binds the actual bytes, attempt, build, and
+      // exact observation. Repeated fields referencing the SAME observation do
+      // not represent a new acquisition; distinct observations need new receipts.
+      const receiptBinding = verifyCaptureReceipt(artifact, resolved, res.computedSha256, run, label, explicitObservation);
+      if (!receiptBinding) return null;
+      const observationKey = receiptBinding.observationKey;
+      const owner = fileOwner.get(resolved.ownershipKey);
+      if (owner && (owner.attempt !== attemptId || owner.observationKey !== observationKey)) {
+        counters.reusedEvidence++;
+        record('artifact-reused-for-distinct-observation', `${attemptId}: ${label} reuses '${resolved.relative}' for a distinct capture observation`);
+        return null;
+      }
+      if (owner && owner.digest && artifact.sha256 && owner.digest !== artifact.sha256) {
+        counters.mismatch++;
+        record('artifact-contradictory-digest', `${attemptId}: ${label} cites '${resolved.relative}' with a digest that contradicts an earlier citation`);
+        return null;
+      }
+      fileOwner.set(resolved.ownershipKey, { attempt: attemptId, observationKey, digest: artifact.sha256 || artifact.sha1 || null });
+
+      if (artifact.kind === 'hierarchy') {
+        const parsed = parseHierarchy(bytes);
+        const hierarchyProblems = hierarchyObservationProblems(parsed, run, receiptBinding.observation, gameMetadata, expectedApplicationPackage);
+        if (hierarchyProblems.length) {
+          counters.badContent++;
+          record('hierarchy-observation-mismatch', `${attemptId}: ${label} — ${hierarchyProblems.join('; ')}`);
+          return null;
+        }
+        if (receiptBinding.observation?.observedGameId === run.gameId) verifiedHierarchyIdentity = true;
+      } else if (artifact.kind === 'tutorial-state') {
+        const stateProblems = tutorialStateArtifactProblems(bytes, run);
+        if (stateProblems.length) {
+          counters.badContent++;
+          record('tutorial-state-artifact-mismatch', `${attemptId}: ${label} — ${stateProblems.join('; ')}`);
+          return null;
+        }
+      }
 
       // Digest reuse across DIFFERENT paths is reported, never failed: two
       // independently receipted captures may legitimately render identical
@@ -965,8 +1147,10 @@ export function verifyArtifactLedger(runs, opts = {}) {
       if (!o || typeof o !== 'object') continue;
       const mandatory = observationRequiresArtifact(o);
       const label = `obs#${o.seq}${o.phase ? ` (${o.phase})` : ''}`;
-      const ok = verifyOne(o.evidenceArtifact, label, mandatory);
+      const ok = verifyOne(o.evidenceArtifact, label, mandatory, o);
       if (ok && ok.kind) verifiedKinds.add(ok.kind);
+      const hierarchyOk = verifyOne(o.hierarchyArtifact, `${label} hierarchy`, false, o);
+      if (hierarchyOk && hierarchyOk.kind) verifiedKinds.add(hierarchyOk.kind);
     }
     // Run-level artifacts -------------------------------------------------
     for (const a of run.artifacts || []) {
@@ -974,6 +1158,10 @@ export function verifyArtifactLedger(runs, opts = {}) {
       const label = `artifact[${a.kind || 'unknown'}]`;
       const mandatory = a.mandatory === true;
       const ok = verifyOne(a, label, mandatory);
+      if (ok && ok.kind) verifiedKinds.add(ok.kind);
+    }
+    if (run.tutorialStateArtifact && typeof run.tutorialStateArtifact === 'object') {
+      const ok = verifyOne(run.tutorialStateArtifact, 'artifact[tutorial-state]', true);
       if (ok && ok.kind) verifiedKinds.add(ok.kind);
     }
 
@@ -991,6 +1179,10 @@ export function verifyArtifactLedger(runs, opts = {}) {
     // artifacts were readable in this mode (otherwise absence is already
     // accounted for above).
     const axes = safeDeriveCapabilities(run);
+    if (!absenceInRun && (axes?.identity?.status === 'VERIFIED' || axes?.gameplayEntered?.status === 'VERIFIED') && !verifiedHierarchyIdentity) {
+      counters.capabilityUnbound++;
+      record('identity-hierarchy-unbound', `${attemptId}: identity/gameplay is claimed but no verified hierarchy binds the observed game id to the requested game`);
+    }
     for (const [capability, kinds] of Object.entries(CAPABILITY_ARTIFACT_REQUIREMENTS)) {
       const axis = axes && axes[capability];
       if (!axis || axis.status !== 'VERIFIED') continue;
@@ -1068,7 +1260,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
       : 'multi-build archive — partitions verified independently; this does NOT describe the current application revision',
     certifiesNativeEvidence: certifiesNativeEvidence({ verdict, mode, buildScope, currentIdentityVerified }),
     meaningfulArtifacts,
-    captureReceiptTrustBoundary: 'The supplied capture-receipts index binds independently recorded receipt files to artifact bytes, attempts, and builds. It is an auditable acquisition record, not cryptographic proof of native capture.',
+    captureReceiptTrustBoundary: 'The supplied capture-receipts index binds unique artifact acquisitions to bytes, attempt, build, observation sequence, and exact observation timestamp. It is an auditable acquisition record, not cryptographic proof of native capture.',
     note: mode === EvidenceMode.PORTABLE
       ? 'portable mode: absent git-ignored native evidence is reported as NOT_VERIFIABLE, never as a pass and never as a false fail'
       : mode === EvidenceMode.SOURCE

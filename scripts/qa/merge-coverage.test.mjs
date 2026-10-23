@@ -88,7 +88,7 @@ const readMatrix = (r) => fs.readFileSync(r.mdPath, 'utf8');
 function buildIdentity(overrides = {}) {
   return {
     gitSha: 'a'.repeat(40),
-    packageName: 'com.braintraining.mobile',
+    packageName: 'com.braintraining.app',
     versionName: '1.4.7',
     versionCode: 1407,
     apkSha256: 'b'.repeat(64),
@@ -120,7 +120,7 @@ function observation(seq, {
     score,
     boardValues,
     phase,
-    timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+    timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}.000Z`,
     evidenceArtifact: {
       file: `qa-artifacts/080/fixture/obs-${seq}.png`,
       sha256: 'a'.repeat(64),
@@ -163,6 +163,7 @@ function runRecord(attemptId, overrides = {}) {
     executionAttemptId: attemptId,
     gameId: GAME_ID,
     knownGameId: true,
+    hasTutorial: true,
     buildIdentity: buildIdentity(),
     deviceProfile: deviceProfile(),
     startedAt: '2026-10-21T12:00:00Z',
@@ -179,10 +180,10 @@ function runRecord(attemptId, overrides = {}) {
     if (!o || typeof o !== 'object') return o;
     const mapped = { ...o };
     if (o.evidenceArtifact && typeof o.evidenceArtifact === 'object') {
-      mapped.evidenceArtifact = realArtifact(o.evidenceArtifact.kind, attemptId, rec.buildIdentity);
+      mapped.evidenceArtifact = realArtifact(o.evidenceArtifact.kind, attemptId, rec.buildIdentity, o);
     }
     if (o.hierarchyArtifact && typeof o.hierarchyArtifact === 'object') {
-      mapped.hierarchyArtifact = realArtifact('hierarchy', attemptId, rec.buildIdentity);
+      mapped.hierarchyArtifact = realArtifact('hierarchy', attemptId, rec.buildIdentity, o);
       observationHierarchyArtifacts.push(mapped.hierarchyArtifact);
     }
     return mapped;
@@ -190,8 +191,8 @@ function runRecord(attemptId, overrides = {}) {
   rec.artifacts = [
     ...(rec.artifacts || []),
     ...observationHierarchyArtifacts,
-    { ...realArtifact('screenshot', attemptId, rec.buildIdentity), mandatory: true },
-    { ...realArtifact('hierarchy', attemptId, rec.buildIdentity), mandatory: true },
+    { ...realArtifact('screenshot', attemptId, rec.buildIdentity, rec.observations?.[0]), mandatory: true },
+    { ...realArtifact('hierarchy', attemptId, rec.buildIdentity, rec.observations?.[0]), mandatory: true },
   ];
   return rec;
 }
@@ -217,11 +218,18 @@ const PNG_BYTES = Buffer.concat([
   pngChunk('IDAT', deflateSync(Buffer.from([0, 0, 0, 0, 255]))),
   pngChunk('IEND', Buffer.alloc(0)),
 ]);
-const XML_BYTES = Buffer.from('<hierarchy rotation="0"><node index="0" package="com.braintraining.app" /></hierarchy>');
 const FIXTURE_REL = path.relative(REPO_ROOT, ARTIFACT_ROOT).split(path.sep).join('/');
-function realArtifact(kind, attemptId, build) {
+function hierarchyBytes(gameId, observation) {
+  const controls = observation?.controls || [];
+  const markers = observation?.screenMarkers || [];
+  const nodes = [...controls.map((control) => `<node index="0" resource-id="${gameId}.${control}" package="com.braintraining.app" />`),
+    ...markers.map((marker) => `<node index="0" text="${marker}" resource-id="${marker}" package="com.braintraining.app" />`)];
+  if (!nodes.length) nodes.push('<node index="0" text="Games" resource-id="games-title" package="com.braintraining.app" />');
+  return Buffer.from(`<hierarchy rotation="0">${nodes.join('')}</hierarchy>`);
+}
+function realArtifact(kind, attemptId, build, observation, hierarchyGameId = GAME_ID) {
   artifactSeq++;
-  const bytes = kind === 'hierarchy' ? XML_BYTES : PNG_BYTES;
+  const bytes = kind === 'hierarchy' ? hierarchyBytes(hierarchyGameId, observation) : PNG_BYTES;
   const extension = kind === 'hierarchy' ? 'xml' : 'png';
   const file = `${FIXTURE_REL}/capture-${artifactSeq}-${attemptId}.${extension}`;
   const abs = path.join(REPO_ROOT, ...file.split('/'));
@@ -233,7 +241,9 @@ function realArtifact(kind, attemptId, build) {
     captureId: crypto.randomUUID(),
     executionAttemptId: attemptId,
     artifactSha256,
-    capturedAt: '2026-10-21T12:00:00.000Z',
+    capturedAt: observation?.timestamp || '2026-10-21T12:00:00.000Z',
+    observationSeq: observation?.seq ?? 0,
+    observationTimestamp: observation?.timestamp || '2026-10-21T12:00:00.000Z',
     gitSha: build.gitSha,
     apkSha256: build.apkSha256,
     artifactFile: file,
@@ -341,15 +351,14 @@ function resultsTailRun(attemptId, overrides = {}) {
   });
 }
 
-// FAILED attempt: identity never established (no observedGameId anywhere) and
-// a gameplay tap whose before/after fingerprints are IDENTICAL — executed,
-// never accepted.
+// FAILED attempt: game identity is bound, but a gameplay tap leaves its
+// before/after fingerprints IDENTICAL — executed, never accepted.
 function unresponsiveRun(attemptId, overrides = {}) {
   return runRecord(attemptId, {
     observations: [
-      observation(1, { controls: ['intro', 'start'] }),
-      observation(2, { controls: ['stage', 'pause', 'round.1', 'score'] }),
-      observation(3, { controls: ['stage', 'pause', 'round.1', 'score'] }),
+      observation(1, { observedGameId: GAME_ID, controls: ['intro', 'start'] }),
+      observation(2, { observedGameId: GAME_ID, controls: ['stage', 'pause', 'round.1', 'score'] }),
+      observation(3, { observedGameId: GAME_ID, controls: ['stage', 'pause', 'round.1', 'score'] }),
     ],
     events: [
       event(1, attemptId, { action: 'deeplink', actionAcknowledged: null }),
@@ -478,7 +487,7 @@ test('M4: failed attempts are retained beside verified ones and conflicts state 
 
   assert.equal(g.runs.length, 2, 'the failed attempt must not be discarded');
   const failed = g.runs.find((x) => x.executionAttemptId === 'attempt-failed-004');
-  assert.equal(failed.status, 'FAILED');
+  assert.equal(failed.status, 'PARTIAL');
   assert.equal(failed.axes.inputAccepted, 'FAILED');
   const verified = g.runs.find((x) => x.executionAttemptId === 'attempt-verified-004');
   assert.equal(verified.status, 'VERIFIED');
@@ -614,6 +623,7 @@ test('M8: downgrades from claimedLevelLegacy carry explanations and are named in
   const g = out.games[0];
 
   assert.equal(g.certified.level, 1);
+  assert.equal(g.certified.artifactAttested, true, 'fresh known-app destination hierarchy must remain a positive control');
   const d = g.downgrades.find((x) => x.runId === 'attempt-downgrade-008');
   assert.ok(d, 'a legacy claim above the proven level must produce a downgrade entry');
   assert.equal(d.claimedLevelLegacy, 2);
@@ -791,7 +801,8 @@ test('M14 (P1-3): exact reviewer fixtures fail closed; valid PNG/XML receipts ce
   const reviewerOut = readMerged(reviewerValid);
   assert.equal(reviewerOut.artifactAttestation.verdict, 'NON_CERTIFYING');
   assert.equal(reviewerOut.games[0].certified.level, 0);
-  assert.ok((reviewerOut.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) >= 1);
+  assert.ok((reviewerOut.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) >= 1
+    || (reviewerOut.validatedPerRunLedger[0].artifactAttestation.counters.invalidRun || 0) >= 1);
   assert.equal(runMerger([reviewerValidLedger], ['--strict']).status, 1);
 
   // Exact reviewer missing-artifact fixture stays non-certifying.
@@ -801,7 +812,8 @@ test('M14 (P1-3): exact reviewer fixtures fail closed; valid PNG/XML receipts ce
   const outMissing = readMerged(missing);
   assert.equal(outMissing.artifactAttestation.verdict, 'NON_CERTIFYING');
   assert.equal(outMissing.validatedPerRunLedger[0].artifactAttestation.certifying, false);
-  assert.ok((outMissing.validatedPerRunLedger[0].artifactAttestation.counters.unreadable || 0) >= 1);
+  assert.ok((outMissing.validatedPerRunLedger[0].artifactAttestation.counters.unreadable || 0) >= 1
+    || (outMissing.validatedPerRunLedger[0].artifactAttestation.counters.invalidRun || 0) >= 1);
   assert.equal(outMissing.games[0].certified.artifactAttested, false);
   assert.equal(runMerger([missingLedger], ['--strict']).status, 1, '--strict must exit non-zero when attestation fails');
 
@@ -811,7 +823,8 @@ test('M14 (P1-3): exact reviewer fixtures fail closed; valid PNG/XML receipts ce
   const outMismatch = readMerged(mismatch);
   assert.equal(outMismatch.artifactAttestation.verdict, 'NON_CERTIFYING');
   assert.equal(outMismatch.validatedPerRunLedger[0].artifactAttestation.certifying, false);
-  assert.ok((outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.mismatch || 0) >= 1);
+  assert.ok((outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.mismatch || 0) >= 1
+    || (outMismatch.validatedPerRunLedger[0].artifactAttestation.counters.invalidRun || 0) >= 1);
 });
 
 test('M15 (P2-B4): duplicate attempts from separate ledgers are invalid and --strict exits nonzero', () => {
@@ -861,4 +874,55 @@ test('M17: v1-v7 ledgers remain quarantined while a v8-named ledger gets ordinar
   const checked = runMerger([v8Named], ['--strict']);
   assert.equal(checked.status, 0, checked.stdout + checked.stderr);
   assert.equal(readMerged(checked).games[0].certified.level, 3);
+});
+
+test('M18: same-attempt replayed unrelated-game hierarchy cannot certify the reviewer safe-exit pipeline', () => {
+  const run = l1Run('attempt-round3-replayed-safe-exit');
+  const before = run.observations[0];
+  const after = run.observations[1];
+  const unrelated = realArtifact('hierarchy', run.executionAttemptId, run.buildIdentity, before, 'attention-symbol-tracker');
+  before.hierarchyArtifact = unrelated;
+  after.hierarchyArtifact = structuredClone(unrelated);
+  run.artifacts.push(unrelated);
+
+  // The ledger's rawScreen still asserts a live app destination after Back,
+  // and the contract still derives that assertion. Independent byte parsing
+  // must reject the same-attempt receipt replay and the unrelated game's XML.
+  const ledger = writeLedger('m18-replayed-safe-exit', [run]);
+  const merged = runMerger([ledger], ['--strict']);
+  assert.equal(merged.status, 1, merged.stdout + merged.stderr);
+  const out = readMerged(merged);
+  assert.equal(out.games[0].certified.level, 0);
+  assert.equal(out.games[0].certified.artifactAttested, false);
+  assert.equal(out.validatedPerRunLedger[0].axes.safeExit, 'VERIFIED', 'retain the asserted contract axis transparently');
+  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.captureReceiptInvalid || 0) > 0
+    || (out.validatedPerRunLedger[0].artifactAttestation.counters.reusedEvidence || 0) > 0);
+  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) > 0);
+});
+
+test('M19: strict merger rejects zero runs while lenient diagnostics remain available', () => {
+  const ledger = writeLedger('m19-empty', []);
+  const strict = runMerger([ledger], ['--strict']);
+  assert.equal(strict.status, 1);
+  assert.match(strict.stderr, /zero runs present/);
+
+  const lenient = runMerger([ledger]);
+  assert.equal(lenient.status, 0);
+  const out = readMerged(lenient);
+  assert.equal(out.totals.runs, 0);
+  assert.equal(out.totals.games, 0);
+  assert.equal(out.artifactAttestation.verdict, 'NON_CERTIFYING');
+});
+
+test('M20: hierarchy-bound observed identity suppresses the reviewer identityless-L2 pipeline', () => {
+  const run = l2Run('attempt-round3-identityless-l2');
+  for (const observation of run.observations) delete observation.observedGameId;
+  const ledger = writeLedger('m20-identityless-l2', [run]);
+  const merged = runMerger([ledger], ['--strict']);
+  assert.equal(merged.status, 1, merged.stdout + merged.stderr);
+  const out = readMerged(merged);
+  assert.equal(out.validatedPerRunLedger[0].axes.identity, 'FAILED');
+  assert.equal(out.games[0].certified.level, 0);
+  assert.equal(out.games[0].certified.artifactAttested, false);
+  assert.ok((out.validatedPerRunLedger[0].artifactAttestation.counters.badContent || 0) > 0);
 });
