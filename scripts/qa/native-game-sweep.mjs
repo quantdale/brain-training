@@ -56,6 +56,7 @@ import {
   stateFingerprint,
 } from './coverage-contract.mjs';
 import { planTutorialStep, SolveTier } from './tutorial-solver.mjs';
+import { center, chooseGameplayAction } from './gameplay-actions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -359,67 +360,11 @@ function emitEvent(ctx, e) {
 }
 
 // --- input-family adapters (prompt §7.3) ----------------------------------
-// Answer-surface families observed across the real 42-game catalog (from the
-// recorded control inventories): selectors, response/peg/guess surfaces,
-// swatch/shape/glyph pickers, keypad keys, binary buttons, colour/letter
-// options and math operators. Non-answer surfaces (score, stage, prompt,
-// status, live, display, scroll, verdict, …) are deliberately NOT matched.
-const SELECTOR_RE = /(^|[.\-])(tile|card|option|options|word|choice|cell|item|node|target|target-card|number|operator|symbol|token|chip|response|digit|peg|pegs|guess|swatch|shape|glyph|block|row|slot|marker|cue|clue|question|command|commands|trigger|field|term|value|comparison|stimulus|pick|color|same|different|left|right|red|blue|green|yellow|purple|orange|[A-Z]|\+|\-|\*|\/)(\.\d+)?$/;
-
-/**
- * Advance/confirm control policy lives in the coverage contract so it is
- * unit-tested (see coverage-contract.mjs `pickAdvanceControl`). The local
- * literal list this replaces caused a confirmed math-fast-math false
- * negative: `next-problem` was not recognised, the loop stalled on the
- * feedback overlay and never tapped again.
- */
-function center(bounds) {
-  return bounds ? [Math.round((bounds[0] + bounds[2]) / 2), Math.round((bounds[1] + bounds[3]) / 2)] : null;
-}
-
-/**
- * Pick the next gameplay action from the OBSERVED playing-state controls.
- * Family adapters: selectors (tap), ordered sequences (index order), keypad
- * (keys + submit), submit flows (select then check), passive (wait only).
- */
-function chooseGameplayAction(controls, tappedThisRound) {
-  const suffixes = Object.keys(controls);
-  const has = (k) => controls[k] && center(controls[k].bounds);
-  const feedbackUp = suffixes.some((s) => /^(round-result|round-failed|verdict|feedback)/.test(s));
-  const keypadKeys = suffixes.filter((s) => /^(key|pad)[.\-]/.test(s) && controls[s].bounds);
-  const selectors = suffixes.filter((s) => SELECTOR_RE.test(s) && controls[s].bounds);
-  const ordered = suffixes.filter((s) => /^(sequence|order)[.\-]/.test(s) && controls[s].bounds)
-    .sort((a, b) => (Number(/\d+$/.exec(a)?.[0]) || 0) - (Number(/\d+$/.exec(b)?.[0]) || 0));
-
-  // A feedback / verdict board is up: advance the round first — poking board
-  // controls under the overlay is not an answer attempt.
-  if (feedbackUp) {
-    // Pattern-based, so `next-problem`/`next-trial`/`submit-estimate` are
-    // recognised instead of silently stalling the loop (see ADVANCE_RE).
-    const advance = pickAdvanceControl(controls);
-    if (advance && has(advance)) {
-      return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
-    }
-  }
-  if (keypadKeys.length) {
-    // Keypad family: enter a couple of digits, then submit/check if present.
-    const key = keypadKeys.find((k) => !tappedThisRound.has(k)) || keypadKeys[0];
-    return { type: 'tap', target: key, point: center(controls[key].bounds) };
-  }
-  if (ordered.length) {
-    const next = ordered.find((k) => !tappedThisRound.has(k));
-    return next ? { type: 'tap', target: next, point: center(controls[next].bounds) } : null;
-  }
-  if (selectors.length) {
-    const next = selectors.find((k) => !tappedThisRound.has(k)) || selectors[0];
-    return { type: 'tap', target: next, point: center(controls[next].bounds) };
-  }
-  const advance = pickAdvanceControl(controls);
-  if (advance && has(advance)) {
-    return { type: 'tap', target: advance, point: center(controls[advance].bounds) };
-  }
-  return null; // passive / stimulus-driven: wait and observe instead
-}
+// The answer-surface family policy now lives in gameplay-actions.mjs so the
+// workout driver and any future harness share ONE action selector. The old
+// private copy that lived here is what let a stale advance-control list
+// stall a leg (math-fast-math false negative), so there is exactly one site
+// to extend when a game's control vocabulary grows.
 
 // --- per-game driver -------------------------------------------------------
 async function driveGame(ctx) {
