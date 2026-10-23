@@ -17,8 +17,8 @@
 - [ ] 3.1 Golden path: first run → Home → discovery → detail → tutorial → Start → gameplay → score → results → progression.
 - [x] 3.2 Pause/Resume/Quit semantics (timer freeze, no unintended score persistence), including Order Path, Deduction Table, Word Match, Context Fit, Word Chain — DONE (Odd One Out: pause freeze across 6s, resume, quit-discard); the five named games render reachable pause; rapid-interaction matrix partial.
 - [x] 3.3 Correct/incorrect scoring with genuinely correct and incorrect inputs across domains; verify feedback and persisted result — DONE (Odd One Out live incorrect + reveal + deterministic scoring.test.ts).
-- [ ] 3.4 Workout V3 generation → start → leg completion → interruption → resume → completion → reward attribution.
-- [ ] 3.5 Results/progression/rewards/quests; repeated completion with no duplicate rewards.
+- [x] 3.4 Workout V3 generation → start → leg completion → interruption → resume → completion → reward attribution — DONE 2026-10-23 (VERIFIED NATIVELY): 4/4 legs played to results with real input, interrupt→terminate→resume, reward reconciliation from the authoritative DB (+40 XP, +8 coins, idempotent ledger rows, zero duplicates, UI≡DB), persistence stable; abandoned/quit scenario with zero phantom rewards (workout-v3.md).
+- [x] 3.5 Results/progression/rewards/quests; repeated completion with no duplicate rewards — DONE 2026-10-23: verified via DB reconciliation during the workout journey (zero duplicate operation_ids/credits; quest progress row deltas; achievements honestly unchanged).
 - [x] 3.6 Offline airplane-mode journey: network → airplane → cold start → navigate → play → save → restart → history persists → restore — DONE (verified end-to-end).
 
 ## 4. Performance (Workstream C)
@@ -43,7 +43,7 @@
 
 - [ ] 7.1 Establish safe test isolation before state-mutating testing; preserve owner/emulator data.
 - [x] 7.2 Persistence: session/score/workout/quest/reward/rating/analytics durability, termination/restart, upgrade/install, migration, interruption recovery — PARTIAL (session/progression durability + offline restart verified; upgrade/migration/interruption source-covered, not re-driven live).
-- [ ] 7.3 Backup/restore with controlled fixtures: export/import correctness, malformed rejection, transactional recovery — source-covered; not re-driven on device this campaign.
+- [ ] 7.3 Backup/restore with controlled fixtures: export/import correctness, malformed rejection, transactional recovery — PARTIAL 2026-10-23: export/wipe/backup-retention/recovery/fixture-rejection VERIFIED natively (persistence-backup-migration.md "Phase D EXECUTED"); the product's import ACTION remains AUTOMATION-LIMITED (preview verified; action never observed to execute under automation after harness root-cause fixes; not claimed as pass or fail).
 
 ## 8. Platform certification and governance (Workstreams G, H)
 
@@ -55,6 +55,6 @@
 
 ## 9. Independent review and close (Workstream I)
 
-- [ ] 9.1 Independent adversarial review of closing evidence, blind spots, and release qualification.
+- [ ] 9.1 Independent adversarial review of closing evidence, blind spots, and release qualification — PARTIAL 2026-10-23: round-2 adversarial review EXECUTED (Codex, disposable checkout) with verdict REJECT + 8 new findings; both open P1s REPAIRED with pinned regression tests (136/136 QA green); independent RE-REVIEW of the repaired engine still required, plus repair packet 2 (P2-B3/B4/B6, NF-002..008).
 - [ ] 9.2 Full gate convergence at the final integrated revision; verify all four workflows green on the exact final commit.
 - [ ] 9.3 Deliver certification suite under `docs/certification/080-native-product-quality/`, update durable state, close with an honest verdict.

@@ -90,3 +90,52 @@ Unreadable/malformed/schema-1 inputs exit 2; partial records produce `invalid-ru
 ## Final verdict: **ACCEPT WITH FINDINGS**
 The corrected contract defeats the v1 failure modes I actually attacked: cross-run journey fabrication, attempted-taps-as-L2, unconditional safe-exit, shallow milestone overwrite, and provenance-less certification all RESISTED with code and evidence behind them; the historical reclassification is honest and the published counts are exact. I could not defeat the level ladder itself.
 However, this certification must not be cited externally until the P1s are addressed: (a) the timeout/answer causal-attribution flaw means at least one certified L2 (`language-word-chain`) rests on a coincidental timeout verdict, and one certified L3's "answer-driven" label is false (`attention-odd-one-out`); (b) artifact binding is overstated in the docs relative to code; (c) the safe-exit/L1 path has a dump-failure false-positive mechanism. Smallest fixes: exclude verdict/timeout transitions from `inputAccepted`/`feedbackObserved` attribution (require the changed fingerprint to match the tapped control family, or reject windows containing `round-timeout`/`*-failed` verdict markers), set `requireArtifact` on key observations and record `expectedSha1`, require `actionExecuted === true` plus an app-destination (non-launcher) marker for `safeExit`, and correct the three doc claims. Re-run `node --test scripts/qa/coverage-contract.test.mjs scripts/qa/merge-coverage.test.mjs` after fixes — this reviewer could not execute them.
+
+---
+
+# ROUND 2 — independent adversarial review EXECUTED (2026-10-23)
+
+Reviewer identity: **OpenAI Codex CLI (`codex exec`)**, model default codex
+profile, executing in a disposable detached git worktree
+(`../brain-training-review` @ `d528ed1a`) with its own scratch space — a
+separate context and separate harness from the implementation author, with
+executable probes. The previously failed routes (Claude Code OAuth expired;
+built-in reviewer quota) were NOT retried blindly; the Codex route had failed
+last campaign at sandbox level and now executes, so it was used.
+
+Scope executed: all four original P1 findings, all six original P2 findings,
+the two artifact-verifier defects (F-080-NEW-001/002), and an independent
+attack surface (input/timeout causality, safe-exit, hierarchy interpretation,
+missing/mismatched artifacts, cross-attempt/cross-build reuse, CLI exit codes,
+malformed/duplicate ledger records, stale results, tutorial-only false
+positives, unknown game IDs, timed-stimulus vocabulary, coverage merging,
+quarantine, current-run provenance). Negative controls were executed against
+~27 crafted fixtures; the reviewer also ran the QA suites directly (41/41,
+33/33, 35/35; the `node --test` worker path was sandbox-blocked (`EPERM`) and
+reported as NOT_PROBED rather than guessed).
+
+## Verdict: REJECT (with named repairs)
+
+A genuine adversarial outcome. Per-finding verdicts (FIX_VERIFIED ×6,
+FIX_INCOMPLETE ×6) and eight NEW findings with exact reproductions are recorded
+in the reviewer's immutable report:
+`qa-artifacts/080/review/codex-review-final.md`.
+
+Open at verdict time (P1s): **P1-1/NF-080-001** (failed commands could certify
+action-caused milestones) and **P1-3** (merge-coverage certified without
+artifact verification).
+
+## Repairs landed (same session)
+
+Both P1s are repaired with regression tests pinned to the reviewer's own
+fixtures (`scripts/qa/test-fixtures/080-review/`): execution-gated causality
+(`actionExecuted === true` required for every action-caused milestone; passive
+changes become autonomous events), and per-run artifact attestation in
+merge-coverage (non-certifying when artifacts fail verification; strict mode
+exits non-zero; explicit `artifactAttestation` block). QA suite 136/136 green
+incl. the new pins; verify-artifacts CLI 40/40; tsc clean. Dispositions:
+`qa-artifacts/080/contract-repair-p1-report.md`.
+
+**Still open and honest:** P2-B3/B4/B6 and NF-080-002..008 remain for repair
+packet 2, and the repaired engine has **NOT yet been independently re-reviewed**
+— which the campaign closure policy requires. Campaign 080 remains ACTIVE.

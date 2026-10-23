@@ -1,5 +1,100 @@
 # Durable Project State
 
+## Campaign 080 final-engineering continuation — 2026-10-23 (WORKOUT V3 VERIFIED, ADVERSARIAL REVIEW REJECT→P1 REPAIRED, DATA-MANAGEMENT QUALIFIED WITH GAPS)
+
+Continuation checkpoint after the owner's final-engineering directive. Work
+lands on application source UNCHANGED since tested build `ba15ae58` (installed
+APK `15fe8db3…`, versionCode 1000 — identity verified on device this session).
+
+**SECOND INDEPENDENT ADVERSARIAL REVIEW — EXECUTED (Codex CLI, disposable
+read-only checkout `../brain-training-review` @ d528ed1a).** The previously
+blocked review route RECOVERED (Codex sandbox now executes). Verdict: **REJECT**
+— a real adversarial result, not a rubber stamp. 12 named findings dispositioned
+(6 FIX_VERIFIED, 6 FIX_INCOMPLETE) + 8 NEW findings (NF-080-001..008) with
+exact reproductions and negative controls. Open P1s at verdict time: P1-1/NF-001
+(failed commands could certify action-caused milestones) and P1-3 (merge-
+coverage certified without artifact verification). **Both P1s are now REPAIRED
+with regression tests pinned to the reviewer's own fixtures** (coverage-contract
+`+97`, merge-coverage `+158` lines; per-run artifact attestation; execution-
+gated causality; autonomous events separated from accepted input). QA suite
+**136/136 pass** incl. the new pins; verify-artifacts CLI 40/40; tsc clean.
+Remaining from the review (next packet): P2-B3/B4/B6 + NF-080-002..008. Full
+report: `qa-artifacts/080/review/codex-review-final.md` (immutable);
+dispositions: `qa-artifacts/080/contract-repair-p1-report.md`.
+
+**WORKOUT V3 — FULLY VERIFIED NATIVELY (the campaign's top product-acceptance
+item).** Driver `scripts/qa/workout-journey.mjs` (rebuilt: tutorial-solver
+integration, shared family action policy, WAL-consistent DB snapshots, reward
+reconciliation). Journey on the real installed build: plan verified (UI window
+== DB plan head) → start → **4/4 legs played to results through REAL input** →
+controlled interrupt after leg 2 → process terminate → relaunch → resume
+(`2/4`, "Continue today's workout with Quick Compare") → remaining legs →
+workout-complete ("4 of 4 games played") → **reward reconciliation from the
+authoritative DB**: 4 sessions carrying exact workout provenance
+(instanceKey/legIndex/gameId), +40 session XP, +8 coins in 4 gameplay ledger
+rows with idempotent `operation_id`s, ledger/balance consistent (+8/+8),
+**zero duplicate operation-ids and zero duplicate session credits**, quest
+progress advanced (row-level delta captured), achievements honestly unchanged
+(thresholds not reached), UI and DB agree exactly (775→815 XP, 150→158 coins).
+Persistence across a further restart: sessions/ledger/balance/workout rows
+byte-stable. Abandoned/quit scenario: template workout started (real intro with
+workout context), walked away at zero play via the product's quit ladder,
+**noPhantomRewards=true** (0 sessions/ledger/xp rows), instance left durable and
+resumable; the daily skip control's boundary recorded honestly ("Skip
+unavailable" once the daily completes; skip is daily-only by source contract).
+Evidence: `qa-artifacts/080/workout-v3-journey.json` + run-stamped artifacts.
+
+**Harness defects found & fixed this session (each had silently capped
+coverage):** the shared action policy missed ENTRY affordances
+(`briefing-start`/`start`/`go`) — `memory-prospective-cue` idled 80 passive
+iterations on its briefing; informational `briefing-chip.N` decorations matched
+the answer-selector regex and were tapped as fake answers; the workout driver's
+regex loop could spin forever on `continue` (infinite loop found & fixed);
+round-tracking reset missing; `gameplay-actions.mjs` extracted as THE shared
+policy (sweep + workout + future drivers) with 11 unit tests incl. negative
+controls (`restart` never an entry; `-lip` never tapped).
+
+**DATA MANAGEMENT (Phase D) — qualified with explicit gaps.** Export via the
+product UI VERIFIED (envelope `brain-training-backup`, schemaVersion 13,
+engineVersion 3, sha256 checksum present; manifest totalRecords == content;
+8/8 section↔DB count agreements). Backups demonstrably survive wipe (product
+documents this on both the Saved Backups and wipe cards; verified on device).
+Wipe VERIFIED (user data 49→0 transactionally; app reseeds catalog/quests/
+profile by design; type-to-confirm DELETE boundary observed). Recovery VERIFIED:
+a full app-data anchor restore (tar + chown + SELinux `chcon` app_data_file
+contexts) returned the 49-session profile intact twice — an ops-grade rollback
+path. Failure fixtures (malformed/truncated/schema999/invalid-values) never
+changed state across every run. **NOT closed:** the product's import ACTION
+(Replace/Merge Import buttons) could not be driven to completion by automation:
+preview phase verified repeatedly with exact copy ("Preview (replace): Valid —
+Would add 49 sessions…"), but the final action never applied. Root-caused
+harness interference: aggressive swipe flings corrupt this app's RN a11y bounds
+(`boundsInScreen … -5792`, logcat-captured), detaching taps from controls; one
+garbage-bounds tap hit the system nav bar and backgrounded the app (looked like
+a crash — crash buffer and dropbox EMPTY, so NOT reported as an app defect).
+Safe-tap guards (on-screen bounds, nav-bar exclusion) + gentle scrolling +
+search/pick alignment were implemented; the action still did not execute under
+automation, so the native import execution is **AUTOMATION-LIMITED, honestly
+undetermined** — the portability engine's own suites (apply/replacement/
+checksum/forward-compat) pass in CI. Migration: not re-driven this session
+(migration-matrix/robustness suites remain the fixture-verified route).
+
+**Emulator state:** the QA profile was left HEALTHY and fully restored (49
+sessions verified via the product's own storage summary) after the destructive
+tests; the backups directory retains the full 49-session backup. One dedicated
+AVD throughout; no host input; no owner data lost (all destructive tests ran on
+this QA profile behind verified anchors).
+
+**Remaining inventory (Campaign 080 stays ACTIVE):** (1) review packet 2:
+P2-B3/B4/B6 + NF-080-002..008 repairs + independent re-review of the repaired
+engine; (2) Phase E residual-L0 sweep re-run with the ENTRY-family fix (likely
+coverage upgrades) + per-game taxonomy; (3) Phase F accessibility/responsive
+matrix + TalkBack probe; (4) Phase G performance/memory qualification; (5)
+native import-action closure (fix the automation or confirm a product defect);
+(6) Phase I fresh certification sweep + final-SHA CI. NO task is being closed
+by relabelling: the independent P1s are repaired but NOT yet independently
+RE-REVIEWED, so the campaign must stay ACTIVE per the closure policy.
+
 ## Campaign 080 activation — native product-quality & release convergence (ACTIVE)
 
 Owner-authorized bounded successor campaign `080-native-product-quality`

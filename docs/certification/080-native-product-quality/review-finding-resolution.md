@@ -183,3 +183,36 @@ evidence.
    historical record is preserved and re-labelled, not rewritten.
 4. **Fresh 42-game sweep under the hardened contract** — in progress; results
    form the third coverage snapshot.
+
+---
+
+# ROUND 2 register (2026-10-23) — dispositions for the second review
+
+Source of truth for findings: `qa-artifacts/080/review/codex-review-final.md`
+(immutable). Repair evidence: `qa-artifacts/080/contract-repair-p1-report.md`.
+
+| Finding | Round-2 verdict | Disposition now |
+|---|---|---|
+| P1-1 input/feedback causal attribution | FIX_INCOMPLETE | **REPAIRED** — execution-gated causality + regression pin (re-review pending) |
+| P1-2 false safe-exit / failed command | FIX_VERIFIED | Closed |
+| P1-3 artifact binding / certification attestation | FIX_INCOMPLETE | **REPAIRED** — per-run artifact attestation in merge-coverage + pins (re-review pending) |
+| P1-4 overstated narratives | FIX_VERIFIED | Closed |
+| P2-B1 unknown game IDs | FIX_VERIFIED | Closed |
+| P2-B2 invalid historical runs leaking into axes | FIX_VERIFIED | Closed |
+| P2-B3 results currency / stale results | FIX_INCOMPLETE | OPEN — packet 2 |
+| P2-B4 malformed ledgers / duplicate attempts | FIX_INCOMPLETE | OPEN — packet 2 |
+| P2-B5 timed stimulus vocabulary | FIX_VERIFIED | Closed |
+| P2-B6 tutorial completion semantics | FIX_INCOMPLETE | OPEN — packet 2 |
+| F-080-NEW-001 fail-open artifact exit | FIX_VERIFIED | Closed |
+| F-080-NEW-002 mixed-build single-scope pass | FIX_VERIFIED | Closed |
+| NF-080-001 failed commands certify milestones | NEW | **REPAIRED** with P1-1 |
+| NF-080-002 safe-exit self-asserted screen kind / stale hierarchy | NEW | OPEN — packet 2 (incl. dumpHierarchy stale-XML deletion) |
+| NF-080-003 empty/malformed/unknown runs pass artifact certification | NEW | OPEN — packet 2 |
+| NF-080-004 content sniffing accepts truncated hierarchy / fake PNG | NEW | OPEN — packet 2 |
+| NF-080-005 cross-attempt copied evidence informational only | NEW | OPEN — packet 2 |
+| NF-080-006 self-asserted build identity / quarantine unenforced | NEW | PARTIAL — quarantine enforcement policy specified for packet 2 |
+| NF-080-007 tutorial-like gameplay certifies L2 | NEW | OPEN — packet 2 |
+| NF-080-008 duplicate event sequence numbers accepted | NEW | OPEN — packet 2 |
+
+No finding is closed by relabelling. "REPAIRED" means implemented with tests;
+"Closed" means the independent reviewer verified the fix by execution.

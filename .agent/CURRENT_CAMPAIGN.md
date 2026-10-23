@@ -23,6 +23,23 @@ backup/restore round-trip, a11y profiles/TalkBack, deeper L3) is why the
 campaign remains ACTIVE for continuation — see
 `docs/certification/080-native-product-quality/handoff.md`.
 
+**Progress (2026-10-23, FINAL-ENGINEERING continuation):** WORKOUT V3 **FULLY
+VERIFIED NATIVELY** (4/4 legs real play to results, interrupt→terminate→resume→
+finish, reward reconciliation from the authoritative DB: +40 XP / +8 coins,
+idempotent ledger rows, zero duplicates, UI≡DB, persistence stable, abandoned-
+workout scenario with zero phantom rewards). SECOND INDEPENDENT ADVERSARIAL
+REVIEW **EXECUTED** (Codex, disposable checkout): verdict **REJECT** with 12
+dispositioned findings + 8 new ones; both open P1s (failed-command causality;
+certification without artifact attestation) **REPAIRED with regression tests
+(136/136 QA green)** but NOT yet independently RE-REVIEWED. Data-management
+(Phase D): export/wipe/recovery/failure-fixture behavior VERIFIED; the product's
+import ACTION remains AUTOMATION-LIMITED (preview verified; action never
+observed to execute under automation after harness-side root causes were fixed;
+not claimed either way). Residual-L0 sweep, a11y matrix, performance
+qualification, review packet 2 and the final certification sweep remain.
+Campaign 080 stays ACTIVE — the closure policy forbids closing while the
+repaired P1s lack independent re-review.
+
 **Progress (2026-10-22, latest checkpoint `77972354`):** BOTH newly identified
 artifact-verifier defects are FIXED and tested (F-080-NEW-001 fail-open exit;
 F-080-NEW-002 mixed-build single-build pass), with the verdict/exit contract
