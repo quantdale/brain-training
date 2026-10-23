@@ -52,9 +52,11 @@ import {
   deriveScreenKind,
   observationRequiresArtifact,
   createSha256,
+  isIsoTimestamp,
   observeState,
   stateFingerprint,
 } from './coverage-contract.mjs';
+import { gameMetadata } from './gameplay-policy.mjs';
 import { planTutorialStep, SolveTier } from './tutorial-solver.mjs';
 import { center, chooseGameplayAction } from './gameplay-actions.mjs';
 
@@ -182,7 +184,10 @@ export function tutorialStateFromPersistedRow(row) {
 }
 
 /** Query a read-only local copy of the SQLite database and its WAL sidecar. */
-export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, gameId, tempRoot = os.tmpdir()) {
+export const TUTORIAL_STATE_QUERY = 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?';
+
+/** Run the exact read-only tutorial_state query against a copied SQLite snapshot. */
+export function queryTutorialStateFromDatabaseBytes(databaseBytes, walBytes, gameId, tempRoot = os.tmpdir()) {
   if (!Buffer.isBuffer(databaseBytes) || !gameId || typeof gameId !== 'string') return null;
   const dir = fs.mkdtempSync(path.join(tempRoot, 'bt080-tutorial-state-'));
   const databaseFile = path.join(dir, 'brain-training.db');
@@ -191,8 +196,11 @@ export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, game
     fs.writeFileSync(databaseFile, databaseBytes);
     if (Buffer.isBuffer(walBytes) && walBytes.length > 0) fs.writeFileSync(`${databaseFile}-wal`, walBytes);
     db = new BetterSqlite3(databaseFile, { timeout: 2500 });
-    const row = db.prepare('SELECT completed, replay_requested, version FROM tutorial_state WHERE game_id = ?').get(gameId);
-    return tutorialStateFromPersistedRow(row ?? null);
+    const row = db.prepare(TUTORIAL_STATE_QUERY).get(gameId) ?? null;
+    if (row !== null && (row.game_id !== gameId || ![0, 1].includes(row.completed) ||
+        ![0, 1].includes(row.replay_requested) || (row.version !== null && typeof row.version !== 'string') ||
+        !Number.isSafeInteger(row.updated_at))) return null;
+    return { table: 'tutorial_state', columns: ['game_id', 'completed', 'replay_requested', 'version', 'updated_at'], where: { game_id: gameId }, row };
   } catch {
     return null;
   } finally {
@@ -201,12 +209,38 @@ export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, game
   }
 }
 
-function persistedTutorialState(serial, gameId) {
+export function readTutorialStateFromDatabaseBytes(databaseBytes, walBytes, gameId, tempRoot = os.tmpdir()) {
+  const query = queryTutorialStateFromDatabaseBytes(databaseBytes, walBytes, gameId, tempRoot);
+  return query ? tutorialStateFromPersistedRow(query.row) : null;
+}
+
+function persistedTutorialState(serial, gameId, ctx) {
   try {
     const db = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db']);
     let wal = null;
     try { wal = adbBuffer(serial, ['exec-out', 'run-as', PACKAGE, 'cat', 'files/SQLite/brain-training.db-wal']); } catch { /* no WAL is a valid checkpointed database */ }
-    return readTutorialStateFromDatabaseBytes(db, wal, gameId);
+    const query = queryTutorialStateFromDatabaseBytes(db, wal, gameId);
+    if (!query) return null;
+    const observationTimestamp = new Date().toISOString();
+    const evidence = {
+      schemaVersion: 1,
+      executionAttemptId: ctx.attemptId,
+      gameId,
+      observationSeq: 0,
+      observationTimestamp,
+      capturedAt: observationTimestamp,
+      query: { ...query, sql: TUTORIAL_STATE_QUERY },
+    };
+    const file = path.join(ctx.artDir, 'tutorial-state.json');
+    fs.mkdirSync(ctx.artDir, { recursive: true });
+    const bytes = Buffer.from(JSON.stringify(evidence, null, 2));
+    fs.writeFileSync(file, bytes);
+    const artifact = captureArtifact(ctx, file, bytes, 'tutorial-state', {
+      seq: evidence.observationSeq, timestamp: evidence.observationTimestamp,
+    });
+    ctx.artifacts.push(artifact);
+    evidence.artifact = artifact;
+    return evidence;
   } catch {
     // A failed read is UNKNOWN, never an invented completed tutorial.
     return null;
@@ -275,15 +309,21 @@ export function dumpHierarchy(serial, run = adb) {
   } catch { return ''; }
 }
 
-function parseControls(xml, gameId) {
+export function parseHierarchyGameData(xml, expectedGameId) {
   const controls = {};
+  const hierarchyControlIds = [];
   const nodeRe = /<node\b[^>]*>/g;
   let m;
   while ((m = nodeRe.exec(xml))) {
     const tag = m[0];
     const rid = /resource-id="([^"]*)"/.exec(tag)?.[1] || '';
-    if (!rid.startsWith(gameId + '.') && rid !== gameId) continue;
-    const suffix = rid === gameId ? 'screen' : rid.slice(gameId.length + 1);
+    if (!rid) continue;
+    hierarchyControlIds.push(rid);
+    const candidateGameId = rid === expectedGameId || rid.startsWith(`${expectedGameId}.`)
+      ? expectedGameId
+      : rid.slice(0, rid.indexOf('.'));
+    if (candidateGameId !== expectedGameId || !gameMetadata(candidateGameId)) continue;
+    const suffix = rid === candidateGameId ? 'screen' : rid.slice(candidateGameId.length + 1);
     const bounds = /bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(tag);
     controls[suffix] = {
       bounds: bounds ? [+bounds[1], +bounds[2], +bounds[3], +bounds[4]] : null,
@@ -291,7 +331,16 @@ function parseControls(xml, gameId) {
       desc: /content-desc="([^"]*)"/.exec(tag)?.[1] || '',
     };
   }
-  return controls;
+  const observedGameIds = new Set(hierarchyControlIds.flatMap((resourceId) => {
+    const dot = resourceId.indexOf('.');
+    const gameId = dot < 0 ? resourceId : resourceId.slice(0, dot);
+    return gameMetadata(gameId) ? [gameId] : [];
+  }));
+  return {
+    controls,
+    hierarchyControlIds,
+    observedGameId: observedGameIds.size === 1 ? [...observedGameIds][0] : null,
+  };
 }
 
 function currentFocus(serial) {
@@ -314,15 +363,22 @@ function rawScreenFor(serial, xml, appExpectedRunning = true) {
 /** Write a receipt only for bytes actually acquired by this attempt. The
  * independent index is accumulated at acquisition, never reconstructed from
  * the ledger's claims. Static frames may legitimately have identical pixels. */
-export function captureArtifact(ctx, file, bytes, kind, capturedAt = new Date().toISOString()) {
+export function captureArtifact(ctx, file, bytes, kind, observation) {
   if (!Buffer.isBuffer(bytes) || !fs.existsSync(file)) throw new Error('capture receipt requires acquired artifact bytes on disk');
+  if (!observation || !Number.isSafeInteger(observation.seq) || !isIsoTimestamp(observation.timestamp)) {
+    throw new Error('capture receipt requires its source observation sequence and strict timestamp');
+  }
   const digest = sha256(bytes);
   if (sha256(fs.readFileSync(file)) !== digest) throw new Error('captured artifact bytes differ from the acquired file');
   const receipt = {
     schemaVersion: 1, captureId: crypto.randomUUID(),
-    executionAttemptId: ctx.attemptId, artifactSha256: digest, capturedAt,
+    executionAttemptId: ctx.attemptId, artifactSha256: digest,
+    artifactFile: path.relative(REPO_ROOT, file).split(path.sep).join('/'), artifactKind: kind,
+    observationSeq: observation.seq, observationTimestamp: observation.timestamp,
+    capturedAt: new Date().toISOString(),
     gitSha: ctx.buildIdentity.gitSha, apkSha256: ctx.buildIdentity.apkSha256,
   };
+  if (!isIsoTimestamp(receipt.capturedAt)) throw new Error('capture receipt timestamp is invalid');
   const receiptFile = `${file}.capture.json`;
   const receiptBytes = Buffer.from(JSON.stringify(receipt, null, 2));
   fs.writeFileSync(receiptFile, receiptBytes);
@@ -333,7 +389,8 @@ export function captureArtifact(ctx, file, bytes, kind, capturedAt = new Date().
   return {
     file: path.relative(REPO_ROOT, file).split(path.sep).join('/'), bytes: bytes.length,
     sha256: digest, sha1: sha1(bytes), kind,
-    executionAttemptId: ctx.attemptId, captureReceipt: ref,
+    executionAttemptId: ctx.attemptId, observationSeq: observation.seq,
+    observationTimestamp: observation.timestamp, captureReceipt: ref,
   };
 }
 
@@ -361,7 +418,10 @@ function observe(ctx, phase, key) {
   const { serial, gameId, artDir } = ctx;
   const xml = dumpHierarchy(serial);
   const rawScreen = rawScreenFor(serial, xml, ctx.appLaunched === true);
-  const controls = rawScreen.hierarchyStatus === 'ok' ? parseControls(xml, gameId) : {};
+  const parsed = rawScreen.hierarchyStatus === 'ok'
+    ? parseHierarchyGameData(xml, gameId)
+    : { controls: {}, hierarchyControlIds: [], observedGameId: null };
+  const controls = parsed.controls;
   const suffixes = Object.keys(controls).sort();
   const scoreControlId = ['score-final', 'score-live', 'score'].find((id) => controls[id]);
   const scoreControl = scoreControlId ? controls[scoreControlId] : null;
@@ -377,14 +437,16 @@ function observe(ctx, phase, key) {
   }]));
   const obs = {
     seq: ctx.obsSeq++,
+    executionAttemptId: ctx.attemptId,
     phase,
     timestamp: new Date().toISOString(),
     controls: suffixes,
+    hierarchyControlIds: parsed.hierarchyControlIds,
     screenMarkers: [],
     rawScreen,
     screenKind,
     controlDetails,
-    observedGameId: suffixes.length ? gameId : null,
+    observedGameId: parsed.observedGameId,
     score: scoreControl ? (scoreControl.text || scoreControl.desc || null) : null,
     scoreControlId: scoreControl ? scoreControlId : null,
     boardValues,
@@ -408,7 +470,7 @@ function observe(ctx, phase, key) {
       });
       fs.mkdirSync(artDir, { recursive: true });
       fs.writeFileSync(pngPath, buf);
-      const art = captureArtifact(ctx, pngPath, buf, 'screenshot');
+      const art = captureArtifact(ctx, pngPath, buf, 'screenshot', { seq: obs.seq, timestamp: obs.timestamp });
       ctx.artifacts.push(art);
       obs.evidenceArtifact = { ...art };
     } catch { /* screenshot failure stays visible as evidenceArtifact: null */ }
@@ -416,7 +478,7 @@ function observe(ctx, phase, key) {
       const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
       fs.mkdirSync(artDir, { recursive: true });
       fs.writeFileSync(xmlPath, xml);
-      const xmlArt = captureArtifact(ctx, xmlPath, Buffer.from(xml), 'hierarchy', obs.timestamp);
+      const xmlArt = captureArtifact(ctx, xmlPath, Buffer.from(xml), 'hierarchy', { seq: obs.seq, timestamp: obs.timestamp });
       ctx.artifacts.push(xmlArt);
       obs.hierarchyArtifact = { ...xmlArt };
       if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
@@ -779,12 +841,12 @@ export async function main() {
     const artDir = path.join(ARTIFACT_ROOT, id);
     process.stdout.write(`[sweep] ${id} ... `);
     const attemptId = `sweep-${new Date().toISOString().replace(/[:.]/g, '')}--${id}`;
-    const tutorialState = g.meta.hasTutorial === true ? persistedTutorialState(serial, id) : null;
     const ctx = {
-      serial, gameId: id, artDir, attemptId, buildIdentity: identity, captureReceipts, tutorialState,
-      obsSeq: 0, eventSeq: 0,
-      observations: [], events: [], artifacts: [],
+      serial, gameId: id, artDir, attemptId, buildIdentity: identity, captureReceipts,
+      startedAt: new Date().toISOString(), obsSeq: g.meta.hasTutorial === true ? 1 : 0, eventSeq: 0,
+      observations: [], events: [], artifacts: [], tutorialStateEvidence: null,
     };
+    if (g.meta.hasTutorial === true) ctx.tutorialStateEvidence = persistedTutorialState(serial, id, ctx);
     let record;
     try {
       await driveGame(ctx);
@@ -796,10 +858,10 @@ export async function main() {
         name: g.meta.name,
         category: g.meta.primaryCategory,
         hasTutorial: g.meta.hasTutorial,
-        tutorialState,
+        tutorialStateEvidence: ctx.tutorialStateEvidence,
         buildIdentity: identity,
         deviceProfile: device,
-        startedAt: ctx.observations[0]?.timestamp || null,
+        startedAt: ctx.startedAt,
         endedAt: new Date().toISOString(),
         events: ctx.events,
         observations: ctx.observations,
@@ -824,10 +886,10 @@ export async function main() {
         name: g.meta.name,
         category: g.meta.primaryCategory,
         hasTutorial: g.meta.hasTutorial,
-        tutorialState,
+        tutorialStateEvidence: ctx.tutorialStateEvidence,
         buildIdentity: identity,
         deviceProfile: device,
-        startedAt: ctx.observations[0]?.timestamp || null,
+        startedAt: ctx.startedAt,
         endedAt: new Date().toISOString(),
         events: ctx.events,
         observations: ctx.observations,
@@ -845,7 +907,7 @@ export async function main() {
     contractVersion: CONTRACT_VERSION,
     generatedAt: new Date().toISOString(),
     evidenceSource: 'runtime',
-    harness: 'scripts/qa/native-game-sweep.mjs (contract 2.0)',
+    harness: 'scripts/qa/native-game-sweep.mjs (contract 2.1)',
     environment: { ...identity, ...device },
     runs,
   };

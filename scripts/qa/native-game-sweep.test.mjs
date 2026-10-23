@@ -10,6 +10,8 @@ import {
   captureArtifact,
   dumpHierarchy,
   hierarchyStatus,
+  parseHierarchyGameData,
+  queryTutorialStateFromDatabaseBytes,
   readTutorialStateFromDatabaseBytes,
   tutorialStateFromPersistedRow,
   writeCaptureReceiptIndex,
@@ -92,6 +94,12 @@ test('SQLite snapshot reader uses the persisted tutorial_state row and returns u
     assert.deepEqual(readTutorialStateFromDatabaseBytes(snapshot, null, 'memory-pair-recall', dir), {
       previouslyCompleted: true, completed: true, replayRequested: false, version: '1.0.0', source: 'tutorial_state',
     });
+    assert.deepEqual(queryTutorialStateFromDatabaseBytes(snapshot, null, 'memory-pair-recall', dir), {
+      table: 'tutorial_state',
+      columns: ['game_id', 'completed', 'replay_requested', 'version', 'updated_at'],
+      where: { game_id: 'memory-pair-recall' },
+      row: { game_id: 'memory-pair-recall', completed: 1, replay_requested: 0, version: '1.0.0', updated_at: 1234 },
+    });
     assert.equal(readTutorialStateFromDatabaseBytes(snapshot, null, 'new-game', dir).previouslyCompleted, false);
     assert.equal(readTutorialStateFromDatabaseBytes(Buffer.from('not sqlite'), null, 'memory-pair-recall', dir), null);
   } finally {
@@ -112,20 +120,27 @@ test('captureArtifact writes the agreed receipt schema and the independent index
   };
   try {
     fs.writeFileSync(artifactFile, bytes);
-    const artifact = captureArtifact(ctx, artifactFile, bytes, 'screenshot', '2026-10-23T12:00:00.000Z');
+    const artifact = captureArtifact(ctx, artifactFile, bytes, 'screenshot', { seq: 7, timestamp: '2026-10-23T12:00:00.000Z' });
     assert.deepEqual(Object.keys(artifact.captureReceipt).sort(), ['file', 'sha256']);
     const receiptPath = path.join(REPO_ROOT, artifact.captureReceipt.file);
     const receiptBytes = fs.readFileSync(receiptPath);
     assert.equal(artifact.captureReceipt.sha256, hash(receiptBytes));
     const receipt = JSON.parse(receiptBytes.toString('utf8'));
     assert.deepEqual(Object.keys(receipt).sort(), [
-      'apkSha256', 'artifactSha256', 'captureId', 'capturedAt', 'executionAttemptId', 'gitSha', 'schemaVersion',
+      'apkSha256', 'artifactFile', 'artifactKind', 'artifactSha256', 'captureId', 'capturedAt',
+      'executionAttemptId', 'gitSha', 'observationSeq', 'observationTimestamp', 'schemaVersion',
     ]);
     assert.equal(receipt.schemaVersion, 1);
     assert.match(receipt.captureId, /^[0-9a-f-]{36}$/i);
     assert.equal(receipt.executionAttemptId, 'attempt-receipt-test');
     assert.equal(receipt.artifactSha256, hash(bytes));
-    assert.equal(receipt.capturedAt, '2026-10-23T12:00:00.000Z');
+    assert.equal(receipt.artifactFile, artifact.file);
+    assert.equal(receipt.artifactKind, 'screenshot');
+    assert.equal(receipt.observationSeq, 7);
+    assert.equal(receipt.observationTimestamp, '2026-10-23T12:00:00.000Z');
+    assert.match(receipt.capturedAt, /^\d{4}-\d\d-\d\dT/);
+    assert.equal(artifact.observationSeq, 7);
+    assert.equal(artifact.observationTimestamp, receipt.observationTimestamp);
     assert.equal(receipt.gitSha, 'a'.repeat(40));
     assert.equal(receipt.apkSha256, 'b'.repeat(64));
     assert.equal(refs.length, 1, 'the acquisition index is appended at capture time');
@@ -139,15 +154,47 @@ test('captureArtifact writes the agreed receipt schema and the independent index
   }
 });
 
+test('separately acquired identical frames keep distinct observation-bound receipts', () => {
+  const dir = repoTempDir('sweep-identical-frame-test-');
+  const bytes = Buffer.from('same pixels');
+  const refs = [];
+  const ctx = { attemptId: 'attempt-identical', buildIdentity: { gitSha: 'a'.repeat(40), apkSha256: 'b'.repeat(64) }, captureReceipts: refs };
+  try {
+    const firstFile = path.join(dir, 'first.png');
+    const secondFile = path.join(dir, 'second.png');
+    fs.writeFileSync(firstFile, bytes);
+    fs.writeFileSync(secondFile, bytes);
+    const first = captureArtifact(ctx, firstFile, bytes, 'screenshot', { seq: 1, timestamp: '2026-10-23T12:00:01Z' });
+    const second = captureArtifact(ctx, secondFile, bytes, 'screenshot', { seq: 2, timestamp: '2026-10-23T12:00:02Z' });
+    assert.equal(first.sha256, second.sha256);
+    assert.notEqual(first.captureReceipt.file, second.captureReceipt.file);
+    assert.equal(first.observationSeq, 1);
+    assert.equal(second.observationSeq, 2);
+    assert.equal(refs.length, 2);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('parseHierarchyGameData derives identity and control IDs from acquired UIA XML', () => {
+  const xml = '<hierarchy><node resource-id="memory-pair-recall.intro" text=""/><node resource-id="memory-pair-recall.session-token.session%3A42"/><node resource-id="android:id/content"/></hierarchy>';
+  const parsed = parseHierarchyGameData(xml, 'memory-pair-recall');
+  assert.equal(parsed.observedGameId, 'memory-pair-recall');
+  assert.deepEqual(parsed.hierarchyControlIds, [
+    'memory-pair-recall.intro', 'memory-pair-recall.session-token.session%3A42', 'android:id/content',
+  ]);
+  assert.deepEqual(Object.keys(parsed.controls).sort(), ['intro', 'session-token.session%3A42']);
+  assert.equal(parseHierarchyGameData(xml, 'attention-odd-one-out').observedGameId, 'memory-pair-recall',
+    'caller-requested game identity cannot relabel acquired resource IDs');
+});
+
 test('captureArtifact refuses to index missing or different artifact bytes', () => {
   const ctx = { attemptId: 'attempt-bad-receipt', buildIdentity: { gitSha: 'a'.repeat(40), apkSha256: 'b'.repeat(64) }, captureReceipts: [] };
   const dir = repoTempDir('sweep-receipt-failure-test-');
   try {
     const file = path.join(dir, 'capture.png');
     fs.writeFileSync(file, 'different bytes');
-    assert.throws(() => captureArtifact(ctx, file, Buffer.from('claimed bytes'), 'screenshot'), /differ from the acquired file/);
+    assert.throws(() => captureArtifact(ctx, file, Buffer.from('claimed bytes'), 'screenshot', { seq: 1, timestamp: '2026-10-23T12:00:01Z' }), /differ from the acquired file/);
     assert.equal(ctx.captureReceipts.length, 0);
-    assert.throws(() => captureArtifact(ctx, path.join(dir, 'missing.png'), Buffer.from('bytes'), 'screenshot'), /requires acquired artifact bytes/);
+    assert.throws(() => captureArtifact(ctx, path.join(dir, 'missing.png'), Buffer.from('bytes'), 'screenshot', { seq: 1, timestamp: '2026-10-23T12:00:01Z' }), /requires acquired artifact bytes/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

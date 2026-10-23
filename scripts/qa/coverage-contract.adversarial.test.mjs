@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
+import { gameMetadata } from './gameplay-policy.mjs';
 import {
   AxisStatus,
   CausalityVerdict,
@@ -53,34 +54,33 @@ const deviceProfile = (overrides = {}) => ({
 
 function observation(seq, {
   controls = [], screenMarkers = [], screenKind, observedGameId, score = '0', boardValues = [],
-  controlDetails, sha256, verifiedSha256, artifact = true, phase = 'play', requireArtifact,
+  controlDetails, sha256, verifiedSha256, artifact = true, phase = 'play', requireArtifact, timestamp,
 } = {}) {
   const expectedPackage = 'com.braintraining.mobile';
-  const rawScreen = screenKind === 'app-destination'
-    ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
-    : screenKind === 'launcher'
-      ? { expectedPackage, focusPackage: 'com.android.launcher3/com.android.launcher3.Launcher', hierarchyStatus: 'ok', appAlive: true }
-      : screenKind === 'system-dialog'
-        ? { expectedPackage, focusPackage: 'com.android.systemui', hierarchyStatus: 'ok', appAlive: true }
-        : screenKind === 'permission-dialog'
-          ? { expectedPackage, focusPackage: 'com.android.permissioncontroller', hierarchyStatus: 'ok', appAlive: true }
-          : screenKind === 'hierarchy-failure'
-            ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'malformed', appAlive: true }
-            : screenKind === 'crash'
-              ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: false }
-              : controls.length > 0
-                ? { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true }
-                : undefined;
-  const derived = observeState({ controls, screenMarkers, rawScreen, gameId: GAME_ID, observedGameId });
+  let rawScreen;
+  if (screenKind === 'app-destination') rawScreen = { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true };
+  else if (screenKind === 'launcher') rawScreen = { expectedPackage, focusPackage: 'com.android.launcher3/com.android.launcher3.Launcher', hierarchyStatus: 'ok', appAlive: true };
+  else if (screenKind === 'system-dialog') rawScreen = { expectedPackage, focusPackage: 'com.android.systemui', hierarchyStatus: 'ok', appAlive: true };
+  else if (screenKind === 'permission-dialog') rawScreen = { expectedPackage, focusPackage: 'com.android.permissioncontroller', hierarchyStatus: 'ok', appAlive: true };
+  else if (screenKind === 'hierarchy-failure') rawScreen = { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'malformed', appAlive: true };
+  else if (screenKind === 'crash') rawScreen = { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: false };
+  else if (controls.length > 0) rawScreen = { expectedPackage, focusPackage: `${expectedPackage}/Main`, hierarchyStatus: 'ok', appAlive: true };
+  const observationTimestamp = timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`;
+  const hierarchyControlIds = observedGameId
+    ? controls.map((control) => `${observedGameId}.${control}`)
+    : [];
+  const derived = observeState({ controls, screenMarkers, rawScreen, gameId: GAME_ID, observedGameId, hierarchyControlIds });
   const o = {
     seq,
+    executionAttemptId: ATTEMPT_ID,
     state: derived.state,
     controls,
+    hierarchyControlIds,
     screenMarkers,
     score,
     boardValues,
     phase,
-    timestamp: `2026-10-21T12:00:${String(seq).padStart(2, '0')}Z`,
+    timestamp: observationTimestamp,
   };
   if (screenKind) o.screenKind = screenKind;
   if (rawScreen) o.rawScreen = rawScreen;
@@ -94,12 +94,24 @@ function observation(seq, {
       bytes: 1024,
       kind: 'screenshot',
       executionAttemptId: ATTEMPT_ID,
+      observationSeq: seq,
+      observationTimestamp,
+      captureReceipt: {
+        file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.png.capture.json`,
+        sha256: sha256Of(`receipt-png-${seq}`),
+      },
     };
     if (verifiedSha256 !== undefined) o.evidenceArtifact.verifiedSha256 = verifiedSha256;
     if (rawScreen) {
       o.hierarchyArtifact = {
         file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.xml`,
         sha256: sha256Of(`hierarchy-${seq}`), bytes: 256, kind: 'hierarchy', executionAttemptId: ATTEMPT_ID,
+        observationSeq: seq,
+        observationTimestamp,
+        captureReceipt: {
+          file: `qa-artifacts/080/fixture/${ATTEMPT_ID}/obs-${String(seq).padStart(2, '0')}.xml.capture.json`,
+          sha256: sha256Of(`receipt-xml-${seq}`),
+        },
       };
     }
   } else {
@@ -109,9 +121,11 @@ function observation(seq, {
 }
 
 const gameObs = (seq, extra = {}) => observation(seq, { observedGameId: GAME_ID, ...extra });
-const introObs = (seq, extra = {}) => gameObs(seq, { controls: ['intro', 'start'], ...extra });
-const playingObs = (seq, extra = {}) => gameObs(seq, { controls: ['stage', 'pause', 'round.1', 'score'], ...extra });
-const resultsObs = (seq, extra = {}) => gameObs(seq, { controls: ['results', 'result-facts'], ...extra });
+const withSessionToken = (controls) => controls.some((control) => control.startsWith('session-token.'))
+  ? controls : [...controls, 'session-token.fixture-session'];
+const introObs = (seq, extra = {}) => gameObs(seq, { ...extra, controls: withSessionToken(extra.controls || ['intro', 'start']) });
+const playingObs = (seq, extra = {}) => gameObs(seq, { ...extra, controls: withSessionToken(extra.controls || ['stage', 'pause', 'round.1', 'score']) });
+const resultsObs = (seq, extra = {}) => gameObs(seq, { ...extra, controls: withSessionToken(extra.controls || ['results', 'result-facts']) });
 const exitedObs = (seq, extra = {}) =>
   observation(seq, { screenKind: 'app-destination', screenMarkers: ['games-title'], ...extra });
 const launcherObs = (seq, extra = {}) =>
@@ -136,11 +150,30 @@ function event(seq, fields = {}) {
   };
 }
 
+function tutorialEvidenceFor(executionAttemptId, gameId, completed = 1) {
+  const observationTimestamp = '2026-10-21T12:00:00Z';
+  const artifactFile = `qa-artifacts/080/fixture/${executionAttemptId}/tutorial-state.json`;
+  const artifact = {
+    file: artifactFile, sha256: sha256Of(`tutorial-state-${executionAttemptId}-${gameId}`),
+    bytes: 256, kind: 'tutorial-state', executionAttemptId, observationSeq: 0, observationTimestamp,
+    captureReceipt: { file: `${artifactFile}.capture.json`, sha256: sha256Of(`tutorial-receipt-${executionAttemptId}-${gameId}`) },
+  };
+  return {
+    schemaVersion: 1, executionAttemptId, gameId, observationSeq: 0, observationTimestamp, capturedAt: observationTimestamp,
+    query: {
+      sql: 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?',
+      table: 'tutorial_state', columns: ['game_id', 'completed', 'replay_requested', 'version', 'updated_at'],
+      where: { game_id: gameId }, row: { game_id: gameId, completed, replay_requested: 0, version: '1.0.0', updated_at: 1792584000 },
+    }, artifact,
+  };
+}
+
 function runRecord(overrides = {}) {
   const rec = {
     executionAttemptId: ATTEMPT_ID,
     gameId: GAME_ID,
     knownGameId: true,
+    hasTutorial: gameMetadata(GAME_ID)?.hasTutorial,
     buildIdentity: buildIdentity(),
     deviceProfile: deviceProfile(),
     startedAt: '2026-10-21T12:00:00Z',
@@ -148,13 +181,25 @@ function runRecord(overrides = {}) {
     observations: [],
     ...overrides,
   };
+  if (rec.tutorialStateEvidence === undefined && rec.hasTutorial === true) {
+    rec.tutorialStateEvidence = tutorialEvidenceFor(rec.executionAttemptId, rec.gameId);
+  }
+  if (rec.artifacts === undefined) rec.artifacts = rec.tutorialStateEvidence?.artifact ? [rec.tutorialStateEvidence.artifact] : [];
   for (const o of rec.observations || []) {
-    if (o && o.evidenceArtifact && typeof o.evidenceArtifact === 'object' &&
-        o.evidenceArtifact.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
-      o.evidenceArtifact = { ...o.evidenceArtifact, executionAttemptId: rec.executionAttemptId };
+    if (o.observedGameId === GAME_ID && rec.gameId !== GAME_ID) {
+      o.observedGameId = rec.gameId;
+      o.hierarchyControlIds = (o.hierarchyControlIds || []).map((id) => id.replace(`${GAME_ID}.`, `${rec.gameId}.`));
+      o.state = observeState({ ...o, gameId: rec.gameId }).state;
     }
-    if (o?.hierarchyArtifact?.executionAttemptId === ATTEMPT_ID && rec.executionAttemptId !== ATTEMPT_ID) {
-      o.hierarchyArtifact = { ...o.hierarchyArtifact, executionAttemptId: rec.executionAttemptId };
+    o.executionAttemptId = rec.executionAttemptId;
+    for (const art of [o.evidenceArtifact, o.hierarchyArtifact]) {
+      if (art && art.executionAttemptId === ATTEMPT_ID) art.executionAttemptId = rec.executionAttemptId;
+    }
+  }
+  if (rec.tutorialStateEvidence?.executionAttemptId === ATTEMPT_ID) {
+    rec.tutorialStateEvidence.executionAttemptId = rec.executionAttemptId;
+    if (rec.tutorialStateEvidence.artifact?.executionAttemptId === ATTEMPT_ID) {
+      rec.tutorialStateEvidence.artifact.executionAttemptId = rec.executionAttemptId;
     }
   }
   return rec;
@@ -265,18 +310,19 @@ test('A2 (P1-A): causality classification covers every mandated shape', () => {
   }).verdict, CausalityVerdict.INPUT_ACCEPTED);
 });
 
-test('A3 (P1-A): passive gameplay with no input is credited autonomously, never as taps', () => {
+test('A3 (P2): unattended score changes on an answer-driven game are not passive gameplay', () => {
   const rec = runRecord({
     observations: [introObs(1), playingObs(2, { score: '0' }), playingObs(3, { score: '15' }), resultsObs(4, { score: '15' })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
-      event(2, { action: 'wait', observationBeforeSeq: 3, observationAfterSeq: 4 }),
+      event(2, { action: 'wait', actionAcknowledged: true, observationBeforeSeq: 3, observationAfterSeq: 4 }),
     ],
   });
   const axes = deriveCapabilities(rec);
   assert.equal(axes.inputAttempted.status, AxisStatus.NOT_EXECUTED);
   assert.equal(axes.inputAccepted.status, AxisStatus.NOT_EXECUTED);
-  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED);
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.NOT_EXECUTED);
+  assert.notEqual(deriveLevel(rec).level, 2);
 });
 
 test('A4 (P1-A): a changed fingerprint with NO attributable signal is ambiguous, not accepted', () => {
@@ -366,11 +412,28 @@ test('P1-1 + NF-080-001: a FAILED tap with coincidental score/feedback change is
   assert.notEqual(axes.feedbackObserved.status, AxisStatus.VERIFIED,
     'feedback after a failed tap is autonomous coincidence, never input feedback');
   // The coincidental change IS represented honestly — as an autonomous event.
-  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED,
-    'passive/autonomous transitions must be represented as autonomous events, never accepted input');
-  assert.match(axes.autonomousGameplayEvent.note, /unexecuted-command/);
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.NOT_EXECUTED,
+    'an answer-driven game cannot convert a failed action and arbitrary score change into passive credit');
   // The genuinely executed Start tap may still prove gameplay entry.
   assert.equal(axes.gameplayEntered.status, AxisStatus.VERIFIED);
+});
+
+test('P1 identity repro: visible gameplay and accepted input without observed hierarchy identity cannot earn L2', () => {
+  const rec = runRecord({
+    observations: [
+      observation(1, { controls: ['intro', 'start'] }),
+      observation(2, { controls: ['stage', 'pause', 'round.1', 'score'], score: '0' }),
+      observation(3, { controls: ['stage', 'pause', 'round.1', 'score', 'verdict-correct'], score: '10' }),
+    ],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { target: 'memory-pair-recall.card.1', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  const level = deriveLevel(rec);
+  assert.equal(level.axes.identity.status, AxisStatus.FAILED);
+  assert.equal(level.axes.inputAccepted.status, AxisStatus.VERIFIED);
+  assert.notEqual(level.level, 2);
 });
 
 test('NF-080-001: failed Start/transition events never verify gameplayEntered, sessionEnded or resultsCurrent [reviewer stale-results fixture]', () => {
@@ -395,8 +458,8 @@ test('NF-080-001: failed Start/transition events never verify gameplayEntered, s
     'a failed transition event never proves session end');
   assert.notEqual(axes.resultsCurrent.status, AxisStatus.VERIFIED,
     'results reached through failed commands are not attributable to this session');
-  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.VERIFIED,
-    'the unattributed transitions are represented as autonomous events');
+  assert.equal(axes.autonomousGameplayEvent.status, AxisStatus.NOT_EXECUTED,
+    'uncontracted transitions on an answer-driven game are not passive gameplay');
   assert.ok(deriveLevel(staleResults).level < 3);
 });
 
@@ -597,7 +660,7 @@ test('C4 (P1-C): an artifact bound to another execution attempt is rejected', ()
   rec.observations[0].evidenceArtifact.executionAttemptId = 'some-other-attempt';
   const checks = validateRunRecord(rec, { evidenceMode: 'local' });
   assert.equal(checks.valid, false);
-  assert.ok(checks.errors.some((e) => e.includes('different execution attempt')));
+  assert.ok(checks.errors.some((e) => e.includes('execution attempt')));
 });
 
 // ===========================================================================
@@ -663,21 +726,19 @@ test('W-B2: type-corrupt entries yield structured diagnostics, never an uncontro
   assert.doesNotThrow(() => validateRunRecord(null));
 });
 
-test('W-B3: the authoritative tutorial-completion rule', () => {
-  assert.equal(deriveTutorialStatus({ hasTutorial: false }), TutorialStatus.NOT_REQUIRED);
-  assert.equal(deriveTutorialStatus({ hasTutorial: true, tutorialObserved: true, tutorialCleared: true }),
+test('W-B3: tutorial applicability is metadata-backed and prior completion is SQLite-row-backed', () => {
+  assert.equal(deriveTutorialStatus({ metadata: { hasTutorial: false } }), TutorialStatus.NOT_REQUIRED);
+  assert.equal(deriveTutorialStatus({ metadata: gameMetadata(GAME_ID), tutorialObserved: true, tutorialCleared: true }),
     TutorialStatus.COMPLETED_THIS_ATTEMPT);
-  assert.equal(deriveTutorialStatus({ hasTutorial: true, tutorialObserved: true, tutorialCleared: false }),
+  assert.equal(deriveTutorialStatus({ metadata: gameMetadata(GAME_ID), tutorialObserved: true, tutorialCleared: false }),
     TutorialStatus.REQUIRED_NOT_CLEARED);
-  assert.equal(deriveTutorialStatus({ hasTutorial: true, tutorialState: { previouslyCompleted: true } }),
+  assert.equal(deriveTutorialStatus({ metadata: gameMetadata(GAME_ID), tutorialStateRow: { completed: 1, replay_requested: 0, version: '1.0.0' } }),
     TutorialStatus.PREVIOUSLY_COMPLETED);
-  assert.equal(deriveTutorialStatus({ hasTutorial: true }), TutorialStatus.UNKNOWN);
+  assert.equal(deriveTutorialStatus({ metadata: gameMetadata(GAME_ID) }), TutorialStatus.UNKNOWN);
 
   // A returning player must not be forced to repeat a tutorial for QA: a
   // persisted-completed tutorial does not block L2.
   const returning = runRecord({
-    hasTutorial: true,
-    tutorialState: { previouslyCompleted: true },
     observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
@@ -724,13 +785,13 @@ test('P2-B4/NF-080-008: duplicate sequences, invalid timestamps and broken refer
   assert.equal(deriveLevel(duplicate).level, 0);
 
   const invalidEventTime = structuredClone(valid);
-  invalidEventTime.events[1].timestamp = 'not-a-timestamp';
-  assert.ok(validateRunRecord(invalidEventTime).errors.some((message) => message.includes('valid date')));
+  invalidEventTime.events[1].timestamp = 'Fri, 23 Oct 2026 00:00:01 GMT';
+  assert.ok(validateRunRecord(invalidEventTime).errors.some((message) => message.includes('ISO-8601/RFC-3339')));
   assert.equal(deriveLevel(invalidEventTime).level, 0);
 
   const invalidObservationTime = structuredClone(valid);
-  invalidObservationTime.observations[2].timestamp = 'not-a-timestamp';
-  assert.ok(validateRunRecord(invalidObservationTime).errors.some((message) => message.includes('timestamp invalid')));
+  invalidObservationTime.observations[2].timestamp = '2026-10-21';
+  assert.ok(validateRunRecord(invalidObservationTime).errors.some((message) => message.includes('strict ISO-8601/RFC-3339')));
   assert.equal(deriveLevel(invalidObservationTime).level, 0);
 
   const brokenReference = structuredClone(valid);
@@ -739,34 +800,45 @@ test('P2-B4/NF-080-008: duplicate sequences, invalid timestamps and broken refer
   assert.equal(deriveLevel(brokenReference).level, 0);
 });
 
-test('P2-B6: five tutorial states are represented on run capability axes', () => {
-  const notRequired = deriveCapabilities(runRecord({ hasTutorial: false }));
-  assert.equal(notRequired.tutorialStatus.value, TutorialStatus.NOT_REQUIRED);
-  assert.equal(notRequired.tutorialCompleted.status, AxisStatus.OBSERVED);
+test('P2-B6: tutorial states require authoritative metadata and attempt-bound persisted evidence', () => {
+  assert.equal(deriveTutorialStatus({ metadata: { hasTutorial: false } }), TutorialStatus.NOT_REQUIRED);
+  const mismatchedApplicability = runRecord({ hasTutorial: false });
+  assert.equal(validateRunRecord(mismatchedApplicability).valid, false,
+    'caller-declared no-tutorial metadata contradicts the shipping game.json');
 
   const completedThisAttempt = deriveCapabilities(runRecord({
-    hasTutorial: true, tutorialState: { previouslyCompleted: false },
+    hasTutorial: true,
     observations: [observation(1, { observedGameId: GAME_ID, controls: ['tutorial', 'tutorial-next'] }), introObs(2)],
     events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
   }));
   assert.equal(completedThisAttempt.tutorialStatus.value, TutorialStatus.COMPLETED_THIS_ATTEMPT);
   assert.equal(completedThisAttempt.tutorialCompleted.status, AxisStatus.VERIFIED);
 
-  const previouslyCompleted = deriveCapabilities(runRecord({
-    hasTutorial: true, tutorialState: { previouslyCompleted: true },
-  }));
+  const previouslyCompleted = deriveCapabilities(runRecord());
   assert.equal(previouslyCompleted.tutorialStatus.value, TutorialStatus.PREVIOUSLY_COMPLETED);
   assert.equal(previouslyCompleted.tutorialCompleted.status, AxisStatus.VERIFIED);
 
   const requiredNotCleared = deriveCapabilities(runRecord({
-    hasTutorial: true, tutorialState: { previouslyCompleted: false },
+    tutorialStateEvidence: tutorialEvidenceFor(ATTEMPT_ID, GAME_ID, 0),
   }));
   assert.equal(requiredNotCleared.tutorialStatus.value, TutorialStatus.REQUIRED_NOT_CLEARED);
   assert.equal(requiredNotCleared.tutorialCompleted.status, AxisStatus.FAILED);
 
-  const unknown = deriveCapabilities(runRecord({ hasTutorial: true }));
+  const unknownRun = runRecord({
+    tutorialStateEvidence: null,
+    observations: [
+      introObs(1), playingObs(2, { score: '0' }),
+      playingObs(3, { controls: ['stage', 'pause', 'round.1', 'score', 'verdict-correct'], score: '10' }),
+    ],
+    events: [
+      event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
+    ],
+  });
+  const unknown = deriveCapabilities(unknownRun);
   assert.equal(unknown.tutorialStatus.value, TutorialStatus.UNKNOWN);
   assert.equal(unknown.tutorialCompleted.status, AxisStatus.NOT_EXECUTED);
+  assert.notEqual(deriveLevel(unknownRun).level, 2, 'missing SQLite history cannot silently waive a required tutorial');
 });
 
 test('NF-080-007: a tutorial demo-status surface is not gameplay even without a tutorial id', () => {
@@ -811,21 +883,41 @@ test('NF-080-002: safe exit rejects forged, no-op, dialog and hierarchy-unbound 
   delete noHierarchyArtifact.hierarchyArtifact;
   const missingRawEvidence = makeExit(introObs(1), noHierarchyArtifact);
   assert.notEqual(deriveCapabilities(missingRawEvidence).safeExit.status, AxisStatus.VERIFIED);
+
+  const replayed = makeExit(introObs(1), exitedObs(2));
+  replayed.observations[1].hierarchyArtifact = structuredClone(replayed.observations[0].hierarchyArtifact);
+  assert.equal(validateRunRecord(replayed).valid, false, 'one acquisition cannot support two observations');
+  assert.notEqual(deriveCapabilities(replayed).safeExit.status, AxisStatus.VERIFIED);
 });
 
-test('P2-B3: stale score 5 -> 99 is rejected without semantics while observed score-final can bind a legitimate change', () => {
+test('P1 equal-score repro: adjacent results with the same score but no current session token/event are stale', () => {
+  const rec = runRecord({
+    observations: [
+      introObs(1), playingObs(2, { score: '5' }),
+      observation(3, { observedGameId: GAME_ID, controls: ['results', 'result-facts'], score: '5' }),
+    ],
+    events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
+  });
+  const axes = deriveCapabilities(rec);
+  assert.notEqual(axes.resultsCurrent.status, AxisStatus.VERIFIED);
+  assert.notEqual(axes.sessionEnded.status, AxisStatus.VERIFIED);
+  assert.notEqual(deriveLevel(rec).level, 3);
+});
+
+test('P2-B3: stale results are rejected on session-token mismatch, even with equal or final scores', () => {
   const stale = runRecord({
-    observations: [introObs(1), playingObs(2, { score: '5' }), resultsObs(3, { score: '99' })],
+    observations: [introObs(1), playingObs(2, { score: '5' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'session-token.stale-session'] })],
     events: [
       event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
-      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+      event(2, { action: 'wait', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
     ],
   });
   assert.notEqual(deriveCapabilities(stale).resultsCurrent.status, AxisStatus.VERIFIED);
   assert.equal(exactScore('5 stale'), null);
 
   const finalScore = structuredClone(stale);
-  finalScore.observations[2].controls.push('score-final');
+  finalScore.observations[2].controls = ['results', 'result-facts', 'score-final', 'session-token.fixture-session'];
+  finalScore.observations[2].hierarchyControlIds = finalScore.observations[2].controls.map((control) => `${GAME_ID}.${control}`);
   finalScore.observations[2].state = observeState({ ...finalScore.observations[2], gameId: GAME_ID }).state;
   assert.equal(deriveCapabilities(finalScore).resultsCurrent.status, AxisStatus.VERIFIED);
   assert.equal(deriveCapabilities(finalScore).sessionEnded.status, AxisStatus.VERIFIED);
@@ -849,7 +941,7 @@ test('W-C1: multi-run evidence union is never a fabricated journey', () => {
     executionAttemptId: 'attempt-union-b',
     observations: [playingObs(1, { score: '0' }), resultsObs(2, { score: '5', controls: ['results', 'result-facts', 'score-final'] }), exitedObs(3)],
     events: [
-      event(1, { executionAttemptId: 'attempt-union-b', action: 'wait', observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(1, { executionAttemptId: 'attempt-union-b', action: 'wait', actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { executionAttemptId: 'attempt-union-b', action: 'back', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
     ],
   });
@@ -869,24 +961,26 @@ test('W-C2: a legitimate full-session completion is credited at L3', () => {
     observations: [
       introObs(1),
       playingObs(2, { score: '0' }),
-      gameObs(3, { controls: ['stage', 'pause', 'round.2', 'score'], score: '10' }),
+      playingObs(3, { controls: ['stage', 'pause', 'round.2', 'score'], score: '10' }),
       resultsObs(4, { score: '10' }),
       exitedObs(5),
     ],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
       event(2, { action: 'tap', target: 'memory-pair-recall.card.1', actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
-      event(3, { action: 'wait', observationBeforeSeq: 3, observationAfterSeq: 4 }),
+      event(3, { action: 'wait', actionAcknowledged: true, observationBeforeSeq: 3, observationAfterSeq: 4 }),
       event(4, { action: 'back', actionAcknowledged: true, observationBeforeSeq: 4, observationAfterSeq: 5 }),
     ],
   });
   const level = deriveLevel(rec);
+  assert.equal(level.axes.resultsCurrent.status, AxisStatus.VERIFIED, JSON.stringify(level.axes));
+  assert.equal(level.axes.sessionEnded.status, AxisStatus.VERIFIED, JSON.stringify(level.axes));
   assert.equal(level.level, 3);
   assert.equal(level.status, 'VERIFIED');
   assert.equal(level.axes.safeExit.status, AxisStatus.VERIFIED);
 });
 
-test('W-C3: stale results never certify — by order AND by content', () => {
+test('W-C3: stale results never certify — by order AND by mismatched session token', () => {
   const stale = runRecord({
     scoreSemantics: 'higher-is-better',
     observations: [resultsObs(1, { score: '99' }), introObs(2), playingObs(3, { score: '0' }), exitedObs(4)],
@@ -896,14 +990,14 @@ test('W-C3: stale results never certify — by order AND by content', () => {
 
   const contradicted = runRecord({
     scoreSemantics: 'higher-is-better',
-    observations: [introObs(1), playingObs(2, { score: '50' }), resultsObs(3, { score: '3' })],
+    observations: [introObs(1), playingObs(2, { score: '50' }), resultsObs(3, { score: '3', controls: ['results', 'result-facts', 'session-token.prior-session'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
-      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+      event(2, { action: 'wait', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
     ],
   });
   assert.notEqual(deriveCapabilities(contradicted).resultsCurrent.status, AxisStatus.VERIFIED,
-    "a results score below this session's observed score belongs to another session");
+    'a results screen with a stale session token is not bound to current gameplay');
 });
 
 test('W-C4: a lower-is-better score scale is not falsely rejected by score binding', () => {
@@ -912,7 +1006,7 @@ test('W-C4: a lower-is-better score scale is not falsely rejected by score bindi
     observations: [introObs(1), playingObs(2, { score: '420' }), resultsObs(3, { score: '310', controls: ['results', 'result-facts', 'score-final'] })],
     events: [
       event(1, { actionAcknowledged: true, transitionValid: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
-      event(2, { action: 'wait', observationBeforeSeq: 2, observationAfterSeq: 3 }),
+      event(2, { action: 'wait', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 }),
     ],
   });
   assert.equal(deriveCapabilities(reactionTime).resultsCurrent.status, AxisStatus.VERIFIED);
