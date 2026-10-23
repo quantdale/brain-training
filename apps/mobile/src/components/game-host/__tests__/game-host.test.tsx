@@ -170,8 +170,8 @@ describe('GameHost session observability', () => {
       position: 'absolute',
       width: 1,
       height: 1,
-      opacity: 0,
     });
+    expect(StyleSheet.flatten(marker.props.style).opacity).not.toBe(0);
     expect(screen.queryByText(sessionId)).toBeNull();
 
     await utils.rerender(

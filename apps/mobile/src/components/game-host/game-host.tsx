@@ -456,7 +456,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 1,
     height: 1,
-    opacity: 0,
+    // Empty/transparent draws nothing. Alpha zero made Android omit this
+    // node from real hierarchy captures, defeating session correlation.
   },
   // This is a page in the route's reading flow, not a bottom sheet. Short
   // steps start at the top; taller steps grow the same accessible scroll range.
