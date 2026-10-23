@@ -203,6 +203,40 @@ describe('midway-failure restore leaves the database byte-identical', () => {
   });
 });
 
+describe('080: retry after a rolled-back restore', () => {
+  it.each(['merge', 'replace'] as const)(
+    '%s can be retried and replayed without losing rows or doubling the economy',
+    async (mode) => {
+      const source = await makeDb();
+      await seedFixture(source);
+      const backup = parseAndValidateBackup(serializeBackup(await exportLocalData(source, { now: () => T0 + 1 })));
+      const adapter = await createMigratedDb();
+      const target = new AppDatabase(adapter);
+      await target.profile.ensureExists();
+      if (mode === 'replace') await seedFixture(target);
+      const before = dumpText(await dumpDb(target));
+      const faulty = new AppDatabase(new FaultInjectingAdapter(adapter, MID_IMPORT_BUDGET));
+      await expect(applyImport(faulty, backup, mode)).rejects.toThrow(/injected fault/);
+      expect(dumpText(await dumpDb(target))).toBe(before);
+
+      // Retrying is a new explicit operation, not an automatic retry loop.
+      const retried = await applyImport(target, backup, mode);
+      expect(retried.sessionsAdded).toBe(2);
+      expect(retried.ledgerAdded).toBe(2);
+      const restored = await exportLocalData(target, { now: () => T0 + 2 });
+      const replay = await applyImport(target, backup, mode);
+      const repeated = await exportLocalData(target, { now: () => T0 + 3 });
+      expect(canonicalString(repeated.data)).toBe(canonicalString(restored.data));
+      expect(repeated.data.gameSessions.map((row) => row.id).sort()).toEqual(['s1', 's2']);
+      expect(await target.ledger.getBalance()).toBe(15);
+      expect(await target.ledger.list(100)).toHaveLength(2);
+      expect(replay.sessionsAdded).toBe(mode === 'merge' ? 0 : 2);
+      expect(replay.ledgerAdded).toBe(mode === 'merge' ? 0 : 2);
+      await expect(target.transaction(async (txn) => txn.exec('DELETE FROM currency_ledger'))).rejects.toThrow(/append-only/);
+    },
+  );
+});
+
 describe('cross-backup ledger operationId replay never doubles the economy', () => {
   it('merging a different envelope with already-known operationIds adds nothing', async () => {
     const src = await makeDb();

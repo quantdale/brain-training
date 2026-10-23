@@ -419,6 +419,64 @@ describe('data-management UX contract', () => {
     expect(mockedRefreshProgression).toHaveBeenCalled();
   });
 
+  it.each(['merge', 'replace'] as const)(
+    '080: a failed %s apply reports failure, retains preview, and requires a deliberate retry',
+    async (mode) => {
+      mockedPreviewImport.mockResolvedValue(validPreview(mode));
+      mockedApplyImport.mockRejectedValueOnce(new Error('transaction rolled back'));
+      const changed = jest.fn();
+      const unsubscribe = onWorkoutChanged(changed);
+      try {
+        await renderScreen();
+        await typeImportJson();
+        await showPreview(mode);
+        const apply = async () => {
+          await fireEvent.press(screen.getByTestId(`data-import-${mode}`));
+          if (mode === 'replace') {
+            await screen.findByText(/Tap again to erase and restore/);
+            await fireEvent.press(screen.getByTestId('data-import-replace'));
+          }
+        };
+        await apply();
+        await waitFor(() => expect(screen.getByTestId('data-message')).toHaveTextContent(
+          /Import failed: transaction rolled back/,
+        ));
+        expect(mockedApplyImport).toHaveBeenCalledTimes(1);
+        expect(changed).not.toHaveBeenCalled();
+        expect(mockedRefreshProgression).not.toHaveBeenCalled();
+        expect(screen.getByTestId('data-preview-output')).toHaveTextContent(new RegExp(`^Preview \\(${mode}\\): Valid`));
+        expect(screen.queryByText(/Tap again to erase and restore/)).toBeNull();
+        await waitFor(() => expect(screen.getByTestId(`data-import-${mode}`)).toBeEnabled());
+
+        await apply();
+        await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+        expect(screen.getByTestId('data-message')).toHaveTextContent(/complete:/);
+        expect(screen.queryByTestId('data-preview-output')).toBeNull();
+      } finally {
+        unsubscribe();
+      }
+    },
+  );
+
+  it('080: a re-entrant merge caller cannot apply twice, nor replay its consumed preview', async () => {
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    let release!: (value: Awaited<ReturnType<typeof applyImport>>) => void;
+    mockedApplyImport.mockReturnValueOnce(new Promise((resolve) => { release = resolve; }));
+    await renderScreen();
+    await typeImportJson();
+    await showPreview('merge');
+    const apply = capturePressCallback('data-import-merge');
+    await act(async () => { apply(); apply(); });
+    expect(mockedApplyImport).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+    await act(async () => { release({ ...validPreview('merge').counters, totalWritten: 7 }); });
+    await waitFor(() => expect(screen.getByTestId('data-message')).toHaveTextContent(/Merge complete/));
+    await act(async () => { apply(); });
+    expect(mockedApplyImport).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('data-import-merge')).toBeDisabled();
+  });
+
   it('070: warns in the preview and records the lossy import when the user proceeds', async () => {
     // The whole point of the signal: a NEWER backup read by an OLDER build
     // silently drops unknown content and the next export writes it back
