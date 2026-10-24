@@ -2,9 +2,16 @@
 
 Campaign: `080-native-product-quality`
 Gate: `scripts/validate-dependency-audit.mjs` (network-dependent; re-run at final
-integration). Result: **PASS** — 7 accepted advisories, **no unallowlisted
-moderate-or-higher production findings**, exit 0. No security regression this
-campaign.
+integration). **Current fresh result (2026-10-24): FAIL, exit1** — newly
+reported unwaived High `zod / GHSA-mrhx-c7xc-m3w5` via ExpoCLI. Independent
+review supports only narrow build-tool classification, contingent on explicit
+owner risk acceptance; no compatible Zod3/CLI57 patch was found. No waiver,
+incompatible Zod4 override or gate relaxation has been applied. Hostile local
+plugin metadata/output can exhaust developer/CI Node memory. See
+[`zod-advisory-disposition.md`](./zod-advisory-disposition.md).
+
+The earlier campaign result was PASS with7 accepted advisories and zero
+unallowlisted moderate-or-higher findings; it is historical, not current green.
 
 ## Accepted advisory register (7 unique GHSAs)
 
@@ -30,8 +37,8 @@ reachable and never ship in the app bundle.
 ## Statements
 
 - **No zero-vulnerability claim** is made while these accepted advisories remain.
-- No new advisory was introduced or waived this campaign (no dependency or
-  lockfile changes were made).
+- No dependency or lockfile change introduced the new report; the freshly
+  reported Zod High remains unwaived and keeps the gate failing.
 - No security gate was disabled or weakened for convenience; the dependency gate
   is re-run at the final integrated revision.
 - The QA instrumentation added this campaign (host-side harness) introduces **no**

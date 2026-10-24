@@ -24,9 +24,9 @@
 ## 4. Performance (Workstream C)
 
 - [x] 4.1 Build controlled benchmark scenarios with metadata (APK hash, commit, device profile, renderer, warm-up, samples); multiple repetitions — DONE (source probes + device gfxinfo with metadata).
-- [x] 4.2 Separate emulator/software-rendering overhead from application-controlled cost via profiling — DONE (GPU percentiles + legacy/modern jank split; emulator overhead demonstrated).
+- [ ] 4.2 Separate emulator/software-rendering overhead from application-controlled cost via profiling — PARTIAL: controlled source probes/native frame metrics and renderer metadata recorded; SwiftShader confounds do not exonerate app cost. No complete causal isolation or physical latency claim (performance-convergence.md).
 - [x] 4.3 Inspect high-impact UI paths (Home, Games, GameHost, tutorials, timed screens, results) for rerenders/decode/sync work/virtualization — DONE.
-- [ ] 4.4 Implement evidence-based optimizations with before/after comparison; memory/leak check under repeated cycles — no confirmed app-controlled bottleneck cleared the bar (see performance.md C4); memory tradeoff recorded; formal leak run a gap.
+- [ ] 4.4 Implement justified optimizations with comparison; repeated-cycle memory/leak check — controlled10-cycle navigation plus60s idle/PSS sampling completed (baseline256267KiB, peak278360, idle266340); no monotonic later-cycle growth or isolated actionable bottleneck. No speculative rewrite; formal native heap/long-duration leak qualification remains unvalidated (performance-convergence.md).
 
 ## 5. Visual/UX and gameplay quality (Workstream D)
 
@@ -36,8 +36,8 @@
 ## 6. Accessibility and responsive (Workstream E)
 
 - [ ] 6.1 Exercise representative profiles (standard/compact portrait, large font, light/dark, reduced motion, landscape) with evidence.
-- [ ] 6.2 Verify real usability, scrolling, focus, contrast and motion reduction. Native42/42 compact320/font2/reduced-motion × actual light/dark × seven surface captures executed (responsive-convergence.md); static frames do not establish interactive gameplay/workout/confirmation/TalkBack acceptance. TalkBack absent. Confirmed sensory-switch46×27dp target source-fixed; rebuilt-native proof pending.
-- [ ] 6.3 Fix confirmed accessibility/responsive defects, prioritizing shared controls — no confirmed shared-primitive defect found; a11y odd-item label is a positive accommodation.
+- [ ] 6.2 Verify real usability, scrolling, focus, contrast and motion reduction. Native42/42 compact320/font2/reduced-motion × actual light/dark × seven surface captures executed (responsive-convergence.md); static frames do not establish interactive gameplay/workout/confirmation/TalkBack acceptance. TalkBack absent. Confirmed sensory-switch46×27dp target corrected to48dp and rebuilt-native Profile light/dark audits pass; this is not comprehensive accessibility acceptance.
+- [x] 6.3 Fix confirmed accessibility/responsive defects — sensory Switch46×27dp focus frame corrected to48dp, red-before/green-after source regression and rebuilt-native light/dark audits pass. No whole-app/TalkBack acceptance inferred.
 
 ## 7. Data integrity, persistence, offline, recovery (Workstream F)
 
@@ -55,6 +55,6 @@
 
 ## 9. Independent review and close (Workstream I)
 
-- [ ] 9.1 Independent adversarial review of closing evidence, blind spots, and release qualification — PARTIAL 2026-10-23: round-2 adversarial review EXECUTED (Codex, disposable checkout) with verdict REJECT + 8 new findings; both open P1s REPAIRED with pinned regression tests (136/136 QA green); independent RE-REVIEW of the repaired engine still required, plus repair packet 2 (P2-B3/B4/B6, NF-002..008).
+- [ ] 9.1 Independent adversarial review of closing evidence, blind spots, release qualification — PARTIAL 2026-10-24: executable re-review ACCEPTS seven repaired round3 engine findings at481bf8aa (171/171 checks and old probes; no new scoped P1/P2). Historical REJECT reports preserved. Full closing native/catalog/final-SHA evidence and the later retained-route focus correction still require reconciliation; engine-only acceptance is not campaign acceptance (independent-round3-closeout.md).
 - [ ] 9.2 Full gate convergence at the final integrated revision; verify all four workflows green on the exact final commit.
 - [ ] 9.3 Deliver certification suite under `docs/certification/080-native-product-quality/`, update durable state, close with an honest verdict.

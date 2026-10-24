@@ -5,12 +5,22 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      architectures:
+        description: Native ABIs for an internal release candidate (push/PR remain x86_64)
+        required: true
+        default: x86_64
+        type: choice
+        options:
+          - x86_64
+          - arm64-v8a
+          - arm64-v8a,x86_64
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-build-smoke-${{ github.ref }}
+  group: android-build-smoke-${{ github.ref }}-${{ github.event_name }}-${{ inputs.architectures || 'x86_64' }}
   cancel-in-progress: true
 
 jobs:
@@ -18,6 +28,8 @@ jobs:
     name: Android clean native build
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      RN_ARCHITECTURES: ${{ github.event_name == 'workflow_dispatch' && inputs.architectures || 'x86_64' }}
     defaults:
       run:
         working-directory: apps/mobile
@@ -104,10 +116,16 @@ jobs:
       - name: Build release APK from clean native state
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
+          # Dispatch input is data, never interpolated shell syntax. Keep the
+          # required push/PR lane unchanged while allowing an ARM64 candidate.
+          case "$RN_ARCHITECTURES" in
+            x86_64|arm64-v8a|arm64-v8a,x86_64) ;;
+            *) echo 'Unsupported native architecture selection' >&2; exit 2 ;;
+          esac
           mkdir -p android/build-logs
           cd android
-          ./gradlew :app:assembleRelease --no-daemon --stacktrace --console=plain -PreactNativeArchitectures=x86_64 2>&1 | tee build-logs/gradle-assemble-release.log
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace --console=plain "-PreactNativeArchitectures=$RN_ARCHITECTURES" 2>&1 | tee build-logs/gradle-assemble-release.log
 
       - name: Verify APK and generated release boundaries
         shell: bash
@@ -116,6 +134,13 @@ jobs:
           apk="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$apk"
           test "$(stat -c '%s' "$apk")" -gt 1000000
+          # A successful Gradle task alone does not prove the requested ABI
+          # was packaged. Read once to avoid grep -q producer EPIPE under pipefail.
+          entries="$(unzip -Z1 "$apk")"
+          IFS=',' read -r -a requested_abis <<< "$RN_ARCHITECTURES"
+          for abi in "${requested_abis[@]}"; do
+            grep -qE "^lib/${abi}/.*[.]so$" <<< "$entries" || { echo "Missing packaged ABI: $abi" >&2; exit 1; }
+          done
           permissions="$("$ANDROID_HOME/build-tools/35.0.0/aapt2" dump permissions "$apk")"
           printf '%s\n' "$permissions"
           if grep -q 'android.permission.RECORD_AUDIO' <<< "$permissions"; then

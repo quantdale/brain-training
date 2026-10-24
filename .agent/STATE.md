@@ -1,5 +1,55 @@
 # Durable Project State
 
+## Campaign 080 engine acceptance and native-candidate checkpoint — 2026-10-24 (ACTIVE)
+
+**Blocking decision:** fresh dependency audit FAILS (exit1) on unwaived High
+`zod / GHSA-mrhx-c7xc-m3w5`. Independent review supports only a narrow
+build-dev-toolchain classification, contingent on an explicit owner waiver;
+there is no compatible patched Zod3/CLI57 resolution. No waiver/major override
+has been applied. See `zod-advisory-disposition.md` and DEPENDENCY_AUDIT.md.
+This is an explicitly non-green blocker/recovery push under GOVERNANCE's
+blocked-checkpoint exception: source/tests pass, dependency gate intentionally
+remains failing, hosted Repository Integrity is expected red until resolved.
+No branch-protection change, forced push or green-main/release claim.
+
+Independent GPT-6 Luna/max executable re-review **ACCEPTS the seven repaired
+round-3 evidence-engine findings** at `481bf8aa`: 171/171 combined contract,
+adversarial, sweep, verifier CLI and merger checks; prior reviewer probes and
+real strict empty-merge rejection also executed. No new P1/P2 in that bounded
+scope. Full report: `independent-round3-closeout.md` under080 certification.
+This supersedes the earlier engine REJECT **only for those repairs**; it is
+not native catalog, product, campaign or release acceptance. Historical ledgers
+are not promoted to current certification under the repaired contract.
+
+A further retained Backups & data route defect was reproduced: after native
+gameplay, its cached header reported51 sessions while stopped SQLite contained
+52 (integrity ok,845 sessionXP,164coins; the3 new sessions are legitimate QA
+canaries, not restore duplication). A real retained-Stack navigation regression
+reproduced stale preview consent. The correction refreshes on return, revokes
+preview consent and typed wipe confirmation on blur, and preserves import text.
+First mount retains its single error-reporting read, not an automatic retry.
+Regression red-before/green-after; native-after proof/rebuilt APK still pending.
+
+Current full source gates:713 suites/8034 tests pass,0failed,5 classified skips,
+5 unchanged snapshots; global typecheck/lint pass. Engine171/171 pass. The
+installed internal x86_64 APK remains `34bbf3de…ed81`, app source `22ae2f7c`:
+actual playing/results core-token parity and both-theme native48dp Switch audits
+pass. Complete source-input manifest1885 tracked app files supersedes the
+incomplete1865-input file without rewriting it. The pending focus correction
+changes app inputs, so that APK MUST NOT be relabelled as the newer source.
+
+Controlled performance/navigation/PSS follow-up and five source probes recorded
+in `performance-convergence.md`; emulator jank remains poor, no60fps/leak-free
+or speculative optimization claim. ARM64 local Ninja build and short-path clean
+clone failed (disk exhaustion); manual ABI-selectable hosted Android build is
+prepared, not yet a successful ARM64 artifact. ARTEMIS credentials, TalkBack,
+physical Android/ARM64 and iOS runtime remain external qualification limits.
+After the owner's security disposition: rebuilt/native focus proof, strict
+canary, fresh42-game dispositions, closing independent evidence reconciliation,
+final-SHA four-workflow convergence. Do not rerun already accepted source-only
+review as a substitute for these native gates.
+
+
 ## Campaign 080 production-convergence wave — 2026-10-23 (ACTIVE)
 
 Current integrated certification repair commits: `292f60f1` (safe import driver),

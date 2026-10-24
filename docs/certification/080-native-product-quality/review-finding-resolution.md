@@ -1,5 +1,15 @@
 # Review finding resolution register — Campaign 080
 
+**Superseding checkpoint — 2026-10-24:** Independent executable re-review
+**ACCEPTS the seven round-3 engine repairs at481bf8aa**,171/171 checks and prior
+probes executed; no new scoped P1/P2. Full bounded decision:
+[`independent-round3-closeout.md`](./independent-round3-closeout.md).
+B5's app-side vocabulary split has also landed in the shipping source. The
+register below preserves earlier intake/implementation snapshots, including
+then-pending statuses; it does not supersede the dated re-review. Fresh native
+catalog evidence, the later focus correction and final-SHA release convergence
+remain pending, not accepted by that engine-only verdict.
+
 **Purpose.** The independent adversarial review's findings are preserved
 verbatim in [`independent-review.md`](./independent-review.md). This register is
 the **separate** record of what was implemented, what was tested, and what is
@@ -7,8 +17,8 @@ still open. The original findings are deliberately **not** rewritten as though
 they had never existed.
 
 **Reviewer verdict at intake:** ACCEPT WITH FINDINGS — 4 × P1, 6 × P2.
-**Register status:** implementation complete for all P1s and all actionable
-P2s; second independent review pending (see §3).
+**Register status at initial intake:** implementation complete for all P1s
+and all actionable P2s; second independent review then pending (see §3).
 
 ---
 

@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
@@ -172,6 +173,20 @@ export default function DataManagementScreen() {
     setAcknowledgedPreview(null);
     return revision;
   }, []);
+  const hasFocusedRef = useRef(false);
+  useFocusEffect(useCallback(() => {
+    // The normal mount load owns the first read (including its error). A
+    // retained route refreshes only on return, never masking a failed first
+    // read behind an automatic duplicate request.
+    if (hasFocusedRef.current) refresh();
+    else hasFocusedRef.current = true;
+    // Leaving must synchronously revoke stale preview consent too.
+    return () => {
+      invalidatePreview();
+      setMessage(null);
+      setWipeConfirm("");
+    };
+  }, [refresh, invalidatePreview]));
   const updateImportText = useCallback(
     (text: string) => {
       invalidatePreview();

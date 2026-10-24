@@ -4,7 +4,24 @@
 **Status:** ACTIVE
 **Mode:** day
 
-**Production-convergence wave (2026-10-23, current):** Product Import/Replace/
+**BLOCKED ON OWNER SECURITY DECISION:** fresh dependency audit exits1 for
+unwaived High `zod / GHSA-mrhx-c7xc-m3w5`; independent review supports only
+build-tool classification, not safety or an automatic waiver. No compatible
+Zod3/CLI57 patch found. See `zod-advisory-disposition.md` and DEPENDENCY_AUDIT.
+Checkpoint is explicitly non-green; hosted Repository Integrity expected red.
+
+**Current checkpoint (2026-10-24):** Independent executable **ACCEPT** at
+`481bf8aa` for the seven repaired engine findings (171/171 checks; no new P1/P2
+within that scope). See `independent-round3-closeout.md`. No native catalog or
+release acceptance is inferred. Full source713 suites/8034 tests, typecheck/lint
+PASS after a further retained-route data-count/preview-consent correction;
+rebuilt-native proof pending. Installed internal APK34bbf3de…ed81/source22ae2f7c
+has native session-token parity and light/dark48dp Switch after-proof. Controlled
+performance/PSS follow-up recorded, with poor emulator jank retained. ARM64
+local build/clean clone blocked by Ninja/disk; safe hosted ABI dispatch prepared.
+Fresh strict catalog, closing evidence review and final-SHA CI remain OPEN.
+
+**Production-convergence wave (2026-10-23, superseded checkpoint):** Product Import/Replace/
 Merge action gap closed by actual native actions, row-level reconciliation,
 invalid rejection and restart; wipe reached zero sessions/balance and real
 product recovery restored all49 sessions/815XP/158coins. Failed wipe-message
@@ -15,7 +32,7 @@ seven reproduced paths/four P1s; three isolated repair lanes active. No campaign
 closure, final CI, fresh catalog or release-candidate PASS is claimed. Current
 evidence: `import-convergence.md`, `responsive-convergence.md` under080 docs.
 **Starting SHA:** `f8ae95dd`
-**Ending SHA:** _(pending final integration — latest checkpoint `77972354`)_
+**Ending SHA:** _(pending final integration; engine reviewed at `481bf8aa`)_
 **Change:** `openspec/changes/080-native-product-quality`
 
 **Progress (2026-10-21 checkpoint — SUPERSEDED, retained as history):**

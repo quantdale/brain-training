@@ -1,4 +1,36 @@
-# Campaign080 production convergence — 2026-10-23
+# Campaign080 engine acceptance / focus correction — 2026-10-24
+
+- **FAIL / OWNER DECISION:** dependency audit exit1, new unwaived High
+  `zod / GHSA-mrhx-c7xc-m3w5`. Narrow build-tool classification independently
+  reviewed, but no waiver/fix applied. Raw:`dependencies-focus-convergence.log`.
+  Blocker checkpoint is not green; hosted Repository Integrity expected red.
+- Strict OpenSpec207/207 and web export22 routes PASS. Repository-state,
+  registry/spec-store/provenance/ownership/offline/runtime-QA/CLI/secrets,
+  workflow hygiene (+44 self-tests), impact-map sync, Expo alignment and
+  clean-checkout self-test14/14 PASS. This is not a fresh clean-checkout run.
+
+- Independent executable re-review at481bf8aa: **ACCEPT, seven engine findings
+  only**. 171/171 tests, prior probes and strict empty CLI rejection executed;
+  no new scoped P1/P2. Durable report:`independent-round3-closeout.md`.
+- Full Jest713 suites/8034 tests,0failed,5 classified skips,5 unchanged
+  snapshots; global typecheck/lint PASS. Raw JSON:`jest-focus-convergence.json`.
+  Retained-Stack preview/focus regression failed before correction, passes
+  after; stale callbacks rejected on blur/return, draft preserved, wipe
+  confirmation cleared. First-load failure stays visible without duplicate read.
+- Engine integration171/171 PASS:`round3-integrated-final-tests.log`.
+- Native APK34bbf3de…ed81/source22ae2f7c: playing/results same core-session token
+  observed; Profile48dp Switch both-theme native audit exit0. APK permissions
+  equal eight-permission allowlist; installed SQLite byte preservation verified.
+  Candidate predates the new focus correction; rebuilt/native-after is PENDING.
+- Performance: five source probes PASS; controlled8m39 navigation/PSS sampling
+  and separate timed-game frame metrics recorded in `performance-convergence.md`.
+  No60fps, physical latency or leak-free qualification.
+- ARM64 local release failed Ninja regeneration; clean short-path clone failed
+  for no disk space. Hosted manual ABI selection locally workflow-validated,
+  not yet executed successfully. ARTEMIS key/TalkBack/physical/iOS runtime
+  limits unchanged. Fresh strict native sweep and final-SHA CI PENDING.
+
+# Campaign080 production convergence — 2026-10-23 (historical checkpoint)
 
 Checkpoint source gates: full Jest713 suites/8030 tests passed,0failed,
 5 classified skips,5 unchanged snapshots; global typecheck and lint exit0.

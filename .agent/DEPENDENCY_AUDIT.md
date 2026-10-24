@@ -1,5 +1,28 @@
 # Dependency Audit Triage
 
+## Campaign080 current gate — 2026-10-24: FAIL / OWNER DECISION REQUIRED
+
+Fresh `node scripts/validate-dependency-audit.mjs` exits1 for an **unallowlisted
+High: zod / GHSA-mrhx-c7xc-m3w5** via ExpoCLI. The earlier7-advisory accepted
+baseline below is historical, not the current green result. No waiver, package
+major override or assertion relaxation has been applied.
+
+Independent GPT-6 Luna/max review accepts only its narrow build-dev-toolchain
+classification, contingent on an explicit per-GHSA owner waiver; full report:
+`docs/certification/080-native-product-quality/zod-advisory-disposition.md`.
+Installed3.25.76 and newest compatible CLI57.0.32 require Zod3; no patched3.x
+release was found. Fixed4.6.6 lies outside the CLI contract. Inspected Android
+source map/web export show no Zod parser; this is bounded bundle evidence,
+not a harmlessness guarantee or final artifact reconciliation. Hostile local
+plugin metadata/output can cause developer/CI Node memory exhaustion, including
+registered development/MCP extension routes under their stated preconditions.
+
+Owner decision: approve one explicit toolchain-only per-GHSA waiver with
+rationale/review/exit fields, or keep the gate failing until a compatible fix
+is adopted. Reassess on any runtime Zod/untrusted-input introduction. The
+blocked checkpoint preserves the failing gate rather than claiming green CI.
+
+
 **Date:** 2026-10-07 (Campaign 076 repository-integrity remediation; the
 2026-09-19 Campaign 054 refresh below remains the count/severity baseline and
 supersedes the 2026-08-31 Campaign 020 refresh, the 2026-08-24 Campaign 013

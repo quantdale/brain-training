@@ -13,7 +13,8 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { act, within } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { router, Stack } from 'expo-router';
 import { expectConsoleNoise } from '@/test-utils';
 import { countLocalData ,
   applyImport,
@@ -282,6 +283,41 @@ describe('data-management UX contract', () => {
     transport.__resetStore();
     mockedPickBackupFile.mockResolvedValue(null);
     mockedShareBackupFile.mockResolvedValue(false);
+  });
+
+  it('refreshes retained-route counts and invalidates preview consent across a focus round trip', async () => {
+    const countsMock = jest.mocked(countLocalData);
+    const initialCounts = await countLocalData({} as never);
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    await renderRouter(
+      { _layout: () => <Stack />, 'data-management': () => <DataManagementScreen />, other: () => <View testID="other-route" /> },
+      { initialUrl: '/data-management' },
+    );
+    jest.useRealTimers();
+    await screen.findByTestId('data-management-title');
+    await typeImportJson();
+    await showPreview('merge');
+    await fireEvent.changeText(screen.getByTestId('data-wipe-confirm'), 'DELETE');
+    await waitFor(() => expect(screen.getByTestId('data-wipe-confirm').props.value).toBe('DELETE'));
+    const staleApply = capturePressCallback('data-import-merge');
+    await act(async () => { router.push('/other'); });
+    await screen.findByTestId('other-route');
+    try {
+      await act(async () => { staleApply(); });
+      expect(applyImport).not.toHaveBeenCalled();
+      countsMock.mockResolvedValue({ ...initialCounts, gameSessions: 8 });
+      await act(async () => { router.back(); });
+      await screen.findByTestId('data-management-title');
+      await waitFor(() => expect(screen.getByTestId('data-import-merge')).toBeDisabled());
+      await waitFor(() => expect(screen.getByTestId('data-storage-size')).toHaveTextContent(/8 saved sessions/));
+      await act(async () => { staleApply(); });
+      expect(applyImport).not.toHaveBeenCalled();
+      expect(screen.getByTestId('data-import-input').props.value).toBe('{"backup":true}');
+      expect(screen.getByTestId('data-wipe-confirm').props.value).toBe('');
+      expect(screen.getByTestId('data-wipe-button')).toBeDisabled();
+    } finally {
+      countsMock.mockResolvedValue(initialCounts);
+    }
   });
 
   it('renders local counts with device-local honesty copy', async () => {

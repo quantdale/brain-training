@@ -1,3 +1,16 @@
+# Campaign080 — unwaived High dependency advisory (2026-10-24)
+
+**OPEN / OWNER DECISION REQUIRED:** `zod` GHSA-mrhx-c7xc-m3w5 makes the fresh
+production dependency gate exit1. Independent review supports build-tool-only
+classification for the inspected ExpoCLI/lint paths, not a claim of safety:
+hostile installed-plugin metadata/output can exhaust developer/CI Node memory.
+No inspected app import or exported Zod parser; artifact scope is bounded.
+No compatible patched Zod3/CLI57 resolution found; fixed4.6.6 is out of range.
+No waiver or major override applied. Explicit per-GHSA owner risk acceptance
+or compatible remediation is needed; see `.agent/DEPENDENCY_AUDIT.md` and
+`docs/certification/080-native-product-quality/zod-advisory-disposition.md`.
+Campaign stays ACTIVE; the checkpoint is not green/release-certified.
+
 # Explore-findings convergence — 2026-10-19 (resolved)
 
 Resolved by the bounded F-1..F-10 wave (docs/audits/openspec-explore-2026-10-19.md
