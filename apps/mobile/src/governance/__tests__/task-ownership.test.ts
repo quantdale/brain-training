@@ -1,9 +1,9 @@
 /**
  * Task-ownership validator tests (006R tasks 11.1 / 11.2).
  *
- * Imports the shared `.mjs` validator (the single source used by CI) and the
- * real `.agent/task-ownership.json` to prove the governance rules actually
- * reject unsafe ownership and accept the shipped config.
+ * Imports `scripts/validate-task-ownership.cjs` (the single source used by CI)
+ * and the real `.agent/task-ownership.json`. The old `src/governance/task-ownership.ts`
+ * copy had drifted and is not part of this contract.
  */
 import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';

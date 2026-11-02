@@ -1,5 +1,19 @@
 # Durable Project State
 
+## Repository cleanup — 2026-11-02
+
+Maintenance only. Removed the unused Expo starter asset trees
+(`apps/mobile/assets/images`, `apps/mobile/assets/expo.icon`), the Expo
+`reset-project` script (it deletes `src/`), and 17 unimported per-game
+`components/button.tsx` re-exports. The drifted unused
+`src/governance/task-ownership.ts` duplicate was removed; CI still uses
+`scripts/validate-task-ownership.cjs`. Constitution §3 now matches ADR 0001:
+motion is React Native `Animated`; Reanimated stays only as an `expo-router`
+peer. A pre-existing typed-route error in the retained-route test
+(`router.push('/other')`) was cast to `Href`; the route remains test-only.
+Certification evidence, coverage ledgers, historical audits, and Campaign
+080 status were not rewritten. This note does not close or advance 080.
+
 ## Campaign 080 engine acceptance and native-candidate checkpoint — 2026-10-24 (ACTIVE)
 
 **Blocking decision:** fresh dependency audit FAILS (exit1) on unwaived High

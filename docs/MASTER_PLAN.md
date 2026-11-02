@@ -17,6 +17,9 @@ certification ledger is
 live task list.
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`; durable execution state
 remains in `.agent/GOVERNANCE.json` and `.agent/STATE.md`
+**Live campaign note (2026-11-02):** this plan closed through Phase 10 / Change 075.
+Campaigns 076–080 are recorded only in `.agent/STATE.md` and `.agent/CURRENT_CAMPAIGN.md`.
+Do not resume this plan as the active campaign.
 **Baseline audited:** `main` @ `2a765cc`; findings re-verified after rebase onto
 `89fc8b4`'s base `2c9b4e1` (see §Appendix B)
 **Execution baseline:** `main` @ `47fffee` (re-measured 2026-09-30 before Phase 1:

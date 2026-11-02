@@ -14,7 +14,7 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { act, within } from '@testing-library/react-native';
 import { StyleSheet, View } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 import { expectConsoleNoise } from '@/test-utils';
 import { countLocalData ,
   applyImport,
@@ -300,7 +300,8 @@ describe('data-management UX contract', () => {
     await fireEvent.changeText(screen.getByTestId('data-wipe-confirm'), 'DELETE');
     await waitFor(() => expect(screen.getByTestId('data-wipe-confirm').props.value).toBe('DELETE'));
     const staleApply = capturePressCallback('data-import-merge');
-    await act(async () => { router.push('/other'); });
+    // Test-only route registered above; not part of the typed product tree.
+    await act(async () => { router.push('/other' as Href); });
     await screen.findByTestId('other-route');
     try {
       await act(async () => { staleApply(); });

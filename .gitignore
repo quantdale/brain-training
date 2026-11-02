@@ -86,7 +86,13 @@ jest-summary.json
 
 # Local scratch scripts / messages (never commit)
 tmp-*.mjs
+tmp-*.py
 tmp-*.txt
 tmp-*.json
 tmp-*.xml
 tmp-*.out
+
+# Local tool caches
+.ruff_cache/
+__pycache__/
+*.pyc

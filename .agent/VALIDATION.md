@@ -1,3 +1,19 @@
+# Repository cleanup — 2026-11-02
+
+- Typecheck `tsc --noEmit` PASS after a pre-existing `router.push('/other')`
+  typed-route error was cast to `Href`. That error reproduced on unmodified
+  `2cd98e3b` before the cast.
+- `expo lint` PASS.
+- Full Jest initially 712 passed / 1 failed / 4 skipped suites, 8033 passed /
+  1 failed / 5 skipped tests, 5 snapshots. The failure was
+  `frontier-audit-proposals.test.ts` still pinning the old constitution header
+  `Campaigns 001–030B closed`. The assertion now requires the constitution to
+  defer campaign status to durable state. Focused re-run: 17/17 PASS.
+- `validate-repo-state`, task-ownership, registry `--check`, provenance
+  `--check`, and offline `--check` PASS (989 production files scanned).
+- Dependency audit was not re-run; the unwaived High `zod` advisory remains
+  the Campaign 080 blocker and is not waived by this cleanup.
+
 # Campaign080 engine acceptance / focus correction — 2026-10-24
 
 - **FAIL / OWNER DECISION:** dependency audit exit1, new unwaived High

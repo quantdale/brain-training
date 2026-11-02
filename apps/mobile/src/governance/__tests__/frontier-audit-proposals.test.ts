@@ -129,10 +129,14 @@ describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
       expect(APPLIED).not.toContain(governance.activeCampaign as (typeof APPLIED)[number]);
     }
     expect(state).not.toMatch(/Campaign 028.*is active/);
-    // Campaign 031 updated the locked historical status line to include the
-    // completed 029/030B checkpoints; keep this governance assertion aligned
-    // with that authoritative prose rather than requiring a stale prefix.
-    expect(read('docs/PROJECT_CONSTITUTION.md')).toMatch(/Campaigns 001–030B closed/);
+    // The constitution is a decision freeze, not a campaign ledger. Live
+    // campaign status lives in durable state; pinning an old header such as
+    // "Campaigns 001–030B closed" made later campaigns look unstarted.
+    const constitution = read('docs/PROJECT_CONSTITUTION.md');
+    expect(constitution).toMatch(/not a campaign ledger/);
+    expect(constitution).toMatch(/\.agent\/STATE\.md/);
+    expect(constitution).toMatch(/\.agent\/CURRENT_CAMPAIGN\.md/);
+    expect(constitution).not.toMatch(/Campaign 032 is not activated\*\*/);
   });
 
   it('certify resolves a non-tautological provenance base (certify-provenance-parity evidence)', () => {

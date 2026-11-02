@@ -15,7 +15,7 @@ governance live in the repository root: `AGENTS.md` and
 
 Run from `apps/mobile`:
 
-- Install dependencies: `npm install`
+- Install dependencies: `npm ci` (do not casually `npm install`; that can drift the lockfile)
 - Start the dev server: `npx expo start`
 - Test: `npx jest`
 - Typecheck: `npx tsc --noEmit`

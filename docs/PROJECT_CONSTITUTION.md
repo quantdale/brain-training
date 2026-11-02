@@ -1,7 +1,7 @@
 # Product & Autonomous Development Constitution v1.0
 
 **Status:** LOCKED / DECISION FREEZE  
-**Implementation:** 42-game catalog shipped; Campaigns 001–030B closed; Campaign 031 (golden-path redesign) is VALIDATED as of 2026-09-17; Campaign 032 is not activated
+**Implementation status:** not a campaign ledger. Read `.agent/GOVERNANCE.json`, `.agent/STATE.md`, and `.agent/CURRENT_CAMPAIGN.md` for what is active. The 42-game catalog is shipped. The old header line "Campaign 032 is not activated" is obsolete and must not be followed.
 **Repository:** `quantdale/brain-training` (product branding intentionally deferred)
 
 This document is the authoritative set of locked product and development decisions. Agents must not casually reopen these decisions. Intentionally deferred items are listed near the end.
@@ -30,7 +30,7 @@ Children should be able to use the general experience appropriately, but child a
 - Expo
 - TypeScript
 - SQLite as canonical local persistence
-- Reanimated for polished animation/interactions
+- Motion uses React Native `Animated` through the shared `usePressFeedback` hook. `react-native-reanimated` is not a first-party dependency; it remains installed only as a required `expo-router` peer (ADR 0001, amended 2026-09-30 / Change 071). A later return to Reanimated needs a new ADR.
 - Skia where specific games benefit from richer 2D rendering
 
 Native Swift/Kotlin modules are not the default and require demonstrated need. No planned wholesale native rewrite.
