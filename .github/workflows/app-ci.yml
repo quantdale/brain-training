@@ -69,14 +69,16 @@ jobs:
             base="$(git rev-parse HEAD^)"
           fi
           echo "Provenance base: $base"
-          PROVENANCE_BASE_REF="$base" node scripts/validate-provenance.mjs --check
+          PROVENANCE_BASE_REF="$base" \
+            node scripts/validate-provenance.mjs --check
 
       # Parallel task-packet ownership must be non-overlapping (task 11.2).
       - name: Task-ownership check
         working-directory: ${{ github.workspace }}
         run: node scripts/validate-task-ownership.cjs
 
-      # Offline-first app must not ship network deps (GOVERNANCE offline boundary).
+      # Offline-first app must not ship network deps.
+      # GOVERNANCE offline boundary.
       # The network-dependent production dependency audit is intentionally NOT
       # run here: it lives in the Repository Integrity workflow (push + weekly
       # schedule), which is allowed to reach the npm registry. App CI stays
@@ -91,15 +93,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/qa/validate-runtime-qa-contract.mjs
 
+      - name: Install dependencies
+        run: npm ci
+
       # Certification-engine contract tests (campaign 080). These are the
-      # adversarial negative controls for the EVIDENCE system that decides what
-      # may be certified: causal attribution, safe-exit proof, artifact
-      # integrity + CLI fail-closed exits, and the coverage merger. They are
-      # pure `node --test` (no emulator, no credentials, no network, no repo
-      # evidence required) so they belong on the hermetic push path. Without
-      # this step the certification engine's own protections were ungated: a
-      # regression there would silently re-open the false-certification classes
-      # the campaign was created to close.
+      # adversarial negative controls for the evidence system. They need no
+      # emulator, credentials, or network of their own, but hierarchy
+      # verification loads the pinned `saxes` devDependency, so they run after
+      # `npm ci`. Running them earlier made every `verify-artifacts` invocation
+      # fail with `Cannot find module 'saxes'` before argument parsing.
       - name: Certification-engine contract tests
         working-directory: ${{ github.workspace }}
         run: |
@@ -109,9 +111,6 @@ jobs:
             scripts/qa/merge-coverage.test.mjs \
             scripts/qa/verify-artifacts.cli.test.mjs \
             scripts/qa/tutorial-solver.test.mjs
-
-      - name: Install dependencies
-        run: npm ci
 
       # NOTE: `expo export` below does not generate `.expo/types` (typed routes
       # are produced by `expo start`), so plain `tsc --noEmit` is the CI
@@ -128,21 +127,27 @@ jobs:
       # less, shortening future campaigns' CI feedback loops.
       - name: Restore jest transform cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        env:
+          LOCK_HASH: ${{ hashFiles('apps/mobile/package-lock.json') }}
         with:
           path: apps/mobile/.jest-cache
-          key: jest-${{ runner.os }}-${{ hashFiles('apps/mobile/package-lock.json') }}
+          key: jest-${{ runner.os }}-${{ env.LOCK_HASH }}
           restore-keys: |
             jest-${{ runner.os }}-
 
       - name: Unit tests (jest, CI mode)
         id: jest
         continue-on-error: true
-        run: npm run test:ci -- --json --outputFile=jest-summary.json --cacheDirectory=.jest-cache
+        run: |
+          npm run test:ci -- --json --outputFile=jest-summary.json \
+            --cacheDirectory=.jest-cache
 
       - name: Validate Jest signal integrity
         if: always()
         working-directory: ${{ github.workspace }}
-        run: node scripts/certification/validate-jest-signal.mjs --summary apps/mobile/jest-summary.json
+        run: |
+          node scripts/certification/validate-jest-signal.mjs \
+            --summary apps/mobile/jest-summary.json
 
       - name: Enforce Jest result
         if: always()
@@ -154,7 +159,8 @@ jobs:
 
       - name: Upload Jest summary
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: jest-summary-${{ github.run_id }}
           path: apps/mobile/jest-summary.json
@@ -168,7 +174,8 @@ jobs:
       # regressions. Short retention; never needed on green runs.
       - name: Upload web-export output on failure
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: web-export-dist-${{ github.run_id }}
           path: apps/mobile/dist

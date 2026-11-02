@@ -20,6 +20,12 @@
   `saxes` lazily. Without `node_modules/saxes`, `--help` exits 0 and an
   unknown option exits 2. CLI contract validator PASS; artifact CLI tests
   57/57 PASS with `saxes` installed.
+- App CI's certification-engine `node --test` step ran before `npm ci`, so
+  those tests could not load `saxes` (same failure on `2cd98e3b`). That step
+  now follows install. Hosted Repository Integrity on `3424121f` then failed
+  the existing dependency-audit gate, now reporting 12 unallowlisted
+  advisories including the known High `zod` GHSA and additional forge/glob
+  advisories published since the last waiver. No waiver was added.
 
 # Campaign080 engine acceptance / focus correction — 2026-10-24
 
