@@ -13,6 +13,13 @@
   `--check`, and offline `--check` PASS (989 production files scanned).
 - Dependency audit was not re-run; the unwaived High `zod` advisory remains
   the Campaign 080 blocker and is not waived by this cleanup.
+- Hosted Repository Integrity on `3a73cb06` failed the same pre-existing
+  CLI-contract probe as `2cd98e3b`: `verify-artifacts.mjs --help` exited 1
+  because `artifact-integrity.mjs` required `saxes` at import, before the
+  durable-state job installs dependencies. Hierarchy parsing now loads
+  `saxes` lazily. Without `node_modules/saxes`, `--help` exits 0 and an
+  unknown option exits 2. CLI contract validator PASS; artifact CLI tests
+  57/57 PASS with `saxes` installed.
 
 # Campaign080 engine acceptance / focus correction — 2026-10-24
 

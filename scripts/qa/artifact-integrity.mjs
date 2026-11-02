@@ -82,8 +82,13 @@ import {
   observationRequiresArtifact,
 } from './coverage-contract.mjs';
 
-const require = createRequire(new URL('../../apps/mobile/package.json', import.meta.url));
-const { SaxesParser } = require('saxes');
+// Loaded only when hierarchy XML is parsed. A top-level require made
+// `--help` and unknown-option probes exit 1 on a clean checkout before
+// `apps/mobile` dependencies exist (Repository Integrity CLI-contract gate).
+function loadSaxesParser() {
+  const require = createRequire(new URL('../../apps/mobile/package.json', import.meta.url));
+  return require('saxes').SaxesParser;
+}
 
 // ---------------------------------------------------------------------------
 // Verdict vocabulary — one authoritative list
@@ -548,6 +553,12 @@ export function parseHierarchy(bytes) {
   try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { return bad('invalid UTF-8'); }
   let root = null, depth = 0, problem = null;
   const nodes = [];
+  let SaxesParser;
+  try {
+    SaxesParser = loadSaxesParser();
+  } catch (error) {
+    return bad(`hierarchy parser unavailable (${error instanceof Error ? error.message : String(error)})`);
+  }
   const parser = new SaxesParser({ xmlns: false });
   parser.on('error', (error) => { problem = error.message; });
   parser.on('doctype', () => { problem = 'DOCTYPE is forbidden'; });
