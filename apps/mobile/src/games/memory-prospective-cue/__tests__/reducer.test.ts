@@ -524,14 +524,14 @@ describe("session end-to-end invariant", () => {
     }
 
     // Normalization formula pinned from the accumulated stats:
-    // value = clamp01(signalAccuracy × (0.6 + 0.4 × accuracy)).
+    // value = clamp01(signalAccuracy × accuracy).
     const sigAcc = state.stats.totalSignals > 0
       ? state.stats.signalHits / state.stats.totalSignals
       : 0;
     const acc = state.stats.totalItems > 0
       ? state.stats.correctResponses / state.stats.totalItems
       : 0;
-    const expected = Math.min(1, Math.max(0, sigAcc * (0.6 + 0.4 * acc)));
+    const expected = Math.min(1, Math.max(0, sigAcc * acc));
     // (The raw result builder feeds the same numbers — see session.test.ts.)
     expect(Number.isFinite(expected)).toBe(true);
     expect(expected).toBeGreaterThanOrEqual(0);

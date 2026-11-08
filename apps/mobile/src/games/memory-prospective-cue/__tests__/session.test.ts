@@ -117,7 +117,7 @@ describe("normalization contract", () => {
   };
   const base = buildProspectiveCueRawResult(rawInput());
 
-  it("implements value = clamp01(signalAccuracy × (0.6 + 0.4 × accuracy))", () => {
+  it("implements value = clamp01(signalAccuracy × accuracy)", () => {
     const makeRaw = (sigAcc: number, acc: number) => ({
       ...base,
       signalAccuracy: sigAcc,
@@ -126,7 +126,7 @@ describe("normalization contract", () => {
     // Exact interior points.
     expect(
       normalizeProspectiveCueResult(makeRaw(0.8, 0.5), context).value,
-    ).toBeCloseTo(0.8 * (0.6 + 0.4 * 0.5));
+    ).toBeCloseTo(0.8 * 0.5);
     expect(
       normalizeProspectiveCueResult(makeRaw(1, 1), context).value,
     ).toBe(1);
@@ -135,7 +135,7 @@ describe("normalization contract", () => {
     ).toBe(0);
     expect(
       normalizeProspectiveCueResult(makeRaw(1, 0), context).value,
-    ).toBeCloseTo(0.6);
+    ).toBe(0);
   });
 
   it("clamps hostile out-of-range inputs into [0,1]", () => {

@@ -177,13 +177,13 @@ describe("scoring", () => {
         context,
       ).value,
     ).toBe(1);
-    // All signals caught but sloppy ongoing task → 0.6.
+    // All signals caught but nothing else correct → 0 (product rule, 1.2.0).
     expect(
       normalizeProspectiveCueResult(
         raw({ signalAccuracy: 1, accuracy: 0 }),
         context,
       ).value,
-    ).toBeCloseTo(0.6);
+    ).toBe(0);
     // Missed every signal → 0 regardless of ongoing accuracy.
     expect(
       normalizeProspectiveCueResult(
