@@ -1,6 +1,6 @@
 {
   "packId": "language-context-fit-core-v1",
-  "packVersion": "2.1.0",
+  "packVersion": "2.2.0",
   "itemCount": 180,
   "items": [
     {
@@ -70,8 +70,8 @@
       "answer": "hot",
       "distractors": [
         "silent",
-        "purple",
-        "ancient"
+        "liquid",
+        "sleepy"
       ],
       "pos": "adj"
     },
@@ -189,7 +189,7 @@
       "context": "After the long hike, we were utterly ___.",
       "answer": "exhausted",
       "distractors": [
-        "delighted",
+        "digestive",
         "curious",
         "reluctant"
       ],
@@ -285,7 +285,7 @@
       "context": "We must ___ the data before drawing any conclusions.",
       "answer": "verify",
       "distractors": [
-        "discard",
+        "decorate",
         "imagine",
         "reward"
       ],
@@ -455,7 +455,7 @@
       "distractors": [
         "transmit",
         "transpose",
-        "translate"
+        "transcribe"
       ],
       "pos": "verb"
     },
@@ -490,7 +490,7 @@
       "answer": "evasion",
       "distractors": [
         "evocation",
-        "evaluation",
+        "evacuation",
         "erosion"
       ],
       "pos": "noun"
@@ -657,7 +657,7 @@
       "context": "The CEO's ___ tone masked her uncertainty about the merger.",
       "answer": "assured",
       "distractors": [
-        "assumed",
+        "assorted",
         "insured",
         "ensured"
       ],
@@ -875,7 +875,7 @@
       "pos": "noun",
       "distractors": [
         "garden",
-        "engine",
+        "melody",
         "poem"
       ]
     },
@@ -1175,7 +1175,7 @@
       "pos": "noun",
       "distractors": [
         "season",
-        "harbor",
+        "melody",
         "engine"
       ]
     },
@@ -1330,7 +1330,7 @@
       "answer": "prepare",
       "pos": "verb",
       "distractors": [
-        "decorate",
+        "borrow",
         "harvest",
         "forgive"
       ]
@@ -1343,7 +1343,7 @@
       "pos": "verb",
       "distractors": [
         "decorate",
-        "whisper",
+        "forgive",
         "abandon"
       ]
     },
@@ -1392,7 +1392,7 @@
       "distractors": [
         "decorate",
         "harvest",
-        "abandon"
+        "whisper"
       ]
     },
     {
@@ -1414,7 +1414,7 @@
       "answer": "improve",
       "pos": "verb",
       "distractors": [
-        "decorate",
+        "whisper",
         "harvest",
         "abandon"
       ]
@@ -1570,9 +1570,9 @@
       "answer": "climate",
       "pos": "noun",
       "distractors": [
-        "harbor",
+        "ladder",
         "season",
-        "valley"
+        "pencil"
       ]
     },
     {
@@ -1643,8 +1643,8 @@
       "pos": "noun",
       "distractors": [
         "harbor",
-        "season",
-        "valley"
+        "pencil",
+        "ladder"
       ]
     },
     {
@@ -1763,7 +1763,7 @@
       "pos": "adj",
       "distractors": [
         "adamant",
-        "candid",
+        "ornate",
         "trivial"
       ]
     },
@@ -1798,9 +1798,9 @@
       "answer": "doctrine",
       "pos": "noun",
       "distractors": [
-        "paradox",
+        "synthesis",
         "consensus",
-        "paradigm"
+        "discrepancy"
       ]
     },
     {
@@ -1811,8 +1811,8 @@
       "pos": "noun",
       "distractors": [
         "paradox",
-        "consensus",
-        "doctrine"
+        "dilemma",
+        "discrepancy"
       ]
     },
     {
@@ -1824,7 +1824,7 @@
       "distractors": [
         "paradox",
         "consensus",
-        "doctrine"
+        "dilemma"
       ]
     },
     {
@@ -1834,7 +1834,7 @@
       "answer": "crucial",
       "pos": "adj",
       "distractors": [
-        "trivial",
+        "ornate",
         "candid",
         "obsolete"
       ]
@@ -1858,9 +1858,9 @@
       "answer": "obsolete",
       "pos": "adj",
       "distractors": [
-        "coherent",
-        "rigorous",
-        "nuanced"
+        "adamant",
+        "candid",
+        "eloquent"
       ]
     },
     {
@@ -1906,9 +1906,9 @@
       "answer": "dilemma",
       "pos": "noun",
       "distractors": [
-        "synthesis",
+        "consensus",
         "hypothesis",
-        "paradox"
+        "doctrine"
       ]
     },
     {
@@ -1918,7 +1918,7 @@
       "answer": "discrepancy",
       "pos": "noun",
       "distractors": [
-        "synthesis",
+        "doctrine",
         "hypothesis",
         "dilemma"
       ]
@@ -1968,7 +1968,7 @@
       "distractors": [
         "mitigate",
         "corroborate",
-        "delineate"
+        "exacerbate"
       ]
     },
     {
@@ -1979,8 +1979,8 @@
       "pos": "verb",
       "distractors": [
         "mitigate",
-        "corroborate",
-        "delineate"
+        "proliferate",
+        "exacerbate"
       ]
     },
     {
@@ -1990,7 +1990,7 @@
       "answer": "exacerbate",
       "pos": "verb",
       "distractors": [
-        "mitigate",
+        "proliferate",
         "corroborate",
         "delineate"
       ]
@@ -2015,8 +2015,8 @@
       "pos": "verb",
       "distractors": [
         "mitigate",
-        "corroborate",
-        "delineate"
+        "exacerbate",
+        "proliferate"
       ]
     },
     {
@@ -2050,7 +2050,7 @@
       "answer": "adamant",
       "pos": "adj",
       "distractors": [
-        "candid",
+        "eloquent",
         "trivial",
         "obsolete"
       ]
@@ -2074,7 +2074,7 @@
       "answer": "profound",
       "pos": "adj",
       "distractors": [
-        "trivial",
+        "obsolete",
         "candid",
         "adamant"
       ]
@@ -2099,7 +2099,7 @@
       "pos": "adj",
       "distractors": [
         "adamant",
-        "candid",
+        "obsolete",
         "trivial"
       ]
     },
@@ -2124,7 +2124,7 @@
       "distractors": [
         "tentative",
         "adamant",
-        "trivial"
+        "obsolete"
       ]
     },
     {
@@ -2148,7 +2148,7 @@
       "distractors": [
         "intrinsic",
         "tentative",
-        "prevalent"
+        "adamant"
       ]
     },
     {
@@ -2159,8 +2159,8 @@
       "pos": "adj",
       "distractors": [
         "tentative",
-        "adamant",
-        "candid"
+        "obsolete",
+        "trivial"
       ]
     }
   ]

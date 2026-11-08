@@ -156,9 +156,9 @@ export const registry: readonly GameDefinition[] = [
     primaryCategory: "Language",
     description: "Read a short sentence with a blank and pick the one word that fits the context best.",
     sdkVersion: "0.1.0",
-    gameVersion: "1.1.0",
+    gameVersion: "1.2.0",
     generatorVersion: "1.1.0",
-    contentVersion: "2.1.0",
+    contentVersion: "2.2.0",
     hasTutorial: true,
   },
   {
