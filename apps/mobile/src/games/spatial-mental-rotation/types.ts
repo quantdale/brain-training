@@ -234,6 +234,8 @@ export interface SpatialGameState {
   timeRemainingMs: number;
   /** Target shape of the current round (canonical orientation). */
   target: readonly Block[];
+  /** `figureKey` of every target served this session, oldest first (no-repeat history). */
+  usedTargetKeys: readonly string[];
   /** Candidate shape of the current round (already rotated/mirrored/altered). */
   candidate: readonly Block[];
   /** The correct answer of the current round. */
@@ -283,6 +285,7 @@ export function createInitialSpatialState(): SpatialGameState {
     roundStartedElapsedMs: 0,
     timeRemainingMs: 0,
     target: [],
+    usedTargetKeys: [],
     candidate: [],
     kind: null,
     candidateDegrees: null,

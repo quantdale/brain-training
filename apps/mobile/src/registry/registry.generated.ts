@@ -500,7 +500,7 @@ export const registry: readonly GameDefinition[] = [
     description: "Decide whether the candidate shape is a rotated copy of the target — or a different shape.",
     sdkVersion: "0.1.0",
     gameVersion: "1.1.0",
-    generatorVersion: "1.0.0",
+    generatorVersion: "1.1.0",
     contentVersion: null,
     hasTutorial: true,
   },

@@ -4,7 +4,7 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { ADAPTIVE_PARAMS, SPATIAL_DIFFICULTY_PARAMS, paramsForPosition } from '../difficulty';
-import { generateRound } from '../generator';
+import { generateRound, normalizeCells } from '../generator';
 import { perfectSessionScore } from '../scoring';
 import { spatialGameReducer } from '../reducer';
 import { createInitialSpatialState } from '../types';
@@ -20,6 +20,39 @@ function startSession(
   state = spatialGameReducer(state, { type: 'start-session', seed, sessionId, startedAtMs: 100 });
   return state;
 }
+
+describe('session targets never repeat (constitution section 10)', () => {
+  // Fixed 3-block figures without rotation symmetry: the four L orientations.
+  // Every larger size has far more figures than any session has rounds.
+  const TRIOMINO_POOL = 4;
+
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'serves a new target each round in a %s session until the figure pool is exhausted',
+    (level) => {
+      for (let seed = 1; seed <= 60; seed += 1) {
+        const outcome = createRng(`no-repeat-outcome-${seed}`);
+        let state = startSession(`no-repeat-${seed}`, level);
+        const seen = new Set<string>();
+        while (state.phase === 'play') {
+          const cells = normalizeCells(state.target);
+          const key = cells.map((c) => `${c.x}.${c.y}`).join(';');
+          if (seen.has(key)) {
+            // Only the tiny 3-block pool may repeat, and only once it is spent.
+            const sameSize = [...seen].filter((k) => k.split(';').length === cells.length);
+            expect(cells).toHaveLength(3);
+            expect(sameSize.length).toBe(TRIOMINO_POOL);
+          }
+          seen.add(key);
+          // Mixed outcomes so adaptive sessions move between block counts.
+          const answer = outcome.next() < 0.6 ? state.kind! : state.kind === 'same' ? 'different' : 'same';
+          state = spatialGameReducer(state, { type: 'answer', answer, remainingMs: state.timeBudgetMs / 2 });
+          state = spatialGameReducer(state, { type: 'next-round', roundStartedElapsedMs: 0 });
+        }
+        expect(state.phase).toBe('results');
+      }
+    },
+  );
+});
 
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
