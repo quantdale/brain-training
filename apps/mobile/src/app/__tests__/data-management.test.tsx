@@ -335,9 +335,9 @@ describe('data-management UX contract', () => {
     );
     // Honest device-copy disclosure: app-local history, share-sheet egress,
     // and Android device-backup carriage of exported files (062).
-    expect(screen.getByText(/lives in this app on this phone/i)).toBeOnTheScreen();
+    expect(screen.getByText(/lives in this app on this device/i)).toBeOnTheScreen();
     expect(screen.getByText(/share sheet/i)).toBeOnTheScreen();
-    expect(screen.getByText(/device backup may carry/i)).toBeOnTheScreen();
+    expect(screen.getByText(/backups? (of this iPhone )?can (include|carry)/i)).toBeOnTheScreen();
   });
 
   it('lists saved backups from earlier sessions on mount', async () => {

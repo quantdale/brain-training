@@ -747,6 +747,19 @@ export default function ProfileScreen() {
           </View>
           <AppIcon name="chevron" />
         </Tappable>
+        <Tappable
+          testID="profile-about"
+          onPress={() => router.push("/about")}
+          accessibilityLabel="About and privacy"
+          accessibilityHint="Opens the privacy statement and app version"
+          style={[styles.destination, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+          <AppIcon name="settings" tone="accent" />
+          <View style={styles.flexText}>
+            <ThemedText type="bodyLarge">About & privacy</ThemedText>
+          </View>
+          <AppIcon name="chevron" />
+        </Tappable>
       </View>
 
       <View testID="profile-rewards">

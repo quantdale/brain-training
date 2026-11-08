@@ -434,6 +434,7 @@ export function GameResults({
         {showAdvanceError ? (
           <GameButton
             testID={testId(gameId, 'workout-advance-retry')}
+            style={styles.fullRowButton}
             label="Retry workout progress"
             sublabel="Your game is already saved"
             onPress={retryWorkoutAdvance}
@@ -442,6 +443,7 @@ export function GameResults({
         {showNextGame ? (
           <GameButton
             testID={testId(gameId, 'next-game')}
+            style={styles.fullRowButton}
             label="Next game"
             sublabel={nextGameDetail}
             onPress={onNextGame}
@@ -450,6 +452,7 @@ export function GameResults({
         {showWorkoutComplete ? (
           <GameButton
             testID={testId(gameId, 'finish-workout')}
+            style={styles.fullRowButton}
             label="Finish workout"
             sublabel="Back to Today"
             // Next Game uses push, so the navigation stack contains the prior
@@ -461,12 +464,14 @@ export function GameResults({
         ) : null}
         <GameButton
           testID={testId(gameId, 'restart')}
+          style={styles.equalButton}
           label="Play again"
           variant={showNextGame || showWorkoutComplete ? 'secondary' : 'primary'}
           onPress={onRestart}
         />
         <GameButton
           testID={testId(gameId, 'quit')}
+          style={styles.equalButton}
           label="Done"
           variant="secondary"
           onPress={onQuit}
@@ -515,5 +520,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
+  },
+  fullRowButton: {
+    flexBasis: '100%',
+  },
+  equalButton: {
+    flexBasis: 0,
+    flexGrow: 1,
   },
 });

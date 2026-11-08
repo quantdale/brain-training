@@ -108,7 +108,7 @@ export function SessionHeader({
               height={8}
               tone="success"
               testID="session-progress"
-              accessibilityLabel={`${progress.value} of ${progress.total} rounds complete`}
+              accessibilityLabel={`Round progress, ${progress.value} of ${progress.total}`}
             />
           </View>
         ) : null}
