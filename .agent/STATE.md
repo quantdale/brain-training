@@ -17,11 +17,13 @@ Repairs on this branch: iOS swipe-back and keyboard handling; manual Easy no
 longer raises ratings (owner may overrule the §9 reading); merge import keeps
 streak claims; session clock-skew, quest rollover, workout-summary and calendar
 fixes; Missing Operator repeats; Equation Builder Adaptive crash; scoring and
-content repairs in six games, with versions bumped; About & privacy screen.
+content repairs in six games, with versions bumped; About & privacy screen;
+in-session repeat fixes in five games; local-date analytics; visible countdowns
+in ten games; dark-mode meter contrast.
 Status and owner actions: `docs/release/APP_STORE_READINESS.md`. The
 installed Campaign 080 Android APK predates these changes, so its native
-evidence does not describe this branch. Next: merge decision, physical iPhone,
-then the repeat findings in KNOWN_ISSUES.
+evidence does not describe this branch. Next: merge decision and physical
+iPhone testing; remaining findings are in KNOWN_ISSUES.
 
 ## Repository maintenance — 2026-11-08
 

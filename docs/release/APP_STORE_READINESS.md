@@ -38,6 +38,7 @@ Recheck them before submitting.
 | Data deletion | Profile > Your data > Delete All Local Data |
 | Health claims | None found in user-facing copy; About states it is not medical advice |
 | QA controls | Gated by `isDevBuild()` / `__DEV__` |
+| Large text | No clipped or undersized controls at maximum size on iPhone 17e |
 
 ## Building for upload
 

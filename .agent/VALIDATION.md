@@ -8,7 +8,7 @@
   no new crash report, built `MinimumOSVersion` 17.0.
 - Repo-state, Expo alignment, secrets, offline, impact-map sync and provenance
   PASS. Plugin tests 17/17 PASS.
-- Final branch gates: `tsc`, lint and Jest 719 passed / 4 skipped suites, 8165
+- Final branch gates: `tsc`, lint and Jest 731 passed / 4 skipped suites, 8233
   passed / 5 skipped tests, 5 snapshots. Registry, provenance, repo-state, offline,
   secrets, Expo alignment and task ownership PASS.
 - iOS 27.2 Simulator, Release, observed: edge swipe blocked in live and paused
@@ -17,6 +17,9 @@
   Easy Missing Operator played to results with 6 of 6 equations unique. Tabs,
   workout advance, theme and settings walked once before later scoring fixes.
 - Release build for physical devices compiles unsigned: arm64, 52 MB, iOS 17.0.
+- iPhone 17e at maximum accessibility text: no controls under 44 pt or past the
+  screen edge. VoiceOver speech could not be heard. Countdown observed live and
+  hidden while paused in dark mode; its position after resume is unit-tested only.
 - Physical iPhone, signing, TestFlight, VoiceOver and physical performance:
   NOT VALIDATED. Android native runtime was not re-run on this branch.
 - CI at `a3dbb468`: Android Build Smoke failed on a Gradle download timeout

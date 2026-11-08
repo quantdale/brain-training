@@ -1,18 +1,16 @@
 # Open audit findings (2026-11-08)
 
-Item repeats within a session, measured over 200 seeds per level, none fixed:
-`memory-prospective-cue` Easy 95.8% (one-glyph watchlist carries over,
-`generator.ts:61`), `spatial-mental-rotation` Easy 30%, Normal 13%,
-`memory-sequence-memory` up to 19%, `math-fast-math` up to 17%,
-`math-equation-builder` 7-8%, `speed-quick-compare` Easy 7%. Other games above
-5% are small stimulus sets. Medium, no data risk.
+Item repeats within a session: resolved for mental rotation, sequence memory,
+fast math, equation builder and quick compare. Sequence memory can still repeat
+once its 12 two-length sequences are exhausted. Prospective Cue's lone Easy glyph
+carries over deliberately; its streams do not repeat.
 
 Also open: a timezone change can rewrite past streak days because no local date
 is stored (`db/sessions.ts:771`, needs a migration). Merging diverged ledgers can
-go negative (Low). UTC day buckets remain in `formatDayLabel`, `volume-view`,
-`cooccurrence` and `progress-disclosure` (Low). Vigilance scoring is harsher
-after one false alarm and may need tuning. Color Stroop's average still includes
-wrong taps.
+go negative (Low). Vigilance scoring is harsher after one false alarm and may
+need tuning. Color Stroop's average still includes wrong taps. The in-game score
+appears in both the header and a count-up strip in 19 games. Dark-mode answer
+button borders measure 1.64:1; their symbols carry the contrast.
 
 # iOS CI does not exercise the iOS 27 SDK (2026-11-08)
 
