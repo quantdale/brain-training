@@ -1,3 +1,19 @@
+# Open audit findings (2026-11-08)
+
+Item repeats within a session, measured over 200 seeds per level, none fixed:
+`memory-prospective-cue` Easy 95.8% (one-glyph watchlist carries over,
+`generator.ts:61`), `spatial-mental-rotation` Easy 30%, Normal 13%,
+`memory-sequence-memory` up to 19%, `math-fast-math` up to 17%,
+`math-equation-builder` 7-8%, `speed-quick-compare` Easy 7%. Other games above
+5% are small stimulus sets. Medium, no data risk.
+
+Also open: a timezone change can rewrite past streak days because no local date
+is stored (`db/sessions.ts:771`, needs a migration). Merging diverged ledgers can
+go negative (Low). UTC day buckets remain in `formatDayLabel`, `volume-view`,
+`cooccurrence` and `progress-disclosure` (Low). Vigilance scoring is harsher
+after one false alarm and may need tuning. Color Stroop's average still includes
+wrong taps.
+
 # iOS CI does not exercise the iOS 27 SDK (2026-11-08)
 
 CI builds with Xcode 26.6 and the iOS 26.5 SDK, so the iOS 27 launch crash

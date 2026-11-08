@@ -13,6 +13,16 @@ app renders Home and stays alive. iOS floor is now 17.0 (constitution §2), with
 an explicit privacy manifest and `ITSAppUsesNonExemptEncryption=false`. No
 encryption is used; backups only carry a SHA-256 integrity checksum.
 
+Repairs on this branch: iOS swipe-back and keyboard handling; manual Easy no
+longer raises ratings (owner may overrule the §9 reading); merge import keeps
+streak claims; session clock-skew, quest rollover, workout-summary and calendar
+fixes; Missing Operator repeats; Equation Builder Adaptive crash; scoring and
+content repairs in six games, with versions bumped; About & privacy screen.
+Status and owner actions: `docs/release/APP_STORE_READINESS.md`. The
+installed Campaign 080 Android APK predates these changes, so its native
+evidence does not describe this branch. Next: merge decision, physical iPhone,
+then the repeat findings in KNOWN_ISSUES.
+
 ## Repository maintenance — 2026-11-08
 
 Maintenance only. Lockfile update `node-forge` 1.4.0→1.4.3 inside the existing

@@ -8,7 +8,17 @@
   no new crash report, built `MinimumOSVersion` 17.0.
 - Repo-state, Expo alignment, secrets, offline, impact-map sync and provenance
   PASS. Plugin tests 17/17 PASS.
-- Interactive iOS journeys, physical iPhone, signing and TestFlight: NOT VALIDATED.
+- Final branch gates: `tsc`, lint and Jest 719 passed / 4 skipped suites, 8165
+  passed / 5 skipped tests, 5 snapshots. Registry, provenance, repo-state, offline,
+  secrets, Expo alignment and task ownership PASS.
+- iOS 27.2 Simulator, Release, observed: edge swipe blocked in live and paused
+  games and allowed on the intro; auto-pause hides the answer; keyboard clears
+  the lowest field; warm and cold deep links; About and Data Management render;
+  Easy Missing Operator played to results with 6 of 6 equations unique. Tabs,
+  workout advance, theme and settings walked once before later scoring fixes.
+- Release build for physical devices compiles unsigned: arm64, 52 MB, iOS 17.0.
+- Physical iPhone, signing, TestFlight, VoiceOver and physical performance:
+  NOT VALIDATED. Android native runtime was not re-run on this branch.
 - CI at `a3dbb468`: Android Build Smoke failed on a Gradle download timeout
   (infrastructure). Repository Integrity failed on the 4 known advisories.
 

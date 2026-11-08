@@ -14,6 +14,10 @@ GHSA-3g3m-2fjr-6pw4`, moderate `minimatch / GHSA-g3hv-75wg-m249`. Zod still
 has only the narrow build-tool classification in `zod-advisory-disposition.md`.
 Checkpoint is explicitly non-green; hosted Repository Integrity expected red.
 
+**2026-11-08:** owner-directed macOS/iOS readiness work is on branch
+`claude/macos-production-readiness`, not merged. It changes application source,
+so Android native evidence below predates it. See `.agent/STATE.md`.
+
 **Current checkpoint (2026-10-24):** Independent executable **ACCEPT** at
 `481bf8aa` for the seven repaired engine findings (171/171 checks; no new P1/P2
 within that scope). See `independent-round3-closeout.md`. No native catalog or
