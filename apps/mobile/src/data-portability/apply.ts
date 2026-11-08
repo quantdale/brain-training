@@ -144,33 +144,11 @@ function nonNegativeCount(value: unknown): number | undefined {
 const STREAK_ITEM_KEYS = ["freeze", "shield", "recovery"] as const;
 
 /**
- * Item counts after deducting `spent` uses. Coverage does not record which kind
- * was used, so a fixed order keeps the merge deterministic.
- */
-function countsAfterSpending(
-  streaks: Record<string, unknown>,
-  spent: number,
-): Partial<Record<(typeof STREAK_ITEM_KEYS)[number], number>> {
-  let remaining = spent;
-  const counts: Partial<Record<(typeof STREAK_ITEM_KEYS)[number], number>> = {};
-  for (const key of STREAK_ITEM_KEYS) {
-    const count = nonNegativeCount(streaks[key]);
-    if (count === undefined) {
-      continue;
-    }
-    const used = Math.min(count, remaining);
-    counts[key] = count - used;
-    remaining -= used;
-  }
-  return counts;
-}
-
-/**
  * Merge the `settings.streaks` block. Claims and covered days are monotonic, so
  * they are unioned: dropping a claim would let its one-shot XP be paid again.
- * Item counts have no per-item history, so after charging spends visible in
- * the coverage the larger count wins rather than losing an item whose debit
- * the merged ledger keeps. Freeze usage belongs to
+ * Item counts have no per-item history: with no protection used the larger
+ * count wins, and otherwise the smaller, which can cost an item but never
+ * restores a spent one. Freeze usage belongs to
  * a calendar month: the later month wins, and one month keeps the higher count.
  */
 function mergeStreakSettings(
@@ -190,24 +168,17 @@ function mergeStreakSettings(
     merged.coveredDates = stringArray(merged.coveredDates).sort();
   }
 
-  // A covered day known to only one side is an item that side spent and the
-  // other side still counts. Charge it before taking the larger count.
-  const deviceDates = new Set(stringArray(target.coveredDates));
-  const backupDates = new Set(stringArray(incoming.coveredDates));
-  const deviceCounts = countsAfterSpending(
-    target,
-    [...backupDates].filter((date) => !deviceDates.has(date)).length,
-  );
-  const backupCounts = countsAfterSpending(
-    incoming,
-    [...deviceDates].filter((date) => !backupDates.has(date)).length,
-  );
+  // Coverage cannot say which item or how many were spent, so once either side
+  // has used protection the smaller count wins and no spent item can return.
+  const anyCoverage =
+    stringArray(target.coveredDates).length > 0 ||
+    stringArray(incoming.coveredDates).length > 0;
   for (const key of STREAK_ITEM_KEYS) {
-    const counts = [deviceCounts[key], backupCounts[key]].filter(
+    const counts = [nonNegativeCount(target[key]), nonNegativeCount(incoming[key])].filter(
       (count): count is number => count !== undefined,
     );
     if (counts.length > 0) {
-      merged[key] = Math.max(...counts);
+      merged[key] = anyCoverage ? Math.min(...counts) : Math.max(...counts);
     }
   }
 

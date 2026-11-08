@@ -511,6 +511,15 @@ describe('cosmetics survive merge monotonically', () => {
     expect(second).toEqual(first);
   });
 
+  it('does not restore a spent item of a different kind', async () => {
+    const { first, second } = await mergeStreaks(
+      { freeze: 1, shield: 0, coveredDates: ['2026-03-02'] },
+      { freeze: 1, shield: 1, coveredDates: [] },
+    );
+    expect(first).toEqual({ freeze: 1, shield: 0, coveredDates: ['2026-03-02'] });
+    expect(second).toEqual(first);
+  });
+
   it('merging within one freeze period keeps the higher usage count', async () => {
     const { first } = await mergeStreaks(
       { freezeUsed: { period: '2026-03', count: 2 } },
