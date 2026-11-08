@@ -35,7 +35,7 @@ Recheck them before submitting.
 | Encryption declaration | `ITSAppUsesNonExemptEncryption=false`; only SHA-256 checksums are used |
 | Privacy manifest | Declared in `app.json`; merged into the build |
 | App icon | 1024x1024 with no alpha channel |
-| Data deletion | Profile > Your data > Delete All Local Data |
+| Data deletion | Profile > Backups & data > Delete All Local Data |
 | Health claims | None found in user-facing copy; About states it is not medical advice |
 | QA controls | Gated by `isDevBuild()` / `__DEV__` |
 | Large text | No clipped or undersized controls at maximum size on iPhone 17e |
