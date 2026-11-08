@@ -143,8 +143,15 @@ jobs:
           xcrun simctl launch "$device" "$bundle_id"
           for _ in $(seq 1 20); do
             sleep 1
-            if ! xcrun simctl spawn "$device" launchctl list | grep -q "UIKitApplication:$bundle_id"; then
+            # Not piped: with pipefail, grep -q closing the pipe early would
+            # report a running app as a failure.
+            services="$(xcrun simctl spawn "$device" launchctl list)"
+            if ! grep -q "UIKitApplication:$bundle_id" <<<"$services"; then
               echo "App exited within 20 seconds of launch" >&2
+              # Best-effort diagnostics: the step is already failing.
+              set +e
+              find "$HOME/Library/Logs/DiagnosticReports" -name '*.ips' -mmin -5 -exec head -c 6000 {} \;
+              xcrun simctl spawn "$device" log show --last 2m --style compact --predicate 'process CONTAINS "BrainTraining" AND messageType >= 16' | tail -40
               exit 1
             fi
           done
