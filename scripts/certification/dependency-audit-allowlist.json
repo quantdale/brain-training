@@ -1,19 +1,8 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-21",
-  "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived.",
+  "reviewedAt": "2026-11-08",
+  "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived. Stale entries whose GHSA is absent from a fresh production audit are removed so a later reappearance fails closed instead of inheriting an old waiver.",
   "allowlist": [
-    {
-      "package": "node-forge",
-      "advisory": "GHSA-86w9-cpqp-85rv",
-      "classification": "build-dev-toolchain",
-      "rationale": "RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements (high, CWE-347; advisory range is every node-forge release, so no in-range patch exists and npm audit only offers an expo@44 major downgrade). Reachability re-verified 2026-10-02: the only path is expo@57.0.24 -> @expo/cli@57.0.26 -> node-forge@1.4.0 and @expo/code-signing-certificates@0.0.6 (Expo CLI update code-signing certificate parsing, a prebuild/CLI step on the developer/CI machine). Zero first-party imports of node-forge in apps/mobile/src; zero node-forge/pki/pkcs signatures in the exported web bundle (the only 'forge' substring in dist is a word-game distractor list); expo-updates is not a dependency, so no runtime manifest signature verification exists in the shipped app. The vulnerable verification code never ships.",
-      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-02 node-forge toolchain review (post-067 terminal certification campaign)",
-      "owner": "release-security (autonomous program 079; owner-of-record quantdale)",
-      "reviewBy": "2027-03-31",
-      "exitCondition": "Upstream node-forge release fixing GHSA-86w9-cpqp-85rv, or an Expo CLI line that drops node-forge; re-verify at the next Expo SDK upgrade.",
-      "remediationDependency": "upstream node-forge / Expo CLI"
-    },
     {
       "package": "image-size",
       "advisory": "GHSA-w3rx-r6r6-pgpr",
@@ -45,32 +34,10 @@
       "remediationDependency": "upstream xcode -> @expo/config-plugins (uuid ^7)"
     },
     {
-      "package": "braces",
-      "advisory": "GHSA-vfj7-8cjw-p6xm",
-      "classification": "build-dev-toolchain",
-      "rationale": "Stack-exhaustion DoS on deeply nested patterns (high; advisory range <=3.0.3 equals the latest published braces release, so no fixed version exists and npm audit's only offered fix is a jest@30 semver-major upgrade). Reachability reproduced 2026-10-07 with `npm ls braces --omit=dev`: the production path is expo@57.0.24 -> @expo/cli@57.0.26 -> @expo/metro-file-map@57.0.3 -> micromatch@4.0.8 -> braces@3.0.3, i.e. Metro's file-map pattern expansion running on the developer/CI build machine; the second path is the Jest 29 test harness (@jest/core -> micromatch -> braces). Zero first-party imports of braces/micromatch in apps/mobile/src or scripts; the vulnerable parser has no runtime import path and never ships in the app bundle. By contrast, the separate CRITICAL shell-quote advisory found in the same audit was genuinely remediated in this pass (lockfile update to shell-quote@1.12.0); only this entry needed acceptance because no upstream fix exists. Exit condition: drop when metro/metro-file-map stops depending on the vulnerable braces line (upstream braces release or the next Expo/Metro upgrade) or when npm offers a non-major fixed resolution; review at the next Expo SDK upgrade.",
-      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-07 braces toolchain review (Campaign 076 repository-integrity remediation)",
-      "owner": "release-security (autonomous program 079; owner-of-record quantdale)",
-      "reviewBy": "2027-03-31",
-      "exitCondition": "Upstream braces release beyond 3.0.3 or micromatch/metro dropping the vulnerable line; re-verify at the next Expo SDK upgrade.",
-      "remediationDependency": "upstream braces (latest published 3.0.3 still vulnerable)"
-    },
-    {
-      "package": "sprintf-js",
-      "advisory": "GHSA-hp3w-g68c-fv3c",
-      "classification": "build-dev-toolchain",
-      "rationale": "DoS through unbounded precision specifiers (moderate; advisory range <=1.1.3 equals the latest published sprintf-js release, so no fixed version exists and npm audit's only offered fix is a jest@30 semver-major upgrade). Reachability reproduced 2026-10-07 with `npm ls sprintf-js --omit=dev`: the only production path is react-native@0.86.3 -> @react-native/jest-preset@0.86.3 -> babel-jest@29.7.0 -> babel-plugin-istanbul@6.1.1 -> @istanbuljs/load-nyc-config -> js-yaml@3.15.2 -> argparse@1.0.10 -> sprintf-js@1.0.3, i.e. coverage-config loading inside the test-toolchain (babel-plugin-istanbul is exercised only when Jest coverage is enabled on the developer/CI machine). Zero first-party imports of sprintf-js/argparse/js-yaml in apps/mobile/src or scripts; the vulnerable formatter has no runtime import path and never ships in the app bundle. Exit condition: drop when the shipped jest-expo/istanbul chain no longer resolves the vulnerable sprintf-js line (upstream release or the next Expo/Jest toolchain upgrade); review at the next Expo SDK upgrade.",
-      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-07 sprintf-js toolchain review (Campaign 076 repository-integrity remediation)",
-      "owner": "release-security (autonomous program 079; owner-of-record quantdale)",
-      "reviewBy": "2027-03-31",
-      "exitCondition": "Upstream sprintf-js release beyond 1.1.3 or the istanbul/js-yaml chain dropping it; re-verify at the next Expo/Jest toolchain upgrade.",
-      "remediationDependency": "upstream sprintf-js (latest published 1.1.3 still vulnerable)"
-    },
-    {
       "package": "decode-uri-component",
       "advisory": "GHSA-vcc3-ghjq-m6fr",
       "classification": "runtime-accepted-debt",
-      "rationale": "ReDoS (exponential decoding of malformed percent-encoded input, CWE-400/405/407) reached at runtime via expo-router@57 -> query-string@7.1.3 -> decode-uri-component. Impact is a crafted deep-link query string hanging the JS thread. Campaign 053 re-evaluated the officially compatible remediation envelope: expo-router@57.0.22 (current SDK 57 line, latest 57.x) pins query-string ^7.1.3, and every query-string 7.x release pins decode-uri-component ^0.2.2, so no patch within the supported line can carry the fix; query-string@9.x would supply the patched decode-uri-component@^0.5.0 but 0.5.0 is `\"type\": \"module\"` (ESM-only) while expo-router requires query-string from CommonJS (`__importStar(require(\"query-string\"))` in build/getPathFromState.js), so forcing it would break route parsing at runtime; npm audit's only offered fix remains an expo-router semver-major downgrade to 5.1.11, which is out of scope and would regress SDK 57. App-owned route parameters are additionally bounded by `apps/mobile/src/routing/route-params.ts`, which is defense in depth only and does NOT remediate this upstream decoder advisory. Follow-up: drop this entry when expo-router advances to a query-string major that carries the fix (next planned Expo SDK upgrade); tracked in .agent/KNOWN_ISSUES.md.",
+      "rationale": "ReDoS (exponential decoding of malformed percent-encoded input, CWE-400/405/407) reached at runtime via expo-router@57 -> query-string@7.1.3 -> decode-uri-component. Impact is a crafted deep-link query string hanging the JS thread. Campaign 053 re-evaluated the officially compatible remediation envelope: expo-router@57.0.22 (current SDK 57 line, latest 57.x) pins query-string ^7.1.3, and every query-string 7.x release pins decode-uri-component ^0.2.2, so no patch within the supported line can carry the fix; query-string@9.x would supply the patched decode-uri-component@^0.5.0 but 0.5.0 is `\"type\": \"module\"` (ESM-only) while expo-router requires query-string from CommonJS (`__importStar(require(\"query-string\"))` in build/getPathFromState.js), so forcing it would break route parsing at runtime; npm audit's only offered fix remains an expo-router semver-major downgrade to 5.1.11, which is out of scope and would regress SDK 57. App-owned route parameters are additionally bounded by `apps/mobile/src/routing/route-params.ts`, which is defense in depth only and does NOT remediate this upstream decoder advisory. Follow-up: drop this entry when expo-router advances to a query-string major that carries the fix (next planned Expo SDK upgrade); tracked in .agent/KNOWN_ISSUES.md. The separate GHSA-qr28-fpjm-wq7f on the same package is NOT covered by this entry.",
       "expires": "2027-03-31T00:00:00.000Z",
       "tracking": ".agent/KNOWN_ISSUES.md -> Runtime dependency advisory (Campaign 027; re-evaluated Campaign 053)",
       "owner": "release-security (autonomous program 079; owner-of-record quantdale)",

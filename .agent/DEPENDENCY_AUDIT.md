@@ -1,5 +1,34 @@
 # Dependency Audit Triage
 
+## Maintenance remediation — 2026-11-08: FAIL / 4 unwaived, forge cleared
+
+In-range lockfile update only: `node-forge` 1.4.0 → 1.4.3. Parent ranges are
+`@expo/cli@57.0.26` and `@expo/code-signing-certificates@0.0.6` both
+`node-forge ^1.3.3`, so no override and no Expo major was required. Registry
+integrity matches `node-forge@1.4.3`. Fresh `npm audit --omit=dev` no longer
+lists `node-forge`, including the previously allowlisted
+`GHSA-86w9-cpqp-85rv` and the eight forge GHSAs that were failing the gate
+on 2026-11-02 (`GHSA-6wvx-3r32-xmcg`, `GHSA-525v-9gp9-w22h`,
+`GHSA-7wch-p9px-956x`, `GHSA-5cwg-6vw7-rj6p`, `GHSA-jc66-7q78-782g`,
+`GHSA-8hrf-8g6f-7xwp`, `GHSA-hqq3-7jhf-c5jx`, `GHSA-5x38-2vff-x55p`).
+
+The same audit no longer reports `braces / GHSA-vfj7-8cjw-p6xm` or
+`sprintf-js / GHSA-hp3w-g68c-fv3c`. Those packages were not upgraded. Their
+stale allowlist entries were removed so a later reappearance fails closed.
+Historical rationales below are retained and are not current acceptances.
+
+`node scripts/validate-dependency-audit.mjs` still exits 1. No new waiver:
+
+| Package | GHSA | Severity | Why not remediated here |
+| --- | --- | --- | --- |
+| zod | GHSA-mrhx-c7xc-m3w5 | high | Fix is 4.6.6; `@expo/cli@57` requires Zod 3. Owner waiver still required. |
+| decode-uri-component | GHSA-qr28-fpjm-wq7f | high | Fix is 0.5.1 (ESM-only). `query-string@7` pins `^0.2.2` and expo-router loads it from CommonJS. The older `GHSA-vcc3-ghjq-m6fr` entry does not cover this id. |
+| glob | GHSA-3g3m-2fjr-6pw4 | moderate | Installed 13.0.6; Expo/Metro pin `^13`; patched line is `>=14.0.2`. |
+| minimatch | GHSA-g3hv-75wg-m249 | moderate | Installed 10.2.6; `glob@13` pins `^10.2.2`; patched line is `>=11.0.1`. |
+
+Accepted register is now 4 entries (2 image-size, uuid, and the expiring
+decode-uri-component `GHSA-vcc3-ghjq-m6fr`). This is not a green gate.
+
 ## Campaign080 current gate — 2026-10-24: FAIL / OWNER DECISION REQUIRED
 
 Fresh `node scripts/validate-dependency-audit.mjs` exits1 for an **unallowlisted

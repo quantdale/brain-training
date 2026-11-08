@@ -1,5 +1,13 @@
 # Ultimate Goal and Goal-Mode Entry
 
+## Current status — read this first
+
+**Active campaign:** `080-native-product-quality`. Live execution state is
+`.agent/GOVERNANCE.json`, `.agent/CURRENT_CAMPAIGN.md`, and `.agent/STATE.md`.
+The owner directives below are historical records for closed campaigns. They
+do not close 080, and they do not authorize a successor. If this file
+disagrees with governance or the current campaign file, those win.
+
 ## Campaign078 owner directive — terminal delivery candidate
 
 Focused42-game visual identity work is implemented and natively qualified with explicit limits. Final handoff requires four workflows to succeed at the exact ending commit and a fresh visible Games witness. Post-commit FINAL_DELIVERY.json records those observations. No successor campaign is authorized. The078 FINAL_REPORT contains42 concepts, source/APK identity, native evidence, memory tradeoff and preserved data. Campaign077 statements below describe their historical terminal checkpoint.

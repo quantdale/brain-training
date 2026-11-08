@@ -4,10 +4,14 @@
 **Status:** ACTIVE
 **Mode:** day
 
-**BLOCKED ON OWNER SECURITY DECISION:** fresh dependency audit exits1 for
-unwaived High `zod / GHSA-mrhx-c7xc-m3w5`; independent review supports only
-build-tool classification, not safety or an automatic waiver. No compatible
-Zod3/CLI57 patch found. See `zod-advisory-disposition.md` and DEPENDENCY_AUDIT.
+**BLOCKED ON OWNER SECURITY DECISION:** dependency audit still exits 1.
+2026-11-08 maintenance moved `node-forge` 1.4.0→1.4.3 inside the existing
+`^1.3.3` range and cleared the forge advisories without a waiver. Four
+unwaived advisories remain, with no compatible in-range fix and no new
+waiver: High `zod / GHSA-mrhx-c7xc-m3w5`, High
+`decode-uri-component / GHSA-qr28-fpjm-wq7f`, moderate `glob /
+GHSA-3g3m-2fjr-6pw4`, moderate `minimatch / GHSA-g3hv-75wg-m249`. Zod still
+has only the narrow build-tool classification in `zod-advisory-disposition.md`.
 Checkpoint is explicitly non-green; hosted Repository Integrity expected red.
 
 **Current checkpoint (2026-10-24):** Independent executable **ACCEPT** at

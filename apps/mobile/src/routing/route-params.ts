@@ -22,11 +22,12 @@
  * DEFENSE IN DEPTH ATTRIBUTION (spec: dependency-route-safety): this
  * validation runs in application code AFTER expo-router/query-string have
  * already parsed the URL. It cannot remediate upstream decoder work such as
- * the accepted `decode-uri-component` ReDoS advisory
- * (GHSA-vcc3-ghjq-m6fr, tracked in
- * scripts/certification/dependency-audit-allowlist.json); it only ensures a
- * malformed or oversized parameter can never reach game/session selection or
- * persistence.
+ * upstream `decode-uri-component` advisories. The accepted ReDoS advisory
+ * (GHSA-vcc3-ghjq-m6fr) is tracked in
+ * scripts/certification/dependency-audit-allowlist.json. The separate
+ * quadratic-replacement advisory (GHSA-qr28-fpjm-wq7f) is not waived. This
+ * module only ensures a malformed or oversized parameter can never reach
+ * game/session selection or persistence.
  */
 import { getGameDefinition } from '@/registry/registry';
 import { isGameCategory } from '@/sdk';

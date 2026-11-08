@@ -1,5 +1,17 @@
 # Durable Project State
 
+## Repository maintenance — 2026-11-08
+
+Maintenance only. Lockfile update `node-forge` 1.4.0→1.4.3 inside the existing
+`^1.3.3` range used by Expo CLI. That clears the forge advisories that were
+failing Repository Integrity, including the old allowlisted
+`GHSA-86w9-cpqp-85rv`. Stale `braces` and `sprintf-js` waivers were removed
+because a fresh production audit no longer reports them; they were not
+upgraded. Four advisories remain unwaived (zod, decode-uri-component
+GHSA-qr28, glob, minimatch) with no compatible in-range fix and no new
+waiver. Campaign 080 stays ACTIVE and non-green. `GOAL.md` now points at the
+active campaign so closed-campaign directives are not read as current.
+
 ## Repository cleanup — 2026-11-02
 
 Maintenance only. Removed the unused Expo starter asset trees

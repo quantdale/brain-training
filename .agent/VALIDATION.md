@@ -1,3 +1,16 @@
+# Repository maintenance — 2026-11-08
+
+- `npm ci --ignore-scripts` PASS; installed `node-forge` is 1.4.3 and its
+  lockfile integrity matches the registry tarball.
+- Dependency-audit self-test 41/41 PASS. Fresh production audit still exits 1
+  on 4 unallowlisted advisories (zod high, decode-uri-component GHSA-qr28
+  high, glob moderate, minimatch moderate). No waiver added. This is not a
+  green Repository Integrity result.
+- `tsc --noEmit` PASS. Full Jest 713 passed / 4 skipped suites, 8034 passed /
+  5 skipped tests, 5 snapshots PASS. Route-params 10/10 PASS.
+- Repo-state, task-ownership, expo-alignment, secrets, workflow hygiene, and
+  strict OpenSpec 207/207 PASS. Campaign 080 native gates were not re-run.
+
 # Repository cleanup — 2026-11-02
 
 - Typecheck `tsc --noEmit` PASS after a pre-existing `router.push('/other')`

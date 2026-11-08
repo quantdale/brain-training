@@ -1,15 +1,34 @@
+# Dependency gate — unwaived advisories (2026-11-08)
+
+**OPEN / OWNER DECISION REQUIRED.** Fresh `npm audit --omit=dev` after the
+in-range `node-forge` 1.4.0→1.4.3 lockfile update still exits 1. No waiver
+and no major override was added. The forge advisories, including the former
+allowlisted `GHSA-86w9-cpqp-85rv`, are absent from that audit. `braces`
+`GHSA-vfj7-8cjw-p6xm` and `sprintf-js` `GHSA-hp3w-g68c-fv3c` are also absent,
+so those stale waivers were removed; a later reappearance fails closed.
+
+Still unwaived, each outside the parents' semver range:
+
+- `zod` `GHSA-mrhx-c7xc-m3w5` (high) via `@expo/cli`. Fixed in 4.6.6; CLI 57
+  requires Zod 3. Independent review supports only a build-tool classification,
+  not safety or an automatic waiver. See `zod-advisory-disposition.md`.
+- `decode-uri-component` `GHSA-qr28-fpjm-wq7f` (high) via `query-string@7`.
+  Fixed in 0.5.1, which is ESM-only; forcing it would break expo-router's
+  CommonJS require. The older `GHSA-vcc3-ghjq-m6fr` acceptance does not cover
+  this id and still expires 2027-03-31.
+- `glob` `GHSA-3g3m-2fjr-6pw4` (moderate) via Expo CLI/Metro. Installed 13.0.6;
+  parents pin `^13`; fix is `>=14.0.2`.
+- `minimatch` `GHSA-g3hv-75wg-m249` (moderate) via `glob@13` / fingerprint.
+  Installed 10.2.6; parent pin is `^10.2.2`; fix is `>=11.0.1`.
+
+Campaign 080 stays ACTIVE. This is not a green or release-certified checkpoint.
+
 # Campaign080 — unwaived High dependency advisory (2026-10-24)
 
-**OPEN / OWNER DECISION REQUIRED:** `zod` GHSA-mrhx-c7xc-m3w5 makes the fresh
-production dependency gate exit1. Independent review supports build-tool-only
-classification for the inspected ExpoCLI/lint paths, not a claim of safety:
-hostile installed-plugin metadata/output can exhaust developer/CI Node memory.
-No inspected app import or exported Zod parser; artifact scope is bounded.
-No compatible patched Zod3/CLI57 resolution found; fixed4.6.6 is out of range.
-No waiver or major override applied. Explicit per-GHSA owner risk acceptance
-or compatible remediation is needed; see `.agent/DEPENDENCY_AUDIT.md` and
-`docs/certification/080-native-product-quality/zod-advisory-disposition.md`.
-Campaign stays ACTIVE; the checkpoint is not green/release-certified.
+Historical checkpoint, superseded in count by the 2026-11-08 section above.
+`zod` GHSA-mrhx-c7xc-m3w5 remains open. Independent review supports
+build-tool-only classification for the inspected ExpoCLI/lint paths, not a
+claim of safety. No compatible patched Zod3/CLI57 resolution found.
 
 # Explore-findings convergence — 2026-10-19 (resolved)
 
