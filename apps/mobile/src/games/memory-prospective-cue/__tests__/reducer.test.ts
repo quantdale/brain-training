@@ -7,6 +7,7 @@
 // fix — regression-pinned below), QA force paths, and full accounting for the
 // scoring table.
 import { describe, expect, it } from "@jest/globals";
+import { createRng } from "@/sdk";
 
 import {
   nextSignalCount,
@@ -16,7 +17,7 @@ import {
 import type { DifficultyLevel } from "@/sdk";
 import { generateRound } from "../generator";
 import { perfectSessionScore } from "../scoring";
-import { continuationStamp, GAME_ID, INITIAL_STATS, createInitialProspectiveCueState } from '../types';
+import { continuationStamp, GAME_ID, INITIAL_STATS, createInitialProspectiveCueState, itemCueStamp } from '../types';
 import type {
   ItemResponse,
   ProspectiveCueAction,
@@ -91,6 +92,73 @@ function playRoundToEnd(
   }
   return current;
 }
+
+describe("session rounds are never repeated (constitution section 10)", () => {
+  /** Plays a whole session with a seeded ~70% hit rate, collecting what each round served. */
+  function playSession(level: Level, seed: string) {
+    const outcome = createRng(`${seed}|outcome`);
+    let state = startedState(level, seed);
+    const rounds: { watchlist: string; stream: string }[] = [];
+    let recorded = -1;
+    let guard = 0;
+    while (state.phase !== "results" && guard < 4000) {
+      guard += 1;
+      if (state.phase === "briefing") {
+        if (state.roundIndex !== recorded && state.round !== null) {
+          rounds.push({
+            watchlist: [...state.round.activeSignalIds].sort((a, b) => a - b).join(","),
+            stream: state.round.items.map((item) => item.glyphId).join(","),
+          });
+          recorded = state.roundIndex;
+        }
+        state = reducer(state, { type: "briefing-done" });
+      } else if (state.phase === "stream") {
+        const item = state.round!.items[state.itemIndex];
+        const kind = item.isSignal === outcome.next() < 0.7 ? "signal" : "go";
+        state = reducer(state, {
+          type: "respond",
+          kind,
+          elapsedFraction: 0.5,
+          itemIndex: state.itemIndex,
+          stamp: itemCueStamp(state),
+        });
+      } else {
+        state = reducer(state, { type: "next-round", stamp: continuationStamp(state) });
+      }
+    }
+    return rounds;
+  }
+
+  it.each(["easy", "normal", "hard", "expert", "adaptive"] as const)(
+    "never serves the same stream twice in a %s session",
+    (level) => {
+      for (let seed = 1; seed <= 50; seed += 1) {
+        const streams = playSession(level, `no-repeat-${seed}`).map((round) => round.stream);
+        expect(new Set(streams).size).toBe(streams.length);
+      }
+    },
+  );
+
+  it.each(["normal", "hard", "expert", "adaptive"] as const)(
+    "changes the watchlist between rounds in a %s session",
+    (level) => {
+      for (let seed = 1; seed <= 50; seed += 1) {
+        const rounds = playSession(level, `no-repeat-${seed}`);
+        rounds.slice(1).forEach((round, index) => {
+          expect(round.watchlist).not.toBe(rounds[index].watchlist);
+        });
+      }
+    },
+  );
+
+  it("keeps the single Easy intention across rounds while its stream still changes", () => {
+    // The held intention IS the mechanic: a lone survivor carries over
+    // unannounced (generator splitCarryOver), so only the stream varies.
+    const rounds = playSession("easy", "no-repeat-1");
+    expect(new Set(rounds.map((round) => round.watchlist)).size).toBeLessThan(rounds.length);
+    expect(new Set(rounds.map((round) => round.stream)).size).toBe(rounds.length);
+  });
+});
 
 describe("per-round tally pass rule (wave-1 regression pin)", () => {
   it("a perfect round PASSES even when session-cumulative tallies are imperfect", () => {
