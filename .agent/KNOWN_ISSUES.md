@@ -1,3 +1,9 @@
+# iOS Build Smoke does not launch the app (2026-11-08)
+
+The workflow compiles a Debug Simulator build and never runs it, so it stayed
+green while every iOS 27 SDK build crashed at launch (fixed by ADR-0006). A
+runtime launch check is still needed.
+
 # Dependency gate — unwaived advisories (2026-11-08)
 
 **OPEN / OWNER DECISION REQUIRED.** Fresh `npm audit --omit=dev` after the

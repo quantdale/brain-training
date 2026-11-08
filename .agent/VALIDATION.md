@@ -1,3 +1,17 @@
+# macOS and iOS first-run baseline — 2026-11-08
+
+- Baseline at `a3dbb468` on macOS: `tsc --noEmit` PASS, `expo lint` PASS, Jest
+  713 passed / 4 skipped suites, 8034 passed / 5 skipped tests, 5 snapshots.
+- iOS Release Simulator build PASS at baseline, but launch FAILED with SIGTRAP
+  (UIScene life cycle required by the iOS 27 SDK).
+- After ADR-0006: Release Simulator build PASS, process alive, Home rendered,
+  no new crash report, built `MinimumOSVersion` 17.0.
+- Repo-state, Expo alignment, secrets, offline, impact-map sync and provenance
+  PASS. Plugin tests 17/17 PASS.
+- Interactive iOS journeys, physical iPhone, signing and TestFlight: NOT VALIDATED.
+- CI at `a3dbb468`: Android Build Smoke failed on a Gradle download timeout
+  (infrastructure). Repository Integrity failed on the 4 known advisories.
+
 # Repository maintenance — 2026-11-08
 
 - `npm ci --ignore-scripts` PASS; installed `node-forge` is 1.4.3 and its

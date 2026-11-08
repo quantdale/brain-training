@@ -1,5 +1,18 @@
 # Durable Project State
 
+## macOS and iOS production readiness — 2026-11-08 (IN PROGRESS)
+
+Owner-directed work on branch `claude/macos-production-readiness`, based on
+`a3dbb468`. The owner's brief forbids merging into protected `main` without
+authorization, so this branch is not pushed to `main`. Campaign 080 stays ACTIVE.
+
+First iOS runtime on this Mac (Xcode 27.2, iOS 27.2 Simulator, Apple M5): the
+Release app crashed at launch with SIGTRAP because the iOS 27 SDK requires the
+UIScene life cycle. ADR-0006 enables Expo's scene support. The rebuilt Release
+app renders Home and stays alive. iOS floor is now 17.0 (constitution §2), with
+an explicit privacy manifest and `ITSAppUsesNonExemptEncryption=false`. No
+encryption is used; backups only carry a SHA-256 integrity checksum.
+
 ## Repository maintenance — 2026-11-08
 
 Maintenance only. Lockfile update `node-forge` 1.4.0→1.4.3 inside the existing
