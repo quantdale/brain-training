@@ -239,7 +239,19 @@ describe('buildWorkoutAnalytics equivalence vs naive run computation', () => {
 // activity-calendar
 // ---------------------------------------------------------------------------
 
+/** Independent reference for the calendar's local-date key (constitution §14). */
+function localKeyOf(ms: number): string {
+  const d = new Date(ms);
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 describe('activity-calendar equivalence vs cell-map reference', () => {
+  // Local noon, so whole-day offsets stay on the intended date on every host.
+  const T0 = new Date(2026, 0, 20, 12).getTime();
   // Sessions inside, beyond and after the grid.
   const sessions = [
     mkSession({ id: 'in-grid-today', completedAt: T0 }),
@@ -249,9 +261,7 @@ describe('activity-calendar equivalence vs cell-map reference', () => {
     mkSession({ id: 'corrupt-future', completedAt: T0 + 3 * DAY }),
   ];
 
-  function keyOf(ms: number): string {
-    return new Date(ms).toISOString().slice(0, 10);
-  }
+  const keyOf = localKeyOf;
 
   function refCalendar(list: GameSessionRecord[], dayCount: number, nowMs: number) {
     const counts = new Map<string, number>();
@@ -303,8 +313,8 @@ describe('activity-calendar equivalence vs cell-map reference', () => {
       }),
     );
     spread.push(
-      mkSession({ completedAt: Date.UTC(2026, 0, 17, 23, 59, 59, 999) }),
-      mkSession({ completedAt: Date.UTC(2026, 0, 18, 0, 0, 0, 0) }), // adjacent UTC day
+      mkSession({ completedAt: new Date(2026, 0, 17, 23, 59, 59, 999).getTime() }),
+      mkSession({ completedAt: new Date(2026, 0, 18).getTime() }), // adjacent local day
     );
     for (const list of [[], sessions, spread]) {
       for (const dayCount of [1, 7, 14, 90]) {
@@ -321,11 +331,11 @@ describe('activity-calendar equivalence vs cell-map reference', () => {
     }
   });
 
-  it('UTC-midnight instants land in adjacent cells regardless of device timezone', () => {
+  it('instants on either side of local midnight land in adjacent cells', () => {
     const cal = buildActivityCalendar(
       [
-        mkSession({ completedAt: Date.UTC(2026, 0, 19, 23, 59, 59, 999) }),
-        mkSession({ completedAt: Date.UTC(2026, 0, 20, 0, 0, 0, 0) }),
+        mkSession({ completedAt: new Date(2026, 0, 19, 23, 59, 59, 999).getTime() }),
+        mkSession({ completedAt: new Date(2026, 0, 20).getTime() }),
       ],
       3,
       T0,
@@ -908,14 +918,14 @@ describe('scale @20k seeded sessions (correctness + finiteness, no timing assert
         .length,
     );
 
-    // Calendar @90d vs map counts. The grid is keyed by UTC day (the oldest
+    // Calendar @90d vs map counts. The grid is keyed by local day (the oldest
     // cell is the whole day containing now−89d), so the reference must use
     // day-key membership, not a raw 90·DAY ms window.
     const cal = buildActivityCalendar(sessions, 90, T0);
     const gridKeys = new Set(cal.days.map((d) => d.dateKey));
     const dayCounts = new Map<string, number>();
     for (const s of sessions) {
-      const k = new Date(s.completedAt).toISOString().slice(0, 10);
+      const k = localKeyOf(s.completedAt);
       if (gridKeys.has(k)) {
         dayCounts.set(k, (dayCounts.get(k) ?? 0) + 1);
       }

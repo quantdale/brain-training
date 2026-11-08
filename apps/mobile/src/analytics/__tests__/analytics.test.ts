@@ -278,7 +278,7 @@ describe('buildActivityCalendar', () => {
     session({ id: 'g', completedAt: T0 - 5 * DAY }),
   ];
 
-  it('buckets sessions per UTC day and summarizes activity', () => {
+  it('buckets sessions per local day and summarizes activity', () => {
     const cal = buildActivityCalendar(sessions, 10, T0);
     expect(cal.days).toHaveLength(10);
     expect(cal.totalSessions).toBe(7);
