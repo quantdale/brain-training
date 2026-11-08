@@ -305,4 +305,20 @@ describe('Activity calendar — W09 additions', () => {
     expect(screen.getByTestId('progress-activity-summary')).toHaveTextContent(/Last session 1 day ago/);
     expect(screen.getByTestId('progress-activity-share')).toBeOnTheScreen();
   });
+
+  // Constitution §14. Local components keep these valid on every host timezone.
+  const localAt = (m: number, d: number, h: number, min = 0) =>
+    new Date(2026, m - 1, d, h, min).getTime();
+
+  it.each([
+    ['late evening', localAt(9, 11, 22), localAt(9, 11, 20), 'Sep 11'],
+    ['just after midnight', localAt(9, 11, 2), localAt(9, 11, 1), 'Sep 11'],
+    // 00:10 minus five 24-hour steps lands on Mar 6 across the spring-forward.
+    ['across a DST change', localAt(3, 12, 0, 10), localAt(3, 7, 12), 'Mar 7'],
+  ])('labels the busiest day with its local date (%s)', async (_case, now, completedAt, label) => {
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    mockDbState.db = makeFakeDb({ recent: [makeSession({ id: 'a', completedAt })] });
+    await renderBare(ProgressActivityScreen, '/progress-activity');
+    expect(screen.getByText(new RegExp(`Busiest day: ${label} `))).toBeOnTheScreen();
+  });
 });

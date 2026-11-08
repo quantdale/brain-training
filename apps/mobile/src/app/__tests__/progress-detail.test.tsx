@@ -136,8 +136,9 @@ describe('progress detail screen', () => {
           rawResult: {},
           normalizedResult: 0.9,
           xp: 50,
-          startedAt: 4_000,
-          completedAt: 5_000,
+          // Local components: the "Jan 1" label below is a local date (§14).
+          startedAt: new Date(2026, 0, 1, 11, 59).getTime(),
+          completedAt: new Date(2026, 0, 1, 12).getTime(),
           durationMs: 60_000,
         },
       ],

@@ -1,6 +1,7 @@
 /**
- * Formatting helpers for Progress / Insights display. Pure, locale-light (uses
- * explicit UTC-date formatting so rendered values are deterministic in tests).
+ * Formatting helpers for Progress / Insights display. Pure and locale-light:
+ * month names are fixed English, and day labels show the player's local
+ * calendar date (constitution §14).
  */
 
 import type { Direction } from './types';
@@ -38,11 +39,22 @@ export function formatSigned(n: number): string {
   return String(Math.round(n));
 }
 
-/** UTC date label "Jan 20" from epoch ms. */
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Local date label "Jan 20" from epoch ms. */
 export function formatDayLabel(ms: number): string {
   const d = new Date(ms);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  return `${MONTH_LABELS[d.getMonth()]} ${d.getDate()}`;
+}
+
+/**
+ * Label "Jan 20" for a `YYYY-MM-DD` key. Reads the key directly, so a day that
+ * is already a calendar date never passes through an instant a timezone or DST
+ * change could shift.
+ */
+export function formatDateKeyLabel(dateKey: string): string {
+  const [, month, day] = dateKey.split('-').map(Number);
+  return `${MONTH_LABELS[month - 1]} ${day}`;
 }
 
 /** UTC date key "YYYY-MM-DD" (mirrors analytics bucketing). */

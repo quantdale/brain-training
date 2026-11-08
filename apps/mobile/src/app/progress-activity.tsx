@@ -2,7 +2,7 @@
  * Activity calendar — `/progress-activity`.
  *
  * A full-frequency view of training over time. Built only from completion
- * timestamps (bucketing by UTC day, matching the rest of the product). This is a
+ * timestamps (bucketing by local calendar date, matching the streak). This is a
  * frequency view, not an engagement/streak score — it simply shows how often
  * training happened.
  *
@@ -46,7 +46,7 @@ import {
 import { Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
-import { formatDayLabel, plural } from '@/analytics/format';
+import { formatDateKeyLabel, plural } from '@/analytics/format';
 
 const CALENDAR_DAYS = 182; // ~26 weeks
 
@@ -153,7 +153,7 @@ export default function ProgressActivityScreen() {
         <ReportRow label="Current run of active days" value={`${runs.current}d`} divider />
         <ReportRow label="Longest run in this view" value={`${runs.longest}d`} />
         {calendar.busiest ? <ThemedText type="caption" themeColor="textSecondary">
-          Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} · {plural(calendar.busiest.count, 'session')}.
+          Busiest day: {formatDateKeyLabel(calendar.busiest.dateKey)} ·{plural(calendar.busiest.count, 'session')}.
         </ThemedText> : null}
         <ThemedText type="caption" themeColor="textSecondary">{explainMetric('activity-runs')}</ThemedText>
       </Report>
