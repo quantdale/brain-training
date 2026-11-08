@@ -4,7 +4,11 @@
 import { describe, expect, it } from "@jest/globals";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- plugin is plain CJS .js outside tsconfig include (no type declarations for a static import)
-const { parseSemver, versionCodeFromSemver } = require("../with-deterministic-version");
+const {
+  iosBuildNumberFor,
+  parseSemver,
+  versionCodeFromSemver,
+} = require("../with-deterministic-version");
 
 describe("versionCodeFromSemver", () => {
   it("encodes the current app version deterministically", () => {
@@ -37,5 +41,22 @@ describe("versionCodeFromSemver", () => {
       minor: 34,
       patch: 56,
     });
+  });
+});
+
+describe("iosBuildNumberFor", () => {
+  it("defaults to the marketing version for reproducible local builds", () => {
+    expect(iosBuildNumberFor("0.1.0", {})).toBe("0.1.0");
+    expect(iosBuildNumberFor("0.1.0", { IOS_BUILD_NUMBER: "" })).toBe("0.1.0");
+  });
+
+  it("uses IOS_BUILD_NUMBER so repeat uploads of one version can increase", () => {
+    expect(iosBuildNumberFor("0.1.0", { IOS_BUILD_NUMBER: "42" })).toBe("42");
+    expect(iosBuildNumberFor("0.1.0", { IOS_BUILD_NUMBER: "1.0.7" })).toBe("1.0.7");
+  });
+
+  it("rejects values Apple would refuse", () => {
+    expect(() => iosBuildNumberFor("0.1.0", { IOS_BUILD_NUMBER: "1.2.3.4" })).toThrow(/IOS_BUILD_NUMBER/);
+    expect(() => iosBuildNumberFor("0.1.0", { IOS_BUILD_NUMBER: "rc1" })).toThrow(/IOS_BUILD_NUMBER/);
   });
 });

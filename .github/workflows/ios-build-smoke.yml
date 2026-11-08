@@ -112,9 +112,43 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ios/build/derived \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             build 2>&1 | tee ios/build-logs/xcodebuild.log
+
+      # A compile-only smoke cannot see a crash at launch. Debug has no Metro
+      # here, so it shows an error screen, but the process must stay alive.
+      - name: Launch iOS Simulator app
+        shell: bash
+        run: |
+          set -euo pipefail
+          device="$(xcrun simctl list devices available -j | node -e '
+            let input = "";
+            process.stdin.on("data", chunk => { input += chunk; });
+            process.stdin.on("end", () => {
+              const devices = Object.values(JSON.parse(input).devices).flat();
+              process.stdout.write(devices.find(d => d.name.startsWith("iPhone"))?.udid ?? "");
+            });
+          ')"
+          if [[ -z "$device" ]]; then
+            echo 'No available iPhone simulator' >&2
+            exit 1
+          fi
+          app="$(find ios/build/derived/Build/Products -maxdepth 2 -name '*.app' -print -quit)"
+          xcrun simctl boot "$device"
+          xcrun simctl bootstatus "$device" -b
+          xcrun simctl install "$device" "$app"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")"
+          xcrun simctl launch "$device" "$bundle_id"
+          for _ in $(seq 1 20); do
+            sleep 1
+            if ! xcrun simctl spawn "$device" launchctl list | grep -q "UIKitApplication:$bundle_id"; then
+              echo "App exited within 20 seconds of launch" >&2
+              exit 1
+            fi
+          done
+          echo "App stayed alive for 20 seconds"
 
       - name: Upload iOS build logs on failure
         if: failure()

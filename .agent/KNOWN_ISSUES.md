@@ -1,8 +1,8 @@
-# iOS Build Smoke does not launch the app (2026-11-08)
+# iOS CI does not exercise the iOS 27 SDK (2026-11-08)
 
-The workflow compiles a Debug Simulator build and never runs it, so it stayed
-green while every iOS 27 SDK build crashed at launch (fixed by ADR-0006). A
-runtime launch check is still needed.
+CI builds with Xcode 26.6 and the iOS 26.5 SDK, so the iOS 27 launch crash
+(fixed by ADR-0006) could not appear there. A launch step now catches other
+startup crashes, but CI still does not exercise the iOS 27 SDK.
 
 # Dependency gate — unwaived advisories (2026-11-08)
 

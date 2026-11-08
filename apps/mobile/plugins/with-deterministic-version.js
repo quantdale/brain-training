@@ -8,7 +8,9 @@
  *     from `expo.version` (the single source of truth). Monotonic for any
  *     semver bump while major < 1000 and minor < 1000, so store ordering can
  *     never regress when versions advance.
- *   - `ios.buildNumber` = the same semver string (CFBundleVersion accepts it).
+ *   - `ios.buildNumber` = the same semver string (CFBundleVersion accepts it),
+ *     unless `IOS_BUILD_NUMBER` is set. App Store Connect refuses a repeated
+ *     build number within one version, so release uploads must supply one.
  *
  * Before this plugin neither field was set: android.versionCode silently
  * defaulted to 1 forever and iOS had no buildNumber, making RC builds
@@ -43,9 +45,24 @@ function versionCodeFromSemver(version) {
   return major * 1_000_000 + minor * 1_000 + patch;
 }
 
+/** CFBundleVersion for this build: `IOS_BUILD_NUMBER`, else the version. */
+function iosBuildNumberFor(version, env = process.env) {
+  const override = env.IOS_BUILD_NUMBER;
+  if (override === undefined || override === "") {
+    return version;
+  }
+  if (!/^\d+(\.\d+){0,2}$/.test(override)) {
+    throw new Error(
+      `withDeterministicVersion: IOS_BUILD_NUMBER must be one to three period-separated integers, got "${override}"`,
+    );
+  }
+  return override;
+}
+
 function withDeterministicVersion(config) {
   const version = config.version;
   const versionCode = versionCodeFromSemver(version);
+  const buildNumber = iosBuildNumberFor(version);
 
    
   config.android = {
@@ -55,7 +72,7 @@ function withDeterministicVersion(config) {
    
   config.ios = {
     ...(config.ios || {}),
-    buildNumber: version,
+    buildNumber,
   };
 
   // Keep the manifest/info-plist in sync too: prebuild copies app.json values,
@@ -72,12 +89,13 @@ function withDeterministicVersion(config) {
     }),
     (iosConfig) => {
       iosConfig.modResults.CFBundleShortVersionString = version;
-      iosConfig.modResults.CFBundleVersion = version;
+      iosConfig.modResults.CFBundleVersion = buildNumber;
       return iosConfig;
     },
   );
 }
 
 module.exports = withDeterministicVersion;
+module.exports.iosBuildNumberFor = iosBuildNumberFor;
 module.exports.parseSemver = parseSemver;
 module.exports.versionCodeFromSemver = versionCodeFromSemver;
