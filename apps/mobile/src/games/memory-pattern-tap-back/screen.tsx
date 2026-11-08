@@ -209,7 +209,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.length);
@@ -225,7 +225,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       stats: state.stats,
       completedRoundLengths: state.completedRoundLengths,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -251,7 +251,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

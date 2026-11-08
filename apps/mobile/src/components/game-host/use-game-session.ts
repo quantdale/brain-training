@@ -37,6 +37,27 @@ export interface SessionStartIdentity {
   readonly startedAtMs: number;
 }
 
+/** Wall-clock timestamps to persist for a finished session. */
+export interface SessionWallClock {
+  readonly startedAtMs: number;
+  readonly completedAtMs: number;
+}
+
+/**
+ * Wall-clock pair for a session finishing at `nowMs`.
+ *
+ * `startedAtMs` and the completion are separate wall-clock reads, so a clock
+ * stepped back mid-game (NTP, a manual change) can invert them, and the session
+ * repository rejects an inverted pair, which would discard a finished session
+ * (constitution §11). The START is the value that moves: the completion stays on
+ * the clock now in force, so `completedAt <= now` reads (XP, quests, streak day)
+ * still see the session. Active play time comes from the monotonic clock and is
+ * unaffected.
+ */
+export function resolveSessionWallClock(startedAtMs: number, nowMs: number): SessionWallClock {
+  return { startedAtMs: Math.min(startedAtMs, nowMs), completedAtMs: nowMs };
+}
+
 export interface UseGameSessionOptions {
   /** Stable game id; namespaces the generated session ids. */
   readonly gameId: string;
@@ -86,6 +107,8 @@ export interface GameSessionController {
   resumeIfPaused(): boolean;
   /** Complete the lifecycle unless already terminal (idempotent). */
   completeIfActive(): void;
+  /** Timestamps to persist for a session finishing now; see `resolveSessionWallClock`. */
+  completionWallClock(startedAtMs: number): SessionWallClock;
   /** Abandon the lifecycle unless already terminal (quit path). */
   abandonIfActive(): void;
   /** Active-only elapsed ms (paused time excluded); 0 without a session. */
@@ -238,6 +261,11 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
         lifecycle.complete();
       }
     }, []),
+
+    completionWallClock: useCallback(
+      (startedAtMs: number) => resolveSessionWallClock(startedAtMs, Date.now()),
+      [],
+    ),
 
     abandonIfActive: useCallback(() => {
       const lifecycle = lifecycleRef.current;

@@ -247,7 +247,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = flexibilityRuleFlipParamsFromProfile(state.profile);
     const finalSwitchRate = resolvedParams.flipRate;
@@ -268,7 +268,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -296,7 +296,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

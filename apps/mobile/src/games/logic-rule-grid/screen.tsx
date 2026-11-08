@@ -180,7 +180,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = ruleGridParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -202,7 +202,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -230,7 +230,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

@@ -193,7 +193,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? "normal";
     const resolvedParams = colorStroopParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -213,7 +213,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       stats: state.stats,
       totalFlips: state.trials.filter((trial) => trial.isFlipPoint).length,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -245,7 +245,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

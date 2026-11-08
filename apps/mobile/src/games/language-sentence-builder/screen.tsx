@@ -152,7 +152,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.stats.longestSentence);
@@ -175,7 +175,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
       avgWordLengthFactor: awlf,
@@ -202,7 +202,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

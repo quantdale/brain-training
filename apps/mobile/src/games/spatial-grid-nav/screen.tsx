@@ -177,7 +177,7 @@ export default function SpatialGridNavScreen(
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? "normal";
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -196,7 +196,7 @@ export default function SpatialGridNavScreen(
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -226,7 +226,7 @@ export default function SpatialGridNavScreen(
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

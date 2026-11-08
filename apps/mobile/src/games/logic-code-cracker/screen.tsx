@@ -147,7 +147,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = codeCrackerParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -168,7 +168,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
       guessHistory: state.guessHistory,
@@ -199,7 +199,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

@@ -257,7 +257,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     const activeDurationMs =
       timeUpElapsedMsRef.current ?? session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = sequenceMemoryParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.length);
@@ -273,7 +273,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       stats: state.stats,
       timeUp: state.timeUp,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -299,7 +299,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

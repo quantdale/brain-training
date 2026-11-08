@@ -133,7 +133,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = contextFitParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.currentTier);
@@ -150,7 +150,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       outcomes: state.roundOutcomes,
       finalTier: state.currentTier,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -178,7 +178,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

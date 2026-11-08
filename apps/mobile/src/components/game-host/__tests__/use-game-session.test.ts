@@ -20,7 +20,7 @@ import { AppState } from 'react-native';
 
 import { createFakeClock } from '@/sdk';
 
-import { useGameSession } from '../use-game-session';
+import { resolveSessionWallClock, useGameSession } from '../use-game-session';
 import type { GameSessionController, UseGameSessionOptions } from '../use-game-session';
 import { WorkoutSessionLaunchProvider } from '@/workout/session-launch-context';
 import {
@@ -41,6 +41,29 @@ function captureAppStateListener() {
   );
   return Object.assign(captured, { spy });
 }
+
+describe('resolveSessionWallClock', () => {
+  it('leaves an ordinary session untouched', () => {
+    expect(resolveSessionWallClock(1_000, 5_000)).toEqual({
+      startedAtMs: 1_000,
+      completedAtMs: 5_000,
+    });
+  });
+
+  it('keeps an equal start and completion', () => {
+    expect(resolveSessionWallClock(5_000, 5_000)).toEqual({
+      startedAtMs: 5_000,
+      completedAtMs: 5_000,
+    });
+  });
+
+  it('lowers the start, never the completion, after a backward clock step', () => {
+    expect(resolveSessionWallClock(9_000, 5_000)).toEqual({
+      startedAtMs: 5_000,
+      completedAtMs: 5_000,
+    });
+  });
+});
 
 describe('useGameSession', () => {
   let appState: ReturnType<typeof captureAppStateListener>;

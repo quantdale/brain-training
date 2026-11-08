@@ -356,6 +356,33 @@ describe('catalog persistence matrix: success (task 4.2)', () => {
   );
 });
 
+describe('catalog persistence matrix: backward wall-clock step', () => {
+  // The repository refuses completedAt < startedAt, so a clock change during
+  // a game would otherwise discard the finished session (§11). The completion
+  // stays on the wall clock now in force, keeping it visible to every
+  // `completedAt <= now` query.
+  it.each(MATRIX_GAMES.map((game) => game.id))(
+    '%s persists a valid timestamp pair when the clock steps back mid-game',
+    async (id) => {
+      const wall = { now: 1_800_000_000_000 };
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => wall.now);
+      try {
+        const { persister, gameId } = await renderGame(id);
+        await fireEvent.press(screen.getByTestId(testId(gameId, 'start')));
+        wall.now -= 3_600_000;
+        await forceWinCurrentSession(gameId);
+
+        expect(persister.completeSession).toHaveBeenCalledTimes(1);
+        const { session } = persister.completeSession.mock.calls[0][0];
+        expect(session.completedAt).toBe(wall.now);
+        expect(session.startedAt).toBeLessThanOrEqual(session.completedAt);
+      } finally {
+        nowSpy.mockRestore();
+      }
+    },
+  );
+});
+
 describe('catalog persistence matrix: rejected save (task 4.4)', () => {
   it.each(MATRIX_GAMES.map((game) => game.id))(
     '%s surfaces the failure, never the reward, and writes once per session',

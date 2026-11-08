@@ -203,7 +203,7 @@ export default function LogicDeductionScreen(
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? "normal";
     // `state.params` carries the adaptive escalation applied by the reducer;
     // the resolved profile is the immutable session-start baseline.
@@ -227,7 +227,7 @@ export default function LogicDeductionScreen(
       stats: state.stats,
       outcomes: state.roundOutcomes,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -268,7 +268,7 @@ export default function LogicDeductionScreen(
       },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
