@@ -130,6 +130,32 @@ describe('normalizeVigilanceResult', () => {
     expect(value).toBe(0);
   });
 
+  it('scores both degenerate strategies near zero (audit: tap-all 0.7, never-tap 0.3)', () => {
+    const context = {
+      gameId: 'attention-sustained-vigilance' as const,
+      difficulty: 'normal' as const,
+      durationMs: 30_000,
+    };
+    // Tapping every digit: all go trials hit at top speed, every target tapped.
+    const tapAll = normalizeVigilanceResult(
+      rawWith({ hits: 26, omissions: 0, correctHolds: 0, commissions: 4, meanSpeed: 1 }),
+      context,
+    ).value;
+    // Never tapping: every go trial omitted, every target (trivially) held.
+    const neverTap = normalizeVigilanceResult(
+      rawWith({ hits: 0, omissions: 26, correctHolds: 4, commissions: 0, meanSpeed: 0 }),
+      context,
+    ).value;
+    expect(tapAll).toBeLessThan(0.1);
+    expect(neverTap).toBeLessThan(0.1);
+    // A genuine run with one missed target and two omissions stays well above both.
+    const honest = normalizeVigilanceResult(
+      rawWith({ hits: 24, omissions: 2, correctHolds: 3, commissions: 1, meanSpeed: 0.8 }),
+      context,
+    ).value;
+    expect(honest).toBeGreaterThan(0.4);
+  });
+
   it('rewards a clean mixed session more than an error-prone one', () => {
     const context = {
       gameId: 'attention-sustained-vigilance' as const,

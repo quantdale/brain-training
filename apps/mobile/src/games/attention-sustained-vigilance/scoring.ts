@@ -19,17 +19,23 @@
  * the normalization's hold-accuracy term. Reaction times only ever come from
  * the monotonic active-time clock, so pausing cannot inflate speed marks.
  *
- * Normalization rule (documented, deterministic):
+ * Normalization rule (documented, deterministic; scoring 1.2.0):
  *
  *   goAccuracy  = hits / (hits + omissions)          (0 when no go trial)
  *   holdAccuracy= correctHolds / (correctHolds + commissions)
  *   meanSpeed   = mean(speedFactor over hits)        (0 when no hit)
- *   value       = clamp01(0.5·goAccuracy + 0.3·holdAccuracy + 0.2·meanSpeed)
+ *   discrimination = clamp01(goAccuracy + holdAccuracy − 1)
+ *   value       = clamp01(discrimination · (0.8 + 0.2·meanSpeed))
  *
- * Weights: sustained responding dominates (0.5), correct inhibition on rare
- * targets is the signature skill (0.3), and response speed breaks ties
- * (0.2). A perfect session — every go trial hit fast, every target held —
- * reaches exactly 1.0; an all-commission/all-omission session reaches 0.
+ * `discrimination` is Youden's J (sensitivity + specificity − 1): chance-level
+ * responding scores 0, so BOTH degenerate strategies are worthless. Tapping
+ * every digit hits every go trial (goAccuracy 1) but commits on every target
+ * (holdAccuracy 0); never tapping holds every target (holdAccuracy 1) but
+ * omits every go trial (goAccuracy 0). Under 1.1.0's additive 0.5/0.3/0.2
+ * blend these scored 0.7 and 0.3. Speed (up to 20%) scales what discrimination
+ * already earned and cannot rescue a degenerate run. A perfect session —
+ * every go trial hit fast, every target held — reaches exactly 1.0, and an
+ * all-commission/all-omission session reaches 0.
  * Difficulty is deliberately NOT folded into the value — it is recorded on
  * the raw result / diagnostic metadata so the rating pipeline can weight it.
  */
@@ -135,7 +141,8 @@ export function normalizeVigilanceResult(
     raw.meanSpeed * raw.hits,
     raw.hits,
   );
-  const value = clamp01(0.5 * goAccuracy + 0.3 * holdAccuracy + 0.2 * meanSpeed);
+  const discrimination = clamp01(goAccuracy + holdAccuracy - 1);
+  const value = clamp01(discrimination * (0.8 + 0.2 * meanSpeed));
   return { value, scale: '0..1', raw: { ...raw } };
 }
 
