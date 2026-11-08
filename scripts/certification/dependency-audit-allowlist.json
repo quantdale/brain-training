@@ -84,7 +84,8 @@
       "reviewBy": "2027-03-31",
       "expires": "2027-03-31T00:00:00.000Z",
       "exitCondition": "Upgrade to an Expo SDK whose expo-router no longer requires query-string@7 through CommonJS (next planned SDK upgrade); drop the entry then.",
-      "remediationDependency": "upstream expo-router -> query-string 7.x (CJS) -> decode-uri-component ^0.2.2"
+      "remediationDependency": "upstream expo-router -> query-string 7.x (CJS) -> decode-uri-component ^0.2.2",
+      "tracking": ".agent/KNOWN_ISSUES.md: Dependency gate — accepted advisories (2026-11-09)"
     }
   ]
 }
