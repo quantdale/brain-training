@@ -250,7 +250,10 @@ export function tapRushGameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      // Paused guard (parity with order-sweep / quick-compare): a press queued
+      // just before auto-pause must not start the round, or its first target
+      // would be anchored while paused and expire the instant play resumes.
+      if (state.phase !== 'roundResult' || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = tapRushParamsFromProfile(state.profile);

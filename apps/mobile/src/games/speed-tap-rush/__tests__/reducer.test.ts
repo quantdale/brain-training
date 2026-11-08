@@ -229,6 +229,24 @@ describe('next-round', () => {
     expect(state.deadlineMs).toBe(3000);
   });
 
+  it('ignores a next-round queued before auto-pause (no live target while paused)', () => {
+    let state = startSession('paused-next');
+    for (let i = 0; i < 10; i += 1) {
+      state = tapLiveTarget(state, 1000);
+    }
+    expect(state.phase).toBe('roundResult');
+    const paused = tapRushGameReducer(state, { type: 'pause' });
+    expect(paused.paused).toBe(true);
+    // A press that was already queued when the app auto-paused must not start
+    // the round: its first target would otherwise expire on resume.
+    expect(tapRushGameReducer(paused, { type: 'next-round', spawnedAtMs: 2000 })).toBe(paused);
+    // After resume the same action is accepted again.
+    const resumed = tapRushGameReducer(paused, { type: 'resume', nowMs: 5000, remainingMs: 0 });
+    const next = tapRushGameReducer(resumed, { type: 'next-round', spawnedAtMs: 5000 });
+    expect(next.phase).toBe('active');
+    expect(next.paused).toBe(false);
+  });
+
   it('holds the window after a failed round', () => {
     let state = startSession('hold');
     state = tapOutside(state, 1000);
