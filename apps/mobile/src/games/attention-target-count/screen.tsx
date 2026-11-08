@@ -30,7 +30,7 @@ import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -411,6 +411,19 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'target-prompt')}>
                 Count the {state.currentRound.targetGlyphName} {state.currentRound.targetGlyph}
               </ThemedText>
+              {/* Display only: the reducer's monotonic deadline. Pause banks
+              the remainder and resume rebuilds the deadline, so the bar
+              unmounts while paused and remounts at the true fraction. */}
+              {!state.paused && params !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}:${state.deadlineMs}`}
+                  deadlineMs={state.deadlineMs}
+                  windowMs={params.roundTimeMs}
+                  clock={clock}
+                  label="Time left"
+                  testID={testId(GAME_ID, 'countdown')}
+                />
+              ) : null}
 
               <View testID={testId(GAME_ID, 'grid')}>
                 <Grid

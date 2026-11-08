@@ -33,6 +33,7 @@ import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, useWindowDeadline } from '@/components/game-ui/countdown';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -174,6 +175,15 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   const respondDeadlineMs = params?.respondDeadlineMs ?? 7000;
+  // Display only: mirrors the respond window's active-time accounting below
+  // (runs while respond is live, frozen across pause/tutorial, reset per
+  // round), so the bar shows the true remaining time after a resume.
+  const respondCountdownDeadlineMs = useWindowDeadline(
+    state.phase === 'respond' && !state.paused && !state.tutorialOpen,
+    respondDeadlineMs,
+    clock,
+    `respond:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+  );
   const renderedCue = useMemo<ResultContinuationStamp>(() => ({ sessionId: state.sessionId, roundIndex: state.roundIndex, phase: state.phase, epoch: state.continuationEpoch }), [state.sessionId, state.roundIndex, state.phase, state.continuationEpoch]);
   const readStatus = session.status;
 
@@ -571,6 +581,16 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
                 >
                   {Math.round(respondDeadlineMs / 1000)}s to answer
                 </ThemedText>
+                {respondCountdownDeadlineMs !== null ? (
+                  <Countdown
+                    key={`${state.sessionId}:${state.roundIndex}:${respondCountdownDeadlineMs}`}
+                    deadlineMs={respondCountdownDeadlineMs}
+                    windowMs={respondDeadlineMs}
+                    clock={clock}
+                    label="Time left"
+                    testID={testId(GAME_ID, 'countdown')}
+                  />
+                ) : null}
               </View>
               <Board
                 gridSize={gridSize}

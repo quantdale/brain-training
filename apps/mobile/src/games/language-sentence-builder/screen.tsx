@@ -29,6 +29,7 @@ import { ThemedText } from '@/components/themed-text';
 import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, useWindowDeadline } from '@/components/game-ui/countdown';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -123,6 +124,14 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
   useGameDeadlineTimeout(
     state.phase === 'puzzle' && !state.paused,
     () => dispatch({ type: 'timer-expired' }),
+    timeBudgetMs,
+    clock,
+    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+  );
+  // Display only: mirrors the timeout above (same activity, budget and reset
+  // key), so the bar shows the true remaining budget after a resume.
+  const countdownDeadlineMs = useWindowDeadline(
+    state.phase === 'puzzle' && !state.paused,
     timeBudgetMs,
     clock,
     `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
@@ -351,6 +360,16 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
             testID={testId(GAME_ID, 'category-hint')}>
             {CATEGORY_LABELS[state.scrambled.category] ?? state.scrambled.category}
           </ThemedText>
+          {countdownDeadlineMs !== null ? (
+            <Countdown
+              key={`${state.sessionId}:${state.roundIndex}:${countdownDeadlineMs}`}
+              deadlineMs={countdownDeadlineMs}
+              windowMs={timeBudgetMs}
+              clock={clock}
+              label="Time left"
+              testID={testId(GAME_ID, 'countdown')}
+            />
+          ) : null}
 
           {/* Player's ordered words (the sentence being built). At verdict the
           strip takes the verdict fill + boundary; the accessible name carries

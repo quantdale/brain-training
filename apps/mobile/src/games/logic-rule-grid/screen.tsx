@@ -24,6 +24,7 @@ import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, useWindowDeadline } from '@/components/game-ui/countdown';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -158,6 +159,14 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       selectedValue: null,
       elapsedMs: Math.max(0, clock.now() - roundStartedAtRef.current),
     }),
+    roundTimeMs,
+    clock,
+    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+  );
+  // Display only: mirrors the timeout above (same activity, budget and reset
+  // key), so the bar shows the true remaining budget after a resume.
+  const countdownDeadlineMs = useWindowDeadline(
+    state.phase === 'showGrid' && !state.paused && state.currentRound !== null && state.profile !== null,
     roundTimeMs,
     clock,
     `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
@@ -378,6 +387,16 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
             {rulePrompt}
           </ThemedText>
+          {countdownDeadlineMs !== null ? (
+            <Countdown
+              key={`${state.sessionId}:${state.roundIndex}:${countdownDeadlineMs}`}
+              deadlineMs={countdownDeadlineMs}
+              windowMs={roundTimeMs}
+              clock={clock}
+              label="Time left"
+              testID={testId(GAME_ID, 'countdown')}
+            />
+          ) : null}
 
           <Grid
             size={state.currentRound.size}
