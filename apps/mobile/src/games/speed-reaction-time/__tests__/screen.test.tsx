@@ -301,7 +301,7 @@ describe('SpeedScreen', () => {
     expect(raw.bestReactionMs).toBe(goTrials > 0 ? 400 : null);
     expect(raw.reactions).toHaveLength(goTrials);
     expect(raw.noGoWithheld).toBe(withholds);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.3.0');
     expect(raw.scoringVersion).toBe('1.3.0');
     expect(raw.generatorVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);

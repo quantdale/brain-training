@@ -342,6 +342,24 @@ describe('adaptive delay adjustment', () => {
     expect(state.delayMinMs).toBe(1000); // 850 + 150
   });
 
+  it('treats a correct NO-GO withhold as a pass (it must not loosen adaptive)', () => {
+    let seed = '';
+    for (let candidate = 1; candidate < 100_000 && seed === ''; candidate += 1) {
+      if (isNoGoRound({ rng: createRng(String(candidate)), roundIndex: 0, noGoProbability: ADAPTIVE_PARAMS.noGoProbability })) {
+        seed = String(candidate);
+      }
+    }
+    expect(seed).not.toBe('');
+    let state = startSession(seed, 'adaptive');
+    expect(state.isNoGoRound).toBe(true);
+    state = speedGameReducer(go(state), { type: 'round-timeout' });
+    expect(state.roundOutcome).toBe('withheld');
+    state = speedGameReducer(state, { type: 'next-round' });
+    // Correct inhibition tightens exactly like a passed GO round (1000 - 150),
+    // it never loosens (1000 + 150).
+    expect(state.delayMinMs).toBe(1000 - (ADAPTIVE_PARAMS.delayStepMs ?? 150));
+  });
+
   it('clamps the adjusted minimum inside the adaptive bounds', () => {
     let state = startSession(ADAPTIVE_GO_SEED, 'adaptive');
     state = react(state, 400);
