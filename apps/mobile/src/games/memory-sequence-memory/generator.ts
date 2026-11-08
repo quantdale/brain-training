@@ -15,7 +15,13 @@
  *    (the player cannot tell whether they saw one flash or two). Repeats at
  *    non-adjacent positions ARE allowed, so long sequences on a small pad
  *    (e.g. 8 taps on 4 tiles) are reachable and their repeats are intended.
- * 2. Near-duplicate avoidance between consecutive rounds — a round that is
+ * 2. Session-wide repeat avoidance (constitution section 10) — a sequence
+ *    already served this session (`avoid`) is never served again while an
+ *    unserved sequence of that length and pad exists. When the bounded random
+ *    draws miss, a small space (the 2-length Easy pad has 12 sequences) is
+ *    enumerated so the remaining fresh one is still found; once the space is
+ *    spent the least recently served sequence is replayed.
+ * 3. Near-duplicate avoidance between consecutive rounds — a round that is
  *    confusable with the previous one (Hamming-style distance below
  *    `MIN_SEQUENCE_HAMMING_DISTANCE`) is re-drawn with an incremented attempt
  *    salt until the budget is exhausted, then the last candidate is accepted.
@@ -41,6 +47,68 @@ export interface GenerateSequenceInput {
   readonly tileCount: number;
   /** Previous round's sequence, or null for round 0. */
   readonly prevSequence: readonly number[] | null;
+  /** `sequenceKey`s served this session, oldest first. */
+  readonly avoid?: readonly string[];
+}
+
+/** Largest sequence space the exhaustive fallback will enumerate. */
+export const MAX_ENUMERATED_SEQUENCES = 20_000;
+
+/** Identity used to keep one session from serving the same sequence twice. */
+export function sequenceKey(sequence: readonly number[]): string {
+  return sequence.join(',');
+}
+
+/**
+ * Every adjacent-duplicate-free sequence, in lexicographic order, or null when
+ * the space is too large to enumerate cheaply.
+ */
+function enumerateSequences(length: number, tileCount: number): number[][] | null {
+  if (tileCount * Math.pow(tileCount - 1, length - 1) > MAX_ENUMERATED_SEQUENCES) {
+    return null;
+  }
+  let all: number[][] = [[]];
+  for (let pos = 0; pos < length; pos += 1) {
+    const next: number[][] = [];
+    for (const prefix of all) {
+      for (let tile = 0; tile < tileCount; tile += 1) {
+        if (pos === 0 || tile !== prefix[pos - 1]) {
+          next.push([...prefix, tile]);
+        }
+      }
+    }
+    all = next;
+  }
+  return all;
+}
+
+/**
+ * Fallback once the random draws missed: a seeded pick among the unserved
+ * sequences (preferring ones not confusable with the previous round), or, when
+ * all are served, the least recently served one. Null when the space is too
+ * large to enumerate.
+ */
+function fallbackSequence(
+  rng: Rng,
+  length: number,
+  tileCount: number,
+  prevSequence: readonly number[] | null,
+  avoid: readonly string[],
+): number[] | null {
+  const all = enumerateSequences(length, tileCount);
+  if (all === null) {
+    return null;
+  }
+  const fresh = all.filter((seq) => !avoid.includes(sequenceKey(seq)));
+  if (fresh.length > 0) {
+    const distinct = fresh.filter((seq) => !isNearDuplicate(seq, prevSequence));
+    const choices = distinct.length > 0 ? distinct : fresh;
+    return choices[rng.nextInt(choices.length)];
+  }
+  const byRecency = all.sort(
+    (a, b) => avoid.lastIndexOf(sequenceKey(a)) - avoid.lastIndexOf(sequenceKey(b)),
+  );
+  return byRecency.find((seq) => !isNearDuplicate(seq, prevSequence)) ?? byRecency[0];
 }
 
 /**
@@ -71,12 +139,26 @@ function drawSequence(rng: Rng, sequenceIndex: number, length: number, tileCount
 }
 
 export function generateSequence(input: GenerateSequenceInput): number[] {
-  const { rng, sequenceIndex, length, tileCount, prevSequence } = input;
+  const { rng, sequenceIndex, length, tileCount, prevSequence, avoid = [] } = input;
+  const served = new Set(avoid);
 
   for (let attempt = 0; attempt < MAX_SEQUENCE_ATTEMPTS; attempt += 1) {
     const candidate = drawSequence(rng.fork(`round:${sequenceIndex}:attempt:${attempt}`), sequenceIndex, length, tileCount);
-    if (!isNearDuplicate(candidate, prevSequence)) {
+    if (!isNearDuplicate(candidate, prevSequence) && !served.has(sequenceKey(candidate))) {
       return candidate;
+    }
+  }
+
+  if (avoid.length > 0) {
+    const fallback = fallbackSequence(
+      rng.fork(`round:${sequenceIndex}:fallback`),
+      length,
+      tileCount,
+      prevSequence,
+      avoid,
+    );
+    if (fallback !== null) {
+      return fallback;
     }
   }
 
