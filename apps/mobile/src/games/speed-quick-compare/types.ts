@@ -251,6 +251,8 @@ export interface QuickCompareGameState {
   deadlineMs: number | null;
   /** The current round's data (null except during active/feedback). */
   round: QuickCompareRound | null;
+  /** `roundKey` of every round served this session, oldest first (no-repeat history). */
+  usedRoundKeys: readonly string[];
   /** Index the player selected this round (null until answered). */
   selectedIndex: number | null;
   /** Verdict of the just-resolved round (feedback rendering). */
@@ -290,6 +292,7 @@ export function createInitialQuickCompareState(): QuickCompareGameState {
     roundStartedAtMs: null,
     deadlineMs: null,
     round: null,
+    usedRoundKeys: [],
     selectedIndex: null,
     lastVerdict: null,
     stats: { ...INITIAL_STATS },

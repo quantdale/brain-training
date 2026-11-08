@@ -34,6 +34,25 @@ function answerCorrect(state: QuickCompareGameState, nowMs: number): QuickCompar
   return quickCompareGameReducer(answered, { type: 'next-round', spawnedAtMs: nowMs });
 }
 
+describe('session rounds never repeat (constitution section 10)', () => {
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'serves a new comparison each round in a %s session',
+    (level) => {
+      for (let seed = 1; seed <= 60; seed += 1) {
+        let state = startSession(`no-repeat-${seed}`, level);
+        const seen: string[] = [];
+        while (state.phase === 'active' && state.round !== null) {
+          const { promptType, left, right } = state.round;
+          seen.push(`${promptType}|${left.display}|${right.display}`);
+          state = answerCorrect(state, 2000);
+        }
+        expect(state.phase).toBe('results');
+        expect(new Set(seen).size).toBe(seen.length);
+      }
+    },
+  );
+});
+
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
     const state = quickCompareGameReducer(createInitialQuickCompareState(), { type: 'select-difficulty', level: 'hard' });
