@@ -256,18 +256,22 @@ describe('reducer: tap handling', () => {
     expect(state.stats.streak).toBe(1);
   });
 
-  it('ignores input after the window expires but accepts a tap at exactly the deadline', () => {
+  it('ignores input at and after the deadline, accepts the last millisecond before it', () => {
     let state = startSession('hard');
     const deadline = state.deadlineMs as number;
     const round = state.round as OrderSweepRound;
 
-    // Boundary: nowMs == deadlineMs is still inside the window (guard is strict >).
-    const boundary = tap(state, tokenByValue(round, round.order[0]).id, deadline);
+    // nowMs == deadlineMs is the instant the expiry timer fires (>= deadline),
+    // so a tap there must NOT also score (matches tap-rush's `>=` rejection).
+    expect(tap(state, tokenByValue(round, round.order[0]).id, deadline)).toBe(state);
+
+    // The last millisecond inside the window still scores.
+    const boundary = tap(state, tokenByValue(round, round.order[0]).id, deadline - 1);
     expect(boundary).not.toBe(state);
     expect(boundary.clearedCount).toBe(1);
     expect(boundary.lastVerdict).toBe('correct');
 
-    // One ms later: ignored entirely (identity-preserving).
+    // Past the deadline: ignored entirely (identity-preserving).
     const late = tap(boundary, tokenByValue(round, round.order[1]).id, deadline + 1);
     expect(late).toBe(boundary);
     expect(late.stats.tokensCleared).toBe(1);

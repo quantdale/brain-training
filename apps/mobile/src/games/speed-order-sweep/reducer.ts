@@ -144,9 +144,10 @@ function reduceGameState(
       if (state.phase !== 'active' || state.paused || state.profile === null) {
         return state;
       }
-      // Post-deadline taps are ignored — the window already closed and the
-      // expiry timer owns the resolution. Guards against timer/dispatch races.
-      if (state.deadlineMs !== null && action.nowMs > state.deadlineMs) {
+      // Taps at/after the deadline are ignored — the window already closed and
+      // the expiry timer (which fires at nowMs >= deadlineMs) owns the
+      // resolution, so a tap at exactly the deadline must not also score.
+      if (state.deadlineMs !== null && action.nowMs >= state.deadlineMs) {
         return state;
       }
       const round = state.round;

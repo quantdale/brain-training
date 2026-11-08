@@ -541,7 +541,7 @@ export const registry: readonly GameDefinition[] = [
   ],
     description: "Every number is on the board at once — sweep them from smallest to largest before the timer drains.",
     sdkVersion: "0.1.0",
-    gameVersion: "1.1.0",
+    gameVersion: "1.2.0",
     generatorVersion: "1.0.0",
     contentVersion: null,
     hasTutorial: true,
