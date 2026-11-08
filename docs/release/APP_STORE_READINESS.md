@@ -22,8 +22,7 @@ Recheck them before submitting.
 4. Support URL, App Store description, keywords, category and age rating answers.
 5. App Privacy answers. The code supports "Data Not Collected": no network APIs
    (enforced by `scripts/validate-offline.mjs`), analytics, ads or accounts.
-6. A decision on the four open dependency advisories in `.agent/KNOWN_ISSUES.md`.
-7. Testing on a physical iPhone and in TestFlight.
+6. Testing on a physical iPhone and in TestFlight.
 
 ## Done and verified
 

@@ -3,8 +3,8 @@
 ## macOS and iOS production readiness — 2026-11-08 (IN PROGRESS)
 
 Owner-directed work on branch `claude/macos-production-readiness`, based on
-`a3dbb468`. The owner's brief forbids merging into protected `main` without
-authorization, so this branch is not pushed to `main`. Campaign 080 stays ACTIVE.
+`a3dbb468`. The owner authorized merging it to `main` after Codex review on
+2026-11-09. Campaign 080 stays ACTIVE.
 
 First iOS runtime on this Mac (Xcode 27.2, iOS 27.2 Simulator, Apple M5): the
 Release app crashed at launch with SIGTRAP because the iOS 27 SDK requires the
@@ -22,8 +22,10 @@ in-session repeat fixes in five games; local-date analytics; visible countdowns
 in ten games; dark-mode meter contrast.
 Status and owner actions: `docs/release/APP_STORE_READINESS.md`. The
 installed Campaign 080 Android APK predates these changes, so its native
-evidence does not describe this branch. Next: merge decision and physical
-iPhone testing; remaining findings are in KNOWN_ISSUES.
+evidence does not describe this branch. The four open advisories were waived
+under owner delegation on 2026-11-09. The owner paused this repository after
+the merge. Next when resumed: App Store owner actions in the release guide,
+physical iPhone testing, then KNOWN_ISSUES.
 
 ## Repository maintenance — 2026-11-08
 
