@@ -20,6 +20,7 @@ import type { AppDatabase } from "@/db";
 import { getGameDefinition } from "@/registry/registry";
 import { reconstructStreak, readCoveredDates } from "@/streaks";
 import {
+  currentPeriodKey,
   evaluateQuests,
   QUEST_DEFINITIONS_V1,
   selectActiveQuests,
@@ -36,6 +37,14 @@ import { localDateString } from "@/workout/today";
  * Documented rather than silently unbounded (Campaign 027).
  */
 const SYNC_SESSION_SCAN_LIMIT = 5000;
+
+/**
+ * How many past periods WITH PLAY each sync re-checks for an earned quest whose
+ * row was never written. Every sync covers the periods before it, so only the
+ * newest few can be missing; the bound keeps the work per focus constant and
+ * limits how far an upgrade can reach back into old history.
+ */
+const QUEST_CATCH_UP_PERIODS = { daily: 7, weekly: 4 } as const;
 
 /** Default accuracy threshold for the `accuracy-sessions` achievement family. */
 export const ACCURACY_SESSIONS_THRESHOLD = 0.8;
@@ -68,7 +77,8 @@ export async function buildQuestSamples(
  * subset (deterministic per date/week) is synced so stale pool members keep
  * their last-progressed rows without being re-synced every period. Passing
  * `completedAt: null` for unfinished quests is safe: the row's completed_at
- * only sticks once set (COALESCE in the upsert).
+ * only sticks once set (COALESCE in the upsert). Recently ended periods are
+ * then caught up, see `catchUpEndedQuestPeriods`.
  *
  * Returns the snapshot it evaluated so callers (Profile) can derive the same
  * evaluations without a second history scan (Campaign 027).
@@ -105,7 +115,73 @@ export async function syncQuestProgress(
       completedAt: evaluation.completed ? now.getTime() : null,
     });
   }
+  await catchUpEndedQuestPeriods(db, snapshot, now);
   return snapshot;
+}
+
+/**
+ * Record daily/weekly quests earned in a period that ended before any sync saw
+ * the goal: the player reached it at 23:58, then killed the app or stayed on
+ * results past midnight. Rotation must never make an earned reward unreachable
+ * (`rewards/inbox.ts`), and the inbox only offers rows that exist.
+ *
+ * Each past period uses the pool that was active THEN (selection is a pure
+ * function of the date). Only completions are written, so unfinished past
+ * periods stay rowless, and they are stamped with the period's newest session
+ * rather than `now` so the record stays inside the period that earned it.
+ * Existing completions are left alone, so repeated syncs do not rewrite them.
+ */
+async function catchUpEndedQuestPeriods(
+  db: AppDatabase,
+  snapshot: QuestSnapshot,
+  now: Date,
+): Promise<void> {
+  for (const kind of ["daily", "weekly"] as const) {
+    const currentKey = currentPeriodKey(kind, now);
+    // `listLightweight` is newest-first, so the first sample seen for a period
+    // is its newest and the walk can stop once the bound is reached.
+    const newestByPeriod = new Map<string, number>();
+    for (const sample of snapshot.sessions) {
+      const key = currentPeriodKey(kind, new Date(sample.completedAt));
+      if (key === currentKey || newestByPeriod.has(key)) {
+        continue;
+      }
+      if (newestByPeriod.size === QUEST_CATCH_UP_PERIODS[kind]) {
+        break;
+      }
+      newestByPeriod.set(key, sample.completedAt);
+    }
+
+    for (const [period, newestAt] of newestByPeriod) {
+      const evaluatedAt = new Date(newestAt);
+      const earned = evaluateQuests(
+        selectActiveQuests(QUEST_DEFINITIONS_V1, evaluatedAt).filter(
+          (definition) => definition.kind === kind,
+        ),
+        snapshot,
+        evaluatedAt,
+      ).filter((evaluation) => evaluation.completed);
+      if (earned.length === 0) {
+        continue;
+      }
+      const recorded = new Set(
+        (await db.quests.listProgressForPeriod(period))
+          .filter((row) => row.completedAt !== null)
+          .map((row) => row.questId),
+      );
+      for (const evaluation of earned) {
+        if (recorded.has(evaluation.questId)) {
+          continue;
+        }
+        await db.quests.recordProgress({
+          questId: evaluation.questId,
+          period,
+          progress: evaluation.progress,
+          completedAt: newestAt,
+        });
+      }
+    }
+  }
 }
 
 /**
