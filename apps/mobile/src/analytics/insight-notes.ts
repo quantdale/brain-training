@@ -69,7 +69,7 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   balance:
     'Each session counts toward its game\u2019s primary domain. Shares are that domain\u2019s fraction of sessions in the selected window.',
   'activity-calendar':
-    'Count of completed sessions per UTC day, matching how the rest of the product buckets activity.',
+    'Count of completed sessions per local calendar day, matching how the rest of the product buckets activity.',
   recency: 'Whole days since your most recent completed session.',
   'recent-vs-lifetime':
     'The recent average covers only sessions inside the selected window; the lifetime average covers every stored session.',
@@ -100,7 +100,7 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   'weekday-pattern':
     'Which weekdays your sessions landed on in this view \u2014 a record of habit, not advice.',
   'progress-consistency':
-    'Count of completed sessions and distinct UTC days with a session inside the selected window.',
+    'Count of completed sessions and distinct local calendar days with a session inside the selected window.',
   'recorded-movement':
     'Compares this window\u2019s average with your lifetime average; all time compares your first and latest results.',
 };

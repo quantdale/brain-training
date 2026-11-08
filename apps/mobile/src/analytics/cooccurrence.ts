@@ -2,8 +2,8 @@
  * Co-occurrence presentation for Progress V2 ("streak correlation", packet W08).
  *
  * This module deliberately does NOT compute a correlation coefficient or claim
- * any causal relationship. It groups stored sessions by the UTC day they were
- * completed on, counts how many distinct domains each day touched, and
+ * any causal relationship. It groups stored sessions by the local calendar date
+ * they were completed on, counts how many distinct domains each day touched, and
  * restates the average normalized result per breadth group. The only honest
  * statement is "in your history, days that looked like this averaged that" —
  * `COOCCURRENCE_CAPTION` says exactly that, and screens must render it next to
@@ -12,7 +12,7 @@
 
 import type { GameSessionRecord } from '@/db';
 
-import { utcDateKey } from './format';
+import { localDateKey } from '@/quests/period';
 
 /** One breadth group: days on which exactly `breadth` distinct domains were trained. */
 export interface BreadthGroup {
@@ -44,7 +44,7 @@ export const COOCCURRENCE_CAPTION =
   'These numbers only describe what tended to co-occur in your own history. They do not mean one thing caused the other.';
 
 /**
- * Group sessions by UTC day and restate average performance per domain
+ * Group sessions by local calendar date and restate average performance per domain
  * breadth. Attribution uses the caller-supplied `resolveDomain` (primary
  * category), matching `training-balance`. Deterministic given the same inputs.
  */
@@ -59,12 +59,12 @@ export function buildDomainBreadthPerformance(
 
   for (const session of sessions) {
     const domain = resolveDomain(session.gameId);
+    const key = localDateKey(new Date(session.completedAt));
     if (domain === null) {
       // A day whose sessions are all unmapped must not count as breadth-0 data.
-      unmappedDayKeys.add(utcDateKey(session.completedAt));
+      unmappedDayKeys.add(key);
       continue;
     }
-    const key = utcDateKey(session.completedAt);
     let entry = byDay.get(key);
     if (!entry) {
       entry = { domains: new Set<string>(), values: [] };

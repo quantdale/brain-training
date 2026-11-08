@@ -56,12 +56,3 @@ export function formatDateKeyLabel(dateKey: string): string {
   const [, month, day] = dateKey.split('-').map(Number);
   return `${MONTH_LABELS[month - 1]} ${day}`;
 }
-
-/** UTC date key "YYYY-MM-DD" (mirrors analytics bucketing). */
-export function utcDateKey(ms: number): string {
-  const d = new Date(ms);
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}

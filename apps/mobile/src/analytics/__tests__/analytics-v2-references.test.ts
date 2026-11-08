@@ -639,12 +639,13 @@ describe('cooccurrence breadth equivalence vs naive day grouping (+ disclaimer p
     ];
     const got = buildDomainBreadthPerformance(sessions, resolve);
 
-    // Reference: group by UTC day over mapped sessions only.
+    // Reference: group by local date over mapped sessions only (§14).
     const domPerDay = new Map<string, Set<string>>();
     const valsPerDay = new Map<string, number[]>();
     const allKeys = new Set<string>();
     for (const s of sessions) {
-      const key = new Date(s.completedAt).toISOString().slice(0, 10);
+      const when = new Date(s.completedAt);
+      const key = `${when.getFullYear()}-${when.getMonth()}-${when.getDate()}`;
       allKeys.add(key);
       const d = resolve(s.gameId);
       if (d === null) {
@@ -677,15 +678,15 @@ describe('cooccurrence breadth equivalence vs naive day grouping (+ disclaimer p
     expect(got.groups).toEqual(wantGroups);
   });
 
-  it('UTC midnight split puts same-evening sessions into different breadth days deterministically', () => {
+  it('local midnight split puts same-evening sessions into different breadth days deterministically', () => {
     const view = buildDomainBreadthPerformance(
       [
-        mkSession({ gameId: 'mem', completedAt: Date.UTC(2026, 0, 19, 23, 59, 59, 999) }),
-        mkSession({ gameId: 'att', completedAt: Date.UTC(2026, 0, 20, 0, 0, 0, 0) }),
+        mkSession({ gameId: 'mem', completedAt: new Date(2026, 0, 19, 23, 59, 59, 999).getTime() }),
+        mkSession({ gameId: 'att', completedAt: new Date(2026, 0, 20, 0, 0, 0, 0).getTime() }),
       ],
       resolve,
     );
-    // Two distinct UTC days, each with breadth 1 — no phantom breadth-2 day.
+    // Two distinct local days (§14), each with breadth 1 — no phantom breadth-2 day.
     expect(view.groups).toEqual([{ breadth: 1, days: 2, sessions: 2, avgNormalized: 0.5 }]);
   });
 
