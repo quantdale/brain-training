@@ -7,20 +7,32 @@
  * is PURE: the caller supplies the persisted instance and the candidate
  * session records; this module never touches the db or the clock.
  *
- * Session matching rule (documented ambiguity): position `i` counts as played
- * when `i < currentIndex` (the durable resume point only advances after a
- * session durably completed). Its session is the MOST RECENT record with the
- * same game id finished at/after the instance's creation — sessions from
- * before the instance existed (yesterday's play of the same game) never leak
- * in. If two instances (daily + a focus template) both contain the same game,
- * both summaries may legitimately reference the same physical session; that
- * is accepted because each workout's PROGRESS remains independent.
+ * Session matching rule: position `i` counts as played when `i < currentIndex`
+ * (the durable resume point only advances after a session durably completed).
+ * A summary records what happened, so replaying a game later must never
+ * rewrite it:
+ *
+ * 1. A session with workout provenance belongs to exactly one leg. Its
+ *    `(instanceKey, legIndex, gameId)` tuple decides the match, and among
+ *    duplicates the EARLIEST wins: only the first session could advance the
+ *    leg, and a later replay of the same launch cannot.
+ * 2. A session without valid provenance (older history, or free play) can
+ *    fill a leg that has no owned session. It matches the MOST RECENT record
+ *    with the same game id finished within the instance's window: from its
+ *    creation until the end of its local calendar date. In that fallback, if
+ *    two instances (daily + a focus template) contain the same game, both
+ *    summaries may reference the same physical session; each workout's
+ *    PROGRESS remains independent.
  */
 
 import type { WorkoutInstance, WorkoutStatus } from "@/db";
 import { parseInstanceKey } from "./metadata";
 import type { WorkoutMetadata } from "./metadata";
 import type { WorkoutSelectionReason } from "./personalize";
+import {
+  isWorkoutSessionProvenance,
+  type WorkoutSessionProvenance,
+} from "./session-provenance";
 
 /**
  * Structural view of one completed session, limited to what summaries
@@ -35,6 +47,8 @@ export interface WorkoutSessionRef {
   xp: number;
   durationMs: number;
   completedAt: number;
+  /** Exact workout leg that launched this session, when known. */
+  workoutProvenance?: WorkoutSessionProvenance;
 }
 
 /** Per-position outcome inside one workout. */
@@ -84,6 +98,34 @@ export interface WorkoutCompletionSummary {
 }
 
 /**
+ * The session's ownership tuple, or null when it has none it can stand behind:
+ * invalid or game-mismatched provenance degrades to standalone, the same rule
+ * the advance path applies.
+ */
+function ownedProvenance(
+  session: WorkoutSessionRef,
+): WorkoutSessionProvenance | null {
+  const provenance = session.workoutProvenance;
+  return isWorkoutSessionProvenance(provenance) &&
+    provenance.gameId === session.gameId
+    ? provenance
+    : null;
+}
+
+/**
+ * First instant after the local calendar date `date` (`YYYY-MM-DD`), bounding
+ * the sessions without provenance. An unparseable date applies no bound.
+ */
+function endOfLocalDate(date: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day) + 1).getTime();
+}
+
+/**
  * Build a completion summary from an instance and its candidate sessions.
  * Deterministic: the same inputs always yield the same summary.
  */
@@ -108,25 +150,41 @@ export function buildWorkoutSummary(
   // evidence that distinguishes the two.
   const skipped = new Set(instance.skippedIndices ?? []);
 
-  // Latest matching session per played position (see module comment).
-  const byPosition = new Map<number, WorkoutSessionRef>();
+  // Per played position: the owned session, else the fallback (module comment).
+  const owned = new Map<number, WorkoutSessionRef>();
+  const fallback = new Map<number, WorkoutSessionRef>();
+  const windowEnd = endOfLocalDate(parsed.date);
   for (const session of sessions) {
-    if (session.completedAt < instance.createdAt) {
+    const provenance = ownedProvenance(session);
+    if (provenance) {
+      const position = provenance.legIndex;
+      if (
+        provenance.instanceKey === instance.date &&
+        position < completedGames &&
+        !skipped.has(position) &&
+        instance.gameIds[position] === session.gameId
+      ) {
+        const current = owned.get(position);
+        if (!current || session.completedAt < current.completedAt) {
+          owned.set(position, session);
+        }
+      }
+      continue;
+    }
+    if (session.completedAt < instance.createdAt || session.completedAt >= windowEnd) {
       continue;
     }
     for (let position = 0; position < completedGames; position += 1) {
-      if (skipped.has(position)) {
+      if (skipped.has(position) || instance.gameIds[position] !== session.gameId) {
         continue;
       }
-      if (instance.gameIds[position] !== session.gameId) {
-        continue;
-      }
-      const current = byPosition.get(position);
+      const current = fallback.get(position);
       if (!current || session.completedAt > current.completedAt) {
-        byPosition.set(position, session);
+        fallback.set(position, session);
       }
     }
   }
+  const byPosition = new Map<number, WorkoutSessionRef>([...fallback, ...owned]);
 
   const outcomes: WorkoutGameOutcome[] = instance.gameIds.map(
     (gameId, position) => ({

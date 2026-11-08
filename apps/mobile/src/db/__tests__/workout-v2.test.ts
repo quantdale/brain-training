@@ -616,6 +616,65 @@ describe('completion summaries against REAL persisted sessions', () => {
     clock.now = 1_000_000;
   });
 
+  it('a persisted leg session survives a later replay of the same game', async () => {
+    const key = '2026-08-21';
+    await workouts.getOrCreate(key, { gameIds: ['g-a', 'g-b'] });
+    const legA = { instanceKey: key, legIndex: 0, gameId: 'g-a' };
+    await persistSession(adapter, {
+      id: 's-leg',
+      gameId: 'g-a',
+      completedAt: 1_100_000,
+      xp: 7,
+      workoutProvenance: legA,
+    });
+    clock.now = 1_200_000;
+    await workouts.advance(key);
+    const before = await workouts.getWorkoutSummary(key);
+
+    // Free play the next day, a day after the instance's local date ended.
+    await persistSession(adapter, {
+      id: 's-replay',
+      gameId: 'g-a',
+      completedAt: new Date(2026, 7, 22, 9).getTime(),
+      xp: 99,
+    });
+
+    const after = await workouts.getWorkoutSummary(key);
+    expect(before!.outcomes[0].session?.xp).toBe(7);
+    expect(after).toEqual(before);
+    const [listed] = await workouts.listRecentSummaries(1);
+    expect(listed.totalXp).toBe(7);
+  });
+
+  it('degrades to the date-bounded match when json_extract is unavailable', async () => {
+    const key = '2026-08-21';
+    await workouts.getOrCreate(key, { gameIds: ['g-a', 'g-b'] });
+    await persistSession(adapter, {
+      id: 's-leg',
+      gameId: 'g-a',
+      completedAt: 1_100_000,
+      xp: 7,
+      workoutProvenance: { instanceKey: key, legIndex: 0, gameId: 'g-a' },
+    });
+    clock.now = 1_200_000;
+    await workouts.advance(key);
+    await persistSession(adapter, {
+      id: 's-replay',
+      gameId: 'g-a',
+      completedAt: new Date(2026, 7, 22, 9).getTime(),
+      xp: 99,
+    });
+
+    const realAll = adapter.all.bind(adapter);
+    adapter.all = ((sql: string, params?: never) =>
+      sql.includes('AS workout_provenance')
+        ? Promise.reject(new Error('no such function: json_extract'))
+        : realAll(sql, params)) as typeof adapter.all;
+
+    const summary = await workouts.getWorkoutSummary(key);
+    expect(summary!.outcomes[0].session?.xp).toBe(7);
+  });
+
   it('matches the most-recent post-creation session per played position and ignores the rest', async () => {
     const key = '2026-08-21';
     const created = await workouts.getOrCreate(key, {
