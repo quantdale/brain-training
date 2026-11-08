@@ -8,7 +8,10 @@
  * Every puzzle has at least one valid solution (verified by a brute-force
  * solver during generation; reject and re-draw if no solution found).
  *
- * Near-duplicate avoidance: consecutive puzzles have different targets.
+ * Near-duplicate avoidance: consecutive puzzles have different targets, and
+ * (constitution section 10) no puzzle is served twice in a session while an
+ * unserved one exists. When the compatible curated pool is spent the least
+ * recently served template is replayed.
  */
 import type { Rng } from '@/sdk';
 
@@ -146,6 +149,13 @@ export interface GeneratePuzzleInput {
   readonly params: MathEquationBuilderDifficultyParams;
   /** Previous round's target, or null for round 0. */
   readonly prevTarget: number | null;
+  /** `puzzleKey`s served this session, oldest first. */
+  readonly avoid?: readonly string[];
+}
+
+/** Identity used to keep one session from serving the same puzzle twice. */
+export function puzzleKey(target: number, numbers: readonly number[]): string {
+  return `${target}|${numbers.join(',')}`;
 }
 
 export interface GeneratedPuzzle {
@@ -194,7 +204,8 @@ export function canSolve(
  * Deterministic: same seed always yields the same puzzle for the same params.
  */
 export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
-  const { rng, roundIndex, params, prevTarget } = input;
+  const { rng, roundIndex, params, prevTarget, avoid = [] } = input;
+  const served = new Set(avoid);
   const { numbersCount, targetMin, targetMax, operators } = params;
 
   // ---- Content-pack: try curated templates first ----
@@ -211,20 +222,30 @@ export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
     const fork = rng.fork(`templates:round:${roundIndex}`);
     const shuffled = fork.shuffle([...compatibleTemplates]);
     for (const template of shuffled) {
-      // Near-duplicate avoidance: skip template if its target matches prevTarget.
-      if (prevTarget === null || template.target !== prevTarget) {
+      // Near-duplicate avoidance: skip a template whose target matches
+      // prevTarget or that was already served this session.
+      if (
+        (prevTarget === null || template.target !== prevTarget) &&
+        !served.has(puzzleKey(template.target, template.numbers))
+      ) {
         return { target: template.target, numbers: template.numbers, operators };
       }
     }
-    // All compatible templates share prevTarget – use the first anyway.
-    return {
-      target: shuffled[0].target,
-      numbers: shuffled[0].numbers,
-      operators,
-    };
+    // Pool spent: replay the least recently served template (the stable sort
+    // keeps the seeded shuffle order among ties), never the previous target
+    // when avoidable. With no history this is the first shuffled template.
+    const ranked = [...shuffled].sort(
+      (x, y) =>
+        avoid.lastIndexOf(puzzleKey(x.target, x.numbers)) -
+        avoid.lastIndexOf(puzzleKey(y.target, y.numbers)),
+    );
+    const replay =
+      ranked.find((t) => prevTarget === null || t.target !== prevTarget) ?? ranked[0];
+    return { target: replay.target, numbers: replay.numbers, operators };
   }
 
   // ---- Procedural fallback (original algorithm) ----
+  let repeatFallback: GeneratedPuzzle | null = null;
   for (let attempt = 0; attempt < MAX_PUZZLE_ATTEMPTS; attempt += 1) {
     const fork = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
 
@@ -261,7 +282,19 @@ export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
       if (different !== undefined) target = different;
     }
 
-    return { target, numbers: candidateNumbers, operators };
+    // Prefer a puzzle not yet served this session; keep the first valid one
+    // as the fallback should every attempt land on a served puzzle.
+    const unserved = shuffledTargets.find(
+      (t) => t !== prevTarget && !served.has(puzzleKey(t, candidateNumbers)),
+    );
+    if (unserved === undefined && avoid.length > 0) {
+      repeatFallback ??= { target, numbers: candidateNumbers, operators };
+      continue;
+    }
+    return { target: unserved ?? target, numbers: candidateNumbers, operators };
+  }
+  if (repeatFallback !== null) {
+    return repeatFallback;
   }
 
   // Fallback: construct a guaranteed-solvable puzzle deterministically.

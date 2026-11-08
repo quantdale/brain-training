@@ -18,7 +18,7 @@ import {
   nextAdaptiveParams,
   resolveMathEquationBuilderDifficulty,
 } from './difficulty';
-import { generatePuzzle } from './generator';
+import { generatePuzzle, puzzleKey } from './generator';
 import { partialCreditScore, perfectSessionScore, puzzleScore } from './scoring';
 import {
   INITIAL_STATS,
@@ -223,6 +223,7 @@ export function mathEquationBuilderGameReducer(
         roundIndex: 0,
         target: puzzle.target,
         availableNumbers: puzzle.numbers,
+        usedPuzzleKeys: [puzzleKey(puzzle.target, puzzle.numbers)],
         allowedOperators: puzzle.operators,
         equationTokens: [],
         usedNumberIndices: [],
@@ -387,6 +388,7 @@ export function mathEquationBuilderGameReducer(
         roundIndex: nextIndex,
         params: nextParams,
         prevTarget: state.target,
+        avoid: state.usedPuzzleKeys,
       });
 
       return {
@@ -395,6 +397,7 @@ export function mathEquationBuilderGameReducer(
         roundIndex: nextIndex,
         target: puzzle.target,
         availableNumbers: puzzle.numbers,
+        usedPuzzleKeys: [...state.usedPuzzleKeys, puzzleKey(puzzle.target, puzzle.numbers)],
         allowedOperators: puzzle.operators,
         equationTokens: [],
         usedNumberIndices: [],

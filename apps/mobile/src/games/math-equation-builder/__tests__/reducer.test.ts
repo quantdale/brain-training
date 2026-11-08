@@ -23,6 +23,32 @@ function startSession(
   return state;
 }
 
+describe('session puzzles never repeat (constitution section 10)', () => {
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'serves a new puzzle each round in a %s session',
+    (level) => {
+      for (let seed = 1; seed <= 60; seed += 1) {
+        let state = startSession(`no-repeat-${seed}`, level);
+        const seen: string[] = [];
+        while (state.phase === 'playing') {
+          seen.push(`${state.target}|${state.availableNumbers.join(',')}`);
+          // Any evaluable submission ends the round; correctness does not matter here.
+          state.availableNumbers.forEach((_, numberIndex) => {
+            if (numberIndex > 0) {
+              state = mathEquationBuilderGameReducer(state, { type: 'add-operator', operator: '+', atActiveMs: 0 });
+            }
+            state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex, atActiveMs: 0 });
+          });
+          state = mathEquationBuilderGameReducer(state, { type: 'submit', atActiveMs: 0 });
+          expect(state.phase).toBe('roundResult');
+          state = mathEquationBuilderGameReducer(state, { type: 'next-round', atActiveMs: 0 });
+        }
+        expect(new Set(seen).size).toBe(seen.length);
+      }
+    },
+  );
+});
+
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
     const state = mathEquationBuilderGameReducer(
