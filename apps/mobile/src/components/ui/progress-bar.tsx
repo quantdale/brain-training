@@ -78,7 +78,7 @@ export function ProgressBar({
           </ThemedText>
         </View>
       ) : null}
-      <View style={[styles.track, { height, backgroundColor: trackColor ?? theme.surfaceSunken }]}>
+      <View style={[styles.track, { height, backgroundColor: trackColor ?? theme.meterTrack }]}>
         {rollback !== null ? (
           <View
             testID={testID ? `${testID}-rollback` : undefined}

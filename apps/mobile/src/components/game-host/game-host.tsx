@@ -413,6 +413,8 @@ export function GameHost({
                   testID={testId(gameId, 'pause')}
                   label="Pause"
                   onPress={onPause}
+                  // The secondary fill nearly matches the stage in dark mode.
+                  style={{ borderWidth: 1, borderColor: theme.stageBorder }}
                 />
               }>
               {/* Games that pass a non-string header (custom round chip) keep

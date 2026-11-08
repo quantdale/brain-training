@@ -84,6 +84,8 @@ export function playerFacingReason(detail: string): string {
   const cleaned = detail
     .replace(/\s*\(rating[^)]*\)?/g, '')
     .replace(/^weak (.+?) domain\b/i, 'Practice your $1 skills')
+    .replace(/^undertrained (.+?) domain\s*\([^)]*\)?/i, 'Build up your $1 skills')
+    .replace(/^rusty (.+?) domain\b/i, 'Get back to $1')
     .replace(/\s{2,}/g, ' ')
     .trim();
   return notPlayed ? `${cleaned} · not played for ~${notPlayed[1]}d` : cleaned;

@@ -21,6 +21,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useFocusEffect } from "expo-router";
+import { plural } from "@/analytics/format";
 import { Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
@@ -691,7 +692,7 @@ export default function DataManagementScreen() {
                 themeColor="textSecondary"
                 testID="data-storage-size"
               >
-                {counts.gameSessions} saved sessions · {counts.gameFavorites} favorites
+                {plural(counts.gameSessions, "saved session")} · {plural(counts.gameFavorites, "favorite")}
               </ThemedText>
             </Card>
           </Entrance>

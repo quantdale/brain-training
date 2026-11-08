@@ -27,7 +27,7 @@ const SECTIONS = [
   },
   {
     title: "You're in control",
-    body: "Export or permanently delete everything from Your data in Profile.",
+    body: "Export or permanently delete everything from Backups & data in Profile.",
   },
   {
     title: "Not medical advice",

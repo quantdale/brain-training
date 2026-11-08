@@ -172,6 +172,8 @@ interface NeutralTheme {
   surfaceRaised: string;
   /** Recessed surface for wells, tracks and inline code. */
   surfaceSunken: string;
+  /** Unfilled part of a progress meter; must stay visible on `surface`. */
+  meterTrack: string;
   /** Decorative hairline border. */
   border: string;
   /** Interactive boundary (inputs, toggles, outlines) — ≥3:1 vs surface. */
@@ -199,6 +201,7 @@ const NEUTRALS = {
     surface: '#FFFFFF',
     surfaceRaised: '#FFFFFF',
     surfaceSunken: '#EDF0F6',
+    meterTrack: '#EDF0F6',
     stage: '#172132',
     stageInk: '#FFFFFF',
     stageWarn: '#FFDB82',
@@ -224,6 +227,7 @@ const NEUTRALS = {
     surface: '#172132',
     surfaceRaised: '#203047',
     surfaceSunken: '#09111F',
+    meterTrack: '#34445D',
     stage: '#172132',
     stageInk: '#FFFFFF',
     stageWarn: '#FFDB82',

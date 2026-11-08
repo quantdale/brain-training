@@ -579,8 +579,8 @@ export default function HomeScreen() {
       : workout.length === 0
         ? heroCtaLabel
         : isResuming
-          ? `Continue today's workout with ${currentGame?.name ?? "the next game"}`
-          : `Start today's workout, ${workout.length} games`;
+          ? `${heroCtaLabel} with ${currentGame?.name ?? "the next game"}`
+          : `${heroCtaLabel}, ${workout.length} games`;
   // Same destination (with the same workout-leg provenance) the resume Link
   // used before the hero rebuild — null until a current game is known.
   // Before the workout is started there is no instance yet, so the CTA targets
