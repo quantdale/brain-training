@@ -1,14 +1,14 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import AboutScreen from '../about';
+
 const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ canGoBack: () => true, back: mockBack, replace: jest.fn() }),
   useSegments: () => [],
 }));
 jest.mock('expo-constants', () => ({ expoConfig: { version: '9.8.7' } }));
-
-import AboutScreen from '../about';
 
 describe('About & privacy', () => {
   it('states the offline privacy facts and the app version', async () => {

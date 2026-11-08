@@ -565,8 +565,8 @@ export default function HomeScreen() {
     nextStreakMilestone == null
       ? "Every streak milestone reached — legendary."
       : nextStreakMilestone.remaining === 1
-        ? `1 day to ${nextStreakMilestone.milestone.label} · ${nextStreakMilestone.milestone.days}-day streak`
-        : `${nextStreakMilestone.remaining} days to ${nextStreakMilestone.milestone.label} · ${nextStreakMilestone.milestone.days}-day streak`;
+        ? `1 day to ${nextStreakMilestone.milestone.label}`
+        : `${nextStreakMilestone.remaining} days to ${nextStreakMilestone.milestone.label}`;
 
   // Hero CTA copy: resume language once the plan is underway, start language
   // on a fresh plan. The sublabel carries the context line (next game +

@@ -23,6 +23,8 @@ export interface ProgressBarProps {
   tone?: ThemeColor;
   /** Optional muted segment behind the fill (game-chrome rollback preview). */
   rollbackValue?: number;
+  /** Track colour for meters on a surface other than the page background. */
+  trackColor?: string;
   /** Track height; defaults to the standard meter thickness. */
   height?: number;
   /** Visible caption above the track. */
@@ -38,6 +40,7 @@ export function ProgressBar({
   value,
   tone = 'accent',
   rollbackValue,
+  trackColor,
   height = Spacing.two,
   label,
   valueLabel,
@@ -75,7 +78,7 @@ export function ProgressBar({
           </ThemedText>
         </View>
       ) : null}
-      <View style={[styles.track, { height, backgroundColor: theme.surfaceSunken }]}>
+      <View style={[styles.track, { height, backgroundColor: trackColor ?? theme.surfaceSunken }]}>
         {rollback !== null ? (
           <View
             testID={testID ? `${testID}-rollback` : undefined}

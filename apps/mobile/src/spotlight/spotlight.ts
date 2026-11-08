@@ -62,6 +62,10 @@ export function dailySpotlight(
 
 /** Inclusive local-day epoch window for completion checks. */
 export function localDayWindow(date: string): { fromMs: number; toMs: number } {
-  const start = Date.parse(`${date}T00:00:00`);
-  return { fromMs: start, toMs: start + 86_400_000 - 1 };
+  // Next local midnight, not start + 24h: DST days last 23 or 25 hours.
+  const [year, month, day] = date.split('-').map(Number);
+  return {
+    fromMs: new Date(year, month - 1, day).getTime(),
+    toMs: new Date(year, month - 1, day + 1).getTime() - 1,
+  };
 }

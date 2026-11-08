@@ -957,8 +957,8 @@ export class SessionRepository {
   /**
    * Sessions-per-day counts pushed down to SQLite (one row per active day —
    * the cheap input for activity calendars/frequency charts, replacing full
-   * row reads). `dayBoundary` picks the day-key convention: 'utc' matches the
-   * analytics calendar (`utcDateKey`); 'local' matches the streak engine's
+   * row reads). `dayBoundary` picks the day-key convention: 'utc' for raw UTC
+   * days; 'local' matches the analytics calendar and the streak engine's
    * local-calendar convention (see `getDistinctActivityDates`). Days sort
    * newest first.
    */
@@ -1161,7 +1161,7 @@ export interface SessionSummaryQuery extends SessionFilterQuery {
 export type SessionDayBoundary = "utc" | "local";
 
 export interface SessionDayCountQuery extends SessionFilterQuery {
-  /** Defaults to 'utc' (matches the analytics calendar convention). */
+  /** Defaults to 'utc'; pass 'local' for player-facing day counts. */
   dayBoundary?: SessionDayBoundary;
 }
 

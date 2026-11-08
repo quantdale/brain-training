@@ -107,6 +107,8 @@ export function SessionHeader({
               value={Math.min(progress.value / progress.total, 1)}
               height={8}
               tone="success"
+              // The sunken page token nearly matches the stage in dark mode.
+              trackColor={onStage ? theme.stageBorder : undefined}
               testID="session-progress"
               accessibilityLabel={`Round progress, ${progress.value} of ${progress.total}`}
             />

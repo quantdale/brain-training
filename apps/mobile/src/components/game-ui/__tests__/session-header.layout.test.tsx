@@ -90,3 +90,11 @@ describe('SessionHeader layout', () => {
     expect(zone.parent).toBe(infoZone?.parent);
   });
 });
+
+describe('SessionHeader progress track', () => {
+  it('uses a visible track on the dark stage in every theme', async () => {
+    await render(<SessionHeader onStage round="Round 1/6" progress={{ value: 1, total: 6 }} />);
+    expect(JSON.stringify(screen.toJSON())).toContain('"backgroundColor":"rgba(255, 255, 255, 0.28)"');
+  });
+});
+
