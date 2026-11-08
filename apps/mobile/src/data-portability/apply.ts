@@ -135,11 +135,71 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
+function nonNegativeCount(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+/**
+ * Merge the `settings.streaks` block. Claims and covered days are monotonic, so
+ * they are unioned: dropping a claim would let its one-shot XP be paid again.
+ * Item counts have no per-item history, so the larger count wins rather than
+ * losing an item whose debit the merged ledger keeps. Freeze usage belongs to
+ * a calendar month: the later month wins, and one month keeps the higher count.
+ */
+function mergeStreakSettings(
+  target: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { ...target, ...incoming };
+
+  for (const key of ["claimedMilestones", "coveredDates"]) {
+    if (target[key] !== undefined || incoming[key] !== undefined) {
+      merged[key] = [
+        ...new Set([...stringArray(target[key]), ...stringArray(incoming[key])]),
+      ];
+    }
+  }
+  if (merged.coveredDates !== undefined) {
+    merged.coveredDates = stringArray(merged.coveredDates).sort();
+  }
+
+  for (const key of ["freeze", "shield", "recovery"]) {
+    const counts = [nonNegativeCount(target[key]), nonNegativeCount(incoming[key])].filter(
+      (count): count is number => count !== undefined,
+    );
+    if (counts.length > 0) {
+      merged[key] = Math.max(...counts);
+    }
+  }
+
+  const deviceUsage = target.freezeUsed;
+  const backupUsage = incoming.freezeUsed;
+  if (isPlainObject(deviceUsage) && isPlainObject(backupUsage)) {
+    const devicePeriod = String(deviceUsage.period);
+    const backupPeriod = String(backupUsage.period);
+    if (devicePeriod === backupPeriod) {
+      merged.freezeUsed = {
+        ...backupUsage,
+        count: Math.max(
+          nonNegativeCount(deviceUsage.count) ?? 0,
+          nonNegativeCount(backupUsage.count) ?? 0,
+        ),
+      };
+    } else {
+      merged.freezeUsed = devicePeriod > backupPeriod ? deviceUsage : backupUsage;
+    }
+  }
+  return merged;
+}
+
 /**
  * Merge `incoming` (backup) profile settings over `target` (device) settings.
  *
- * Default rule is backup-wins per top-level key. `cosmetics` is the one
- * exception because ownership is monotonic: a merge must never DISOWN a
+ * Default rule is backup-wins per top-level key. `streaks` has its own rules
+ * (see `mergeStreakSettings`). `cosmetics` is also special because ownership
+ * is monotonic: a merge must never DISOWN a
  * cosmetic the device legitimately earned just because the backup's `owned`
  * list is older/narrower. So `owned` is unioned (device items first, then
  * backup-only additions), while `equipped` slots resolve per-slot with the
@@ -151,6 +211,9 @@ export function mergeProfileSettings(
   incoming: Record<string, unknown>,
 ): Record<string, unknown> {
   const merged: Record<string, unknown> = { ...target, ...incoming };
+  if (isPlainObject(target.streaks) && isPlainObject(incoming.streaks)) {
+    merged.streaks = mergeStreakSettings(target.streaks, incoming.streaks);
+  }
   if (target.cosmetics !== undefined || incoming.cosmetics !== undefined) {
     const t = isPlainObject(target.cosmetics) ? target.cosmetics : {};
     const i = isPlainObject(incoming.cosmetics) ? incoming.cosmetics : {};

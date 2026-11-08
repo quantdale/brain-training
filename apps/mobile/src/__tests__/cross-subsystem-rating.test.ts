@@ -81,7 +81,7 @@ describe('Cross-subsystem rating contract', () => {
   }
 
   describe('canonical lowercase difficulty values', () => {
-    it('easy: high expected performance limits rating gain', async () => {
+    it('easy: earns XP without raising the rating', async () => {
       const { result, ratings } = await runSession(
         { level: 'easy', challengeRating: 0.2 },
         0.9, // excellent performance
@@ -93,13 +93,12 @@ describe('Cross-subsystem rating contract', () => {
       );
       expect(result.completionOutcome?.xp).toBe(result.session.xp);
 
-      // Rating delta: easy expects 0.8, player got 0.9 → small gain
+      // Rating delta: manual Easy may not raise a rating even above baseline.
       const memoryDelta = result.completionOutcome?.deltas.find(
         (d) => d.domain === 'Memory',
       );
       expect(memoryDelta).toBeDefined();
-      expect(memoryDelta!.delta).toBeGreaterThan(0);
-      expect(memoryDelta!.delta).toBeLessThan(10); // limited by easy baseline
+      expect(memoryDelta!.delta).toBe(0);
 
       // Verify resulting rating
       const memoryRating = await ratings.getRating('Memory');
@@ -200,7 +199,7 @@ describe('Cross-subsystem rating contract', () => {
       expect(memoryDelta!.delta).toBeLessThan(0);
     });
 
-    it('excellent easy play still produces limited rating gain', async () => {
+    it('perfect easy play earns no rating gain', async () => {
       const { result } = await runSession(
         { level: 'easy', challengeRating: 0.2 },
         1.0,
@@ -210,9 +209,9 @@ describe('Cross-subsystem rating contract', () => {
         (d) => d.domain === 'Memory',
       );
       expect(memoryDelta).toBeDefined();
-      // Even perfect easy play produces limited gain due to high expected baseline
-      expect(memoryDelta!.delta).toBeGreaterThan(0);
-      expect(memoryDelta!.delta).toBeLessThan(10);
+      // Constitution section 9: per-session gains had no overall ceiling, so
+      // repeated perfect Easy runs inflated the rating without limit.
+      expect(memoryDelta!.delta).toBe(0);
     });
   });
 

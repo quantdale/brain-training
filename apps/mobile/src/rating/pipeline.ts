@@ -143,7 +143,8 @@ export function computeXp(normalized: number, difficultyLevel: string): number {
 
 /**
  * Rating delta for one domain: `k * (normalized - expected) * weight`,
- * rounded and capped at ±MAX_RATING_DELTA_PER_SESSION.
+ * rounded and capped at ±MAX_RATING_DELTA_PER_SESSION. Manual Easy never
+ * produces a positive delta.
  */
 export function computeRatingDelta(
  normalized: number,
@@ -159,10 +160,10 @@ export function computeRatingDelta(
  }
  const raw = RATING_K * (clamp01(normalized) - expected) * weight;
  const rounded = Math.round(raw);
- return Math.max(
-  -MAX_RATING_DELTA_PER_SESSION,
-  Math.min(MAX_RATING_DELTA_PER_SESSION, rounded),
- );
+ // Constitution §9: manual Easy may earn XP but must not inflate a rating. A
+ // high baseline alone still let perfect Easy runs add points without limit.
+ const ceiling = difficultyLevel === "easy" ? 0 : MAX_RATING_DELTA_PER_SESSION;
+ return Math.max(-MAX_RATING_DELTA_PER_SESSION, Math.min(ceiling, rounded));
 }
 
 /** Currency coins for a session's XP (floor at the configured rate). */

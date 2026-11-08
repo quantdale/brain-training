@@ -66,7 +66,19 @@ describe('computeRatingDelta', () => {
     const easy = computeRatingDelta(1, 'easy');
     const expert = computeRatingDelta(1, 'expert');
     expect(expert).toBeGreaterThan(easy);
-    expect(easy).toBe(Math.round(24 * (1 - DIFFICULTY_EXPECTED_PERFORMANCE.easy)));
+    expect(easy).toBe(0);
+    expect(DIFFICULTY_EXPECTED_PERFORMANCE.easy).toBeGreaterThan(DIFFICULTY_EXPECTED_PERFORMANCE.normal);
+  });
+
+  it('manual Easy never raises a rating but can still lower it (constitution section 9)', () => {
+    expect(computeRatingDelta(1, 'easy')).toBe(0);
+    expect(computeRatingDelta(1, 'easy', 1, 0.2)).toBe(0);
+    expect(computeRatingDelta(1, 'easy', 0.5)).toBe(0);
+    expect(computeRatingDelta(0, 'easy')).toBeLessThan(0);
+  });
+
+  it('Adaptive at a low challenge keeps its earned movement', () => {
+    expect(computeRatingDelta(1, 'adaptive', 1, 0.2)).toBeGreaterThan(0);
   });
 
   it('caps movement at MAX_RATING_DELTA_PER_SESSION per session', () => {
