@@ -25,7 +25,7 @@ import {
   mathMissingOperatorParamsFromProfile,
   resolveMathMissingOperatorDifficulty,
 } from './difficulty';
-import { generateEquation } from './generator';
+import { equationKey, generateEquation } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { ownsContinuation, INITIAL_STATS, createInitialMathMissingOperatorState } from './types';
 import type { MathMissingOperatorAction, MathMissingOperatorGameState } from './types';
@@ -71,6 +71,7 @@ export function mathMissingOperatorGameReducer(
         pausedDurationMs: 0,
         roundIndex: 0,
         equation,
+        usedEquationKeys: [equationKey(equation)],
         roundStartedAtMs: action.roundStartedAtMs,
         roundElapsedMs: 0,
         roundOutcome: null,
@@ -193,12 +194,14 @@ export function mathMissingOperatorGameReducer(
         params,
         level: state.difficulty,
         rating: state.adaptiveRating,
+        avoid: state.usedEquationKeys,
       });
       return {
         ...state,
         phase: 'answer',
         roundIndex: nextIndex,
         equation,
+        usedEquationKeys: [...state.usedEquationKeys, equationKey(equation)],
         roundStartedAtMs: action.roundStartedAtMs,
         roundElapsedMs: 0,
         roundOutcome: null,

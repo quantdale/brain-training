@@ -317,7 +317,7 @@ export const registry: readonly GameDefinition[] = [
     description: "Find the operator that makes the equation true — the numbers grow and the clock shrinks.",
     sdkVersion: "0.1.0",
     gameVersion: "1.3.0",
-    generatorVersion: "1.1.0",
+    generatorVersion: "1.2.0",
     contentVersion: null,
     hasTutorial: true,
   },

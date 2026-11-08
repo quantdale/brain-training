@@ -7,7 +7,7 @@ import {
   budgetForRound,
   mathMissingOperatorParamsForLevel,
 } from '../difficulty';
-import { generateEquation } from '../generator';
+import { equationKey, generateEquation } from '../generator';
 import { mathMissingOperatorGameReducer } from '../reducer';
 import { continuationStamp, createInitialMathMissingOperatorState } from '../types';
 import type { MathMissingOperatorAction, MathMissingOperatorGameState } from '../types';
@@ -34,16 +34,38 @@ function startedState(level: DifficultyLevel = LEVEL, seed = SEED): MathMissingO
 }
 
 function expectedEquation(roundIndex: number, rating = 0.5) {
-  return generateEquation({
-    rng: createRng(SEED),
-    roundIndex,
-    params: PARAMS,
-    level: LEVEL,
-    rating,
-  });
+  // Replays earlier rounds because each round avoids the session's history.
+  const avoid: string[] = [];
+  let equation = generateEquation({ rng: createRng(SEED), roundIndex: 0, params: PARAMS, level: LEVEL, rating, avoid });
+  for (let round = 1; round <= roundIndex; round += 1) {
+    avoid.push(equationKey(equation));
+    equation = generateEquation({ rng: createRng(SEED), roundIndex: round, params: PARAMS, level: LEVEL, rating, avoid });
+  }
+  return equation;
 }
 
 describe('mathMissingOperatorGameReducer', () => {
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'never repeats an equation within a %s session (constitution section 10)',
+    (level) => {
+      for (let seed = 1; seed <= 60; seed += 1) {
+        let state = startedState(level, `no-repeat-${seed}`);
+        const seen: string[] = [];
+        while (state.phase === 'answer' && state.equation !== null) {
+          const { a, b, c } = state.equation;
+          seen.push(`${a},${b},${c}`);
+          state = mathMissingOperatorGameReducer(state, { type: 'round-timeout' });
+          state = mathMissingOperatorGameReducer(state, {
+            stamp: continuationStamp(state),
+            type: 'next-round',
+            roundStartedAtMs: 200,
+          });
+        }
+        expect(new Set(seen).size).toBe(seen.length);
+      }
+    },
+  );
+
   it('selects difficulty only in the intro phase', () => {
     const state = initialState();
     expect(state.difficulty).toBe('normal');
