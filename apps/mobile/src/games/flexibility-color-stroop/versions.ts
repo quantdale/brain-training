@@ -9,9 +9,10 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
+// 1.5: normalization speed term is relative to the level's stimulus window.
 // 1.4: only in-window, current-trial input scores; deadlines and reaction
 // times use the same active clock. Historical session metadata is preserved.
-export const SCORING_VERSION = '1.4.0';
+export const SCORING_VERSION = '1.5.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

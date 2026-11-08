@@ -103,7 +103,7 @@ export const registry: readonly GameDefinition[] = [
   ],
     description: "Identify the ink color of color words, tracking rule flips between 'ink' and 'word' modes.",
     sdkVersion: "0.1.0",
-    gameVersion: "1.2.0",
+    gameVersion: "1.3.0",
     generatorVersion: "1.1.0",
     contentVersion: null,
     hasTutorial: true,

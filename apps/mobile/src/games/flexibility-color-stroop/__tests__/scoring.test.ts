@@ -164,6 +164,50 @@ describe('speedBonus', () => {
   });
 });
 
+describe('speedBonus is relative to the level stimulus window (audit: Expert floor)', () => {
+  it('a response at the window edge earns 0 speed on every difficulty', () => {
+    for (const params of Object.values(COLOR_STROOP_DIFFICULTY_PARAMS)) {
+      expect(speedBonus(params.stimulusMs, params.stimulusMs)).toBe(0);
+      // 25% of the window is the "full speed" anchor.
+      expect(speedBonus(params.stimulusMs * 0.25, params.stimulusMs)).toBe(1);
+    }
+  });
+
+  it('keeps the legacy 2000 ms mapping when no window is given', () => {
+    expect(speedBonus(500)).toBe(1);
+    expect(speedBonus(2000)).toBe(0);
+  });
+
+  it('does not hand the Expert 1000 ms window a free 0.67 floor', () => {
+    const expert = COLOR_STROOP_DIFFICULTY_PARAMS.expert;
+    const slowButCorrect = normalizeColorStroopResult(
+      rawResult({
+        trialsPlayed: 20,
+        correctTrials: 20,
+        postFlipCorrect: 0,
+        totalFlips: 0,
+        avgResponseTimeMs: expert.stimulusMs, // answers on the last frame
+        generatorInfo: { stimulusMs: expert.stimulusMs },
+      }),
+      { gameId: 'flexibility-color-stroop', difficulty: 'expert', durationMs: 0 },
+    ).value;
+    const fast = normalizeColorStroopResult(
+      rawResult({
+        trialsPlayed: 20,
+        correctTrials: 20,
+        postFlipCorrect: 0,
+        totalFlips: 0,
+        avgResponseTimeMs: expert.stimulusMs * 0.25,
+        generatorInfo: { stimulusMs: expert.stimulusMs },
+      }),
+      { gameId: 'flexibility-color-stroop', difficulty: 'expert', durationMs: 0 },
+    ).value;
+    // Neutral flips (0.5): slow = 1 * (0.4 + 0 + 0.15) = 0.55, fast = 0.85.
+    expect(slowButCorrect).toBeCloseTo(0.55, 5);
+    expect(fast).toBeCloseTo(0.85, 5);
+  });
+});
+
 describe('flipBonusFactor', () => {
   it('returns higher values for more post-flip correct answers', () => {
     expect(flipBonusFactor(5, 5)).toBeGreaterThan(flipBonusFactor(2, 5));
