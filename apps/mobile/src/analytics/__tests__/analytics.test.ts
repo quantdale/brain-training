@@ -247,14 +247,14 @@ describe('explainComposite (canonical calculation, no second score)', () => {
 
   it('reuses computeComposite and breaks down weights transparently', () => {
     const exp = explainComposite(ratings, known, T0, 30);
-    // 1020*1 + 980*0.5 + 1000*1 = 2510 over 2.5 weights -> 1004.
-    expect(exp.composite).toBe(1004);
+    // (1020 + 980 + 1000) / 3: staleness is reported but never discounted (§15).
+    expect(exp.composite).toBe(1000);
     expect(exp.seenDomains).toBe(2);
     expect(exp.unseenDomains).toBe(1);
     expect(exp.staleDomains).toBe(1);
     expect(exp.domains.map((d) => [d.domain, d.status, d.weight])).toEqual([
       ['Memory', 'fresh', 1],
-      ['Speed', 'stale', 0.5],
+      ['Speed', 'stale', 1],
       ['Attention', 'unseen', 1],
     ]);
   });

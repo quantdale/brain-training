@@ -339,12 +339,11 @@ describe('composite invariants', () => {
     expect(withUnseen.composite).toBeGreaterThan(INITIAL_RATING);
   });
 
-  it('stale weighting shrinks a stale outlier influence without flipping sign of effect', () => {
-    // A stale 1600 must move the composite less than a fresh 1600.
+  it('inactivity marks a domain stale without moving the composite (§15)', () => {
     const fresh = computeComposite([rating('Memory', 1600)], DOMAINS, NOW);
     const stale = computeComposite([rating('Memory', 1600, 60)], DOMAINS, NOW);
     expect(stale.staleDomainCount).toBe(1);
-    expect(stale.composite).toBeLessThan(fresh.composite);
+    expect(stale.composite).toBe(fresh.composite);
   });
 
   it('a corrupt (non-finite) rating row cannot poison the average', () => {
@@ -354,7 +353,7 @@ describe('composite invariants', () => {
     expect(result.composite).toBe(INITIAL_RATING);
   });
 
-  it('a corrupt timestamp counts as stale (conservative weight)', () => {
+  it('a corrupt timestamp counts as stale', () => {
     const corruptTime = {
       ...rating('Memory', 1600),
       updatedAt: NaN,

@@ -46,7 +46,7 @@ export type ProgressMetricKey =
 
 const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   composite:
-    'Canonical average across all domains. Untrained domains count at the starting rating; stale ones count half.',
+    'Canonical average across all domains. Untrained domains count at the starting rating; inactivity never lowers it.',
   'domain-rating':
     'Current domain rating: the stored value after the latest session that trained this domain.',
   'domain-movement':
