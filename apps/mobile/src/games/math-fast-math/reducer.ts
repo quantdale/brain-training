@@ -26,7 +26,7 @@ import {
   mathParamsFromProfile,
   resolveMathDifficulty,
 } from './difficulty';
-import { generateProblem } from './generator';
+import { generateProblem, problemSignature } from './generator';
 import { perfectSessionScore, problemScore } from './scoring';
 import { ownsContinuation, INITIAL_STATS, createInitialMathState } from './types';
 import type { MathAction, MathGameState, MathStats } from './types';
@@ -92,6 +92,7 @@ export function mathGameReducer(
         pausedDurationMs: 0,
         problemIndex: 0,
         problem,
+        usedProblemSignatures: [problemSignature(problem)],
         prevProblem: null,
         input: '',
         enteredAnswer: '',
@@ -268,12 +269,14 @@ export function mathGameReducer(
         problemIndex: nextIndex,
         params,
         prevProblem: state.problem,
+        avoid: state.usedProblemSignatures,
       });
       return {
         ...state,
         phase: 'problem',
         problemIndex: nextIndex,
         problem,
+        usedProblemSignatures: [...state.usedProblemSignatures, problemSignature(problem)],
         prevProblem: state.problem,
         input: '',
         enteredAnswer: '',

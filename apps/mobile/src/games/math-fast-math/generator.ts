@@ -137,11 +137,20 @@ export interface GenerateProblemInput {
   readonly params: MathDifficultyParams;
   /** Previous problem, or null for the first problem of a session. */
   readonly prevProblem: MathProblem | null;
+  /**
+   * `problemSignature`s already served this session (constitution section 10).
+   * Candidates matching one are re-drawn; only an exhausted space falls back
+   * to a repeat.
+   */
+  readonly avoid?: readonly string[];
 }
 
 /** Generate one validated problem (see module docs for the invariants). */
 export function generateProblem(input: GenerateProblemInput): MathProblem {
   const { rng, problemIndex, params, prevProblem } = input;
+  const served = new Set(input.avoid);
+  const isRepeat = (problem: MathProblem): boolean =>
+    isNearDuplicate(problem, prevProblem) || served.has(problemSignature(problem));
 
   // ---- Two-step tier (expert / high adaptive steps): gated on its own fork
   // so enabling it never perturbs the single-step draw streams. A rejected or
@@ -150,7 +159,7 @@ export function generateProblem(input: GenerateProblemInput): MathProblem {
   if (twoStepChance > 0) {
     const gate = rng.fork(`twostep-gate:problem:${problemIndex}`);
     if (gate.next() < twoStepChance) {
-      const twoStep = drawTwoStepProblem(rng, problemIndex, params, prevProblem);
+      const twoStep = drawTwoStepProblem(rng, problemIndex, params, isRepeat);
       if (twoStep !== null) {
         return twoStep;
       }
@@ -175,7 +184,7 @@ export function generateProblem(input: GenerateProblemInput): MathProblem {
         right: template.b,
         answer: template.result,
       };
-      if (!isNearDuplicate(problem, prevProblem)) {
+      if (!isRepeat(problem)) {
         return problem;
       }
     }
@@ -185,7 +194,7 @@ export function generateProblem(input: GenerateProblemInput): MathProblem {
   let last: MathProblem | null = null;
   for (let attempt = 0; attempt < MAX_PROBLEM_ATTEMPTS; attempt += 1) {
     last = drawProblem(rng.fork(`problem:${problemIndex}:attempt:${attempt}`), params);
-    if (!isNearDuplicate(last, prevProblem)) {
+    if (!isRepeat(last)) {
       return last;
     }
   }
@@ -203,9 +212,12 @@ export function generateSessionProblems(
 ): MathProblem[] {
   let prev: MathProblem | null = null;
   const problems: MathProblem[] = [];
+  // Mirrors the reducer: every served signature is avoided for the rest of the session.
+  const avoid: string[] = [];
   for (let index = 0; index < rounds; index += 1) {
-    const problem = generateProblem({ rng, problemIndex: index, params, prevProblem: prev });
+    const problem = generateProblem({ rng, problemIndex: index, params, prevProblem: prev, avoid });
     problems.push(problem);
+    avoid.push(problemSignature(problem));
     prev = problem;
   }
   return problems;
@@ -246,13 +258,13 @@ function drawProblem(rng: Rng, params: MathDifficultyParams): MathProblem {
  * Draw one two-step problem: curated templates first, then validated
  * procedural candidates. Returns null when no candidate passes (the caller
  * falls through to single-step generation) — every return path is
- * deterministic for `(seed, params, prevProblem)`.
+ * deterministic for `(seed, params, prevProblem, avoid)`.
  */
 function drawTwoStepProblem(
   rng: Rng,
   problemIndex: number,
   params: MathDifficultyParams,
-  prevProblem: MathProblem | null,
+  isRepeat: (problem: MathProblem) => boolean,
 ): MathProblem | null {
   const compatibleTemplates = TWO_STEP_TEMPLATES.filter((t) => {
     const op = t.operator as Operator;
@@ -281,7 +293,7 @@ function drawTwoStepProblem(
         secondOperand: template.c,
         answer: template.result,
       };
-      if (!isNearDuplicate(problem, prevProblem)) {
+      if (!isRepeat(problem)) {
         return problem;
       }
     }
@@ -292,7 +304,7 @@ function drawTwoStepProblem(
       rng.fork(`twostep:problem:${problemIndex}:attempt:${attempt}`),
       params,
     );
-    if (candidate !== null && !isNearDuplicate(candidate, prevProblem)) {
+    if (candidate !== null && !isRepeat(candidate)) {
       return candidate;
     }
   }

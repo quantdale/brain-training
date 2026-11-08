@@ -201,6 +201,8 @@ export interface MathGameState {
   problemIndex: number;
   /** The current problem (generated deterministically from the seed). */
   problem: MathProblem | null;
+  /** `problemSignature` of every problem served this session (no-repeat history). */
+  usedProblemSignatures: readonly string[];
   /** Previous problem (near-duplicate avoidance + diagnostics). */
   prevProblem: MathProblem | null;
   /** Digits entered by the player for the current problem. */
@@ -249,6 +251,7 @@ export function createInitialMathState(): MathGameState {
     pausedDurationMs: 0,
     problemIndex: 0,
     problem: null,
+    usedProblemSignatures: [],
     prevProblem: null,
     input: '',
     enteredAnswer: '',

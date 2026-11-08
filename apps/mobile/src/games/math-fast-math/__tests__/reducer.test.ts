@@ -6,7 +6,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { mathGameReducer } from '../reducer';
 import { continuationStamp, createInitialMathState, OPERATORS } from '../types';
 import type { MathGameState } from '../types';
-import { generateProblem, generateSessionProblems } from '../generator';
+import { generateProblem, generateSessionProblems, problemSignature } from '../generator';
 import { perfectSessionScore, problemScore } from '../scoring';
 import { ADAPTIVE_PARAMS, MATH_DIFFICULTY_PARAMS, adaptiveParamsForStep } from '../difficulty';
 
@@ -34,6 +34,34 @@ function answerCorrectly(
   }
   return mathGameReducer(current, { type: 'submit-answer', atActiveMs });
 }
+
+describe('session problems never repeat (constitution section 10)', () => {
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'serves a new problem each round in a %s session',
+    (level) => {
+      for (let seed = 1; seed <= 60; seed += 1) {
+        const outcome = createRng(`no-repeat-outcome-${seed}`);
+        let state = startSession(`no-repeat-${seed}`, level);
+        const seen: string[] = [];
+        while (state.phase === 'problem' && state.problem !== null) {
+          seen.push(problemSignature(state.problem));
+          const answer = state.problem.answer + (outcome.next() < 0.7 ? 0 : 1);
+          for (const digit of String(answer)) {
+            state = mathGameReducer(state, { type: 'digit', digit: Number(digit) });
+          }
+          state = mathGameReducer(state, { type: 'submit-answer', atActiveMs: 500 });
+          state = mathGameReducer(state, {
+            type: 'next-problem',
+            startedAtActiveMs: 600,
+            stamp: continuationStamp(state),
+          });
+        }
+        expect(state.phase).toBe('results');
+        expect(new Set(seen).size).toBe(seen.length);
+      }
+    },
+  );
+});
 
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
