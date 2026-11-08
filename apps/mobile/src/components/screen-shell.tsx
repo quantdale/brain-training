@@ -72,7 +72,10 @@ export function ScreenShell({ children }: { children: ReactNode }) {
         // interactive controls must activate them on the first tap instead of
         // only dismissing the keyboard (search / import / form screens).
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag">
+        keyboardDismissMode="on-drag"
+        // iOS does not resize the window for the keyboard (Android's adjustResize
+        // does), so focused fields low on the page need the scroll inset.
+        automaticallyAdjustKeyboardInsets>
         <View style={[styles.inner, { maxWidth: contentWidth, paddingHorizontal: gutter, paddingTop: topPadding }]}>
           {children}
         </View>

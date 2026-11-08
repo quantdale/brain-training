@@ -11,8 +11,9 @@
  * interception, dev-only QA panel placement, tutorial completion, and
  * every `testId(gameId, …)` the automation harness depends on.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
+import { NavigationContext } from 'expo-router/react-navigation';
 
 import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel, GameCategory } from '@/sdk';
@@ -196,6 +197,13 @@ export function GameHost({
     });
     return () => subscription.remove();
   }, [interceptBack]);
+
+  // iOS has no hardware back: its edge swipe would pop a live session past the
+  // guard above. Read from context because bare harnesses have no navigator.
+  const navigation = useContext(NavigationContext);
+  useLayoutEffect(() => {
+    navigation?.setOptions({ gestureEnabled: !interceptBack });
+  }, [navigation, interceptBack]);
 
   const definition = getGameDefinition(gameId);
   const tone = domainTone(definition?.primaryCategory);

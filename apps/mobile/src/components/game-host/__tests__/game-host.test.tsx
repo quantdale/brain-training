@@ -14,6 +14,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { BackHandler, StyleSheet, View } from 'react-native';
+import { NavigationContext } from 'expo-router/react-navigation';
 
 import { testId } from '@/sdk';
 import { Colors } from '@/theme/tokens';
@@ -70,6 +71,42 @@ function collectTestIds(node: unknown, ids: string[] = []): string[] {
   collectTestIds(candidate.children, ids);
   return ids;
 }
+
+describe('GameHost swipe-back guard', () => {
+  function hostInNavigator(setOptions: jest.Mock, overrides: Partial<GameHostProps>) {
+    return (
+      <NavigationContext.Provider value={{ setOptions } as never}>
+        <GameHost {...hostProps(overrides)} />
+      </NavigationContext.Provider>
+    );
+  }
+
+  it('disables the iOS swipe gesture during a session, including while paused', async () => {
+    const setOptions = jest.fn();
+    const utils = await render(hostInNavigator(setOptions, { interceptBack: true }));
+    expect(setOptions).toHaveBeenLastCalledWith({ gestureEnabled: false });
+
+    await utils.rerender(hostInNavigator(setOptions, { interceptBack: true, paused: true }));
+    expect(setOptions).toHaveBeenLastCalledWith({ gestureEnabled: false });
+  });
+
+  it('leaves the gesture available on the intro and restores it after the session', async () => {
+    const setOptions = jest.fn();
+    const utils = await render(hostInNavigator(setOptions, { view: 'intro', interceptBack: false }));
+    expect(setOptions).toHaveBeenLastCalledWith({ gestureEnabled: true });
+
+    await utils.rerender(hostInNavigator(setOptions, { interceptBack: true }));
+    expect(setOptions).toHaveBeenLastCalledWith({ gestureEnabled: false });
+
+    await utils.rerender(hostInNavigator(setOptions, { view: 'results', interceptBack: false }));
+    expect(setOptions).toHaveBeenLastCalledWith({ gestureEnabled: true });
+  });
+
+  it('renders without a navigator (bare harnesses)', async () => {
+    await render(<GameHost {...hostProps({ interceptBack: true })} />);
+    expect(screen.getByTestId(`${GAME}-body`)).toBeTruthy();
+  });
+});
 
 describe('GameHost hardware-back guard', () => {
   let back: ReturnType<typeof captureBackHandler>;

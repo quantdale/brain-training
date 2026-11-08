@@ -125,6 +125,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 }
               >
                 <RCTScrollView
+                  automaticallyAdjustKeyboardInsets={true}
                   contentContainerStyle={
                     [
                       {
@@ -2762,6 +2763,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
       }
     >
       <RCTScrollView
+        automaticallyAdjustKeyboardInsets={true}
         contentContainerStyle={
           [
             {
@@ -3187,6 +3189,7 @@ exports[`visual baselines (canary set) Home — db-unavailable recovery snapshot
       }
     >
       <RCTScrollView
+        automaticallyAdjustKeyboardInsets={true}
         contentContainerStyle={
           [
             {
@@ -3981,6 +3984,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
       }
     >
       <RCTScrollView
+        automaticallyAdjustKeyboardInsets={true}
         contentContainerStyle={
           [
             {
@@ -4262,6 +4266,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
       }
     >
       <RCTScrollView
+        automaticallyAdjustKeyboardInsets={true}
         contentContainerStyle={
           [
             {
