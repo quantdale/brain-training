@@ -97,4 +97,3 @@ describe('SessionHeader progress track', () => {
     expect(JSON.stringify(screen.toJSON())).toContain('"backgroundColor":"rgba(255, 255, 255, 0.28)"');
   });
 });
-

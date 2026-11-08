@@ -443,6 +443,7 @@ interface SummarySessionRow {
   xp: number;
   duration_ms: number;
   completed_at: number;
+  persisted_order: number;
   /** JSON text of `$.workoutProvenance`; absent on JSON1-less engines. */
   workout_provenance?: unknown;
 }
@@ -1205,16 +1206,22 @@ export class WorkoutRepository {
       return [];
     }
     const placeholders = ids.map(() => "?").join(", ");
-    const columns = "id, game_id, normalized_result, xp, duration_ms, completed_at";
+    const columns =
+      "id, game_id, normalized_result, xp, duration_ms, completed_at, rowid AS persisted_order";
     const fromWhere = `FROM game_sessions
        WHERE completed_at >= ? AND game_id IN (${placeholders})
        ORDER BY completed_at ASC`;
     const params = [minCreatedAt, ...ids];
     try {
+      // A session owned by a workout leg belongs to it even when a clock change
+      // stamped it before the workout was created.
       return await this.adapter.all<SummarySessionRow>(
         `SELECT ${columns},
                 json_extract(raw_result_json, '$.workoutProvenance') AS workout_provenance
-         ${fromWhere}`,
+         FROM game_sessions
+         WHERE (completed_at >= ? OR json_extract(raw_result_json, '$.workoutProvenance') IS NOT NULL)
+           AND game_id IN (${placeholders})
+         ORDER BY completed_at ASC`,
         params,
       );
     } catch {
@@ -1233,6 +1240,7 @@ export class WorkoutRepository {
       xp: row.xp,
       durationMs: row.duration_ms,
       completedAt: row.completed_at,
+      persistedOrder: row.persisted_order,
       ...(workoutProvenance ? { workoutProvenance } : {}),
     };
   }

@@ -796,3 +796,35 @@ describe('completion summaries against REAL persisted sessions', () => {
     expect(summary?.metadata).toBeNull();
   });
 });
+
+describe('workout summaries under a wall-clock rollback', () => {
+  const KEY = '2026-08-21';
+  const leg = { instanceKey: KEY, legIndex: 0, gameId: 'a' };
+  let adapter: SQLiteAdapter;
+  let workouts: ReturnType<typeof makeWorkouts>;
+
+  beforeEach(async () => {
+    adapter = await createMigratedDb();
+    workouts = makeWorkouts(adapter);
+    clock.now = 10_000;
+    await workouts.getOrCreate(KEY, { gameIds: ['a', 'b'] });
+    await workouts.advance(KEY);
+  });
+
+  it('includes an owned session completed before the workout was created', async () => {
+    await persistSession(adapter, { id: 's-early', gameId: 'a', completedAt: 5_000, xp: 21, rawResult: { workoutProvenance: leg } });
+
+    const summary = await workouts.getWorkoutSummary(KEY);
+
+    expect(summary?.outcomes[0].session?.xp).toBe(21);
+  });
+
+  it('keeps the first persisted session when a replay has an earlier clock', async () => {
+    await persistSession(adapter, { id: 's-settled', gameId: 'a', completedAt: 20_000, xp: 7, rawResult: { workoutProvenance: leg } });
+    await persistSession(adapter, { id: 's-replay', gameId: 'a', completedAt: 15_000, xp: 99, rawResult: { workoutProvenance: leg } });
+
+    const summary = await workouts.getWorkoutSummary(KEY);
+
+    expect(summary?.outcomes[0].session?.xp).toBe(7);
+  });
+});

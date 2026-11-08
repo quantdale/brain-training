@@ -49,6 +49,15 @@ export interface WorkoutSessionRef {
   completedAt: number;
   /** Exact workout leg that launched this session, when known. */
   workoutProvenance?: WorkoutSessionProvenance;
+  /** Storage order; unlike `completedAt`, a clock change cannot reorder it. */
+  persistedOrder?: number;
+}
+
+/** True when `a` was recorded before `b`, by storage order when both have one. */
+function recordedBefore(a: WorkoutSessionRef, b: WorkoutSessionRef): boolean {
+  return a.persistedOrder !== undefined && b.persistedOrder !== undefined
+    ? a.persistedOrder < b.persistedOrder
+    : a.completedAt < b.completedAt;
 }
 
 /** Per-position outcome inside one workout. */
@@ -165,7 +174,7 @@ export function buildWorkoutSummary(
         instance.gameIds[position] === session.gameId
       ) {
         const current = owned.get(position);
-        if (!current || session.completedAt < current.completedAt) {
+        if (!current || recordedBefore(session, current)) {
           owned.set(position, session);
         }
       }
