@@ -32,7 +32,7 @@ import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
   GameHost,
@@ -458,6 +458,20 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
                 testID={testId(GAME_ID, 'answer-status')}>
                 Pick the missing operator
               </ThemedText>
+              {/* Display only: the same budget the round timeout above uses,
+              expressed as a monotonic deadline (segment anchor + budget −
+              banked time). Unmounted while paused so resume remounts it with
+              the exact remaining fraction. */}
+              {!state.paused && roundBudget !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}`}
+                  deadlineMs={state.roundStartedAtMs + roundBudget - state.roundElapsedMs}
+                  windowMs={roundBudget}
+                  clock={clock}
+                  label="Time left"
+                  testID={testId(GAME_ID, 'countdown')}
+                />
+              ) : null}
               <EquationDisplay equation={state.equation} />
               <OperatorRow operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
             </>

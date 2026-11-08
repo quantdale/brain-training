@@ -34,7 +34,7 @@ import type {
 import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
 import { AnimatedNumber, useSafeBack } from "@/components/ui";
-import { GameButton, StatRow } from "@/components/game-ui";
+import { Countdown, GameButton, StatRow } from "@/components/game-ui";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -408,6 +408,18 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
               <ThemedText type="caption" themeColor="textSecondary">
                 Place each item in the only valid order.
               </ThemedText>
+              {/* Display only: the reducer's monotonic deadline (null while
+              paused, so resume remounts the bar at the true fraction). */}
+              {!state.paused && state.roundDeadlineMs !== null && params !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}`}
+                  deadlineMs={state.roundDeadlineMs}
+                  windowMs={params.roundTimeMs}
+                  clock={clock}
+                  label="Time left"
+                  testID={testId(GAME_ID, "countdown")}
+                />
+              ) : null}
               <View style={styles.placedRow}>
                 {state.placedItems.map((item, i) => (
                   <ThemedText
