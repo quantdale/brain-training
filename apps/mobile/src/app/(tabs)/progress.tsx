@@ -1199,7 +1199,7 @@ export function CompositeCard({
         </ThemedText> : null}
         <ThemedText type="caption" themeColor="textSecondary">
           Weighted average of {total} domain ratings. Untrained domains start at {composite.initialRating}.
-          {composite.staleDomains > 0 ? ` ${composite.staleDomains} stale domain${composite.staleDomains === 1 ? '' : 's'} count at half weight; ratings do not decay.` : ''}
+          {composite.staleDomains > 0 ? ` ${composite.staleDomains} stale domain${composite.staleDomains === 1 ? '' : 's'} need fresh play; ratings do not decay.` : ''}
         </ThemedText>
       </View>
     </Card>

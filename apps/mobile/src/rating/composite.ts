@@ -3,17 +3,18 @@
  *
  * Computes a transparent overall score from domain ratings with documented
  * handling of unseen/stale domains. The composite is:
- * - Weighted average of all domain ratings
+ * - Average of all domain ratings
  * - Unseen domains (never played) are treated as at INITIAL_RATING (1000)
- * - Stale domains (not played recently) are weighted less (0.5 vs 1.0)
+ * - Stale domains (not played recently) are counted in `staleDomainCount` but
+ *   keep full weight: inactivity must not move the score (constitution §15,
+ *   "should not directly decay ratings; instead reduce confidence/mark stale")
  *
  * This provides a single number that represents overall cognitive performance
  * across all domains, separate from engagement level/XP.
  *
  * Robustness: a corrupt row (non-finite rating or timestamp) must not poison
  * the whole average — a non-finite rating contributes INITIAL_RATING like an
- * unseen domain, and a non-finite timestamp is treated as stale (the more
- * conservative weight).
+ * unseen domain, and a non-finite timestamp is reported as stale.
  */
 
 import { INITIAL_RATING } from '@/db/rating';
@@ -32,14 +33,11 @@ export interface CompositeResult {
   composite: number;
   /** Number of domains contributing to the composite */
   domainCount: number;
-  /** Number of stale domains (weighted less) */
+  /** Number of stale domains (reported only; they keep full weight) */
   staleDomainCount: number;
   /** List of domains included in the composite */
   domains: string[];
 }
-
-/** Staleness weight applied to a stale (or corrupt-timestamp) domain. */
-const STALE_WEIGHT = 0.5;
 
 /**
  * Compute overall cognitive/performance composite from domain ratings.
@@ -79,16 +77,14 @@ export function computeComposite(
 
     if (rating && Number.isFinite(rating.rating)) {
       // Domain has been played
-      // A non-finite updatedAt cannot be compared meaningfully; treat it as
-      // stale so corrupt timestamps get the conservative weight.
+      // A non-finite updatedAt cannot be compared meaningfully; report it as
+      // stale rather than assuming the domain is current.
       const isStale =
         !Number.isFinite(rating.updatedAt) ||
         nowMs - rating.updatedAt > staleThresholdMs;
 
-      // Weight stale domains less (0.5 weight)
-      const weight = isStale ? STALE_WEIGHT : 1;
-      totalRating += rating.rating * weight;
-      domainCount += weight;
+      totalRating += rating.rating;
+      domainCount += 1;
 
       if (isStale) {
         staleDomainCount++;
@@ -108,14 +104,8 @@ export function computeComposite(
       const isStale =
         !Number.isFinite(rating.updatedAt) ||
         nowMs - rating.updatedAt > staleThresholdMs;
-      const weight = isStale ? STALE_WEIGHT : 1;
-      if (Number.isFinite(rating.rating)) {
-        totalRating += rating.rating * weight;
-        domainCount += weight;
-      } else {
-        totalRating += INITIAL_RATING;
-        domainCount += 1;
-      }
+      totalRating += Number.isFinite(rating.rating) ? rating.rating : INITIAL_RATING;
+      domainCount += 1;
 
       if (isStale) {
         staleDomainCount++;
@@ -129,7 +119,7 @@ export function computeComposite(
 
   return {
     composite,
-    domainCount: Math.round(domainCount),
+    domainCount,
     staleDomainCount,
     domains,
   };

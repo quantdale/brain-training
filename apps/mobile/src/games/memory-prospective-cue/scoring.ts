@@ -20,14 +20,20 @@
  * points but do not fail the round — the skill under test is remembering to
  * act, not raw reaction speed.
  *
- * Normalization rule (documented, deterministic):
+ * Normalization rule (documented, deterministic; scoring 1.2.0):
  *
  *   signalAccuracy = signalHits / totalSignals      (0..1; prospective core)
  *   accuracy       = correctResponses / totalItems  (0..1; ongoing task)
- *   value          = clamp01(signalAccuracy * (0.6 + 0.4 * accuracy))
+ *   value          = clamp01(signalAccuracy * accuracy)
  *
- * The blend is multiplicative: catching the signals is the base worth 60%,
- * ongoing-task accuracy contributes up to the remaining 40%. Difficulty is
+ * The blend is a pure product: a high value needs BOTH the signals caught
+ * and the stream answered correctly. `accuracy` is what carries false
+ * alarms (a SIGNAL on a filler is never "correct"), so pressing SIGNAL on
+ * every item (signalAccuracy 1, accuracy ~ signals/streamLen) lands near
+ * 0.2-0.3, and never pressing it (signalAccuracy 0) lands at 0. The 1.1.0
+ * rule `signalAccuracy * (0.6 + 0.4 * accuracy)` floored the ongoing task at
+ * 60%, so spamming scored ~0.68 although every round failed.
+ * Difficulty is
  * deliberately NOT folded into the value — it is recorded on the raw result /
  * diagnostic metadata so the Phase-2 rating pipeline can weight it.
  */
@@ -140,7 +146,7 @@ export function normalizeProspectiveCueResult(
   raw: ProspectiveCueRawResult,
   _context: NormalizeContext,
 ): NormalizedPerformance {
-  const value = clamp01(raw.signalAccuracy * (0.6 + 0.4 * raw.accuracy));
+  const value = clamp01(raw.signalAccuracy * raw.accuracy);
   return { value, scale: "0..1", raw: { ...raw } };
 }
 

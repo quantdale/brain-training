@@ -198,6 +198,8 @@ export interface MathMissingOperatorGameState {
   roundIndex: number;
   /** The current round's equation, or null outside the session. */
   equation: Equation | null;
+  /** Keys of every equation served this session, so rounds never repeat. */
+  usedEquationKeys: readonly string[];
   /**
    * Monotonic anchor of the current active segment: the time the round (or
    * the last resume) started. Pacing and response time are derived from this
@@ -243,6 +245,7 @@ export function createInitialMathMissingOperatorState(): MathMissingOperatorGame
     pausedDurationMs: 0,
     roundIndex: 0,
     equation: null,
+    usedEquationKeys: [],
     roundStartedAtMs: 0,
     roundElapsedMs: 0,
     roundOutcome: null,

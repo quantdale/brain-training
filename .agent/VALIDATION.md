@@ -1,3 +1,30 @@
+# macOS and iOS first-run baseline — 2026-11-08
+
+- Baseline at `a3dbb468` on macOS: `tsc --noEmit` PASS, `expo lint` PASS, Jest
+  713 passed / 4 skipped suites, 8034 passed / 5 skipped tests, 5 snapshots.
+- iOS Release Simulator build PASS at baseline, but launch FAILED with SIGTRAP
+  (UIScene life cycle required by the iOS 27 SDK).
+- After ADR-0006: Release Simulator build PASS, process alive, Home rendered,
+  no new crash report, built `MinimumOSVersion` 17.0.
+- Repo-state, Expo alignment, secrets, offline, impact-map sync and provenance
+  PASS. Plugin tests 17/17 PASS.
+- Final branch gates: `tsc`, lint and Jest 731 passed / 4 skipped suites, 8233
+  passed / 5 skipped tests, 5 snapshots. Registry, provenance, repo-state, offline,
+  secrets, Expo alignment and task ownership PASS.
+- iOS 27.2 Simulator, Release, observed: edge swipe blocked in live and paused
+  games and allowed on the intro; auto-pause hides the answer; keyboard clears
+  the lowest field; warm and cold deep links; About and Data Management render;
+  Easy Missing Operator played to results with 6 of 6 equations unique. Tabs,
+  workout advance, theme and settings walked once before later scoring fixes.
+- Release build for physical devices compiles unsigned: arm64, 52 MB, iOS 17.0.
+- iPhone 17e at maximum accessibility text: no controls under 44 pt or past the
+  screen edge. VoiceOver speech could not be heard. Countdown observed live and
+  hidden while paused in dark mode; its position after resume is unit-tested only.
+- Physical iPhone, signing, TestFlight, VoiceOver and physical performance:
+  NOT VALIDATED. Android native runtime was not re-run on this branch.
+- CI at `a3dbb468`: Android Build Smoke failed on a Gradle download timeout
+  (infrastructure). Repository Integrity failed on the 4 known advisories.
+
 # Repository maintenance — 2026-11-08
 
 - `npm ci --ignore-scripts` PASS; installed `node-forge` is 1.4.3 and its

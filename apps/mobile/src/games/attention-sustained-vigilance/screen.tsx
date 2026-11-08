@@ -199,7 +199,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = vigilanceParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -220,7 +220,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
       stopDigit: state.stopDigit,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -246,7 +246,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

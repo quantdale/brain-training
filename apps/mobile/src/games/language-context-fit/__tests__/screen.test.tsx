@@ -128,8 +128,8 @@ describe('ContextFitScreen', () => {
     expect(persister.completeSession).toHaveBeenCalledTimes(1);
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     const raw = input.session.rawResult as ContextFitRawResult;
-    expect(raw.contentPackVersion).toBe('2.1.0');
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
+    expect(raw.contentPackVersion).toBe('2.2.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
   });
 
   it('force-win jumps to a perfect results screen', async () => {

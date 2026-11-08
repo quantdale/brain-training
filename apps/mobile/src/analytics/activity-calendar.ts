@@ -2,9 +2,9 @@
  * Activity-frequency / calendar aggregation for Progress.
  *
  * Converts completed sessions into a per-day frequency series and summary
- * statistics. Date bucketing uses UTC day keys to match the SQLite
- * `DATE(completed_at / 1000, 'unixepoch')` convention used elsewhere in the
- * product, so the counts are stable regardless of the device timezone.
+ * statistics. Days are LOCAL calendar dates (constitution §14), matching the
+ * streak engine's `'localtime'` day keys, so a session lands on the day the
+ * player experienced it.
  *
  * This is intentionally a *frequency* view only — it does not compute streaks or
  * engagement scores (those belong to other features); it just shows how often
@@ -12,14 +12,13 @@
  */
 
 import type { GameSessionRecord } from '@/db';
-
-import { utcDateKey } from './format';
+import { localDateKey } from '@/quests/period';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** One calendar cell: a UTC day and the number of sessions completed in it. */
+/** One calendar cell: a local day and the number of sessions completed in it. */
 export interface CalendarDay {
-  /** UTC date key, `YYYY-MM-DD`. */
+  /** Local date key, `YYYY-MM-DD`. */
   dateKey: string;
   /** Days before "today" (0 = the most recent day in the window). */
   offsetDays: number;
@@ -36,7 +35,7 @@ export interface ActivityCalendar {
   /** Number of distinct days with at least one session. */
   activeDays: number;
   /**
-   * Sessions whose UTC day falls inside the grid (`Σ days.count`). Sessions
+   * Sessions whose local day falls inside the grid (`Σ days.count`). Sessions
    * completed outside the covered window — older history or corrupt
    * future-dated rows — are not part of this view and do not inflate the
    * total, so every displayed number traces to the rendered cells.
@@ -47,8 +46,6 @@ export interface ActivityCalendar {
   /** Busiest day in the window, or `null` when empty. */
   busiest: CalendarDay | null;
 }
-
-// `utcDateKey` is re-exported from `./format`; this module imports it for internal use only.
 
 /**
  * Build a day-by-day activity calendar for the `dayCount` days ending at
@@ -62,14 +59,19 @@ export function buildActivityCalendar(
 ): ActivityCalendar {
   const counts = new Map<string, number>();
   for (const session of sessions) {
-    const key = utcDateKey(session.completedAt);
+    const key = localDateKey(new Date(session.completedAt));
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 
+  // Walk calendar dates, not 24-hour steps: a local day can be 23 or 25 hours
+  // long, so subtracting whole days could repeat or skip a date across DST.
+  // Noon is safe from DST gaps, which all fall in the early hours.
+  const today = new Date(nowMs);
   const days: CalendarDay[] = [];
   for (let offset = dayCount - 1; offset >= 0; offset--) {
-    const dateMs = nowMs - offset * DAY_MS;
-    const key = utcDateKey(dateMs);
+    const key = localDateKey(
+      new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset, 12),
+    );
     const count = counts.get(key) ?? 0;
     days.push({ dateKey: key, offsetDays: offset, count, hasSession: count > 0 });
   }
@@ -187,18 +189,18 @@ export function activeRuns(calendar: ActivityCalendar): ActiveRuns {
   return { current, longest };
 }
 
-/** UTC weekday of a `YYYY-MM-DD` key (0 = Sunday … 6 = Saturday). */
+/** Weekday of a `YYYY-MM-DD` key (0 = Sunday … 6 = Saturday); pure date math. */
 function weekdayOfDateKey(dateKey: string): number {
   const [y, m, d] = dateKey.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-/** Terse weekday labels indexed by UTC weekday (0 = Sunday). */
+/** Terse weekday labels indexed by weekday (0 = Sunday). */
 export const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 /** One weekday's aggregate over the calendar window. */
 export interface WeekdayBucket {
-  /** UTC weekday index (0 = Sunday … 6 = Saturday). */
+  /** Weekday index (0 = Sunday … 6 = Saturday). */
   weekday: number;
   label: string;
   /** Distinct days of this weekday with at least one session. */

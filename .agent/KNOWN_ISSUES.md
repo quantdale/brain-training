@@ -1,27 +1,29 @@
-# Dependency gate — unwaived advisories (2026-11-08)
+# Open audit findings (2026-11-08)
 
-**OPEN / OWNER DECISION REQUIRED.** Fresh `npm audit --omit=dev` after the
-in-range `node-forge` 1.4.0→1.4.3 lockfile update still exits 1. No waiver
-and no major override was added. The forge advisories, including the former
-allowlisted `GHSA-86w9-cpqp-85rv`, are absent from that audit. `braces`
-`GHSA-vfj7-8cjw-p6xm` and `sprintf-js` `GHSA-hp3w-g68c-fv3c` are also absent,
-so those stale waivers were removed; a later reappearance fails closed.
+Item repeats within a session: resolved for mental rotation, sequence memory,
+fast math, equation builder and quick compare. Sequence memory can still repeat
+once its 12 two-length sequences are exhausted. Prospective Cue's lone Easy glyph
+carries over deliberately; its streams do not repeat.
 
-Still unwaived, each outside the parents' semver range:
+Also open: a timezone change can rewrite past streak days because no local date
+is stored (`db/sessions.ts:771`, needs a migration). Merging diverged ledgers can
+go negative (Low). Vigilance scoring is harsher after one false alarm and may
+need tuning. Color Stroop's average still includes wrong taps. The in-game score
+appears in both the header and a count-up strip in 19 games. Dark-mode answer
+button borders measure 1.64:1; their symbols carry the contrast.
 
-- `zod` `GHSA-mrhx-c7xc-m3w5` (high) via `@expo/cli`. Fixed in 4.6.6; CLI 57
-  requires Zod 3. Independent review supports only a build-tool classification,
-  not safety or an automatic waiver. See `zod-advisory-disposition.md`.
-- `decode-uri-component` `GHSA-qr28-fpjm-wq7f` (high) via `query-string@7`.
-  Fixed in 0.5.1, which is ESM-only; forcing it would break expo-router's
-  CommonJS require. The older `GHSA-vcc3-ghjq-m6fr` acceptance does not cover
-  this id and still expires 2027-03-31.
-- `glob` `GHSA-3g3m-2fjr-6pw4` (moderate) via Expo CLI/Metro. Installed 13.0.6;
-  parents pin `^13`; fix is `>=14.0.2`.
-- `minimatch` `GHSA-g3hv-75wg-m249` (moderate) via `glob@13` / fingerprint.
-  Installed 10.2.6; parent pin is `^10.2.2`; fix is `>=11.0.1`.
+# iOS CI does not exercise the iOS 27 SDK (2026-11-08)
 
-Campaign 080 stays ACTIVE. This is not a green or release-certified checkpoint.
+CI builds with Xcode 26.6 and the iOS 26.5 SDK, so the iOS 27 launch crash
+(fixed by ADR-0006) could not appear there. A launch step now catches other
+startup crashes, but CI still does not exercise the iOS 27 SDK.
+
+# Dependency gate — accepted advisories (2026-11-09)
+
+Waived 2026-11-09 under the owner's delegation. `zod`, `glob` and `minimatch` are
+build-tool only: none of their modules appear in the shipped iOS bundle.
+`decode-uri-component` `GHSA-qr28-fpjm-wq7f` ships through `query-string@7` and
+is accepted runtime debt until 2027-03-31. Exit: the next Expo SDK upgrade.
 
 # Campaign080 — unwaived High dependency advisory (2026-10-24)
 

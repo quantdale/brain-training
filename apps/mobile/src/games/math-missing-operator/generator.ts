@@ -139,12 +139,20 @@ export interface GenerateEquationInput {
   readonly level: DifficultyLevel;
   /** Adaptive-only: the live rating influences the first-operand ceiling. */
   readonly rating?: number;
+  /** `equationKey`s already served this session (constitution §10). */
+  readonly avoid?: readonly string[];
+}
+
+/** Identity used to keep one session from serving the same equation twice. */
+export function equationKey(equation: Pick<Equation, 'a' | 'b' | 'c'>): string {
+  return `${equation.a},${equation.b},${equation.c}`;
 }
 
 /** Generate one equation; see module docs for the invariants. */
 export function generateEquation(input: GenerateEquationInput): Equation {
   const { rng, roundIndex, params, level, rating = 0.5 } = input;
   const aMax = aMaxForRound(params, roundIndex, level, rating);
+  const avoid = new Set(input.avoid);
 
   // ---- Content-pack: try curated templates first ----
   const compatibleTemplates = EQUATION_TEMPLATES.filter((t) => {
@@ -154,7 +162,8 @@ export function generateEquation(input: GenerateEquationInput): Equation {
       a <= aMax &&
       b >= params.minB &&
       b <= params.maxB &&
-      params.operators.includes(t.operators[0] as Operator)
+      params.operators.includes(t.operators[0] as Operator) &&
+      !avoid.has(equationKey({ a, b, c: t.result }))
     );
   });
 
@@ -181,7 +190,11 @@ export function generateEquation(input: GenerateEquationInput): Equation {
       params,
       aMax,
     );
-    if (equation !== null && isUniqueSolution(equation.a, equation.b, equation.c)) {
+    if (
+      equation !== null &&
+      isUniqueSolution(equation.a, equation.b, equation.c) &&
+      !avoid.has(equationKey(equation))
+    ) {
       return equation;
     }
   }

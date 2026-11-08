@@ -248,14 +248,44 @@ function drawSides(
   };
 }
 
-/** Build one fully-validated round (options shuffled, correctIndex set). */
+/** Upper bound on re-draws to avoid a comparison already served this session. */
+export const MAX_NOVELTY_ATTEMPTS = 32;
+
+/** Identity of what the player sees (option order follows from the stimuli). */
+export function roundKey(round: Pick<QuickCompareRound, 'promptType' | 'left' | 'right'>): string {
+  return `${round.promptType}|${round.left.display}|${round.right.display}`;
+}
+
+/**
+ * Build one fully-validated round (options shuffled, correctIndex set).
+ * `avoid` lists the `roundKey`s already served this session (constitution
+ * section 10): the stimuli are re-drawn from a salted fork until a new
+ * comparison appears, and a space too small to supply one accepts the last
+ * draw. The first draw uses the unsalted forks, so a session without
+ * collisions is identical to one generated without history.
+ */
 export function generateRound(
   rng: Rng,
   roundIndex: number,
   params: QuickCompareDifficultyParams,
+  avoid: readonly string[] = [],
 ): QuickCompareRound {
-  const promptType = rng.fork(`round:${roundIndex}:type`).pick(params.promptTypes);
-  const drawn = drawSides(rng.fork(`round:${roundIndex}:sides`), promptType, params);
+  const served = new Set(avoid);
+  let round = buildRound(rng, roundIndex, params, '');
+  for (let attempt = 1; attempt < MAX_NOVELTY_ATTEMPTS && served.has(roundKey(round)); attempt += 1) {
+    round = buildRound(rng, roundIndex, params, `:novelty:${attempt}`);
+  }
+  return round;
+}
+
+function buildRound(
+  rng: Rng,
+  roundIndex: number,
+  params: QuickCompareDifficultyParams,
+  salt: string,
+): QuickCompareRound {
+  const promptType = rng.fork(`round:${roundIndex}:type${salt}`).pick(params.promptTypes);
+  const drawn = drawSides(rng.fork(`round:${roundIndex}:sides${salt}`), promptType, params);
   const base: Omit<QuickCompareRound, 'optionLabels' | 'correctIndex'> = {
     promptType,
     question: drawn.question,
@@ -268,7 +298,7 @@ export function generateRound(
   if (promptType === 'same-different') {
     // Binary judgment: no filler can be plausible, so the option count axis
     // does not apply to this prompt type.
-    optionLabels = rng.fork(`round:${roundIndex}:options`).shuffle(['Same', 'Different']);
+    optionLabels = rng.fork(`round:${roundIndex}:options${salt}`).shuffle(['Same', 'Different']);
   } else {
     const correctValue = Number(label);
     const otherShown =
@@ -277,7 +307,7 @@ export function generateRound(
         : Math.min(sumOf(drawn.left), sumOf(drawn.right));
     const decoys = buildDecoyValues(correctValue, otherShown, params.optionCount - 1);
     optionLabels = rng
-      .fork(`round:${roundIndex}:options`)
+      .fork(`round:${roundIndex}:options${salt}`)
       .shuffle([label, ...decoys.map(String)]);
   }
   const correctIndex = optionLabels.indexOf(label);
@@ -291,8 +321,11 @@ export function generateSessionRounds(
   rounds: number = params.rounds,
 ): QuickCompareRound[] {
   const list: QuickCompareRound[] = [];
+  const avoid: string[] = [];
   for (let i = 0; i < rounds; i += 1) {
-    list.push(generateRound(rng, i, params));
+    const round = generateRound(rng, i, params, avoid);
+    avoid.push(roundKey(round));
+    list.push(round);
   }
   return list;
 }

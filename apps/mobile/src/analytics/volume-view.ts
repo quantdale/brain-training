@@ -21,7 +21,8 @@
 
 import type { GameSessionRecord } from '@/db';
 
-import { utcDateKey } from './format';
+import { localDateKey } from '@/quests/period';
+
 import type { Direction, TimeWindowKey } from './types';
 import { WINDOW_DAYS, windowStartMs } from './windows';
 
@@ -40,7 +41,7 @@ export interface SessionVolume {
   /** `windowSessions - previousWindowSessions`; `null` when there is no previous. */
   deltaSessions: number | null;
   direction: Direction;
-  /** Distinct days inside the window with at least one session. */
+  /** Distinct local calendar dates inside the window with at least one session. */
   activeDays: number;
   /** Mean sessions per week across the window span (`windowDays / 7`). */
   perWeek: number | null;
@@ -75,7 +76,7 @@ export function buildSessionVolume(
         continue;
       }
       windowSessions += 1;
-      activeDayKeys.add(utcDateKey(t));
+      activeDayKeys.add(localDateKey(new Date(t)));
       // Week bucket index counted back from "now": 0 = current (partial) week.
       const bucket = Math.floor((nowMs - t) / (7 * DAY_MS));
       weeklyBuckets.set(bucket, (weeklyBuckets.get(bucket) ?? 0) + 1);
@@ -88,7 +89,7 @@ export function buildSessionVolume(
         continue;
       }
       windowSessions += 1;
-      activeDayKeys.add(utcDateKey(session.completedAt));
+      activeDayKeys.add(localDateKey(new Date(session.completedAt)));
     }
   }
 

@@ -167,7 +167,6 @@ describe('Cross-screen rating consistency (task 9.7)', () => {
     // Composite should reflect the weighted average
     expect(composite.composite).toBeGreaterThan(INITIAL_RATING - 100);
     expect(composite.composite).toBeLessThan(INITIAL_RATING + 100);
-    // domainCount may be fractional due to stale weighting
     expect(composite.domainCount).toBeGreaterThanOrEqual(1);
   });
 });
@@ -183,7 +182,7 @@ describe('Stale behavior (task 9.7)', () => {
     ratings = new RatingRepository(adapter, () => T0);
   });
 
-  it('Composite weights stale domains less', async () => {
+  it('Composite reports stale domains (§15)', async () => {
     const now = Date.now();
     const staleTime = now - 60 * 24 * 60 * 60 * 1000; // 60 days ago
     
@@ -212,7 +211,6 @@ describe('Stale behavior (task 9.7)', () => {
     // Compute composite
     const composite = computeComposite(domainRatings, KNOWN_DOMAINS, now);
     
-    // Fresh domain should have more weight than stale domain
     expect(composite.staleDomainCount).toBe(1);
   });
 });

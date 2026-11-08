@@ -187,7 +187,10 @@ export function nextAdaptiveParams(
   const targetSpan = maxT - minT;
   const ratio = (newNumbersCount - minN) / Math.max(1, maxN - minN);
   const halfSpan = Math.round(targetSpan * (0.2 + 0.6 * ratio));
-  const newTargetMin = Math.max(minT, Math.round(minT + (targetSpan / 2 - halfSpan)));
+  // The window stays anchored at minT: a mid-range window at the easiest level
+  // (67-143) exceeds what three numbers with + and - can reach, and generation
+  // then throws mid-session.
+  const newTargetMin = minT;
   const newTargetMax = Math.min(maxT, newTargetMin + 2 * halfSpan);
 
   // Operators: escalate/de-escalate with numbers count

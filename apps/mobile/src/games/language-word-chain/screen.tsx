@@ -31,7 +31,7 @@ import type {
 } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
-import { StatRow } from '@/components/game-ui';
+import { Countdown, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -127,6 +127,9 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     onPause: () => dispatch({ type: 'pause', nowMs: session.elapsedMs() }),
   });
   const readActiveTime = session.elapsedMs;
+  // The reducer's deadline lives on the session's active-time axis (paused
+  // segments excluded), so the display countdown reads that axis too.
+  const activeTimeClock = useMemo<Clock>(() => ({ now: readActiveTime }), [readActiveTime]);
   const readStatus = session.status;
 
   const tutorial = useMemo(
@@ -192,7 +195,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = wordChainParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -213,7 +216,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       outcomes: state.roundOutcomes,
       finalTier: state.currentTier,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -245,7 +248,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
@@ -507,6 +510,18 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
               >
                 Answer within {budgetSeconds}s
               </ThemedText>
+              {/* Display only: the reducer's deadline (null while paused, so
+              resume remounts the bar at the true remaining fraction). */}
+              {!state.paused && state.roundDeadlineMs !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}`}
+                  deadlineMs={state.roundDeadlineMs}
+                  windowMs={state.roundBudgetMs}
+                  clock={activeTimeClock}
+                  label="Time left"
+                  testID={testId(GAME_ID, 'countdown')}
+                />
+              ) : null}
               <View
                 style={styles.dots}
                 testID={testId(GAME_ID, 'progress')}

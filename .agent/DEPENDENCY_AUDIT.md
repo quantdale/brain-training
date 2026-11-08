@@ -1,5 +1,15 @@
 # Dependency Audit Triage
 
+## Owner-delegated disposition — 2026-11-09: PASS with 4 new waivers
+
+Waived 2026-11-09 under the owner's delegation. `zod`, `glob` and `minimatch` are
+build-tool only: none of their modules appear in the shipped iOS bundle.
+`decode-uri-component` `GHSA-qr28-fpjm-wq7f` ships through `query-string@7` and
+is accepted runtime debt until 2027-03-31. Exit: the next Expo SDK upgrade.
+
+Evidence: `npx expo export --platform ios --source-maps` listed 2,333 sources,
+with 0 modules from zod, glob or minimatch and 1 from decode-uri-component.
+
 ## Maintenance remediation — 2026-11-08: FAIL / 4 unwaived, forge cleared
 
 In-range lockfile update only: `node-forge` 1.4.0 → 1.4.3. Parent ranges are

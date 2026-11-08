@@ -64,6 +64,12 @@ export interface GenerateRoundInput {
   readonly params: SpatialDifficultyParams;
   /** Previous round's target cells, or null for round 0 (near-duplicate avoidance). */
   readonly prevTarget?: readonly Cell[] | null;
+  /**
+   * `figureKey`s of every target served this session, oldest first
+   * (constitution §10). Fresh figures are preferred; once every figure the
+   * generator can draw has been served, the least recently served one wins.
+   */
+  readonly history?: readonly string[];
 }
 
 export interface RotationRound {
@@ -113,6 +119,13 @@ export function normalizeCells(cells: readonly Cell[]): Cell[] {
   return cells
     .map((c) => ({ x: c.x - minX, y: c.y - minY }))
     .sort((a, b) => a.x - b.x || a.y - b.y);
+}
+
+/** Identity of a figure for session de-duplication: its translation-normalized cells. */
+export function figureKey(cells: readonly Cell[]): string {
+  return normalizeCells(cells)
+    .map((c) => `${c.x}.${c.y}`)
+    .join(';');
 }
 
 /** Same-shape check on normalized cell sets (position only). */
@@ -322,12 +335,17 @@ export function fallbackShape(blockCount: number): Cell[] {
  * rejection sampling: each attempt draws from its own RNG fork, so the same
  * seed always yields the same shape. Reflection symmetry is allowed (mutated
  * DIFFERENT rounds stay valid); `prevTarget` (optional) is avoided exactly.
+ * `history` (oldest first) lists the figures already served: a fresh figure is
+ * returned when the bounded draws find one, otherwise the least recently
+ * served valid figure drawn (the pool, e.g. the four 3-block L shapes, is spent).
  */
 export function generateShape(
   rng: Rng,
   blockCount: number,
   prevTarget?: readonly Cell[] | null,
+  history: readonly string[] = [],
 ): Cell[] {
+  let leastRecent: { cells: Cell[]; lastServed: number } | null = null;
   for (let attempt = 0; attempt < MAX_SHAPE_ATTEMPTS; attempt += 1) {
     const attemptRng = rng.fork(`shape:attempt:${attempt}`);
     const cells: Cell[] = [
@@ -359,7 +377,16 @@ export function generateShape(
     if (prevTarget !== null && prevTarget !== undefined && sameCellSet(cells, prevTarget)) {
       continue;
     }
-    return cells;
+    const lastServed = history.lastIndexOf(figureKey(cells));
+    if (lastServed < 0) {
+      return cells;
+    }
+    if (leastRecent === null || lastServed < leastRecent.lastServed) {
+      leastRecent = { cells, lastServed };
+    }
+  }
+  if (leastRecent !== null) {
+    return leastRecent.cells;
   }
   // Extremely unlikely fallback: a verified asymmetric template. If it
   // collides with the previous target, rotate it by 90° — the asymmetry
@@ -484,12 +511,12 @@ export function validateRound(
  * attempt, and the bounded loop keeps the generator total regardless.
  */
 export function generateRound(input: GenerateRoundInput): RotationRound {
-  const { rng, roundIndex, params, prevTarget } = input;
+  const { rng, roundIndex, params, prevTarget, history } = input;
   let last: RotationRound | null = null;
   for (let attempt = 0; attempt < MAX_ROUND_ATTEMPTS; attempt += 1) {
     const attemptRng = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
     const kind: RoundKind = attemptRng.next() < 0.5 ? 'same' : 'different';
-    const cells = generateShape(attemptRng.fork('shape'), params.blocks, prevTarget);
+    const cells = generateShape(attemptRng.fork('shape'), params.blocks, prevTarget, history);
     const candidateDegrees = attemptRng
       .fork('angle')
       .pick(anglesFromMask(params.angleMask));

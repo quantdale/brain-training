@@ -30,7 +30,7 @@ import {
   resolveQuickCompareDifficulty,
   quickCompareParamsFromProfile,
 } from './difficulty';
-import { generateRound } from './generator';
+import { generateRound, roundKey } from './generator';
 import { applyRoundOutcome, perfectSessionScore } from './scoring';
 import { INITIAL_STATS, createInitialQuickCompareState } from './types';
 import type { CompareVerdict, QuickCompareAction, QuickCompareGameState, QuickCompareStats } from './types';
@@ -77,6 +77,7 @@ function reduceGameState(
         activeDurationMs: 0,
         pausedDurationMs: 0,
         roundIndex: 0,
+        usedRoundKeys: [roundKey(round)],
         windowMs: params.windowMs,
         roundStartedAtMs: action.spawnedAtMs,
         deadlineMs: action.spawnedAtMs + params.windowMs,
@@ -144,11 +145,12 @@ function reduceGameState(
       }
       const roundCorrect = state.lastVerdict === 'correct';
       const windowMs = nextWindowMs(state.windowMs, roundCorrect, state.difficulty, params);
-      const round = generateRound(createRng(state.seed), nextIndex, params);
+      const round = generateRound(createRng(state.seed), nextIndex, params, state.usedRoundKeys);
       return {
         ...state,
         phase: 'active',
         roundIndex: nextIndex,
+        usedRoundKeys: [...state.usedRoundKeys, roundKey(round)],
         windowMs,
         roundStartedAtMs: action.spawnedAtMs,
         deadlineMs: action.spawnedAtMs + windowMs,

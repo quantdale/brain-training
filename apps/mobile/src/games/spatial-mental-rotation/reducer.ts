@@ -24,7 +24,7 @@ import {
   resolveSpatialDifficulty,
   spatialParamsFromProfile,
 } from './difficulty';
-import { generateRound } from './generator';
+import { figureKey, generateRound } from './generator';
 import type { RotationRound } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialSpatialState } from './types';
@@ -68,6 +68,7 @@ function buildRound(
   roundIndex: number,
   params: ReturnType<typeof spatialParamsFromProfile>,
   prevTarget: readonly { x: number; y: number }[] | null,
+  history: readonly string[],
 ): RotationRound {
   return generateRound({
     rng: createRng(seed),
@@ -79,6 +80,7 @@ function buildRound(
       rounds: params.rounds,
     },
     prevTarget,
+    history,
   });
 }
 export function spatialGameReducer(state: SpatialGameState, action: SpatialAction): SpatialGameState {
@@ -107,7 +109,7 @@ function reduceGameState(
       }
       const profile = resolveSpatialDifficulty(state.difficulty);
       const params = spatialParamsFromProfile(profile);
-      const round = buildRound(action.seed, 0, params, null);
+      const round = buildRound(action.seed, 0, params, null, []);
       return {
         ...state,
         phase: 'play',
@@ -127,6 +129,7 @@ function reduceGameState(
         roundStartedElapsedMs: 0,
         timeRemainingMs: params.timeBudgetMs,
         target: round.target,
+        usedTargetKeys: [figureKey(round.target)],
         candidate: round.candidate,
         kind: round.kind,
         candidateDegrees: round.candidateDegrees,
@@ -228,7 +231,7 @@ function reduceGameState(
       const { params, adaptivePosition } = nextRoundParams(state);
       // `state.target` is still the PREVIOUS round's target here; the
       // generator avoids repeating it (near-duplicate avoidance).
-      const round = buildRound(state.seed, nextIndex, params, state.target);
+      const round = buildRound(state.seed, nextIndex, params, state.target, state.usedTargetKeys);
       return {
         ...state,
         phase: 'play',
@@ -239,6 +242,7 @@ function reduceGameState(
         roundStartedElapsedMs: action.roundStartedElapsedMs,
         timeRemainingMs: params.timeBudgetMs,
         target: round.target,
+        usedTargetKeys: [...state.usedTargetKeys, figureKey(round.target)],
         candidate: round.candidate,
         kind: round.kind,
         candidateDegrees: round.candidateDegrees,

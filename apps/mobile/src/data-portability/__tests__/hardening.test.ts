@@ -449,6 +449,85 @@ describe('cosmetics survive merge monotonically', () => {
     expect(cosmetics.owned).toEqual(['theme-a', 'theme-b']);
   });
 
+  async function mergeStreaks(device: Record<string, unknown>, backup: Record<string, unknown>) {
+    const target = await makeDb();
+    await target.profile.update({ settings: { streaks: device } });
+    const data = emptyData();
+    data.profile = {
+      id: 'local',
+      displayName: '',
+      settings: { streaks: backup },
+      createdAt: T0,
+      updatedAt: T0 + 5,
+    };
+    const envelope = serializeBackup(buildEnvelope(data));
+    await applyImport(target, parseAndValidateBackup(envelope), 'merge');
+    const first = ((await target.profile.get())?.settings ?? {}).streaks;
+    await applyImport(target, parseAndValidateBackup(envelope), 'merge');
+    return { first, second: ((await target.profile.get())?.settings ?? {}).streaks };
+  }
+
+  it('merging an older backup keeps claimed milestones and covered days', async () => {
+    const { first, second } = await mergeStreaks(
+      { claimedMilestones: ['m7', 'm30'], coveredDates: ['2026-03-02'] },
+      { claimedMilestones: ['m7'], coveredDates: ['2026-02-01'] },
+    );
+    expect(first).toEqual({
+      claimedMilestones: ['m7', 'm30'],
+      coveredDates: ['2026-02-01', '2026-03-02'],
+    });
+    expect(second).toEqual(first);
+  });
+
+  it('merging keeps the larger item count and the latest freeze period', async () => {
+    const { first, second } = await mergeStreaks(
+      { freeze: 1, shield: 3, recovery: 0, freezeUsed: { period: '2026-03', count: 1 } },
+      { freeze: 2, shield: 1, recovery: 0, freezeUsed: { period: '2026-02', count: 2 } },
+    );
+    expect(first).toEqual({
+      freeze: 2,
+      shield: 3,
+      recovery: 0,
+      freezeUsed: { period: '2026-03', count: 1 },
+    });
+    expect(second).toEqual(first);
+  });
+
+  it('does not restore an item the backup already spent', async () => {
+    const { first, second } = await mergeStreaks(
+      { freeze: 1, coveredDates: [] },
+      { freeze: 0, coveredDates: ['2026-03-02'] },
+    );
+    expect(first).toEqual({ freeze: 0, coveredDates: ['2026-03-02'] });
+    expect(second).toEqual(first);
+  });
+
+  it('does not restore an item the device already spent', async () => {
+    const { first, second } = await mergeStreaks(
+      { freeze: 0, coveredDates: ['2026-03-02'] },
+      { freeze: 1, coveredDates: [] },
+    );
+    expect(first).toEqual({ freeze: 0, coveredDates: ['2026-03-02'] });
+    expect(second).toEqual(first);
+  });
+
+  it('does not restore a spent item of a different kind', async () => {
+    const { first, second } = await mergeStreaks(
+      { freeze: 1, shield: 0, coveredDates: ['2026-03-02'] },
+      { freeze: 1, shield: 1, coveredDates: [] },
+    );
+    expect(first).toEqual({ freeze: 1, shield: 0, coveredDates: ['2026-03-02'] });
+    expect(second).toEqual(first);
+  });
+
+  it('merging within one freeze period keeps the higher usage count', async () => {
+    const { first } = await mergeStreaks(
+      { freezeUsed: { period: '2026-03', count: 2 } },
+      { freezeUsed: { period: '2026-03', count: 1 } },
+    );
+    expect(first).toEqual({ freezeUsed: { period: '2026-03', count: 2 } });
+  });
+
   it('leaves non-cosmetics settings shallow-merged (backup wins per key)', async () => {
     const target = await makeDb();
     await target.profile.update({ settings: { theme: 'light', sound: true } });

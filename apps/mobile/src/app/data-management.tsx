@@ -21,7 +21,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { plural } from "@/analytics/format";
+import { Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
 import { ConfirmButton } from "@/components/settings/confirm-button";
@@ -691,7 +692,7 @@ export default function DataManagementScreen() {
                 themeColor="textSecondary"
                 testID="data-storage-size"
               >
-                {counts.gameSessions} saved sessions · {counts.gameFavorites} favorites
+                {plural(counts.gameSessions, "saved session")} · {plural(counts.gameFavorites, "favorite")}
               </ThemedText>
             </Card>
           </Entrance>
@@ -748,7 +749,7 @@ export default function DataManagementScreen() {
       )}
 
       <Entrance index={3}>
-        <Card testID="data-export-card">
+        <Card testID="data-export-card" style={styles.card}>
           <CardHeader title="Export Backup" soft="infoSoft" ink="infoText" />
           <ThemedText type="caption" themeColor="textSecondary">
             Save your full history and settings as a checked JSON file. Use Share to keep a copy outside this app. Nothing is uploaded by the app.
@@ -810,7 +811,7 @@ export default function DataManagementScreen() {
 
       {/* Saved backups (file transport — persists in the app documents folder). */}
       <Entrance index={4}>
-        <Card testID="data-saved-backups">
+        <Card testID="data-saved-backups" style={styles.card}>
           <CardHeader
             title="Saved Backups"
             soft="accentSoft"
@@ -991,7 +992,7 @@ export default function DataManagementScreen() {
       </Entrance>
 
       <Entrance index={5}>
-        <Card testID="data-import-card">
+        <Card testID="data-import-card" style={styles.card}>
           <CardHeader
             title="Import / Restore"
             soft="xpSoft"
@@ -1172,7 +1173,7 @@ export default function DataManagementScreen() {
       </Entrance>
 
       <Entrance index={6}>
-        <Card testID="data-wipe-card">
+        <Card testID="data-wipe-card" style={styles.card}>
           <CardHeader
             title="Delete All Local Data"
             soft="dangerSoft"
@@ -1230,16 +1231,12 @@ export default function DataManagementScreen() {
         </Card>
       </Entrance>
 
-      <Card variant="outlined" testID="data-privacy">
+      <Card variant="outlined" testID="data-privacy" style={styles.card}>
         <ThemedText type="label">Where your data lives</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
-              Your training history lives in this app on this phone — there
-              is no account copy. Files you export or share leave through
-              the share sheet, and Android&apos;s own device backup may carry
-              exported files to a new phone. Export a backup file you
-              control, preview exactly what a restore would change, and
-              delete local data only when you mean it. All operations
-              validate before they write and work fully offline.
+              Your training history lives in this app on this device, with no
+              account copy. Files you export leave through the share sheet.{" "}
+              {DEVICE_BACKUP_NOTE}
             </ThemedText>
       </Card>
 
@@ -1265,10 +1262,21 @@ function CardHeader({ title, soft, ink }: { title: string; soft: ThemeColor; ink
   );
 }
 
+// iOS includes the Documents directory in device backups; Android excludes the
+// database but may carry exported files (see with-android-backup-rules).
+const DEVICE_BACKUP_NOTE =
+  Platform.OS === "ios"
+    ? "iCloud and computer backups of this iPhone can include this app's data."
+    : "Android's device backup can carry exported files to a new phone.";
+
 const styles = StyleSheet.create({
   operationMessage: {
     borderTopWidth: HAIRLINE,
     paddingTop: Spacing.two,
+  },
+  card: {
+    // Card has no built-in gap; these cards stack controls directly.
+    gap: Spacing.two,
   },
   headerRow: {
     flexDirection: "row",

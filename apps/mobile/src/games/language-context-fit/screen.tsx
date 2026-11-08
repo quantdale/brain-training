@@ -17,7 +17,7 @@ import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
-import { StatRow } from '@/components/game-ui';
+import { Countdown, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -133,7 +133,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = contextFitParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.currentTier);
@@ -150,7 +150,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       outcomes: state.roundOutcomes,
       finalTier: state.currentTier,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -178,7 +178,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
@@ -352,6 +352,19 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
           <ThemedText type="caption" themeColor="textSecondary" testID={testId(GAME_ID, 'time-budget')}>
             Answer within {budgetSeconds}s
           </ThemedText>
+          {/* Display only: the reducer's own monotonic deadline. The deadline
+          is null while paused, so the bar unmounts and resume remounts it
+          with the exact remaining fraction. */}
+          {!state.paused && state.roundDeadlineMs !== null ? (
+            <Countdown
+              key={`${state.sessionId}:${state.roundIndex}`}
+              deadlineMs={state.roundDeadlineMs}
+              windowMs={state.roundBudgetMs}
+              clock={clock}
+              label="Time left"
+              testID={testId(GAME_ID, 'countdown')}
+            />
+          ) : null}
           <View style={styles.options}>
             {state.round.options.map((word, index) => (
               <Option key={index} index={index} label={word} visual={visualFor(index)} onPressOption={handleAnswer} />

@@ -286,12 +286,12 @@ describe('Vigilance real caller exposure and lifecycle fairness', () => {
     expect(completeSession).toHaveBeenCalledTimes(1);
     const holds = stream.trials.filter((trial) => trial.isTarget).length;
     expect(completeSession.mock.calls[0][0].session).toMatchObject({
-      gameVersion: 1_001_000,
-      scoringVersion: 1_001_000,
+      gameVersion: 1_002_000,
+      scoringVersion: 1_002_000,
       generatorVersion: 1_000_000,
       durationMs: 10_000 + (NORMAL.trials - 1) * SLOT,
       rawResult: {
-        gameVersion: '1.1.0', scoringVersion: '1.1.0', generatorVersion: '1.0.0',
+        gameVersion: '1.2.0', scoringVersion: '1.2.0', generatorVersion: '1.0.0',
         seed: SEED, trialsTotal: NORMAL.trials, trialsPlayed: NORMAL.trials,
         omissions: 1, hits: NORMAL.trials - holds - 1, correctHolds: holds,
         commissions: 0, meanReactionMs: 400, diagnosticMetadata: { pausedDurationMs: 0 },

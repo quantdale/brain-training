@@ -10,9 +10,10 @@
  * Canonical rules (kept in sync with `computeComposite`):
  *  - every known domain is included;
  *  - an unseen domain (never played) contributes `INITIAL_RATING` at full weight;
- *  - a stale domain (not trained within `staleThresholdDays`) is weighted 0.5;
+ *  - a stale domain (not trained within `staleThresholdDays`) is marked stale
+ *    but keeps full weight, because inactivity must not move the score (§15);
  *  - a fresh domain is weighted 1.0.
- * The composite is the weighted average of those contributions, rounded.
+ * The composite is the average of those contributions, rounded.
  */
 
 import { INITIAL_RATING, isRatingStale } from '@/db/rating';
@@ -25,7 +26,7 @@ export interface CompositeDomain {
   /** Current rating, or `INITIAL_RATING` for an unseen domain. */
   rating: number;
   status: 'unseen' | 'stale' | 'fresh';
-  /** Weight applied to this domain (0.5 for stale, 1.0 otherwise). */
+  /** Weight applied to this domain (1.0 for every status, see §15 above). */
   weight: number;
   /** Included in the average with this weight (always true here). */
   included: boolean;
@@ -101,7 +102,7 @@ export function explainComposite(
       domain,
       rating: rating.rating,
       status: stale ? 'stale' : 'fresh',
-      weight: stale ? 0.5 : 1,
+      weight: 1,
       included: true,
     });
   }

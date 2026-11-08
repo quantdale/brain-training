@@ -100,8 +100,9 @@ function buildFixtureClasses(seed: number): FixtureClass[] {
     }),
   );
 
-  // Instants hugging UTC midnights: 23:59:59.999 vs 00:00:00.001 must land in
-  // adjacent UTC day buckets regardless of the device timezone.
+  // Instants hugging UTC midnights. Windows are age-based so these must not
+  // shift a window edge; day buckets are local dates (constitution §14), which
+  // the volume reference below derives independently on any host timezone.
   const utcMidnightEdges = [
     Date.UTC(2026, 0, 17, 23, 59, 59, 999),
     Date.UTC(2026, 0, 18, 0, 0, 0, 0),
@@ -390,11 +391,14 @@ describe('buildSessionVolume equivalence vs age-based reference (fixtures × win
         expect(got.previousWindowSessions).toBe(want.previousCount);
         expect(got.weeklyCounts).toEqual(want.weeklyCounts);
         expect(got.deltaSessions).toBe(want.currentCount - want.previousCount);
-        // activeDays: distinct UTC date keys among in-window sessions.
+        // activeDays: distinct local dates among in-window sessions (§14).
         const keys = new Set(
           fx.sessions
             .filter((s) => s.completedAt <= T0 && s.completedAt >= T0 - days * DAY)
-            .map((s) => new Date(s.completedAt).toISOString().slice(0, 10)),
+            .map((s) => {
+              const d = new Date(s.completedAt);
+              return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            }),
         );
         expect(got.activeDays).toBe(keys.size);
         expect(got.perWeek).toBeCloseTo(want.currentCount / (days / 7), 12);

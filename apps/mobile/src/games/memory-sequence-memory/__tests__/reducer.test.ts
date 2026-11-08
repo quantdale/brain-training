@@ -54,6 +54,36 @@ function failRound(state: SequenceMemoryGameState): SequenceMemoryGameState {
   return current;
 }
 
+describe('session sequences never repeat (constitution section 10)', () => {
+  it.each(['easy', 'normal', 'hard', 'expert', 'adaptive'] as const)(
+    'serves a new sequence each round in a %s session until its space is exhausted',
+    (level) => {
+      const policies = ['mixed', 'always-fail'] as const;
+      for (const policy of policies) {
+        for (let seed = 1; seed <= 60; seed += 1) {
+          const outcome = createRng(`no-repeat-outcome-${seed}`);
+          let state = startSession(`no-repeat-${seed}`, level);
+          const tileCount = SEQUENCE_MEMORY_DIFFICULTY_PARAMS[level === 'adaptive' ? 'easy' : level].tileCount;
+          const seen = new Map<number, Set<string>>();
+          for (let round = 0; round < 30; round += 1) {
+            const key = state.sequence.join(',');
+            const sameLength = seen.get(state.length) ?? new Set<string>();
+            if (sameLength.has(key)) {
+              // A repeat is only legitimate once every sequence of this length was served.
+              const space = tileCount * (tileCount - 1) ** (state.length - 1);
+              expect(sameLength.size).toBe(space);
+            }
+            sameLength.add(key);
+            seen.set(state.length, sameLength);
+            state = policy === 'always-fail' || outcome.next() < 0.45 ? failRound(state) : passRound(state);
+            state = sequenceMemoryGameReducer(state, { type: 'next-round' });
+          }
+        }
+      }
+    },
+  );
+});
+
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
     const state = sequenceMemoryGameReducer(createInitialSequenceMemoryState(), {

@@ -23,7 +23,7 @@ import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
 import { AnimatedNumber, useSafeBack } from "@/components/ui";
-import { GameButton, StatRow } from "@/components/game-ui";
+import { Countdown, GameButton, StatRow } from "@/components/game-ui";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -203,7 +203,7 @@ export default function LogicDeductionScreen(
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? "normal";
     // `state.params` carries the adaptive escalation applied by the reducer;
     // the resolved profile is the immutable session-start baseline.
@@ -227,7 +227,7 @@ export default function LogicDeductionScreen(
       stats: state.stats,
       outcomes: state.roundOutcomes,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -268,7 +268,7 @@ export default function LogicDeductionScreen(
       },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
@@ -496,6 +496,18 @@ export default function LogicDeductionScreen(
               >
                 Answer within {budgetSeconds}s
               </ThemedText>
+              {/* Display only: the reducer's monotonic deadline (null while
+              paused, so resume remounts the bar at the true fraction). */}
+              {!state.paused && state.roundDeadlineMs !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}`}
+                  deadlineMs={state.roundDeadlineMs}
+                  windowMs={state.params?.roundTimeMs ?? 24_000}
+                  clock={clock}
+                  label="Time left"
+                  testID={testId(GAME_ID, "countdown")}
+                />
+              ) : null}
               <View style={styles.options}>
                 {state.round.options.map((value, index) => (
                   <Option

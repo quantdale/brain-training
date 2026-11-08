@@ -55,3 +55,17 @@ describe("dailySpotlight", () => {
     expect(w.fromMs).toBe(Date.parse("2026-08-26T00:00:00"));
   });
 });
+
+describe('localDayWindow across daylight saving', () => {
+  // Fails under TZ=America/New_York if the window assumes a 24-hour day.
+  it('ends at the next local midnight on a 23-hour day', () => {
+    const { fromMs, toMs } = localDayWindow('2026-03-08');
+    expect(fromMs).toBe(new Date(2026, 2, 8).getTime());
+    expect(toMs + 1).toBe(new Date(2026, 2, 9).getTime());
+  });
+
+  it('ends at the next local midnight on a 25-hour day', () => {
+    const { toMs } = localDayWindow('2026-11-01');
+    expect(toMs + 1).toBe(new Date(2026, 10, 2).getTime());
+  });
+});

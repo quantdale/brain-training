@@ -176,6 +176,8 @@ export interface SequenceMemoryGameState {
   length: number;
   /** Tile indices of the current round's sequence. */
   sequence: readonly number[];
+  /** `sequenceKey` of every sequence served this session, oldest first (no-repeat history). */
+  usedSequenceKeys: readonly string[];
   /** Position in `sequence` currently flashing; -1 when not revealing. */
   revealedIndex: number;
   /** Next expected position during input. */
@@ -220,6 +222,7 @@ export function createInitialSequenceMemoryState(): SequenceMemoryGameState {
     inputEpoch: 0,
     length: 0,
     sequence: [],
+    usedSequenceKeys: [],
     revealedIndex: -1,
     inputIndex: 0,
     taps: [],

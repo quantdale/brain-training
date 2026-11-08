@@ -39,7 +39,7 @@ function segmentColor(scheme: SchemeName, key: string): string {
   return Families[scheme].accent.base;
 }
 
-/** Human label for a UTC `YYYY-MM-DD` calendar key (`Jan 20`). */
+/** Human label for a `YYYY-MM-DD` calendar key (`Jan 20`). */
 function calendarKeyLabel(dateKey: string): string {
   const ms = Date.parse(`${dateKey}T00:00:00Z`);
   return Number.isNaN(ms) ? dateKey : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -451,7 +451,7 @@ export function CalendarHeatmap({
         accessibilityRole="image"
         accessibilityLabel={summary ?? defaultSummary}>
         <ThemedText type="caption" themeColor="textSecondary">
-          {rangeLabel} · UTC
+          {rangeLabel}
         </ThemedText>
         <ThemedText
           type="caption"
@@ -476,8 +476,8 @@ export function CalendarHeatmap({
       accessible={false}
       accessibilityLabel={summary ?? defaultSummary}>
       <ThemedText type="caption" themeColor="textSecondary"
-        accessibilityLabel={`${summary ?? defaultSummary}. Calendar dates in UTC.`}>
-        {rangeLabel} · UTC
+        accessibilityLabel={summary ?? defaultSummary}>
+        {rangeLabel}
       </ThemedText>
       {firstWeek > 0 ? <ThemedText type="caption" themeColor="textSecondary">
         Latest {visibleWeeks.length} of {weeks.length} weeks shown

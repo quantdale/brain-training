@@ -178,6 +178,8 @@ export interface MathEquationBuilderGameState {
   target: number;
   /** Available numbers for the current puzzle. */
   availableNumbers: readonly number[];
+  /** `puzzleKey` of every puzzle served this session, oldest first (no-repeat history). */
+  usedPuzzleKeys: readonly string[];
   /** Operators allowed for the current puzzle. */
   allowedOperators: readonly Operator[];
   /** The equation tokens being built by the player. */
@@ -232,6 +234,7 @@ export function createInitialMathEquationBuilderState(): MathEquationBuilderGame
     roundIndex: 0,
     target: 0,
     availableNumbers: [],
+    usedPuzzleKeys: [],
     allowedOperators: [],
     equationTokens: [],
     usedNumberIndices: [],

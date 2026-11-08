@@ -31,6 +31,40 @@ Credentials, API keys, signing material, account logins, licensed models/assets,
 - macOS + Xcode for iOS validation
 
 
+## 2a. macOS and iOS workflow
+
+Verified on Apple Silicon with Xcode 27.2, iOS 27.2 Simulator, Node 22, npm 10
+and CocoaPods 1.17. The `ios/` directory is generated and gitignored, so change
+native settings through `app.json` or config plugins and regenerate.
+
+```bash
+cd apps/mobile
+npm ci
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8   # CocoaPods needs UTF-8
+npx expo prebuild --platform ios --clean --no-install
+pod install --project-directory=ios
+
+# Standalone Release app for the Simulator (no Metro needed)
+xcodebuild -workspace ios/BrainTraining.xcworkspace -scheme BrainTraining \
+  -configuration Release -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath /tmp/bt-ios CODE_SIGNING_ALLOWED=NO build
+xcrun simctl boot "iPhone 18 Pro"       # headless; does not open Simulator.app
+xcrun simctl install "iPhone 18 Pro" \
+  /tmp/bt-ios/Build/Products/Release-iphonesimulator/BrainTraining.app
+xcrun simctl launch "iPhone 18 Pro" com.braintraining.app
+```
+
+A successful launch command does not prove the app stayed up. Check with
+`xcrun simctl spawn "iPhone 18 Pro" launchctl list | grep braintraining` and a
+screenshot. `simctl openurl` raises a system confirmation for custom schemes. To
+show the software keyboard in a headless Simulator, run `xcrun simctl spawn
+<device> defaults write com.apple.Preferences AutomaticMinimizationEnabled -bool NO`.
+Release steps are in `docs/release/APP_STORE_READINESS.md`.
+
+The ARTEMIS paths elsewhere in this document are Windows paths and do not apply
+to macOS. Android tooling on this Mac is resolved from `ANDROID_HOME`.
+
 ## 3. Agent setup
 
 - Load repository instructions before acting. Prefer committed repository state over chat history.

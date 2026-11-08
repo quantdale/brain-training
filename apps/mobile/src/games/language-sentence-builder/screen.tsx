@@ -29,6 +29,7 @@ import { ThemedText } from '@/components/themed-text';
 import { AppIcon } from '@/components/ui/app-icon';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, useWindowDeadline } from '@/components/game-ui/countdown';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -127,6 +128,14 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     clock,
     `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
   );
+  // Display only: mirrors the timeout above (same activity, budget and reset
+  // key), so the bar shows the true remaining budget after a resume.
+  const countdownDeadlineMs = useWindowDeadline(
+    state.phase === 'puzzle' && !state.paused,
+    timeBudgetMs,
+    clock,
+    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -152,7 +161,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.stats.longestSentence);
@@ -175,7 +184,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
       avgWordLengthFactor: awlf,
@@ -202,7 +211,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
@@ -351,6 +360,16 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
             testID={testId(GAME_ID, 'category-hint')}>
             {CATEGORY_LABELS[state.scrambled.category] ?? state.scrambled.category}
           </ThemedText>
+          {countdownDeadlineMs !== null ? (
+            <Countdown
+              key={`${state.sessionId}:${state.roundIndex}:${countdownDeadlineMs}`}
+              deadlineMs={countdownDeadlineMs}
+              windowMs={timeBudgetMs}
+              clock={clock}
+              label="Time left"
+              testID={testId(GAME_ID, 'countdown')}
+            />
+          ) : null}
 
           {/* Player's ordered words (the sentence being built). At verdict the
           strip takes the verdict fill + boundary; the accessible name carries

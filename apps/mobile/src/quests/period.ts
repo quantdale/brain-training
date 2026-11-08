@@ -63,15 +63,18 @@ export function isoWeekKey(date: Date): string {
  * ISO 8601 week-year + week number. Algorithm: shift the local date to the
  * Thursday of its week (ISO weeks belong to the year containing their
  * Thursday), then week = ceil(dayOfYear(Thursday) / 7).
+ *
+ * The local y/m/d is projected onto UTC days before any arithmetic: UTC days
+ * are exactly 86 400 000 ms, while local midnights are 23 or 25 hours apart
+ * across a DST change and would skew the day-of-year.
  */
 export function isoWeekOf(date: Date): IsoWeek {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const dayNum = d.getDay() === 0 ? 7 : d.getDay(); // Mon=1 .. Sun=7
-  d.setDate(d.getDate() + 4 - dayNum); // Thursday of this ISO week
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  // Floor guards against DST skew between local midnights.
-  const dayOfYear = Math.floor((d.getTime() - yearStart.getTime()) / 86_400_000) + 1;
-  return { year: d.getFullYear(), week: Math.ceil(dayOfYear / 7) };
+  const dayMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayNum = new Date(dayMs).getUTCDay() || 7; // Mon=1 .. Sun=7
+  const thursdayMs = dayMs + (4 - dayNum) * 86_400_000; // Thursday of this ISO week
+  const year = new Date(thursdayMs).getUTCFullYear();
+  const dayOfYear = (thursdayMs - Date.UTC(year, 0, 1)) / 86_400_000 + 1;
+  return { year, week: Math.ceil(dayOfYear / 7) };
 }
 
 /** Parse `YYYY-MM-DD` into a *local* Date; rejects invalid calendar dates. */

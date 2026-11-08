@@ -10,6 +10,7 @@ import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
 import { StateCard } from "@/components/shell";
+import { plural } from "@/analytics/format";
 import { formatGoalProgress } from "@/components/shell/format";
 import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { MIN_TOUCH_TARGET } from "@/components/a11y";
@@ -736,14 +737,27 @@ export default function ProfileScreen() {
         <Tappable
           testID="profile-data-management"
           onPress={() => router.replace("/data-management")}
-          accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
+          accessibilityLabel="Backups and data. Backup, restore, and delete your local training data"
           accessibilityHint="Opens data management"
           style={[styles.destination, { backgroundColor: theme.surface, borderColor: theme.border }]}
           pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
           <AppIcon name="save" tone="accent" />
           <View style={styles.flexText}>
-            <ThemedText type="bodyLarge">Your data</ThemedText>
+            <ThemedText type="bodyLarge">Backups & data</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">Saved on this device. Backup, restore or delete.</ThemedText>
+          </View>
+          <AppIcon name="chevron" />
+        </Tappable>
+        <Tappable
+          testID="profile-about"
+          onPress={() => router.push("/about")}
+          accessibilityLabel="About and privacy"
+          accessibilityHint="Opens the privacy statement and app version"
+          style={[styles.destination, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+          <AppIcon name="settings" tone="accent" />
+          <View style={styles.flexText}>
+            <ThemedText type="bodyLarge">About & privacy</ThemedText>
           </View>
           <AppIcon name="chevron" />
         </Tappable>
@@ -783,7 +797,7 @@ export default function ProfileScreen() {
           <StreakStrip count={data.currentStreak} days={7} testID="profile-streak-week" />
           <ThemedText type="caption" themeColor="textSecondary"
             testID="profile-streak-summary" style={styles.streakSummary}>
-            {"Best " + data.longestStreak + " days · " + protectionCount + " protection items"}
+            {"Best " + plural(data.longestStreak, "day") + " · " + plural(protectionCount, "protection item")}
           </ThemedText>
         </View>
         {data.atRisk ? (

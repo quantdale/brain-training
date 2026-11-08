@@ -115,7 +115,7 @@ describe('Profile purpose and progress presentation', () => {
     expect(screen.getByTestId('profile-name').props.numberOfLines).toBeUndefined();
     expect(screen.getByTestId('profile-metrics')).toHaveStyle({ flexDirection: 'column' });
     expect(streakRail()).toHaveStyle({ flexDirection: 'column', alignItems: 'stretch' });
-    expect(screen.getByText('Best 0 days · 1 protection items').props.numberOfLines).toBeUndefined();
+    expect(screen.getByText('Best 0 days · 1 protection item').props.numberOfLines).toBeUndefined();
     expect(screen.getByTestId('profile-settings-theme-system')).toBeEnabled();
   });
 
@@ -148,7 +148,7 @@ describe('Profile purpose and progress presentation', () => {
   it('keeps the streak strip and caption eligible for one row on expanded screens', async () => {
     Object.assign(mockViewport, { width: 720, height: 1280 });
     await renderProfile();
-    const caption = screen.getByText('Best 0 days · 1 protection items');
+    const caption = screen.getByText('Best 0 days · 1 protection item');
     expect(streakRail()).toHaveStyle({ flexDirection: 'row' });
     const captionStyle = ReactNative.StyleSheet.flatten(caption.props.style);
     expect(captionStyle.width).toBeUndefined();

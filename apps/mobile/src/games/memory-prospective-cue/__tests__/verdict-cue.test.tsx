@@ -289,7 +289,7 @@ describe("SignalWatchScreen verdict cues", () => {
     // The bounded session reports real position to the shared HUD.
     const progress = screen.getByTestId("session-progress");
     expect(String(progress.props.accessibilityLabel)).toBe(
-      `1 of ${PARAMS.rounds} rounds complete`,
+      `Round progress, 1 of ${PARAMS.rounds}`,
     );
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));

@@ -36,7 +36,7 @@ export function formatRelativeDay(timestampMs: number, nowMs: number): string {
   if (dayDiff <= 0) return 'Today';
   if (dayDiff === 1) return 'Yesterday';
   if (dayDiff <= 6) return `${dayDiff} days ago`;
-  // UTC "Sep 11" label shared with every other shell surface (Campaign 026
+  // Local "Sep 11" label shared with every other shell surface (Campaign 026
   // visual-QA: bare `toLocaleDateString()` rendered "9/11/2026" next to
   // "Sep 11" labels on the same screens).
   return formatDayLabel(timestampMs);
@@ -84,6 +84,8 @@ export function playerFacingReason(detail: string): string {
   const cleaned = detail
     .replace(/\s*\(rating[^)]*\)?/g, '')
     .replace(/^weak (.+?) domain\b/i, 'Practice your $1 skills')
+    .replace(/^undertrained (.+?) domain\s*\([^)]*\)?/i, 'Build up your $1 skills')
+    .replace(/^rusty (.+?) domain\b/i, 'Get back to $1')
     .replace(/\s{2,}/g, ' ')
     .trim();
   return notPlayed ? `${cleaned} · not played for ~${notPlayed[1]}d` : cleaned;

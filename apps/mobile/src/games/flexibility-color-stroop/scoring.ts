@@ -8,12 +8,17 @@
  * Normalization rule (documented, deterministic):
  *
  *   accuracy       = correctTrials / trialsPlayed            (0..1)
- *   speedBonus     = clamp((2000 - avgResponseTimeMs) / 1500, 0, 1)  (faster = better)
+ *   speedBonus     = clamp((W - avgResponseTimeMs) / (0.75 * W), 0, 1)  (faster = better)
+ *                    W = the level's stimulus window (generatorInfo.stimulusMs;
+ *                    2000 for records persisted before it was recorded)
  *   flipBonus      = postFlipCorrect / max(1, totalFlips)    (0..1)
  *   value          = accuracy * (0.4 + 0.3 * speedBonus + 0.3 * flipBonus)
  *
  * The blend weights accuracy as the primary factor, with speed and rule-tracking
- * (post-flip accuracy) as secondary factors.
+ * (post-flip accuracy) as secondary factors. Scoring 1.5.0 made the speed term
+ * window-relative: the fixed `(2000 - avg) / 1500` could never fall below 0.67
+ * at Expert (1000 ms window, so avg <= 1000), handing every Expert run a free
+ * ~0.2 of value that Easy (2000 ms) could not get.
  *
  * Raw POINT scoring (campaign 014, scoringVersion 1.3.0):
  *
@@ -97,13 +102,32 @@ export function accuracyOf(correctTrials: number, trialsPlayed: number): number 
 // Re-exported from the shared SDK (single source: canonicalClamp01).
 export { clamp01 };
 
+/** Stimulus window assumed for records that predate `generatorInfo.stimulusMs`. */
+export const LEGACY_STIMULUS_WINDOW_MS = 2000;
+
 /**
  * Speed bonus factor for NORMALIZATION (0..1): faster average responses yield
- * higher values. Session-level diagnostic blend — deliberately independent of
- * the per-trial points formula above (changing this alters rating math).
+ * higher values. Window-relative: 1 at 25% of the stimulus window, 0 at the
+ * window edge, linear between (identical to the pre-1.5.0 `(2000 - ms) / 1500`
+ * when the window is 2000 ms). Session-level diagnostic blend — deliberately
+ * independent of the per-trial points formula above.
  */
-export function speedBonus(avgResponseTimeMs: number): number {
-  return clamp01((2000 - avgResponseTimeMs) / 1500);
+export function speedBonus(
+  avgResponseTimeMs: number,
+  stimulusMs: number = LEGACY_STIMULUS_WINDOW_MS,
+): number {
+  if (!Number.isFinite(stimulusMs) || stimulusMs <= 0) {
+    throw new RangeError(`stimulusMs must be a positive finite number, got ${stimulusMs}`);
+  }
+  return clamp01((stimulusMs - avgResponseTimeMs) / (0.75 * stimulusMs));
+}
+
+/** The window a persisted raw result was played under (legacy-safe). */
+function stimulusWindowOf(raw: ColorStroopRawResult): number {
+  const recorded = raw.generatorInfo?.stimulusMs;
+  return typeof recorded === 'number' && Number.isFinite(recorded) && recorded > 0
+    ? recorded
+    : LEGACY_STIMULUS_WINDOW_MS;
 }
 
 /** Flip bonus factor: correct post-flip trials indicate rule tracking. */
@@ -120,7 +144,7 @@ export function normalizeColorStroopResult(
   _context: NormalizeContext,
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.correctTrials, raw.trialsPlayed);
-  const speed = speedBonus(raw.avgResponseTimeMs);
+  const speed = speedBonus(raw.avgResponseTimeMs, stimulusWindowOf(raw));
   // The flip denominator is the session's ACTUAL number of rule-flip trials.
   // Records persisted before `totalFlips` existed fall back to the legacy
   // floor(totalTrials / 4) estimate.

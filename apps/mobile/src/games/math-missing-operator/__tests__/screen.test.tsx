@@ -14,7 +14,7 @@ import type { CompleteSessionInput } from '@/db';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { MATH_MISSING_OPERATOR_DIFFICULTY_PARAMS, budgetForRound } from '../difficulty';
-import { generateEquation } from '../generator';
+import { equationKey, generateEquation } from '../generator';
 import MathMissingOperatorScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
@@ -75,12 +75,14 @@ async function advanceTime(clock: ReturnType<typeof createFakeClock>, ms: number
 
 /** The equation the reducer generates for a normal session round. */
 function expectedEquation(seed: string, roundIndex: number) {
-  return generateEquation({
-    rng: createRng(seed),
-    roundIndex,
-    params: PARAMS,
-    level: 'normal',
-  });
+  // Replays earlier rounds because each round avoids the session's history.
+  const avoid: string[] = [];
+  let equation = generateEquation({ rng: createRng(seed), roundIndex: 0, params: PARAMS, level: 'normal', avoid });
+  for (let round = 1; round <= roundIndex; round += 1) {
+    avoid.push(equationKey(equation));
+    equation = generateEquation({ rng: createRng(seed), roundIndex: round, params: PARAMS, level: 'normal', avoid });
+  }
+  return equation;
 }
 
 describe('MathMissingOperatorScreen', () => {

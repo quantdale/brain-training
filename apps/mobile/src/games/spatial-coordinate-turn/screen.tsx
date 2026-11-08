@@ -222,7 +222,7 @@ export default function SpatialCoordinateTurnScreen(
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = spatialCoordinateTurnParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
@@ -242,7 +242,7 @@ export default function SpatialCoordinateTurnScreen(
       stats: state.stats,
       adaptiveReached: state.reachedTuning ?? undefined,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -266,7 +266,7 @@ export default function SpatialCoordinateTurnScreen(
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });

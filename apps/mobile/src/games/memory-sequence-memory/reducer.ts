@@ -24,7 +24,7 @@ import {
   resolveSequenceMemoryDifficulty,
   sequenceMemoryParamsFromProfile,
 } from './difficulty';
-import { generateSequence } from './generator';
+import { generateSequence, sequenceKey } from './generator';
 import {
   perfectClimbRounds,
   perfectClimbTaps,
@@ -90,6 +90,7 @@ export function sequenceMemoryGameReducer(
         inputEpoch: state.inputEpoch + 1,
         length: params.baseLength,
         sequence,
+        usedSequenceKeys: [sequenceKey(sequence)],
         revealedIndex: 0,
         inputIndex: 0,
         taps: [],
@@ -209,6 +210,7 @@ export function sequenceMemoryGameReducer(
         length,
         tileCount: params.tileCount,
         prevSequence: state.sequence,
+        avoid: state.usedSequenceKeys,
       });
       return {
         ...state,
@@ -217,6 +219,7 @@ export function sequenceMemoryGameReducer(
         inputEpoch: state.inputEpoch + 1,
         length,
         sequence,
+        usedSequenceKeys: [...state.usedSequenceKeys, sequenceKey(sequence)],
         revealedIndex: 0,
         inputIndex: 0,
         taps: [],

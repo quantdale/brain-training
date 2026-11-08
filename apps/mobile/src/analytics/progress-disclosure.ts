@@ -13,7 +13,7 @@ import type { DomainInsight } from "./domain-insights";
 import type { TrainingBalance } from "./training-balance";
 import { filterByWindow } from "./windows";
 import type { Direction, TimeWindowKey } from "./types";
-import { utcDateKey } from "./format";
+import { localDateKey } from "@/quests/period";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,7 +21,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export interface ProgressConsistency {
   /** Sessions completed inside the selected window. */
   sessions: number;
-  /** Distinct UTC days with at least one selected-window session. */
+  /** Distinct local calendar dates with at least one selected-window session. */
   activeDays: number;
   /** Sessions divided by active days, or 0 when there are no active days. */
   averagePerActiveDay: number;
@@ -72,7 +72,7 @@ export function buildProgressConsistency(
 ): ProgressConsistency {
   const inWindow = filterByWindow(sessions, nowMs, windowKey);
   const days = new Set(
-    inWindow.map((session) => utcDateKey(session.completedAt)),
+    inWindow.map((session) => localDateKey(new Date(session.completedAt))),
   );
   return {
     sessions: inWindow.length,

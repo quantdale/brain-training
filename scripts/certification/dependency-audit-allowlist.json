@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewedAt": "2026-11-08",
+  "reviewedAt": "2026-11-09",
   "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived. Stale entries whose GHSA is absent from a fresh production audit are removed so a later reappearance fails closed instead of inheriting an old waiver.",
   "allowlist": [
     {
@@ -44,6 +44,48 @@
       "reviewBy": "2027-03-31",
       "exitCondition": "expo-router advances to a query-string major carrying decode-uri-component >=0.5.0 with CommonJS interop (next planned Expo SDK upgrade); drop the entry then.",
       "remediationDependency": "upstream expo-router -> query-string 7.x (CJS) -> decode-uri-component ^0.2.2"
+    },
+    {
+      "package": "zod",
+      "advisory": "GHSA-mrhx-c7xc-m3w5",
+      "classification": "build-dev-toolchain",
+      "rationale": "Memory exhaustion while validating oversized collections, reached only by Expo CLI config validation on developer/CI machines, which process repository-controlled input. An iOS `expo export --source-maps` on 2026-11-09 found no module from this package among 2,333 bundled sources. Tracked in .agent/DEPENDENCY_AUDIT.md.",
+      "owner": "release-security (owner-delegated disposition 2026-11-09; owner-of-record quantdale)",
+      "reviewBy": "2027-03-31",
+      "exitCondition": "Expo CLI resolves zod >=4.6.6; re-verify at the next Expo SDK upgrade.",
+      "remediationDependency": "upstream @expo/cli (requires zod 3)"
+    },
+    {
+      "package": "glob",
+      "advisory": "GHSA-3g3m-2fjr-6pw4",
+      "classification": "build-dev-toolchain",
+      "rationale": "AbortSignal bypass in filesystem traversal, reached only by Expo CLI and Metro tooling on developer/CI machines. An iOS `expo export --source-maps` on 2026-11-09 found no module from this package among 2,333 bundled sources. Tracked in .agent/DEPENDENCY_AUDIT.md.",
+      "owner": "release-security (owner-delegated disposition 2026-11-09; owner-of-record quantdale)",
+      "reviewBy": "2027-03-31",
+      "exitCondition": "Expo CLI and Metro resolve glob >=14.0.2; re-verify at the next Expo SDK upgrade.",
+      "remediationDependency": "upstream @expo/cli and metro (glob ^13)"
+    },
+    {
+      "package": "minimatch",
+      "advisory": "GHSA-g3hv-75wg-m249",
+      "classification": "build-dev-toolchain",
+      "rationale": "Pattern-amplification DoS, reached only through glob@13 and Expo fingerprint tooling on developer/CI machines using repository-controlled patterns. An iOS `expo export --source-maps` on 2026-11-09 found no module from this package among 2,333 bundled sources. Tracked in .agent/DEPENDENCY_AUDIT.md.",
+      "owner": "release-security (owner-delegated disposition 2026-11-09; owner-of-record quantdale)",
+      "reviewBy": "2027-03-31",
+      "exitCondition": "Parents resolve minimatch >=11.0.1; re-verify at the next Expo SDK upgrade.",
+      "remediationDependency": "upstream glob@13 / @expo/fingerprint (minimatch ^10.2.2)"
+    },
+    {
+      "package": "decode-uri-component",
+      "advisory": "GHSA-qr28-fpjm-wq7f",
+      "classification": "runtime-accepted-debt",
+      "rationale": "Quadratic percent-decoding DoS. The code ships through expo-router -> query-string@7, so this is runtime debt. No compatible fix: expo-router requires query-string from CommonJS and the patched decode-uri-component is ESM-only. Exposure is limited to a crafted deep link: the app has no network input, iOS asks the user to confirm custom-scheme links, and the worst outcome is a stalled app that restarts with stored data intact. Tracked in .agent/KNOWN_ISSUES.md.",
+      "owner": "release-security (owner-delegated disposition 2026-11-09; owner-of-record quantdale)",
+      "reviewBy": "2027-03-31",
+      "expires": "2027-03-31T00:00:00.000Z",
+      "exitCondition": "Upgrade to an Expo SDK whose expo-router no longer requires query-string@7 through CommonJS (next planned SDK upgrade); drop the entry then.",
+      "remediationDependency": "upstream expo-router -> query-string 7.x (CJS) -> decode-uri-component ^0.2.2",
+      "tracking": ".agent/KNOWN_ISSUES.md: Dependency gate — accepted advisories (2026-11-09)"
     }
   ]
 }

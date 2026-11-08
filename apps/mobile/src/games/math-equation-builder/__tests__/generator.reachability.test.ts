@@ -231,3 +231,21 @@ describe('generation sweep over seeds and difficulties', () => {
     expect(roundOneDraws.size).toBeGreaterThan(3);
   });
 });
+
+describe('adaptive de-escalation stays generatable', () => {
+  it('produces a solvable puzzle after a failed round at the easiest level', () => {
+    const params = nextAdaptiveParams({ ...ADAPTIVE_PARAMS }, false);
+    expect(params.numbersCount).toBe(ADAPTIVE_PARAMS.minNumbersCount);
+    for (let seed = 1; seed <= 200; seed += 1) {
+      const puzzle = generatePuzzle({
+        rng: createRng(`after-fail-${seed}`),
+        roundIndex: 1,
+        prevTarget: null,
+        params,
+      });
+      expect(puzzle.target).toBeGreaterThanOrEqual(params.targetMin);
+      expect(puzzle.target).toBeLessThanOrEqual(params.targetMax);
+      expect(canSolve(puzzle.target, puzzle.numbers, puzzle.operators)).toBe(true);
+    }
+  });
+});

@@ -24,7 +24,7 @@ import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -143,7 +143,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = languageParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.currentTier);
@@ -160,7 +160,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
       outcomes: state.roundOutcomes,
       finalTier: state.currentTier,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -188,7 +188,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
@@ -386,6 +386,18 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
               <ThemedText type="caption" themeColor="textSecondary" testID={testId(GAME_ID, 'time-budget')}>
                 Answer within {budgetSeconds}s
               </ThemedText>
+              {/* Display only: the reducer's monotonic deadline (null while
+              paused, so resume remounts the bar at the true fraction). */}
+              {!state.paused && state.roundDeadlineMs !== null ? (
+                <Countdown
+                  key={`${state.sessionId}:${state.roundIndex}`}
+                  deadlineMs={state.roundDeadlineMs}
+                  windowMs={state.roundBudgetMs}
+                  clock={clock}
+                  label="Time left"
+                  testID={testId(GAME_ID, 'countdown')}
+                />
+              ) : null}
               <View style={styles.options}>
                 {state.round.options.map((word, index) => (
                   <Option

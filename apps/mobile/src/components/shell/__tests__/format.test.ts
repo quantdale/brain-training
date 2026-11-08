@@ -79,12 +79,12 @@ describe('playerFacingReason', () => {
   it('keeps the staleness fact while dropping the rating', () => {
     expect(
       playerFacingReason('rusty Attention domain (rating 1200, not played for ~40d)'),
-    ).toBe('rusty Attention domain · not played for ~40d');
+    ).toBe('Get back to Attention · not played for ~40d');
   });
 
-  it('leaves rating-free reasons untouched', () => {
+  it('rewrites session-count bookkeeping as player language', () => {
     expect(playerFacingReason('undertrained Logic domain (0 sessions so far)')).toBe(
-      'undertrained Logic domain (0 sessions so far)',
+      'Build up your Logic skills',
     );
   });
 });

@@ -31,19 +31,19 @@ describe('computeComposite', () => {
     expect(result.domainCount).toBe(KNOWN_DOMAINS.length);
   });
 
-  it('weights stale domains less', () => {
+  it('reports stale domains without discounting them (§15)', () => {
     const now = Date.now();
     const staleTime = now - 60 * 24 * 60 * 60 * 1000; // 60 days ago
-    
+
     const ratings = [
       { domain: 'Memory', rating: 1100, sessions: 5, updatedAt: now }, // fresh
       { domain: 'Attention', rating: 900, sessions: 3, updatedAt: staleTime }, // stale
     ];
-    
+
     const result = computeComposite(ratings, KNOWN_DOMAINS, now);
-    // Fresh domain gets full weight, stale gets 0.5 weight
-    // Domain count should be 7.5 (1 fresh + 0.5 stale + 6 unseen)
     expect(result.staleDomainCount).toBe(1);
+    expect(result.domainCount).toBe(KNOWN_DOMAINS.length);
+    expect(result.composite).toBe(Math.round((1100 + 900 + 6 * INITIAL_RATING) / 8));
   });
 
   it('includes domains not in knownDomains', () => {

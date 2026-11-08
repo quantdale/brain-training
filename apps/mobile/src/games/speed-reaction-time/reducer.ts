@@ -260,7 +260,9 @@ export function speedGameReducer(
         // lifecycle and persists in an effect watching the `results` phase.
         return { ...state, phase: 'results', roundOutcome: null };
       }
-      const passed = state.roundOutcome === 'passed';
+      // A correctly withheld NO-GO is a success (scored as a pass): counting it
+      // as a failure made correct inhibition loosen adaptive difficulty.
+      const passed = state.roundOutcome === 'passed' || state.roundOutcome === 'withheld';
       const delayMinMs = nextDelayMinMs(state.delayMinMs, passed, state.difficulty, params);
       const delayMs = generateRoundDelay({
         rng: createRng(state.seed),

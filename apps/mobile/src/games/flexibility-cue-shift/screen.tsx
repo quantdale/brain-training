@@ -190,7 +190,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     session.completeIfActive();
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
-    const completedAtMs = Date.now();
+    const { startedAtMs, completedAtMs } = session.completionWallClock(state.startedAtMs);
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = flexibilityCueParamsFromProfile(state.profile);
     const finalSwitchRate = resolvedParams.switchRate;
@@ -211,7 +211,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
       seed: state.seed,
       stats: state.stats,
       forced: state.forced,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       activeDurationMs,
       pausedDurationMs,
     });
@@ -239,7 +239,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
       difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
-      startedAtMs: state.startedAtMs,
+      startedAtMs,
       completedAtMs,
       activeDurationMs,
     });
