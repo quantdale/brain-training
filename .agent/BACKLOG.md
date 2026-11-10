@@ -20,12 +20,15 @@ plus historical follow-ups.
 Each of these was investigated and deliberately NOT changed. None blocks a gate.
 
 - **Tracked-but-ignored `apps/mobile/expo-env.d.ts`.** It is committed on
-  purpose (ADR 0004) so CI typechecks without a dev-server run, and it is also
-  matched by `apps/mobile/.gitignore` (both the hand-written and the
-  expo-cli-generated block). Verified consequence: editing it does not show up
-  in `git status --short`. Fixing this means narrowing the ignore rule so the
-  intent and the tree agree; that touches the prebuild revert ritual ADR 0004
-  describes, so it needs its own change rather than a cleanup drive-by.
+  purpose (ADR 0004) so CI typechecks without a dev-server run, yet an
+  expo-cli-generated rule in `apps/mobile/.gitignore` also matches it, which is
+  why `git ls-files -i -c --exclude-standard` reports exactly this one file.
+  Consequence measured, not assumed: tracking wins, so edits ARE visible in
+  `git status` (probe: append a line → `M`, revert → byte-identical). The cost
+  is a self-contradicting .gitignore that makes the tracked-but-ignored check
+  unusable as a cleanliness signal. Fixing it means narrowing the generated
+  rule while keeping the prebuild revert ritual ADR 0004 describes — its own
+  change, not a cleanup drive-by.
 - **`WorkoutCasValues` / `WorkoutCasExecutor` semantics.** They were deleted as
   dead types. If a future writer wants the CAS values as a named interface, the
   honest move is to derive it from the existing predicate helpers rather than

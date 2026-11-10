@@ -31,9 +31,20 @@ Work done, all of it non-product and evidence-backed:
   patch versions ahead of the lockfile (typecheck/lint/tests were unaffected).
   `package.json` and `package-lock.json` were not modified by this session.
 
+An earlier draft of this note claimed that editing
+`apps/mobile/expo-env.d.ts` is invisible in `git status`. That claim was WRONG
+and is retracted: Git always reports modifications to tracked files, ignore
+rules notwithstanding, and a probe (append a line, observe `M`, revert to a
+byte-identical blob) confirmed it. The real, narrower fact is that the file is
+simultaneously tracked and matched by `apps/mobile/.gitignore` — the expo-cli
+generated block adds `expo-env.d.ts` right below a comment saying the file is
+intentionally committed — so `git ls-files -i -c --exclude-standard` reports it
+and the ignore rule contradicts the stated intent. Harmless today because
+tracking wins, and left alone because ADR 0004 owns that ritual.
+
 Not touched: certification evidence, coverage ledgers, campaigns 001-080 status,
-`.expo/types` handling, dependency versions, and the tracked `expo-env.d.ts`
-ignore overlap (an accepted ADR-0004 trade-off, recorded under Deferred).
+`.expo/types` handling, dependency versions, and the `expo-env.d.ts` ignore
+overlap described above.
 Verified: typecheck PASS, full Jest 731/735 suites (8238 passed, 5 classified
 skips), `npx eslint .` 0 problems, `npx expo export --platform web` PASS, and
 repo-state, registry, spec-store, provenance, task-ownership, offline, secrets,

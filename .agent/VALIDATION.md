@@ -38,11 +38,15 @@ Environment notes, recorded rather than claimed green:
   after. It is network/time-sourced upstream drift, classified advisory by
   `.agent/GOVERNANCE.json`; the hermetic push-path equivalent
   (`validate-expo-alignment.mjs`) is aligned.
-- The tracked `apps/mobile/expo-env.d.ts` is also matched by
-  `apps/mobile/.gitignore`, so a modification to it is invisible in
-  `git status --short`. Verified by appending a byte and observing the status
-  stay clean; the byte was reverted. ADR 0004 keeps the file tracked
-  deliberately, so this was NOT changed — see `.agent/BACKLOG.md`.
+- The tracked `apps/mobile/expo-env.d.ts` is also matched by an
+  expo-cli-generated rule in `apps/mobile/.gitignore`, so
+  `git ls-files -i -c --exclude-standard` lists it: the ignore rule contradicts
+  the "intentionally committed" comment above it. Tracking still wins, so
+  edits are reported normally — a probe appending a line produced
+  `M apps/mobile/expo-env.d.ts` and was reverted to a byte-identical blob. A
+  first draft of this record claimed such edits were invisible; that claim was
+  tested and is retracted. ADR 0004 keeps the file tracked deliberately, so the
+  rule was NOT changed — see `.agent/BACKLOG.md`.
 - Native/runtime gates (Android build smoke, ARTEMIS journeys, iOS build) were
   not run by this cleanup; nothing they cover was modified.
 
