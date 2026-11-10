@@ -19,10 +19,6 @@ const ARTWORK: Partial<Record<ArtworkName, ImageSourcePropType>> = {
   spatial: require('../../../assets/artwork/spatial.png'),
 };
 
-export function hasDomainArtwork(name: ArtworkName): boolean {
-  return ARTWORK[name] !== undefined;
-}
-
 export function DomainArtwork({ name, size = 112, style, testID }: {
   name: ArtworkName;
   size?: number;

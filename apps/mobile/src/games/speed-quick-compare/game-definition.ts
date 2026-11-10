@@ -1,5 +1,5 @@
 /**
- * Tap Rush game — game definition.
+ * Quick Compare game — game definition.
  *
  * Single source of truth is `game.json` (the registry generator validates the
  * same file); this module parses it through the SDK contract and exports the

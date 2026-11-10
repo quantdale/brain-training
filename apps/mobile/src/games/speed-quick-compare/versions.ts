@@ -1,5 +1,5 @@
 /**
- * Version metadata for the Tap Rush game.
+ * Version metadata for the Quick Compare game.
  *
  * `gameVersion` / `generatorVersion` are declared in `game.json` (the single
  * source of truth consumed by the registry generator); this module only owns

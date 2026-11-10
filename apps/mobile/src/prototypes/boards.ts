@@ -5,9 +5,8 @@
  * each candidate supplies its own skin via the BoardSkin callbacks.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useWindowDimensions } from 'react-native';
-import { MEMORY_DEMO_SEQUENCE, type PrototypeStage } from './harness';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MEMORY_DEMO_SEQUENCE } from './harness';
 
 export type MemoryPhase = 'brief' | 'watch' | 'input' | 'correct' | 'incorrect';
 export type EquationPhase = 'input' | 'correct' | 'incorrect';
@@ -147,28 +146,4 @@ export function useEquationBoard(target: number, numbers: readonly number[], ope
   }, []);
 
   return { phase, tokens, builtValue, push, clear, check, retry, numbers, operators };
-}
-
-/** Stage navigation seam shared by board screens (Continue → result). */
-export function useStageNav(onStage: (s: PrototypeStage) => void) {
-  return useMemo(
-    () => ({
-      toResult: () => onStage('result'),
-      toHome: () => onStage('home'),
-    }),
-    [onStage],
-  );
-}
-
-
-
-export { MEMORY_DEMO_SEQUENCE };
-export type { PrototypeStage };
-
-/** Explicit square tile size for the 3x3 memory grid: aspectRatio collapses to
- * zero height inside wrap containers on this Yoga version, so the boards size
- * cells from the measured window instead. */
-export function useMemoryTileSize(): number {
-  const { width } = useWindowDimensions();
-  return useMemo(() => Math.floor((Math.min(width, 720) - 36 - 20) / 3), [width]);
 }

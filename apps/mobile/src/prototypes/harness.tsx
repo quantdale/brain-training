@@ -53,10 +53,6 @@ export interface PrototypeProps {
   onStage: (stage: PrototypeStage) => void;
 }
 
-/** A candidate system component. */
-export type PrototypeComponent = (props: PrototypeProps) => React.JSX.Element;
-
-
 const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',

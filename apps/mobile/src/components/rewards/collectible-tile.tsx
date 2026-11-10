@@ -18,7 +18,7 @@ import { Tappable } from '@/components/ui/tappable';
 import { HAIRLINE } from '@/components/ui/radius';
 import { AppIcon } from '@/components/ui/app-icon';
 import { useTheme } from '@/hooks/use-theme';
-import { Radii, Spacing, type ColorTheme, type ThemeColor } from '@/theme/tokens';
+import { Radii, Spacing, type ThemeColor } from '@/theme/tokens';
 import type { CosmeticSlot } from '@/cosmetics';
 
 /** Ownership state of a collectible. */
@@ -196,11 +196,6 @@ function slotLabel(slot: CosmeticSlot): string {
   if (slot === 'avatarFrame') return 'avatar frame';
   if (slot === 'accent') return 'accent colour';
   return 'celebration';
-}
-
-/** Plate background per theme is exported so callers can keep tones consistent. */
-export function collectiblePlateColor(theme: ColorTheme, state: CollectibleState): string {
-  return state === 'locked' ? theme.surfaceSunken : theme.surface;
 }
 
 const styles = StyleSheet.create({

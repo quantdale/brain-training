@@ -410,10 +410,6 @@ export function getGameIdentity(game: GameIdentitySource): GameIdentity {
   };
 }
 
-export function identityFamilyLabel(family: GameIdentityFamily): string {
-  return IDENTITY_FAMILY_LABELS[family];
-}
-
 export interface IdentityMarkProps {
   family: GameIdentityFamily;
   size?: number;

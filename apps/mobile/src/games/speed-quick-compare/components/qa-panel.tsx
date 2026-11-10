@@ -1,5 +1,5 @@
 /**
- * QaPanel — dev-only force-state controls for the Tap Rush game (campaign 006R task 10.3).
+ * QaPanel — dev-only force-state controls for the Quick Compare game (campaign 006R task 10.3).
  *
  * Generic shell (toggle + force buttons) is shared via `QaPanelShell`; this
  * thin wrapper just maps the game's `onForceWin`/`onForceLose` into the shared

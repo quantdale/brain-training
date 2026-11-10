@@ -34,7 +34,7 @@
  * normalizes it.
  */
 
-import type { SQLiteAdapter, SQLiteRunResult } from './adapter';
+import type { SQLiteRunResult } from './adapter';
 import type { SQLiteValue } from './types';
 
 /** The row state a writer read, and therefore the state its write is conditional on. */
@@ -46,14 +46,6 @@ export interface WorkoutCasBaseline {
   rerollAttempt: number;
   seedVersion: number;
   /** The EXACT `game_ids_json` bytes read, never a re-serialization. */
-  gameIdsJson: string;
-}
-
-export interface WorkoutCasValues {
-  updatedAt: number;
-  currentIndex: number;
-  status: string;
-  rerollAttempt: number;
   gameIdsJson: string;
 }
 
@@ -141,6 +133,3 @@ export async function applyWorkoutPositionCas(
   );
   return workoutCasApplied(result);
 }
-
-/** Narrow an adapter or transaction to what a CAS write needs. */
-export type WorkoutCasExecutor = Pick<SQLiteAdapter, 'run'>;
