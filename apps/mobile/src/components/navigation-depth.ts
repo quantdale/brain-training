@@ -27,8 +27,6 @@
  * "is this top-level?" from a string is a guard that can be fooled.
  */
 
-import { useRouter, type Href } from 'expo-router';
-
 /**
  * Destinations that are PLACES rather than screens.
  *
@@ -73,24 +71,4 @@ export function isTopLevelHref(href: string): boolean {
     return !/[?#]id=/.test(raw);
   }
   return TOP_LEVEL_HREFS.includes(path);
-}
-
-/**
- * Go to a TOP-LEVEL destination, replacing the current stack entry.
- *
- * Use for tab and root-level destinations. For a detail screen use
- * `router.push` — see the module note.
- */
-export function useTopLevelNav(): (href: Href) => void {
-  const router = useRouter();
-  return (href: Href) => {
-    if (isTopLevelHref(String(href))) {
-      router.replace(href);
-      return;
-    }
-    // Defensive: reaching for a detail route through this helper is a mistake,
-    // and pushing it is at least the behaviour the route expects. `replace`
-    // would silently destroy the screen the user is leaving.
-    router.push(href);
-  };
 }
