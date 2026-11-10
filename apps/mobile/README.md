@@ -19,7 +19,7 @@ Run from `apps/mobile`:
 - Start the dev server: `npx expo start`
 - Test: `npx jest`
 - Typecheck: `npx tsc --noEmit`
-- Lint: `npx expo lint`
+- Lint: `npx expo lint` (app source only) or `npx eslint .` (whole package)
 
 ## Android automation
 

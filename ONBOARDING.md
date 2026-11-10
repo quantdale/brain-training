@@ -105,6 +105,7 @@ cd apps/mobile
 npm run typecheck
 npm run test:ci
 npm run lint
+npx eslint .          # whole app package: also covers jest/ and plugins/
 npx expo-doctor       # 20/21 acceptable: known upstream patch drift (advisory,
                       # weekly gate); the push-path gate is
                       # scripts/validate-expo-alignment.mjs (hermetic)

@@ -7,9 +7,11 @@ Closed-source, offline-first brain-training application for Android and iOS
 > GameHost architecture, with Workout V3 (signal-ranked selection over
 > short/standard/extended/domain-focus templates, truthful per-game reasons,
 > reroll economics), adaptive progression, achievements, quests, rewards/cosmetics, analytics,
-> and backup/data-portability. Android is the primary validated platform;
-> iOS source compatibility is maintained but builds are NOT VALIDATED on this
-> Windows host (requires macOS/Xcode).
+> and backup/data-portability. Android is the primary validated platform. iOS
+> builds, launches and runs on the Simulator (ADR-0006; iOS Build Smoke CI
+> compiles AND launches it), and a physical-device Release build compiles
+> unsigned. Physical-iPhone runtime, signing, TestFlight and physical
+> performance are NOT VALIDATED — see `docs/release/APP_STORE_READINESS.md`.
 
 ## Repository layout
 
@@ -74,10 +76,15 @@ App-level gates (from `apps/mobile/`):
 ```bash
 npm run typecheck    # tsc --noEmit
 npm run test:ci      # jest full suite (2 workers — matches CI)
-npm run lint         # expo lint
+npm run lint         # expo lint — src/app/components only
+npx eslint .         # whole app package, including jest/ and plugins/
 npx expo-doctor      # 20/21 acceptable — known upstream patch drift (advisory,
                      # weekly); push-path gate is scripts/validate-expo-alignment.mjs
 ```
+
+`npm run lint` is `expo lint`, which deliberately covers only the app source
+tree. `npx eslint .` additionally covers `jest/`, `plugins/` and the config
+files; it is the command that catches a problem in test infrastructure.
 
 Repo-level gates from the root:
 
