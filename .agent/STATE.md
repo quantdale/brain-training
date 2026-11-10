@@ -1,10 +1,52 @@
 # Durable Project State
 
-## macOS and iOS production readiness — 2026-11-08 (IN PROGRESS)
+## Repository cleanup — 2026-11-10 (maintenance only)
 
-Owner-directed work on branch `claude/macos-production-readiness`, based on
-`a3dbb468`. The owner authorized merging it to `main` after Codex review on
-2026-11-09. Campaign 080 stays ACTIVE.
+Freshness gate: `git fetch --all --prune` moved `origin/main` from `a3dbb468`
+to `7b13b7e4` (42 commits, the macOS/iOS PR merge); the checkout was
+fast-forwarded to it before any edit. No branch or worktree other than `main`
+exists, `git log --branches --not --remotes` is empty, and no stash was present.
+A stale, EMPTY directory at
+`_AgentWorktrees/brain-training/maintenance-repository-cleanup` (left by the
+2026-11-08 session) was removed; it held no git metadata and no files.
+
+Work done, all of it non-product and evidence-backed:
+
+- Nine provably-dead exports deleted. Emptiness was measured with a repo-wide
+  word index over every tracked text file and then confirmed against the
+  TypeScript AST, so a declaration could be distinguished from a usage:
+  `hasDomainArtwork`, `identityFamilyLabel`, `collectiblePlateColor`,
+  `useTopLevelNav`, `useStageNav`, `useMemoryTileSize`, `PrototypeComponent`,
+  `WorkoutCasValues`, `WorkoutCasExecutor`. `useTopLevelNav` also duplicated the
+  top-level-navigation rule that `isTopLevelHref` plus the change-072 guard
+  already own.
+- `speed-quick-compare` was created as a copy of `speed-tap-rush`, and three
+  headers still said "Tap Rush": `game-definition.ts`, `versions.ts`,
+  `components/qa-panel.tsx`. They now use the module's own `game.json` name.
+- `npx eslint .` is clean. It was NOT clean before: `jest/setup.js` used
+  `afterEach` with only the `jest` global declared, and one plugin test put its
+  `no-require-imports` directive on the wrong line. `npm run lint` never saw
+  either because `expo lint` only covers src/app/components.
+- The `node_modules` tree was repaired with `npm ci` after it was found 10 Expo
+  patch versions ahead of the lockfile (typecheck/lint/tests were unaffected).
+  `package.json` and `package-lock.json` were not modified by this session.
+
+Not touched: certification evidence, coverage ledgers, campaigns 001-080 status,
+`.expo/types` handling, dependency versions, and the tracked `expo-env.d.ts`
+ignore overlap (an accepted ADR-0004 trade-off, recorded under Deferred).
+Verified: typecheck PASS, full Jest 731/735 suites (8238 passed, 5 classified
+skips), `npx eslint .` 0 problems, `npx expo export --platform web` PASS, and
+repo-state, registry, spec-store, provenance, task-ownership, offline, secrets,
+workflow-hygiene, affected-sync, expo-alignment, CLI-contract, runtime-QA
+contract, clean-checkout self-test and strict OpenSpec 207/207 all PASS. This
+note does not close or advance Campaign 080.
+
+## macOS and iOS production readiness — 2026-11-08 (MERGED 2026-11-09)
+
+Owner-directed work landed on `main` as PR #1 (`7b13b7e4`, merged 2026-11-09)
+after Codex review; it was based on `a3dbb468`. Both `main` and `origin/main`
+point at that merge and no other branch or worktree exists. Campaign 080 stays
+ACTIVE.
 
 First iOS runtime on this Mac (Xcode 27.2, iOS 27.2 Simulator, Apple M5): the
 Release app crashed at launch with SIGTRAP because the iOS 27 SDK requires the
@@ -13,7 +55,7 @@ app renders Home and stays alive. iOS floor is now 17.0 (constitution §2), with
 an explicit privacy manifest and `ITSAppUsesNonExemptEncryption=false`. No
 encryption is used; backups only carry a SHA-256 integrity checksum.
 
-Repairs on this branch: iOS swipe-back and keyboard handling; manual Easy no
+Repairs in that PR: iOS swipe-back and keyboard handling; manual Easy no
 longer raises ratings (owner may overrule the §9 reading); merge import keeps
 streak claims; session clock-skew, quest rollover, workout-summary and calendar
 fixes; Missing Operator repeats; Equation Builder Adaptive crash; scoring and
@@ -22,7 +64,7 @@ in-session repeat fixes in five games; local-date analytics; visible countdowns
 in ten games; dark-mode meter contrast.
 Status and owner actions: `docs/release/APP_STORE_READINESS.md`. The
 installed Campaign 080 Android APK predates these changes, so its native
-evidence does not describe this branch. The four open advisories were waived
+evidence does not describe the merged source. The four open advisories were waived
 under owner delegation on 2026-11-09. The owner paused this repository after
 the merge. Next when resumed: App Store owner actions in the release guide,
 physical iPhone testing, then KNOWN_ISSUES.

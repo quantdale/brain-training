@@ -7,9 +7,10 @@
 **Dependency gate (2026-11-09):** the owner delegated the decision. All four
 advisories are waived with evidence; see `.agent/DEPENDENCY_AUDIT.md`.
 
-**2026-11-08:** owner-directed macOS/iOS readiness work is on branch
-`claude/macos-production-readiness`, not merged. It changes application source,
-so Android native evidence below predates it. See `.agent/STATE.md`.
+**2026-11-08:** owner-directed macOS/iOS readiness work merged to `main` as
+PR #1 (`7b13b7e4`, 2026-11-09) after Codex review. It changes application
+source, so the Android native evidence below (gathered before it) describes an
+older build. See `.agent/STATE.md`.
 
 **Current checkpoint (2026-10-24):** Independent executable **ACCEPT** at
 `481bf8aa` for the seven repaired engine findings (171/171 checks; no new P1/P2

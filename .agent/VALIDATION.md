@@ -1,3 +1,51 @@
+# Repository cleanup — 2026-11-10
+
+Baseline used for every comparison here: `main` @ `7b13b7e4` (= `origin/main`
+after `git fetch --all --prune`). No product source was changed by this session;
+the only source edits are dead-export deletions and comment corrections.
+
+| Gate | Baseline (7b13b7e4) | After cleanup |
+|---|---|---|
+| `tsc --noEmit` | PASS | PASS |
+| Jest full suite (`--ci --maxWorkers=2`) | 731/735 suites, 8238 passed / 5 skipped | 731/735 suites, 8238 passed / 5 skipped |
+| `npm run lint` (`expo lint`) | PASS | PASS |
+| `npx eslint .` (whole app package) | **FAIL** — 1 error + 2 warnings | PASS — 0 problems |
+| `npx expo export --platform web` | PASS | PASS |
+| `npx expo-doctor` | 20/21 (10 SDK patches behind bundled map; advisory, weekly) | 20/21, unchanged |
+| `npx expo config --json` | resolved | resolved after `npm ci` repaired node_modules |
+| `validate-repo-state` | PASS | PASS |
+| registry / spec-store `--check` | PASS | PASS |
+| provenance / task-ownership | PASS | PASS |
+| offline / secrets / workflows | PASS | PASS |
+| `validate-affected --check-sync` | PASS | PASS |
+| `validate-expo-alignment` | PASS (22 aligned) | PASS (22 aligned) |
+| `validate-cli-contracts` | PASS (16 scripts) | PASS (16 scripts) |
+| `validate-runtime-qa-contract` (+`--self-test`) | PASS (16 checks) | PASS (16 checks) |
+| `certify-clean-checkout --self-test` | PASS (14 checks) | PASS (14 checks) |
+| `validate-dependency-audit` | PASS (8 accepted, 0 unallowlisted) | PASS (not re-run after cleanup; no dependency changed) |
+| OpenSpec `validate --all --strict` @1.9.0 | 207/207 PASS | 207/207 PASS |
+
+Environment notes, recorded rather than claimed green:
+
+- The working `node_modules` was 10 Expo patch versions AHEAD of
+  `package-lock.json` on arrival (e.g. `expo-router` 57.0.30 installed vs
+  57.0.22 locked), and `expo-build-properties` was missing entirely, which made
+  `expo config`/`expo-doctor` fail with a plugin-resolution error. `npm ci`
+  restored the lockfile exactly; `package.json`/`package-lock.json` are
+  unmodified by this session. The baseline gates above were measured AFTER that
+  repair for the post-cleanup column and BEFORE it for the Jest baseline run.
+- `expo-doctor` reports 10 packages behind the bundled SDK map both before and
+  after. It is network/time-sourced upstream drift, classified advisory by
+  `.agent/GOVERNANCE.json`; the hermetic push-path equivalent
+  (`validate-expo-alignment.mjs`) is aligned.
+- The tracked `apps/mobile/expo-env.d.ts` is also matched by
+  `apps/mobile/.gitignore`, so a modification to it is invisible in
+  `git status --short`. Verified by appending a byte and observing the status
+  stay clean; the byte was reverted. ADR 0004 keeps the file tracked
+  deliberately, so this was NOT changed — see `.agent/BACKLOG.md`.
+- Native/runtime gates (Android build smoke, ARTEMIS journeys, iOS build) were
+  not run by this cleanup; nothing they cover was modified.
+
 # macOS and iOS first-run baseline — 2026-11-08
 
 - Baseline at `a3dbb468` on macOS: `tsc --noEmit` PASS, `expo lint` PASS, Jest

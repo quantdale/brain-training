@@ -15,6 +15,45 @@ plus historical follow-ups.
 - Human title-hidden recognizability/taste assessment remains external. Static rule-timing/secondary-cue limits are in078 RECOGNIZABILITY; no required source correction remains.
 - Physical-device memory/scroll profiling could assess the explicit26.25MiB decoded artwork budget and poor emulator smoothness. Current comparison is PERFORMANCE, not60FPS certification.
 
+## Deferred cleanup candidates (2026-11-10 audit)
+
+Each of these was investigated and deliberately NOT changed. None blocks a gate.
+
+- **Tracked-but-ignored `apps/mobile/expo-env.d.ts`.** It is committed on
+  purpose (ADR 0004) so CI typechecks without a dev-server run, and it is also
+  matched by `apps/mobile/.gitignore` (both the hand-written and the
+  expo-cli-generated block). Verified consequence: editing it does not show up
+  in `git status --short`. Fixing this means narrowing the ignore rule so the
+  intent and the tree agree; that touches the prebuild revert ritual ADR 0004
+  describes, so it needs its own change rather than a cleanup drive-by.
+- **`WorkoutCasValues` / `WorkoutCasExecutor` semantics.** They were deleted as
+  dead types. If a future writer wants the CAS values as a named interface, the
+  honest move is to derive it from the existing predicate helpers rather than
+  re-declare a parallel shape that can drift.
+- **157 exported interfaces/type aliases that nothing imports.** Most describe
+  props of a component in the same file or DTOs returned by an exported
+  function, so deletion is a taste call rather than a dead-code call. Deleting
+  them wholesale would churn 130+ files for no behavioural gain. Evidence
+  exists on request; treat as optional.
+- **One-shot 076-f evidence scripts.** `scripts/qa/{build-matched-gallery,
+  correct-076f-claims,update-14-3-14-7,verify-theme-evidence,
+  add-d3-row-addendum,build-final-gallery,publish-visual-report,
+  reconcile-parent-tasks,refresh-manual-verdicts,artemis-stop}.mjs` are
+  cited by no file, but they are the reproducible procedure behind
+  campaign 076-f's committed evidence package. They are kept: deleting the
+  tool that produced retained evidence makes the evidence unauditable.
+- **`docs/bugfixes/ui-scaling/screenshots/default-font{1,15}-light-header.png`
+  are byte-identical to `…-light-start.png`,** and `NATIVE_MATRIX.json` claims
+  the same hash for both. Each label is referenced and each hash matches the
+  bytes, so this is a duplicate CAPTURE (same screen filed under two labels),
+  not a hash or path defect. Re-capturing would need a device run to prove
+  which label is wrong; nothing downstream consumes the pair differently.
+- **`.agent/` campaign prompt packets and checkpoints (476 KB of prompts).**
+  Historical instructions for closed campaigns. They are the audit trail for
+  why each change exists and are referenced from `STATE.md` history, so they
+  stay. `docs/audits/2026-repo-audit/wave1*.workflow.mjs` likewise stays: it is
+  the executable record of how that audit was produced.
+
 ## Still-open durable items
 
 - RESOLVED 2026-10-19 (F-10a): OrderPath expired-round Pause taps. Decision:
