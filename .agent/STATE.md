@@ -60,8 +60,10 @@ Verified: typecheck PASS, full Jest 731/735 suites (8238 passed, 5 classified
 skips), `npx eslint .` 0 problems, `npx expo export --platform web` PASS, and
 repo-state, registry, spec-store, provenance, task-ownership, offline, secrets,
 workflow-hygiene, affected-sync, expo-alignment, CLI-contract, runtime-QA
-contract, clean-checkout self-test and strict OpenSpec 207/207 all PASS. This
-note does not close or advance Campaign 080.
+contract, clean-checkout self-test and strict OpenSpec 207/207 all PASS. Full
+report, including the verdict and the deferred candidates:
+`docs/audits/2026-11-10-cleanup-campaign-report.md`. This note does not close or
+advance Campaign 080.
 
 ## macOS and iOS production readiness — 2026-11-08 (MERGED 2026-11-09)
 

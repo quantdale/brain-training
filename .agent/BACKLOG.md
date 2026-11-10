@@ -59,6 +59,15 @@ Each of these was investigated and deliberately NOT changed. None blocks a gate.
   retained runtime evidence, and it is superseded as the authoritative ledger
   by v8 (cited by the 080 certification docs). Deleting runtime evidence to
   save 912 KB is the wrong trade; keep it.
+- **Four modules have no importer: `assistant/`, `entitlements/`,
+  `notifications/`, and `hooks/use-color-scheme.web.ts`.** The first three are
+  the constitution's deferred seams (AI §22, monetization, notifications), kept
+  as non-shipping stubs with their own tests and documented in
+  `docs/ARCHITECTURE.md`; deleting them would delete a product decision. The
+  last is a Metro platform variant — the bundler resolves `.web.ts` for the web
+  build of `@/hooks/use-color-scheme`, so it is reachable without any literal
+  import (the same reason the first scan wrongly flagged 30 barrel modules).
+  Both classes stay.
 - **Ten Expo packages sit one patch behind the installed SDK's bundled map**
   (`expo-doctor` 20/21 both before and after this session). `expo-file-system`
   and `expo-font` are the two where the DECLARED range does not already cover
