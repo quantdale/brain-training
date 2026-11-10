@@ -12,7 +12,10 @@ A stale, EMPTY directory at
 
 Work done, all of it non-product and evidence-backed:
 
-- Nine provably-dead exports deleted. Emptiness was measured with a repo-wide
+- Nine provably-dead exports deleted. (The commit `d4d550aa` subject says
+  "six"; it removed eight of the nine plus two redundant re-export lines, and
+  `44a5f674` removed `useTopLevelNav`. History is not rewritten — the count
+  above and this note are the correction.) Emptiness was measured with a repo-wide
   word index over every tracked text file and then confirmed against the
   TypeScript AST, so a declaration could be distinguished from a usage:
   `hasDomainArtwork`, `identityFamilyLabel`, `collectiblePlateColor`,
