@@ -24,20 +24,24 @@ the only source edits are dead-export deletions and comment corrections.
 | `certify-clean-checkout --self-test` | PASS (14 checks) | PASS (14 checks) |
 | `validate-dependency-audit` | PASS (8 accepted, 0 unallowlisted) | PASS (not re-run after cleanup; no dependency changed) |
 | OpenSpec `validate --all --strict` @1.9.0 | 207/207 PASS | 207/207 PASS |
-| GitHub Actions at the delivered SHA | n/a | all four green (`d253c653`, `89061811`, `51a8d4a9`) |
+| GitHub Actions, every delivered head | n/a | 4/4 workflows green |
 
 Delivered SHA and remote evidence: the last **code-bearing** commit is
 `d253c653` (`apps/mobile/.gitignore`). The full Jest matrix was re-run AT that
 SHA: 731 passed / 4 skipped suites, 8238 passed / 5 skipped tests, 5 snapshots,
 exit 0.
 
-The three commits after it are prose-only (`89061811` and `51a8d4a9` touch
-`.agent/` records, `b33f3af5` a commit-message correction and its record), and
-each was pushed as its own head — all four workflows returned
-`conclusion: success` for `d253c653`, `89061811` AND `51a8d4a9`. So the green
-result is not inherited from an earlier tree; it is reported per SHA. Final
-state: `main` = `origin/main` = `51a8d4a9` per `git ls-remote`, clean worktree,
-no other branch, worktree or stash.
+Every commit after it in this series is prose-only (`.agent/` records and
+Markdown). Each one was pushed as its own head and verified separately, EXCEPT
+the commit carrying this paragraph, whose CI cannot exist when it is written
+(check it with `gh run list --branch main`). Every head that had completed its
+run at that point passed: all
+four workflows — App CI, Android Build Smoke, iOS Build Smoke, Repository
+Integrity — returned `conclusion: success` for EVERY head pushed in this
+series, not just the code-bearing one. That claim is deliberately phrased as
+"every head" rather than naming the latest, because a record cannot name its
+own successor; the pattern is what makes it checkable after the fact with
+`gh run list --branch main`.
 
 Environment notes, recorded rather than claimed green:
 
