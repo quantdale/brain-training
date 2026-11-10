@@ -73,6 +73,13 @@ performed and is recorded as a known coverage boundary.
 | F-32 | `A11yDialog`/`LiveRegion`/`Avatar`/`ScreenHeader`/`LevelCard`/`StreakCard`/`ResultRow`/`GameCard` have no product importer | **P2** | confirmed | L06 |
 | F-33 | `applyReroll` CAS is weaker than `advanceForSession` (no `status='active'`, no shape validation) | **P3** | confirmed (asymmetry) | L04 |
 | F-34 | Untracked assistant-config directories in the working tree (hygiene) | **P3** | confirmed | L08 |
+| F-35 | `initializeConnection` asserts only `foreign_keys`; device has 0 ms busy timeout + rollback journal, test backend 5 s | **P2** | confirmed | L01 |
+| F-36 | Schema-guard heal is name-only and trigger-only | **P3** | confirmed | L01 |
+| F-37 | Largest production read path exempt from `MAX_READ_LIMIT`; several reads unbounded | **P3** | confirmed | L01 |
+| F-38 | Progression sync performs N row writes without a surrounding transaction | **P3** | confirmed | L01 |
+| F-39 | Backup from a newer schema imports silently; unknown fields dropped with no signal | **P3** | confirmed | L02 |
+| F-40 | A `.`-prefixed / `.tmp` backup name is saved but hidden from listing (unrestorable) | **P3** | confirmed | L02 |
+| F-41 | Export never validates its own output against the import contract | **P3** | confirmed | L01 |
 
 **Correction to lane L08.** L08-F05 reported a stray 46-byte root file named `nul`
 as pre-existing repository residue. That attribution is wrong: the file was created
@@ -81,13 +88,6 @@ during this audit session by a subagent shell command that redirected stderr to 
 (`/usr/bin/bash: line 1: cd: too many arguments`). It was removed and is **not** a
 repository defect. The underlying observation about the repo-state validator swallowing
 a `stat` failure remains valid, but it is not evidenced by that file.
-| F-35 | `initializeConnection` asserts only `foreign_keys`; device has 0 ms busy timeout + rollback journal, test backend 5 s | **P2** | confirmed | L01 |
-| F-36 | Schema-guard heal is name-only and trigger-only | **P3** | confirmed | L01 |
-| F-37 | Largest production read path exempt from `MAX_READ_LIMIT`; several reads unbounded | **P3** | confirmed | L01 |
-| F-38 | Progression sync performs N row writes without a surrounding transaction | **P3** | confirmed | L01 |
-| F-39 | Backup from a newer schema imports silently; unknown fields dropped with no signal | **P3** | confirmed | L02 |
-| F-40 | A `.`-prefixed / `.tmp` backup name is saved but hidden from listing (unrestorable) | **P3** | confirmed | L02 |
-| F-41 | Export never validates its own output against the import contract | **P3** | confirmed | L01 |
 
 ## Change partition
 
