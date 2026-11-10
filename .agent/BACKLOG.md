@@ -51,6 +51,22 @@ Each of these was investigated and deliberately NOT changed. None blocks a gate.
   bytes, so this is a duplicate CAPTURE (same screen filed under two labels),
   not a hash or path defect. Re-capturing would need a device run to prove
   which label is wrong; nothing downstream consumes the pair differently.
+- **`scripts/qa/native-coverage-ledger-v9.json` (912 KB, 14 runs).** No file
+  names it, and it is NOT in the v1..v7 quarantine loop in
+  `scripts/qa/artifact-policy.mjs` — but that loop shows why "no literal
+  reference" is the wrong test: v4/v5 are consumed only through a generated
+  `ledger-v${version}` path and would look unreferenced to a naive scan. v9 is
+  retained runtime evidence, and it is superseded as the authoritative ledger
+  by v8 (cited by the 080 certification docs). Deleting runtime evidence to
+  save 912 KB is the wrong trade; keep it.
+- **Ten Expo packages sit one patch behind the installed SDK's bundled map**
+  (`expo-doctor` 20/21 both before and after this session). `expo-file-system`
+  and `expo-font` are the two where the DECLARED range does not already cover
+  the bundled version; `validate-expo-alignment.mjs` still passes because it
+  checks the superset relation that matters for compatibility. Bumping them is
+  a dependency change with its own validation cost and is explicitly outside a
+  cleanup campaign's mandate (no unrelated upgrade churn).
+
 - **`.agent/` campaign prompt packets and checkpoints (476 KB of prompts).**
   Historical instructions for closed campaigns. They are the audit trail for
   why each change exists and are referenced from `STATE.md` history, so they
