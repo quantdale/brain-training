@@ -30,6 +30,14 @@ Work done, all of it non-product and evidence-backed:
 - The `node_modules` tree was repaired with `npm ci` after it was found 10 Expo
   patch versions ahead of the lockfile (typecheck/lint/tests were unaffected).
   `package.json` and `package-lock.json` were not modified by this session.
+- `docs/audits/2026-repo-audit/FINDINGS.md`: a prose paragraph had been spliced
+  INTO the severity table (2026-10-21), leaving F-35..F-41 as seven ragged rows
+  with no header or delimiter above them — structurally not a table at all —
+  and F-01..F-34 in the real table. The paragraph now sits after the table and
+  all 46 rows form one table again. (The commit that fixed it says GitHub
+  rendered "a second, unrelated table"; the accurate statement is that those
+  seven rows could not render as a table, because a GFM table requires the
+  delimiter row they did not have.)
 
 An earlier draft of this note claimed that editing
 `apps/mobile/expo-env.d.ts` is invisible in `git status`. That claim was WRONG
