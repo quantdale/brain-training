@@ -26,9 +26,16 @@ Each of these was investigated and deliberately NOT changed. None blocks a gate.
   Consequence measured, not assumed: tracking wins, so edits ARE visible in
   `git status` (probe: append a line → `M`, revert → byte-identical). The cost
   is a self-contradicting .gitignore that makes the tracked-but-ignored check
-  unusable as a cleanliness signal. Fixing it means narrowing the generated
-  rule while keeping the prebuild revert ritual ADR 0004 describes — its own
-  change, not a cleanup drive-by.
+  unusable as a cleanliness signal.
+  **Why the obvious one-line fix is wrong** (measured against
+  `@expo/cli/.../utils/mergeGitIgnorePaths.js`): gitignore rules are
+  last-match-wins, so appending `!expo-env.d.ts` after the block does resolve it
+  today — but `mergeGitIgnoreContents` removes the old generated section and
+  APPENDS the regenerated one at the end, so the next prebuild/start puts the
+  ignore rule back after the negation and the contradiction silently returns.
+  The durable fix is to stop `expo-env.d.ts` being emitted into the generated
+  section at all (i.e. amend ADR 0004 and the template expectation), which is an
+  owner decision, not a cleanup drive-by.
 - **`WorkoutCasValues` / `WorkoutCasExecutor` semantics.** They were deleted as
   dead types. If a future writer wants the CAS values as a named interface, the
   honest move is to derive it from the existing predicate helpers rather than

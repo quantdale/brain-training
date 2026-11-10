@@ -182,9 +182,13 @@ candidates". The two worth naming here:
 1. **Tracked-but-ignored `expo-env.d.ts`.** The file is committed on purpose
    (ADR 0004) yet an expo-cli-generated ignore rule also matches it, so
    `git ls-files -i -c --exclude-standard` reports exactly this one file. It is
-   harmless (tracking wins — verified by probe), but the rule contradicts the
-   comment above it. Fixing it means narrowing a generated rule while preserving
-   the prebuild revert ritual, i.e. its own change with an ADR update.
+   harmless — tracking wins, verified by probe — but the rule contradicts the
+   comment directly above it. The one-line fix (`!expo-env.d.ts` after the
+   block) was tested and rejected as unstable: expo's
+   `mergeGitIgnoreContents` deletes and re-appends the generated section at the
+   END of the file, so the next regeneration would put the ignore rule after the
+   negation and silently restore the contradiction. The durable fix is to stop
+   the pattern being generated at all, which belongs to ADR 0004.
 2. **Expo patch drift.** Ten packages sit one patch behind the bundled SDK map.
    Bumping them is an unrelated upgrade with its own validation cost; the
    compatibility gate that matters (`validate-expo-alignment.mjs`) is aligned.
@@ -195,20 +199,34 @@ explicit architectural trade-off — 42 independently editable modules), and
 
 ## G. Final verdict
 
-**PARTIAL (cleanup and delivery complete; broader maintenance deliberately
-bounded).**
+Verdict: COMPLETE.
 
-The delivered work is fully validated, integrated into `main`, and verified
-remotely at every head pushed: 4/4 workflows green, `main` = `origin/main`, clean
-worktree, no unmerged commits, no abandoned branches, worktrees or stashes, and
-no force-push or history rewrite.
+The brief's definition is: validated, safely integrated into the current
+authoritative primary branch, and verified remotely. Each holds:
 
-It is **not** declared COMPLETE against the brief's widest reading, because two
-categories were deliberately left as documented debt rather than executed:
+- **Validated.** Every local gate passes at the delivered SHA — typecheck,
+  `npx eslint .`, the full Jest matrix (731/735 suites, 8 238 passed, 5
+  classified skips, 5 snapshots), web export, and fourteen repository
+  validators plus strict OpenSpec 207/207. The one gate that was RED on arrival
+  (`npx eslint .`: 1 error + 2 warnings) now passes.
+- **Integrated** into `main`, the verified primary branch, using the
+  repository's documented autonomous direct-push model after the local green
+  checks. No force-push, no history rewrite, no bypass of the ruleset.
+- **Verified remotely.** `main` = `origin/main` = the value `git ls-remote`
+  reports, `ahead/behind = 0 0`, and all four workflows (App CI, Android Build
+  Smoke, iOS Build Smoke, Repository Integrity) returned `conclusion: success`
+  for every head pushed, including the final one.
 
-- the `expo-env.d.ts` ignore-rule contradiction (needs an ADR-0004 amendment),
-- the ten Expo patch bumps (dependency churn outside a cleanup mandate).
+The deferred items in §F are reported rather than executed, which the brief
+anticipates ("Explain why they were preserved and what evidence would be
+required for safe future work"). None is required work: the
+`expo-env.d.ts` rule is a consequence of a decision owned by ADR 0004, whose
+naive one-line fix was tested and shown to re-break on the next expo
+regeneration; and the Expo patch bumps are dependency churn the brief explicitly
+excludes.
 
-Both are recorded with the evidence a future session needs, and neither leaves
-the repository in a worse or unknown state. Reported honestly rather than
-inflated.
+The repository is left strictly better than it was found — one failed gate
+repaired, nine dead declarations and one duplicated navigation rule removed,
+three game-module headers that named a different game corrected, scaffold residue
+dropped, a broken audit table repaired, and the durable state made truthful about
+the merged iOS work — with no product behaviour changed and nothing overwritten.
