@@ -8,11 +8,22 @@ module.exports = defineConfig([
     ignores: ["dist/*", ".expo/*"],
   },
   {
-    // Jest global setup runs inside the Jest runtime where `jest` is injected.
+    // Jest global setup runs inside the Jest runtime, where the test framework
+    // injects its lifecycle globals. Declaring only `jest` left `afterEach`
+    // undefined, which `npx eslint .` reported as an error while `expo lint`
+    // (src/app/components only) never saw it.
     files: ["jest/**/*.js"],
     languageOptions: {
       globals: {
         jest: "readonly",
+        afterAll: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        beforeEach: "readonly",
+        describe: "readonly",
+        expect: "readonly",
+        it: "readonly",
+        test: "readonly",
       },
     },
   },

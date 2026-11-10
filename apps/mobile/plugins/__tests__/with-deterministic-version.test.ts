@@ -3,12 +3,13 @@
  */
 import { describe, expect, it } from "@jest/globals";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- plugin is plain CJS .js outside tsconfig include (no type declarations for a static import)
-const {
-  iosBuildNumberFor,
-  parseSemver,
-  versionCodeFromSemver,
-} = require("../with-deterministic-version");
+// The plugin is plain CJS outside the tsconfig include, so it has no type
+// declarations a static import could resolve. Same shape as the sibling plugin
+// tests: one `require` behind a directive that actually sits on the statement it
+// suppresses.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const plugin = require("../with-deterministic-version");
+const { iosBuildNumberFor, parseSemver, versionCodeFromSemver } = plugin;
 
 describe("versionCodeFromSemver", () => {
   it("encodes the current app version deterministically", () => {
