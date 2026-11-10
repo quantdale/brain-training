@@ -24,6 +24,17 @@ the only source edits are dead-export deletions and comment corrections.
 | `certify-clean-checkout --self-test` | PASS (14 checks) | PASS (14 checks) |
 | `validate-dependency-audit` | PASS (8 accepted, 0 unallowlisted) | PASS (not re-run after cleanup; no dependency changed) |
 | OpenSpec `validate --all --strict` @1.9.0 | 207/207 PASS | 207/207 PASS |
+| GitHub Actions at the delivered SHA | n/a | all four green (`d253c653`) |
+
+Delivered SHA and remote evidence: the last **code-bearing** commit is
+`d253c653`, and `main` = `origin/main` = that commit (confirmed by
+`git ls-remote`). It is the run head for all four workflows — App CI, Android
+Build Smoke, iOS Build Smoke and Repository Integrity — each
+`conclusion: success`. The full Jest matrix was re-run AT that SHA (731 passed
+/ 4 skipped suites, 8238 passed / 5 skipped tests, 5 snapshots, exit 0), so the
+local and remote results describe the same tree. Commits after it in this
+maintenance series touch `.agent/` records and Markdown only; they are re-run
+by the same workflows and do not alter a gate's inputs.
 
 Environment notes, recorded rather than claimed green:
 
