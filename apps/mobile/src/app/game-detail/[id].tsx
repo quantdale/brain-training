@@ -23,7 +23,7 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { MinTouchTarget, MIN_TOUCH_TARGET } from "@/components/a11y";
@@ -121,13 +121,26 @@ export default function GameDetailScreen() {
     [routeGameId, refreshKey],
     EMPTY_DETAIL,
   );
-  const [favoriteOverride, setFavoriteOverride] = useState<boolean | null>(
-    null,
-  );
-  const [toggleError, setToggleError] = useState(false);
+  const [favoriteOverride, setFavoriteOverride] = useState<{ gameId: string; value: boolean } | null>(null);
+  const [toggleError, setToggleError] = useState<string | null>(null);
+  const [favoriteIdentity, setFavoriteIdentity] = useState(routeGameId);
+  if (favoriteIdentity !== routeGameId) {
+    // Drop old identity state in this render, including A → B → A navigation
+    // while A's write is still pending. Its eventual callback is invalidated below.
+    setFavoriteIdentity(routeGameId);
+    setFavoriteOverride(null);
+    setToggleError(null);
+  }
+  const favoriteGeneration = useRef(0);
+  useLayoutEffect(() => () => {
+    // Route parameter changes and unmount invalidate deferred mutation callbacks.
+    favoriteGeneration.current += 1;
+  }, [routeGameId]);
   const [showInformation, setShowInformation] = useState(false);
 
-  const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
+  const currentFavorite = favoriteOverride?.gameId === routeGameId
+    ? favoriteOverride.value
+    : (loaded ? data.favorite : false);
   // Recovery action for the error state: bumping the key reruns the load.
   const retryLoad = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -143,20 +156,26 @@ export default function GameDetailScreen() {
   });
   const onToggleFavorite = useCallback(async () => {
     if (!game) return;
+    const generation = ++favoriteGeneration.current;
     try {
       const db = getDb();
       const next = !currentFavorite;
-      setFavoriteOverride(next);
+      setFavoriteOverride({ gameId: game.id, value: next });
       if (next) {
         await db.favorites.setFavorite(game.id);
       } else {
         await db.favorites.removeFavorite(game.id);
       }
-      setToggleError(false);
-      setRefreshKey((k) => k + 1); // resync the db-backed favorite state
-    } catch {
+      if (generation !== favoriteGeneration.current) return;
+      // Optimism belongs only to the in-flight write. The ensuing read (and
+      // every future focus/restore read) is authoritative, never shadowed.
       setFavoriteOverride(null);
-      setToggleError(true);
+      setToggleError(null);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      if (generation !== favoriteGeneration.current) return;
+      setFavoriteOverride(null);
+      setToggleError(game.id);
     }
   }, [currentFavorite, game]);
 
@@ -303,10 +322,10 @@ export default function GameDetailScreen() {
         // `selected` (not `checked`): with role=button, screen readers announce
         // selected/unselected; `checked` is only spoken for toggle/checkbox roles.
         accessibilityState={{ selected: currentFavorite }}
-        disabled={!loaded}
+        disabled={!loaded || favoriteOverride?.gameId === routeGameId}
         onPress={onToggleFavorite}
       />
-      {toggleError ? (
+      {toggleError === routeGameId ? (
         <ThemedText
           type="caption"
           themeColor="danger"

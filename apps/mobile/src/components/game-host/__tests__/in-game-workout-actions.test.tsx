@@ -18,7 +18,7 @@ import { expectConsoleNoise } from '@/test-utils';
 import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  router: { push: jest.fn(), dismissTo: jest.fn(), back: jest.fn() },
 }));
 
 jest.mock('@/workout/session-advance', () => ({
@@ -27,7 +27,7 @@ jest.mock('@/workout/session-advance', () => ({
 
 const mockedAdvance = jest.mocked(advanceWorkoutForSession);
 const mockedPush = jest.mocked(router.push);
-const mockedReplace = jest.mocked(router.replace);
+const mockedDismissTo = jest.mocked(router.dismissTo);
 
 const PROVENANCE = {
   instanceKey: '2026-09-14',
@@ -126,7 +126,7 @@ describe('GameResults workout continuation', () => {
     expect(screen.queryByTestId('memory.next-game')).toBeNull();
 
     await fireEvent.press(screen.getByTestId('memory.finish-workout'));
-    expect(mockedReplace).toHaveBeenCalledWith('/');
+    expect(mockedDismissTo).toHaveBeenCalledWith('/');
   });
 
   it('distinguishes saved games from a skipped leg in the completed durable plan', async () => {

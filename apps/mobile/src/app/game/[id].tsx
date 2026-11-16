@@ -22,7 +22,7 @@
  */
 
 import { useLocalSearchParams } from "expo-router";
-import { lazy, Suspense, useMemo, type ComponentType } from "react";
+import { lazy, Suspense, useMemo, useState, type ComponentType } from "react";
 import { StyleSheet } from "react-native";
 
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -65,8 +65,15 @@ function getLazyGameComponent(gameId: string): ComponentType<GameScreenProps> | 
   // The registry already owns the validating loader; reuse it rather than
   // duplicating the check here, so there is exactly one contract.
   const LazyComponent = lazy(async () => {
-    const moduleSurface = await getValidatedGameModule(gameId);
-    return { default: moduleSurface.default as ComponentType<GameScreenProps> };
+    try {
+      const moduleSurface = await getValidatedGameModule(gameId);
+      return { default: moduleSurface.default as ComponentType<GameScreenProps> };
+    } catch (error) {
+      // React.lazy retains rejections forever. Retire only this failed type;
+      // successful identities remain stable across renders and route reopens.
+      if (lazyComponentCache.get(gameId) === LazyComponent) lazyComponentCache.delete(gameId);
+      throw error;
+    }
   });
   lazyComponentCache.set(gameId, LazyComponent);
   return LazyComponent;
@@ -108,9 +115,12 @@ export default function GameScreen() {
   // keyed by game id, so a re-render returns the identical component object and
   // cannot reset game state. The suppression is deliberate and narrow; if the
   // cache is ever removed, remove this too.
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const GameScreenComponent = useMemo(
     () => (game ? getLazyGameComponent(game.id) : undefined),
-    [game],
+    // An explicit retry must look up the replacement for a rejected lazy type.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [game, loadAttempt],
   );
 
   // Hydrate the persisted tutorial state before the screen mounts; a mounted
@@ -168,6 +178,8 @@ export default function GameScreen() {
           <GameNotReady variant="loading" />
         ) : (
           <ErrorBoundary
+            key={game.id}
+            onRetry={() => setLoadAttempt((attempt) => attempt + 1)}
             onError={(error, info) => {
               console.error(
                 JSON.stringify({

@@ -13,6 +13,7 @@
  */
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
+import { useRouteFocusEffect } from '@/routing/use-route-focus-effect';
 import { NavigationContext } from 'expo-router/react-navigation';
 
 import { isDevBuild, testId } from '@/sdk';
@@ -167,7 +168,7 @@ export function GameHost({
   children,
 }: GameHostProps) {
   const theme = useTheme();
-  // Latest paused/onPause via refs so the back subscription is mounted once.
+  // Latest paused/onPause via refs so each focused Back subscription stays stable.
   const backStateRef = useRef({ paused, onPause });
   useEffect(() => {
     backStateRef.current = { paused, onPause };
@@ -182,7 +183,7 @@ export function GameHost({
     markGameFirstInteraction(gameId);
   }, [gameId]);
 
-  useEffect(() => {
+  useRouteFocusEffect(useCallback(() => {
     if (!interceptBack) {
       return;
     }
@@ -196,7 +197,7 @@ export function GameHost({
       return true;
     });
     return () => subscription.remove();
-  }, [interceptBack]);
+  }, [interceptBack]));
 
   // iOS has no hardware back: its edge swipe would pop a live session past the
   // guard above. Read from context because bare harnesses have no navigator.

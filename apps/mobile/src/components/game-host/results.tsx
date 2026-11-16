@@ -15,6 +15,7 @@
  * sensory service, so mute settings are always respected).
  */
 import { router } from 'expo-router';
+import { finishWorkout } from '@/routing/finish-workout';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
 
@@ -459,7 +460,7 @@ export function GameResults({
             // legs. Finish must clear that stack and return to Today rather
             // than using the generic game-level back action (which would land
             // on the previous result screen).
-            onPress={() => router.replace('/')}
+            onPress={finishWorkout}
           />
         ) : null}
         <GameButton

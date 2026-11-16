@@ -28,6 +28,7 @@ const listeners = new Set<(value: boolean) => void>();
 let prefersReducedMotion = false;
 let nativeSubscription: { remove: () => void } | null = null;
 let nativeSeedRequested = false;
+let preferenceGeneration = 0;
 
 /** Update the shared value and notify every mounted consumer. */
 function publish(value: boolean): void {
@@ -40,14 +41,20 @@ function ensureNativeSubscription(): void {
   if (nativeSubscription === null) {
     nativeSubscription = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',
-      publish,
+      (value) => {
+        preferenceGeneration += 1;
+        publish(value);
+      },
     );
   }
   if (!nativeSeedRequested) {
     nativeSeedRequested = true;
     // Seed the current value (best-effort; older platforms resolve async).
+    const seedGeneration = preferenceGeneration;
     AccessibilityInfo.isReduceMotionEnabled()
-      .then((value) => publish(value))
+      .then((value) => {
+        if (seedGeneration === preferenceGeneration) publish(value);
+      })
       .catch(() => undefined);
   }
 }
@@ -75,6 +82,7 @@ export function resetReducedMotionStoreForTests(): void {
   nativeSubscription?.remove();
   nativeSubscription = null;
   nativeSeedRequested = false;
+  preferenceGeneration += 1; // Invalidate any outstanding seed from the old subscription.
   prefersReducedMotion = false;
   listeners.clear();
 }

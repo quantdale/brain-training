@@ -20,6 +20,7 @@
  */
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
+import { useRouteFocusEffect } from '@/routing/use-route-focus-effect';
 
 import { DuplicateSessionStartError, SessionLifecycle, isTerminalSessionStatus, systemClock } from '@/sdk';
 import type { Clock, SessionStatus } from '@/sdk';
@@ -161,6 +162,12 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
     onPause?.();
     return true;
   }, []);
+
+  // A retained Stack screen is still mounted while another route is on top.
+  // Blur freezes the session just like backgrounding; focus never auto-resumes.
+  useRouteFocusEffect(useCallback(() => () => {
+    requestPause();
+  }, [requestPause]));
 
   // ---- Auto-pause when the app leaves the foreground (constitution §11).
   // Backgrounding routes through the same guarded path as the pause button.

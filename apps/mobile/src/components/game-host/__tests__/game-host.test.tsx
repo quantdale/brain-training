@@ -75,7 +75,7 @@ function collectTestIds(node: unknown, ids: string[] = []): string[] {
 describe('GameHost swipe-back guard', () => {
   function hostInNavigator(setOptions: jest.Mock, overrides: Partial<GameHostProps>) {
     return (
-      <NavigationContext.Provider value={{ setOptions } as never}>
+      <NavigationContext.Provider value={{ setOptions, isFocused: () => true, addListener: () => () => undefined } as never}>
         <GameHost {...hostProps(overrides)} />
       </NavigationContext.Provider>
     );

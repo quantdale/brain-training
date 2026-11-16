@@ -15,6 +15,8 @@ import { Radii, Spacing } from '@/constants/theme';
 export interface ErrorBoundaryProps {
   fallback?: ReactNode;
   onError?: (error: Error, info: ErrorInfo) => void;
+  /** Refresh caller-owned failed resources before remounting the subtree. */
+  onRetry?: () => void;
   children: ReactNode;
 }
 
@@ -52,6 +54,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
    * crashing component. Persisted progression is untouched.
    */
   private handleReset = () => {
+    this.props.onRetry?.();
     this.setState((prev) => ({ hasError: false, resetKey: prev.resetKey + 1 }));
   };
 

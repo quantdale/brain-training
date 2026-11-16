@@ -17,7 +17,10 @@
  * mocked to a fake AppDatabase (same pattern as progress-detail.test.tsx).
  */
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, renderRouter, screen } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { Stack, Tabs, router, useLocalSearchParams } from 'expo-router';
+import { Text } from 'react-native';
+import { GameResults } from '@/components/game-host/results';
 
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from "@/db";
 import ResultsScreen from "@/app/results";
@@ -157,6 +160,56 @@ beforeEach(() => {
   registerGameDefinitions(generatedRegistry);
   resetToastQueueForTests();
   mockDbState.db = null;
+});
+
+describe('Finish workout clears the real retained root Stack', () => {
+  function RootLayout() { return <Stack screenOptions={{ headerShown: false, animation: 'none' }} />; }
+  function TabLayout() { return <Tabs screenOptions={{ headerShown: false }} />; }
+  function InGameResults() {
+    const { id } = useLocalSearchParams<{ id: string }>();
+    return <GameResults gameId={id} persistState="succeeded" workout={{ completed: true, nextGameId: null, onNextGame: () => undefined }}
+      onRestart={() => undefined} onQuit={() => undefined}><Text>Saved</Text></GameResults>;
+  }
+  const routes = {
+    _layout: RootLayout,
+    '(tabs)/_layout': TabLayout,
+    '(tabs)/index': () => <Text>Home</Text>,
+    '(tabs)/games': () => <Text>Games</Text>,
+    'game/[id]': InGameResults,
+    results: ResultsScreen,
+  };
+
+  it.each(['in-game', 'saved-result'] as const)('%s Finish removes every earlier leg and selects Home', async (surface) => {
+    const done = makeWorkout({ currentIndex: 3, gameIds: ['speed-color-match', 'memory-running-order', 'attention-odd-one-out', GAME_ID] });
+    mockDbState.db = makeFakeDb(done);
+    const rendered = renderRouter(routes, { initialUrl: '/games' });
+    await rendered;
+    jest.useRealTimers();
+    await act(async () => { router.push('/game/memory-running-order'); });
+    await act(async () => { router.push('/game/speed-color-match'); });
+    await act(async () => {
+      router.push(surface === 'in-game' ? `/game/${GAME_ID}` : `/results?id=${SESSION_ID}`);
+    });
+    expect(rendered.getRouterState()?.routes[0]?.state?.routes.length).toBe(4);
+    const finishId = surface === 'in-game' ? `${GAME_ID}.finish-workout` : 'results-finish-workout';
+    await fireEvent.press(await screen.findByTestId(finishId));
+    expect(rendered.getPathname()).toBe('/');
+    const root = rendered.getRouterState()?.routes[0]?.state;
+    expect(root?.routes.map((route) => route.name)).toEqual(['(tabs)']);
+    expect(router.canGoBack()).toBe(false);
+    // With no navigation history Android Back exits instead of revealing a leg.
+    expect(root?.routes.some((route) => route.name === 'game/[id]' || route.name === 'results')).toBe(false);
+  });
+
+  it('cold single-route completion has a Home fallback without old game history', async () => {
+    const rendered = renderRouter(routes, { initialUrl: `/game/${GAME_ID}` });
+    await rendered;
+    jest.useRealTimers();
+    await fireEvent.press(await screen.findByTestId(`${GAME_ID}.finish-workout`));
+    expect(rendered.getPathname()).toBe('/');
+    expect(rendered.getRouterState()?.routes[0]?.state?.routes.map((route) => route.name)).toEqual(['(tabs)']);
+    expect(router.canGoBack()).toBe(false);
+  });
 });
 
 describe("/results workout CTA (Slot array-style crash regression)", () => {

@@ -13,6 +13,7 @@
  * authoritative even when this screen is reopened from history.
  */
 
+import { finishWorkout } from '@/routing/finish-workout';
 import {
   Link,
   router,
@@ -437,7 +438,7 @@ export default function ResultsScreen() {
                   sublabel="Back to Today"
                   testID="results-finish-workout"
                   accessibilityHint="Return to Today after finishing the workout"
-                  onPress={() => router.replace("/")}
+                  onPress={finishWorkout}
                 />
               ) : null}
               <Button

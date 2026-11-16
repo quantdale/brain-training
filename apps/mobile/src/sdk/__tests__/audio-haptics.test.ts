@@ -228,6 +228,7 @@ describe('real engine (expo-audio + expo-haptics, mocked)', () => {
     const engine = createAudioHaptics({ sfxAssets: ASSETS });
     await engine.prepare();
     engine.playSfx('memory-tile-correct'); // alias -> correct -> asset 2
+    await Promise.resolve();
     const player = playersBySource.get(2);
     expect(player.seekTo).toHaveBeenCalledWith(0);
     expect(player.play).toHaveBeenCalledTimes(1);
@@ -237,6 +238,7 @@ describe('real engine (expo-audio + expo-haptics, mocked)', () => {
     const engine = createAudioHaptics({ sfxAssets: ASSETS });
     await engine.prepare();
     engine.playSfx('correct'); // enabled -> 1 play
+    await Promise.resolve();
     expect(playersBySource.get(2).play).toHaveBeenCalledTimes(1);
     engine.setSfxEnabled(false);
     engine.playSfx('correct'); // disabled -> no new play

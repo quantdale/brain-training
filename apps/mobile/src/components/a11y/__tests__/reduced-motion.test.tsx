@@ -82,6 +82,29 @@ describe('usePrefersReducedMotion shared store', () => {
     expect(addSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('a newer native event wins over a delayed seed for existing and late consumers', async () => {
+    let resolveSeed!: (value: boolean) => void;
+    seedSpy.mockReturnValueOnce(new Promise<boolean>((resolve) => { resolveSeed = resolve; }));
+    const first = await render(<Consumer id={0} />);
+    await act(async () => { listener?.(true); });
+    await act(async () => { resolveSeed(false); });
+    expect(screen.getByTestId('consumer-0')).toHaveTextContent('reduced');
+    await first.unmount();
+    await render(<Consumer id={1} />);
+    expect(screen.getByTestId('consumer-1')).toHaveTextContent('reduced');
+  });
+
+  it('a seed from a reset subscription cannot overwrite the new store', async () => {
+    let resolveSeed!: (value: boolean) => void;
+    seedSpy.mockReturnValueOnce(new Promise<boolean>((resolve) => { resolveSeed = resolve; }));
+    const first = await render(<Consumer id={0} />);
+    await first.unmount();
+    resetReducedMotionStoreForTests();
+    await render(<Consumer id={1} />);
+    await act(async () => { listener?.(true); resolveSeed(false); });
+    expect(screen.getByTestId('consumer-1')).toHaveTextContent('reduced');
+  });
+
   it('reset removes the native subscription and clears the store', async () => {
     await render(<Consumer id={0} />);
     resetReducedMotionStoreForTests();

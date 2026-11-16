@@ -102,6 +102,7 @@ export function createAudioHaptics(options: AudioHapticsEngineOptions): AudioHap
   let disposed = false;
 
   function getPlayer(name: SfxName): Player | undefined {
+    if (disposed) return undefined;
     let player = players.get(name);
     if (player) {
       return player;
@@ -130,8 +131,11 @@ export function createAudioHaptics(options: AudioHapticsEngineOptions): AudioHap
         return;
       }
       try {
-        player.seekTo(0);
-        player.play();
+        // Expo seek is asynchronous: neither its rejection nor a subsequent
+        // play failure may escape this fire-and-forget capability boundary.
+        void Promise.resolve(player.seekTo(0)).then(() => {
+          if (!disposed && settings.sfxEnabled) player.play();
+        }).catch(() => undefined);
       } catch {
         /* unsupported or not-ready source: ignore */
       }
@@ -197,6 +201,8 @@ export function createAudioHaptics(options: AudioHapticsEngineOptions): AudioHap
       } catch {
         /* audio session configuration is best-effort */
       }
+      // release() can run while the native configuration promise is pending.
+      if (disposed) return;
       // Preload every known asset so first playback is near-instant.
       for (const name of Object.keys(assets) as SfxName[]) {
         getPlayer(name);

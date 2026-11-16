@@ -10,8 +10,10 @@
  */
 
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, renderRouter, screen } from "expo-router/testing-library";
-import { StyleSheet } from "react-native";
+import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { userEvent } from '@testing-library/react-native';
+import { Stack, router } from 'expo-router';
+import { StyleSheet, Text } from "react-native";
 
 import GameDetailScreen from "@/app/game-detail/[id]";
 import { MIN_TOUCH_TARGET } from "@/components/a11y";
@@ -137,6 +139,79 @@ function expectBefore(ids: string[], before: string, after: string): void {
   expect(afterIndex).toBeGreaterThanOrEqual(0);
   expect(beforeIndex).toBeLessThan(afterIndex);
 }
+
+describe('Game Detail favorite reconciliation in a retained Stack', () => {
+  const OTHER_GAME = registry.find((game) => game.id !== MEMORY_GAME.id)!;
+  let canonical: Map<string, boolean>;
+  let finishWrite: (() => void) | undefined;
+
+  beforeEach(() => {
+    registerGameDefinitions([MEMORY_GAME, OTHER_GAME]);
+    canonical = new Map();
+    finishWrite = undefined;
+    const db = makeFakeDb();
+    db.favorites.isFavorite = async (id) => canonical.get(id) ?? false;
+    db.favorites.setFavorite = async (id) => { canonical.set(id, true); };
+    mockDbState.db = db;
+  });
+
+  async function open() {
+    await renderRouter({
+      _layout: () => <Stack screenOptions={{ headerShown: false, animation: 'none' }} />,
+      'game-detail/[id]': GameDetailScreen,
+      about: () => <Text>About</Text>,
+    }, { initialUrl: `/game-detail/${MEMORY_GAME.id}` });
+    jest.useRealTimers();
+    await act(async () => {});
+  }
+
+  it('retires the optimistic favorite before a retained-route authoritative reload', async () => {
+    await open();
+    await fireEvent.press(screen.getByTestId('game-detail-favorite'));
+    expect(screen.getByTestId('game-detail-favorite')).toBeSelected();
+    await act(async () => { router.push('/about'); });
+    canonical.set(MEMORY_GAME.id, false); // canonical restore while the detail stays mounted
+    await act(async () => { router.back(); });
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+  });
+
+  it.each(['success', 'failure'] as const)('ignores deferred old-game %s after same-instance parameter change', async (outcome) => {
+    let failWrite!: (error: Error) => void;
+    mockDbState.db!.favorites.setFavorite = () => new Promise<void>((resolve, reject) => {
+      finishWrite = resolve;
+      failWrite = reject;
+    });
+    await open();
+    await userEvent.press(screen.getByTestId('game-detail-favorite'));
+    expect(finishWrite).toBeDefined();
+    await act(async () => { router.setParams({ id: OTHER_GAME.id }); });
+    expect(screen.getByTestId('game-detail-title')).toHaveTextContent(OTHER_GAME.name);
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+    await act(async () => {
+      if (outcome === 'success') finishWrite?.();
+      else failWrite(new Error('old-game write failed'));
+    });
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+    expect(screen.queryByTestId('game-detail-fav-error')).toBeNull();
+    await act(async () => { router.setParams({ id: MEMORY_GAME.id }); });
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+    expect(screen.getByTestId('game-detail-favorite')).toBeEnabled();
+    expect(screen.queryByTestId('game-detail-fav-error')).toBeNull();
+  });
+
+  it('does not resurrect an abandoned optimistic override on A → B → A while A is pending', async () => {
+    mockDbState.db!.favorites.setFavorite = () => new Promise<void>((resolve) => { finishWrite = resolve; });
+    await open();
+    await userEvent.press(screen.getByTestId('game-detail-favorite'));
+    await act(async () => { router.setParams({ id: OTHER_GAME.id }); });
+    await act(async () => { router.setParams({ id: MEMORY_GAME.id }); });
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+    expect(screen.getByTestId('game-detail-favorite')).toBeEnabled();
+    await act(async () => { finishWrite?.(); });
+    expect(screen.getByTestId('game-detail-favorite')).not.toBeSelected();
+    expect(screen.getByTestId('game-detail-favorite')).toBeEnabled();
+  });
+});
 
 describe("Game Detail — Campaign 032 identity-first contract", () => {
   beforeEach(() => {
