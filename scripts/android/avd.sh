@@ -99,11 +99,14 @@ cmd_boot() {
   local wait=1 snapshot=1 wipe=0 retry=1
   while [ $# -gt 0 ]; do
     case "$1" in
-      --no-snapshot) snapshot=0 ;;
-      --wipe-data) wipe=1 ;;
-      --no-wait) wait=0 ;;
-      --retry) retry="${2:?--retry requires a number}"; shift ;;
-      *) bt_die "unknown boot option: $1 (see avd.sh --help)" ;;
+    --no-snapshot) snapshot=0 ;;
+    --wipe-data) wipe=1 ;;
+    --no-wait) wait=0 ;;
+    --retry)
+      retry="${2:?--retry requires a number}"
+      shift
+      ;;
+    *) bt_die "unknown boot option: $1 (see avd.sh --help)" ;;
     esac
     shift
   done
@@ -271,18 +274,54 @@ cmd_sdk_install_image() {
 }
 
 case "${1:-}" in
-  -h|--help) usage ;;
-  create) shift; cmd_create ;;
-  boot) shift; cmd_boot "$@" ;;
-  wait) shift; cmd_wait ;;
-  status) shift; cmd_status ;;
-  stop) shift; cmd_stop ;;
-  reset) shift; cmd_reset ;;
-  snapshot-save) shift; cmd_snapshot_save "$@" ;;
-  snapshot-load) shift; cmd_snapshot_load "$@" ;;
-  snapshot-list) shift; cmd_snapshot_list ;;
-  snapshot-delete) shift; cmd_snapshot_delete "$@" ;;
-  sdk-install-image) shift; cmd_sdk_install_image ;;
-  "") cmd_boot --no-wait; bt_wait_for_boot ;;
-  *) bt_die "unknown subcommand '$1' (try 'avd.sh --help')" ;;
+-h | --help) usage ;;
+create)
+  shift
+  cmd_create
+  ;;
+boot)
+  shift
+  cmd_boot "$@"
+  ;;
+wait)
+  shift
+  cmd_wait
+  ;;
+status)
+  shift
+  cmd_status
+  ;;
+stop)
+  shift
+  cmd_stop
+  ;;
+reset)
+  shift
+  cmd_reset
+  ;;
+snapshot-save)
+  shift
+  cmd_snapshot_save "$@"
+  ;;
+snapshot-load)
+  shift
+  cmd_snapshot_load "$@"
+  ;;
+snapshot-list)
+  shift
+  cmd_snapshot_list
+  ;;
+snapshot-delete)
+  shift
+  cmd_snapshot_delete "$@"
+  ;;
+sdk-install-image)
+  shift
+  cmd_sdk_install_image
+  ;;
+"")
+  cmd_boot --no-wait
+  bt_wait_for_boot
+  ;;
+*) bt_die "unknown subcommand '$1' (try 'avd.sh --help')" ;;
 esac
