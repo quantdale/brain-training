@@ -4,11 +4,13 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import {
   captureArtifact,
+  DEFAULT_OUT,
+  makeArtifactRoot,
   dumpHierarchy,
   hierarchyStatus,
   parseHierarchyGameData,
@@ -20,6 +22,7 @@ import {
   writeCaptureReceiptIndex,
 } from './native-game-sweep.mjs';
 import { loadBuildManifest } from './artifact-integrity.mjs';
+import { isQuarantinedLedger } from './artifact-policy.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const requireFromMobile = createRequire(path.join(REPO_ROOT, 'apps/mobile/package.json'));
@@ -30,6 +33,46 @@ const repoTempDir = (prefix) => {
   fs.mkdirSync(root, { recursive: true });
   return fs.mkdtempSync(path.join(root, prefix));
 };
+
+test('T06 default output lives beside fresh artifacts, not in a quarantined historical ledger', () => {
+  const relative = path.relative(REPO_ROOT, DEFAULT_OUT).split(path.sep).join('/');
+  assert.match(relative, /^qa-artifacts\/080\/sweeps\/[^/]+\/ledger\.json$/);
+  assert.equal(isQuarantinedLedger(relative, { schemaVersion: 2, runs: [] }), false);
+  assert.notEqual(makeArtifactRoot(), makeArtifactRoot(), 'even concurrent runs must not share an artifact directory');
+  const ignored = execFileSync('git', ['check-ignore', '--', relative], { cwd: REPO_ROOT, encoding: 'utf8' });
+  assert.equal(ignored.trim(), relative);
+});
+
+test('T06 receipt index refuses to replace existing evidence bytes', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-output-index-'));
+  const file = path.join(dir, 'receipts.json');
+  try {
+    fs.writeFileSync(file, 'original receipts');
+    assert.throws(() => writeCaptureReceiptIndex(file, []), /EEXIST|overwrite/);
+    assert.equal(fs.readFileSync(file, 'utf8'), 'original receipts');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+for (const existing of ['ledger', 'receipts']) {
+  test(`T06 refuses existing ${existing} before any sweep and preserves both output paths`, () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-output-preflight-'));
+    const ledger = path.join(dir, 'ledger.json');
+    const receipts = `${ledger}.capture-receipts.json`;
+    const file = existing === 'ledger' ? ledger : receipts;
+    try {
+      fs.mkdirSync(path.join(dir, 'platform-tools'));
+      fs.writeFileSync(path.join(dir, 'platform-tools/adb'), 'not a real adb');
+      fs.writeFileSync(file, 'preserved original evidence');
+      const result = spawnSync(process.execPath, [fileURLToPath(new URL('./native-game-sweep.mjs', import.meta.url)), '--out', ledger], {
+        encoding: 'utf8', timeout: 10000, env: { ...process.env, ANDROID_SDK_ROOT: dir },
+      });
+      assert.equal(result.status, 3, result.stderr);
+      assert.match(result.stderr, /REFUSING.*overwrite/);
+      assert.equal(fs.readFileSync(file, 'utf8'), 'preserved original evidence');
+      assert.equal(fs.existsSync(existing === 'ledger' ? receipts : ledger), false, 'refusal must not create the other output');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+}
 
 test('hierarchyStatus accepts only a complete hierarchy document with nodes', () => {
   assert.equal(hierarchyStatus('<hierarchy rotation="0"><node resource-id="game" /></hierarchy>'), 'ok');

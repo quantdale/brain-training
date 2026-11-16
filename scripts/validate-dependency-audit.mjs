@@ -167,7 +167,12 @@ export function classifyAudit(audit, entries, options = {}) {
   // results. Sets only grow toward a finite union, so this terminates.
   const advisoryKey = (a) => `${a.package}@${a.id}`;
   const reachable = new Map();
+  const unresolvedEdges = new Map();
   for (const [name, vuln] of Object.entries(vulnerabilities)) {
+    unresolvedEdges.set(name, new Set(
+      (Array.isArray(vuln?.via) ? vuln.via : [])
+        .filter((via) => typeof via === 'string' && !Object.hasOwn(vulnerabilities, via)),
+    ));
     reachable.set(
       name,
       (Array.isArray(vuln?.via) ? vuln.via : [])
@@ -186,6 +191,12 @@ export function classifyAudit(audit, entries, options = {}) {
       const set = reachable.get(name);
       for (const via of Array.isArray(vuln?.via) ? vuln.via : []) {
         if (typeof via !== 'string' || !reachable.has(via)) continue;
+        for (const missing of unresolvedEdges.get(via)) {
+          if (!unresolvedEdges.get(name).has(missing)) {
+            unresolvedEdges.get(name).add(missing);
+            changed = true;
+          }
+        }
         for (const adv of reachable.get(via)) {
           if (!set.some((x) => advisoryKey(x) === advisoryKey(adv))) {
             set.push(adv);
@@ -204,6 +215,9 @@ export function classifyAudit(audit, entries, options = {}) {
   for (const [name, vuln] of Object.entries(vulnerabilities)) {
     if (!vuln || !MODERATE_PLUS.has(vuln.severity)) continue;
     const advisories = reachable.get(name) || [];
+    for (const missing of unresolvedEdges.get(name)) {
+      unresolved.push(`${name} -> ${missing} (missing via reference)`);
+    }
     if (advisories.length === 0) {
       unresolved.push(`${name} (${vuln.severity})`);
       continue;
@@ -354,6 +368,25 @@ function selfTest() {
     brokenpkg: { severity: 'high', via: ['ghostpkg'] },
   }), allow);
   expect(unresolvedChain.status === 'blocked', 'unresolvable via chain blocks');
+
+  // T09: one resolved advisory never excuses another unresolved graph edge.
+  for (const waived of [false, true]) {
+    for (const cyclic of [false, true]) {
+      const mixedChain = classifyAudit(auditOf({
+        devpkg: { severity: 'high', via: ['missing-root', adv(DEV, 'devpkg', waived ? 'high' : 'low'), ...(cyclic ? ['child'] : [])] },
+        child: { severity: 'high', via: ['devpkg'] },
+      }), waived ? allow : []);
+      expect(mixedChain.status === 'blocked' && /missing-root/.test(mixedChain.reason), `mixed unresolved chain blocks (waived=${waived}, cyclic=${cyclic})`);
+    }
+  }
+  const resolvedCycle = classifyAudit(auditOf({
+    devpkg: { severity: 'high', via: ['child', adv(DEV, 'devpkg', 'high')] },
+    child: { severity: 'high', via: ['devpkg'] },
+  }), allow);
+  expect(resolvedCycle.status === 'pass', 'fully resolved cyclic graph remains accepted');
+  expect(classifyAudit(auditOf({
+    a: { severity: 'high', via: ['b'] }, b: { severity: 'high', via: ['a'] },
+  }), []).status === 'blocked', 'rootless cycle remains blocked');
 
   // Allowlist schema: version + reviewedAt at the top level; every entry needs
   // package + GHSA + a KNOWN classification + rationale; runtime-accepted-debt

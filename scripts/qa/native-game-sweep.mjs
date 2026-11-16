@@ -69,7 +69,6 @@ const { SaxesParser } = requireFromMobile('saxes');
 const BetterSqlite3 = requireFromMobile('better-sqlite3');
 const IS_MAIN = !!process.argv[1] && path.resolve(process.argv[1]) === __filename;
 const GAMES_DIR = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
-const DEFAULT_OUT = path.join(REPO_ROOT, 'scripts', 'qa', 'native-coverage-ledger.json');
 /**
  * Artifact root — ONE DIRECTORY PER SWEEP RUN.
  *
@@ -84,15 +83,16 @@ const DEFAULT_OUT = path.join(REPO_ROOT, 'scripts', 'qa', 'native-coverage-ledge
  * resembles the expected artifact" failure class, and it would silently
  * invalidate any coverage claim built on a superseded run.
  *
- * Each run therefore gets a unique directory keyed by the sweep's start time, so
+ * Each run therefore gets a unique directory keyed by start time plus UUID, so
  * evidence for one attempt can never be clobbered by another. Historical
  * evidence is preserved rather than rewritten.
  */
-function makeArtifactRoot() {
+export function makeArtifactRoot() {
   const stamp = new Date().toISOString().replace(/[:.]/g, '').replace('Z', 'Z');
-  return path.join(REPO_ROOT, 'qa-artifacts', '080', 'sweeps', stamp);
+  return path.join(REPO_ROOT, 'qa-artifacts', '080', 'sweeps', `${stamp}-${crypto.randomUUID()}`);
 }
 const ARTIFACT_ROOT = makeArtifactRoot();
+export const DEFAULT_OUT = path.join(ARTIFACT_ROOT, 'ledger.json');
 const PACKAGE = 'com.braintraining.app';
 
 // --- args ------------------------------------------------------------------
@@ -137,7 +137,24 @@ function findAdb() {
   for (const c of candidates) if (fs.existsSync(c)) return c;
   throw new Error('adb not found; set ANDROID_SDK_ROOT');
 }
-const ADB = IS_MAIN ? findAdb() : null;
+// Refuse existing outputs before even querying a device. Exclusive writes below
+// also protect against another process creating either path after this check.
+function assertSweepOutputsAvailable(ledgerFile, receiptsFile) {
+  for (const file of [ledgerFile, receiptsFile]) {
+    try { fs.lstatSync(file); }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    throw new Error(`refusing to overwrite existing evidence: ${file}`);
+  }
+  if (path.resolve(ledgerFile) === path.resolve(receiptsFile)) throw new Error('ledger and receipt index must use distinct paths');
+}
+let ADB = null;
+if (IS_MAIN) {
+  try {
+    captureReceiptsFile ||= `${outFile}.capture-receipts.json`;
+    assertSweepOutputsAvailable(outFile, captureReceiptsFile);
+    ADB = findAdb();
+  } catch (error) { console.error(`[sweep] REFUSING: ${error.message}`); process.exit(3); }
+}
 
 function adb(serial, sub, opts = {}) {
   const argv2 = serial ? ['-s', serial, ...sub] : sub;
@@ -437,7 +454,7 @@ export function writeCaptureReceiptIndex(file, refs) {
     unique.add(ref.file);
   }
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify({ schemaVersion: 1, receipts: refs.map(({ file: receiptFile, sha256: digest }) => ({ file: receiptFile, sha256: digest })) }, null, 2));
+  fs.writeFileSync(file, JSON.stringify({ schemaVersion: 1, receipts: refs.map(({ file: receiptFile, sha256: digest }) => ({ file: receiptFile, sha256: digest })) }, null, 2), { flag: 'wx' });
 }
 
 /**
@@ -961,7 +978,8 @@ export async function main() {
     runs,
   };
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  fs.writeFileSync(outFile, JSON.stringify(ledger, null, 2));
+  assertSweepOutputsAvailable(outFile, captureReceiptsFile);
+  fs.writeFileSync(outFile, JSON.stringify(ledger, null, 2), { flag: 'wx' });
 
   writeCaptureReceiptIndex(captureReceiptsFile, captureReceipts);
 

@@ -139,8 +139,19 @@ cmd_boot() {
     # NOTE: ephemeral shells (CI, agent tool shells) may reap background
     # children — keep the emulator as a persistent background process there and
     # use `avd.sh wait` (see docs/ANDROID_AUTOMATION.md).
-    nohup bt_emulator -avd "$BT_AVD_NAME" "${flags[@]}" >/dev/null 2>&1 &
-    disown || true
+    local emulator_bin launch_pid
+    emulator_bin="$(bt_emulator_bin)" || return 1
+    nohup "$emulator_bin" -avd "$BT_AVD_NAME" "${flags[@]}" >/dev/null 2>&1 &
+    launch_pid=$!
+    # Bounded launch grace catches exec errors and immediate crashes even for
+    # --no-wait. A live process here is not a claim that Android has booted.
+    sleep 1
+    if ! kill -0 "$launch_pid" 2>/dev/null; then
+      local launch_status=0
+      wait "$launch_pid" || launch_status=$?
+      bt_die "emulator launch failed (exit $launch_status) for '$BT_AVD_NAME'"
+    fi
+    disown "$launch_pid" || true
 
     if [ "$wait" -eq 1 ]; then
       # bt_wait_for_boot exits non-zero if the emulator crashes or never

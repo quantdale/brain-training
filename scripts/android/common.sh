@@ -148,10 +148,17 @@ bt_pull() { # bt_pull <serial> <remote> <local>
   MSYS_NO_PATHCONV=1 timeout 60 "$(bt_adb_bin)" -s "$serial" pull "$remote" "$local_win"
 }
 
-bt_emulator() {
+# External launchers such as nohup must exec the binary, not a Bash function.
+bt_emulator_bin() {
   bt_require_sdk
   local emu
   emu="$(bt_bin "$BT_SDK/emulator/emulator")" || bt_die "emulator/emulator not found in $BT_SDK (run 'sdkmanager \"emulator\"')."
+  printf '%s' "$emu"
+}
+
+bt_emulator() {
+  local emu
+  emu="$(bt_emulator_bin)" || return 1
   "$emu" "$@"
 }
 

@@ -193,17 +193,8 @@ export function rangeAccepts(outer, inner) {
   if (outer.exact && inner.exact) {
     return { ok: cmpVersion(outer.exact, inner.exact) === 0 };
   }
-  if (outer.exact) {
-    if (inner.exact) return { ok: false };
-    if (cmpVersion(outer.exact, inner.min) < 0) return { ok: false };
-    if (inner.minInclusive && cmpVersion(outer.exact, inner.min) === 0) return { ok: false };
-    if (inner.max !== null) {
-      const c = cmpVersion(outer.exact, inner.max);
-      if (c > 0) return { ok: false };
-      if (c === 0 && !inner.maxInclusive) return { ok: false };
-    }
-    return { ok: true };
-  }
+  // An exact outer pin cannot contain a nonsingleton SDK range.
+  if (outer.exact) return { ok: false };
   // outer is a range, inner is exact: the range must contain the exact version.
   if (inner.exact) {
     if (outer.min !== null) {
@@ -222,14 +213,14 @@ export function rangeAccepts(outer, inner) {
     if (inner.min === null) return { ok: false };
     const c = cmpVersion(outer.min, inner.min);
     if (c > 0) return { ok: false };
-    if (c === 0 && outer.minInclusive && !inner.minInclusive) return { ok: false };
+    if (c === 0 && !outer.minInclusive && inner.minInclusive) return { ok: false };
   }
   // Upper edge: symmetric. An unbounded outer covers any inner upper bound.
   if (outer.max !== null) {
     if (inner.max === null) return { ok: false };
     const c = cmpVersion(outer.max, inner.max);
     if (c < 0) return { ok: false };
-    if (c === 0 && outer.maxInclusive && !inner.maxInclusive) return { ok: false };
+    if (c === 0 && !outer.maxInclusive && inner.maxInclusive) return { ok: false };
   }
   return { ok: true };
 }
@@ -392,6 +383,24 @@ function selfTest() {
   expect(rangeAccepts(parseRange('^57.0.0'), parseRange('~57.0.2')).ok === true, 'caret covers a tilde within the same major');
   expect(rangeAccepts(parseRange('^56.0.0'), parseRange('~57.0.2')).ok === false, 'a wrong-major caret does not cover the bundled range');
   expect(rangeAccepts(parseRange('*'), parseRange('~57.0.2')).ok === true, 'an unconstrained pin accepts anything');
+
+  // T08: containment, not overlap; equal endpoint inclusion is directional.
+  for (const required of ['~57.0.24', '>=57.0.24', '<=57.0.26', '*']) {
+    try {
+      expect(rangeAccepts(parseRange('57.0.25'), parseRange(required)).ok === false, `exact pin cannot contain ${required}`);
+    } catch {
+      expect(false, `exact pin comparison must not throw for ${required}`);
+    }
+  }
+  for (const [inclusiveOp, exclusiveOp] of [['>=', '>'], ['<=', '<']]) {
+    for (const outerInclusive of [true, false]) {
+      for (const innerInclusive of [true, false]) {
+        const outer = parseRange(`${outerInclusive ? inclusiveOp : exclusiveOp}1.0.0`);
+        const inner = parseRange(`${innerInclusive ? inclusiveOp : exclusiveOp}1.0.0`);
+        expect(rangeAccepts(outer, inner).ok === (outerInclusive || !innerInclusive), `equal ${inclusiveOp} bound inclusivity ${outerInclusive}/${innerInclusive}`);
+      }
+    }
+  }
 
   // Family membership.
   expect(isExpoFamily('expo') && isExpoFamily('expo-router') && isExpoFamily('react-native-screens'), 'expo family membership');

@@ -286,7 +286,30 @@ function floorViolations(summaryCounts, allowlist) {
 }
 
 function validate(summary, allowlist) {
+  const counterFields = {
+    passedSuites: 'numPassedTestSuites', failedSuites: 'numFailedTestSuites',
+    skippedSuites: 'numPendingTestSuites', totalSuites: 'numTotalTestSuites',
+    passedTests: 'numPassedTests', failedTests: 'numFailedTests',
+    skippedTests: 'numPendingTests', todoTests: 'numTodoTests', totalTests: 'numTotalTests',
+  };
+  const summaryCounts = {};
+  for (const [name, field] of Object.entries(counterFields)) {
+    if (!Number.isSafeInteger(summary?.[field]) || summary[field] < 0) {
+      throw new Error(`invalid Jest counter ${field}: expected a nonnegative safe integer`);
+    }
+    summaryCounts[name] = summary[field];
+  }
   const pending = pendingAssertions(summary);
+  const countIntegrityErrors = [];
+  if (summaryCounts.totalSuites !== summaryCounts.passedSuites + summaryCounts.failedSuites + summaryCounts.skippedSuites) {
+    countIntegrityErrors.push('suite subtotals do not equal total');
+  }
+  if (summaryCounts.totalTests !== summaryCounts.passedTests + summaryCounts.failedTests + summaryCounts.skippedTests + summaryCounts.todoTests) {
+    countIntegrityErrors.push('test subtotals do not equal total');
+  }
+  if (summaryCounts.totalSuites !== summary.testResults.length) countIntegrityErrors.push('suite total does not match discovered results');
+  const discoveredTests = summary.testResults.reduce((sum, result) => sum + (result.assertionResults?.length ?? 0), 0);
+  if (summaryCounts.totalTests !== discoveredTests) countIntegrityErrors.push('test total does not match discovered assertions');
   const classifications = pending.map((item) => {
     const matches = allowlist.entries.filter((entry) => {
       if (item.file !== entry.file) return false;
@@ -321,23 +344,13 @@ function validate(summary, allowlist) {
     }))
     .filter(({ expectedMatches, matched }) => matched !== expectedMatches);
 
-  const summaryCounts = {
-    passedSuites: Number(summary.numPassedTestSuites ?? 0),
-    failedSuites: Number(summary.numFailedTestSuites ?? 0),
-    skippedSuites: Number(summary.numPendingTestSuites ?? 0),
-    totalSuites: Number(summary.numTotalTestSuites ?? 0),
-    passedTests: Number(summary.numPassedTests ?? 0),
-    failedTests: Number(summary.numFailedTests ?? 0),
-    skippedTests: Number(summary.numPendingTests ?? 0),
-    todoTests: Number(summary.numTodoTests ?? 0),
-    totalTests: Number(summary.numTotalTests ?? 0),
-  };
   const floors = floorViolations(summaryCounts, allowlist);
   const report = {
     schemaVersion: 1,
     source: 'jest-json',
     allowlistEntryCount: allowlist.entries.length,
     counts: summaryCounts,
+    countIntegrityErrors,
     floors: {
       minTotalSuites: allowlist.minTotalSuites,
       totalSuites: summaryCounts.totalSuites,
@@ -362,6 +375,7 @@ function validate(summary, allowlist) {
     pass: unclassified.length === 0
       && ambiguous.length === 0
       && countMismatches.length === 0
+      && countIntegrityErrors.length === 0
       && floors.length === 0,
   };
   return { report, unclassified, ambiguous, countMismatches, floorViolations: floors, classifications };
@@ -412,6 +426,7 @@ function failureLines(unclassified, ambiguous, countMismatches = [], floors = []
 
 function assertPass(report, unclassified, ambiguous, countMismatches = [], floors = []) {
   const lines = failureLines(unclassified, ambiguous, countMismatches, floors);
+  for (const error of report.countIntegrityErrors) lines.push(`inconsistent Jest counts: ${error}`);
   if (lines.length) {
     console.error(JSON.stringify(report, null, 2));
     for (const line of lines) console.error(line);
@@ -431,6 +446,7 @@ function syntheticSummary(status = 'pending') {
     numPassedTests: status === 'pending' ? 0 : 1,
     numFailedTests: 0,
     numPendingTests: status === 'pending' ? 1 : 0,
+    numTodoTests: 0,
     numTotalTests: 1,
     testResults: [{
       name: path.join(root, 'apps/mobile/src/__tests__/perf-quest-eval-ab.test.ts'),
@@ -475,11 +491,19 @@ function allAllowlistedSummary() {
       })),
     }];
   });
-  const skipped = allowlist.entries.reduce((sum, entry) => sum + entry.expectedMatches, 0);
+  // Floors must be backed by discovered records, not inflated fixture totals.
+  const skippedSuites = testResults.filter((result) => result.status === 'pending').length;
+  const skipped = testResults.reduce((sum, result) => sum + result.assertionResults.length, 0);
+  while (testResults.length < allowlist.minTotalSuites) {
+    testResults.push({ name: path.join(root, `fixture-${testResults.length}.test.ts`), status: 'passed', message: '', assertionResults: [] });
+  }
+  testResults[testResults.length - 1].assertionResults.push(...Array.from({ length: allowlist.minTotalTests - skipped }, () => ({
+    ancestorTitles: [], title: 'passing fixture', fullName: 'passing fixture', status: 'passed',
+  })));
   return {
-    numPassedTestSuites: allowlist.entries.length,
+    numPassedTestSuites: testResults.length - skippedSuites,
     numFailedTestSuites: 0,
-    numPendingTestSuites: 0,
+    numPendingTestSuites: skippedSuites,
     numTotalTestSuites: allowlist.minTotalSuites,
     numPassedTests: allowlist.minTotalTests - skipped,
     numFailedTests: 0,
