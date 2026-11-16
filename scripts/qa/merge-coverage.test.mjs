@@ -122,7 +122,7 @@ function observation(seq, {
     controls,
     hierarchyControlIds,
     screenMarkers,
-    score,
+    score: controls.some((suffix) => ['score-final', 'score-live', 'score'].includes(suffix)) ? score : null,
     boardValues,
     phase,
     timestamp: timestamp || `2026-10-21T12:00:${String(seq).padStart(2, '0')}.000Z`,
@@ -254,7 +254,7 @@ const FIXTURE_REL = path.relative(REPO_ROOT, ARTIFACT_ROOT).split(path.sep).join
 function hierarchyBytes(gameId, observation) {
   const controls = observation?.controls || [];
   const markers = observation?.screenMarkers || [];
-  const nodes = [...controls.map((control) => `<node index="0" resource-id="${gameId}.${control}" package="com.braintraining.app" />`),
+  const nodes = [...controls.map((control) => `<node index="0" resource-id="${gameId}.${control}" text="${['score-final', 'score-live', 'score'].includes(control) ? observation.score ?? '' : ''}" package="com.braintraining.app" />`),
     ...markers.map((marker) => `<node index="0" text="${marker}" resource-id="${marker}" package="com.braintraining.app" />`)];
   if (!nodes.length) nodes.push('<node index="0" text="Games" resource-id="games-title" package="com.braintraining.app" />');
   return Buffer.from(`<hierarchy rotation="0">${nodes.join('')}</hierarchy>`);
@@ -718,10 +718,10 @@ test('M10: resilience union across runs is allowed with per-run provenance; cert
   const out = readMerged(r);
   const g = out.games[0];
 
-  // Both subcapabilities merge to VERIFIED...
-  assert.equal(g.resilience.backgroundRelaunch.status, 'VERIFIED');
+  // Unsupported subcapability claims merge only to ATTEMPTED...
+  assert.equal(g.resilience.backgroundRelaunch.status, 'ATTEMPTED');
   assert.ok(g.resilience.backgroundRelaunch.runs.includes('attempt-res-a-010'));
-  assert.equal(g.resilience.offlineContinuity.status, 'VERIFIED');
+  assert.equal(g.resilience.offlineContinuity.status, 'ATTEMPTED');
   assert.ok(g.resilience.offlineContinuity.runs.includes('attempt-res-b-010'));
 
   // ...with per-run provenance retained across the union.

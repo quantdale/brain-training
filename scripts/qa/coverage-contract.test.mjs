@@ -7,6 +7,7 @@ import {
   ANSWER_FEEDBACK_RE,
   AxisStatus,
   CausalityVerdict,
+  CAPABILITY_ARTIFACT_REQUIREMENTS,
   TIMEOUT_MARKER_RE,
   classifyInputCausality,
   classifyRun,
@@ -765,7 +766,7 @@ test('P5: legitimate terminal failure session is still a verified L3 lifecycle',
 });
 
 test('P6: resilience subcapabilities are independent axes that never fabricate a session', () => {
-  // Resilience credited on its own, without any gameplay session.
+  // Resilience claims remain attempted on their own, without any gameplay session.
   const resilienceOnly = runRecord({
     observations: [introObs(1)],
     events: [event(1, { action: 'deeplink', actionAcknowledged: null })],
@@ -776,12 +777,12 @@ test('P6: resilience subcapabilities are independent axes that never fabricate a
     },
   });
   const axes = deriveCapabilities(resilienceOnly);
-  assert.equal(axes.backgroundRelaunch.status, AxisStatus.VERIFIED);
+  assert.equal(axes.backgroundRelaunch.status, AxisStatus.ATTEMPTED);
   assert.equal(axes.interruptionRecovery.status, AxisStatus.ATTEMPTED);
   assert.equal(axes.offlineContinuity.status, AxisStatus.ATTEMPTED, 'verified without evidence must not be credited');
   assert.equal(deriveLevel(resilienceOnly).level, 0, 'resilience axes must not fabricate a session');
 
-  // Verified resilience unions with a proven session into L4.
+  // Unsupported resilience never elevates a proven session beyond L3.
   const fullSession = runRecord({
     observations: [introObs(1), playingObs(2, { score: '0' }), resultsObs(3, { score: '5', controls: ['results', 'result-facts', 'score-final', 'verdict-correct'] })],
     events: [
@@ -794,9 +795,9 @@ test('P6: resilience subcapabilities are independent axes that never fabricate a
     },
   });
   const level = deriveLevel(fullSession);
-  assert.equal(level.level, 4);
-  assert.equal(level.axes.backgroundRelaunch.status, AxisStatus.VERIFIED);
-  assert.equal(level.axes.offlineContinuity.status, AxisStatus.VERIFIED);
+  assert.equal(level.level, 3);
+  assert.equal(level.axes.backgroundRelaunch.status, AxisStatus.ATTEMPTED);
+  assert.equal(level.axes.offlineContinuity.status, AxisStatus.ATTEMPTED);
 });
 
 // ---------------------------------------------------------------------------
@@ -1010,4 +1011,69 @@ test('B5: a successful response remains correctly scored as accepted', () => {
   // INPUT_ACCEPTED requires PROVEN execution (P1-1/NF-080-001) — supplied here.
   const c = classifyInputCausality({ target: 'color-btn.blue', before, after: hit, action: 'tap', actionExecuted: true, actionAcknowledged: true });
   assert.equal(c.verdict, CausalityVerdict.INPUT_ACCEPTED);
+});
+
+// T02/T04 independent counterexamples: bindings and claims are not device proof.
+test('T02: unsupported resilience assertions cannot elevate a genuine L3 session', () => {
+  const rec = runRecord({
+    observations: [introObs(1), playingObs(2), resultsObs(3)],
+    events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+      event(2, { actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 })],
+  });
+  assert.equal(deriveLevel(rec).level, 3);
+  for (const key of ['backgroundRelaunch', 'interruptionRecovery', 'offlineContinuity', 'a11yProfile', 'responsiveTransition']) {
+    for (const evidence of [['fabricated-nonexistent-evidence'], ['obs#999'], ['other-attempt:obs#2'], ['obs#1', 'obs#2'], ['evt#1']]) {
+      const mutated = structuredClone(rec);
+      mutated.resilience = { [key]: { verified: true, evidence } };
+      assert.equal(deriveCapabilities(mutated)[key].status, AxisStatus.ATTEMPTED, `${key}: ${evidence}`);
+      assert.equal(deriveLevel(mutated).level, 3);
+    }
+  }
+});
+
+for (const capability of ['inputAccepted', 'roundAdvanced']) {
+  for (const seq of [2, 3]) {
+    test(`T04: ${capability} needs its own hierarchy at endpoint obs#${seq}`, () => {
+      const rec = runRecord({
+        observations: [introObs(1), playingObs(2), playingObs(3, { score: '100', controls: ['stage', 'round.2', 'score'] })],
+        events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 }),
+          event(2, { target: 'answer', actionAcknowledged: true, observationBeforeSeq: 2, observationAfterSeq: 3 })],
+      });
+      assert.equal(deriveLevel(rec).level, 2);
+      assert.equal(deriveCapabilities(rec)[capability].status, AxisStatus.VERIFIED);
+      const obs = rec.observations.find((o) => o.seq === seq);
+      delete obs.evidenceArtifact;
+      delete obs.hierarchyArtifact;
+      assert.notEqual(deriveCapabilities(rec)[capability].status, AxisStatus.VERIFIED);
+    });
+  }
+}
+
+for (const seq of [1, 2]) {
+  test(`T04: tutorial clearance needs its own hierarchy at endpoint obs#${seq}`, () => {
+    const rec = runRecord({
+      observations: [gameObs(1, { controls: ['tutorial'] }), introObs(2)],
+      events: [event(1, { actionAcknowledged: true, observationBeforeSeq: 1, observationAfterSeq: 2 })],
+    });
+    assert.equal(deriveCapabilities(rec).tutorialCompleted.status, AxisStatus.VERIFIED);
+    delete rec.observations[seq - 1].hierarchyArtifact;
+    assert.notEqual(deriveCapabilities(rec).tutorialCompleted.status, AxisStatus.VERIFIED);
+  });
+
+  test(`T04: passive round event needs its own hierarchy at endpoint obs#${seq}`, () => {
+    const rec = runRecord({
+      gameId: 'attention-odd-one-out',
+      observations: [playingObs(1), playingObs(2, { controls: ['stage', 'round.1', 'round-failed'] })],
+    });
+    assert.equal(deriveCapabilities(rec).autonomousGameplayEvent.status, AxisStatus.VERIFIED);
+    delete rec.observations[seq - 1].hierarchyArtifact;
+    assert.notEqual(deriveCapabilities(rec).autonomousGameplayEvent.status, AxisStatus.VERIFIED);
+  });
+}
+
+test('T04: artifact requirement keys use actual derived capability names', () => {
+  const axes = deriveCapabilities(runRecord({ observations: [introObs(1)] }));
+  for (const key of Object.keys(CAPABILITY_ARTIFACT_REQUIREMENTS)) assert.ok(key in axes, key);
+  assert.deepEqual(CAPABILITY_ARTIFACT_REQUIREMENTS.gameplayEntered, ['hierarchy']);
+  assert.deepEqual(CAPABILITY_ARTIFACT_REQUIREMENTS.sessionEnded, ['screenshot', 'hierarchy']);
 });

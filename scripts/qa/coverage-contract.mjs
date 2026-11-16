@@ -434,6 +434,24 @@ const delta = (a, b) => {
   return nb - na;
 };
 
+/** Project decoded hierarchy controls into the values used for causality.
+ * Callers must supply text/description from parsed XML, not ledger assertions. */
+export function projectHierarchyGameplayValues(controls) {
+  const suffixes = Object.keys(controls).sort();
+  const scoreControlId = ['score-final', 'score-live', 'score'].find((id) => controls[id]) || null;
+  const scoreControl = scoreControlId ? controls[scoreControlId] : null;
+  return {
+    score: scoreControl ? (scoreControl.text || scoreControl.desc || null) : null,
+    scoreControlId,
+    boardValues: suffixes
+      .filter((suffix) => /(tile|card|option|word|choice|cell|item|node|target-card|number|symbol|token|chip|key|display|board|sequence|status|problem|text|answer|label|prompt)(\.\d+)?$/.test(suffix))
+      .map((suffix) => `${suffix}=${controls[suffix].text || controls[suffix].desc || ''}`),
+    controlDetails: Object.fromEntries(suffixes.map((suffix) => [suffix, {
+      text: controls[suffix].text || '', desc: controls[suffix].desc || '',
+    }])),
+  };
+}
+
 /** Text identity of one named control, or null when the control is absent. */
 function controlIdentity(obs, suffix) {
   const c = ((obs && obs.controlDetails) || {})[suffix];
@@ -628,8 +646,8 @@ export const ARTIFACT_REQUIRED_PHASES = Object.freeze([
 export const CAPABILITY_ARTIFACT_REQUIREMENTS = Object.freeze({
   launch: [ArtifactKind.SCREENSHOT, ArtifactKind.HIERARCHY],
   identity: [ArtifactKind.HIERARCHY],
-  gameplayEntry: [ArtifactKind.HIERARCHY],
-  sessionEnd: [ArtifactKind.SCREENSHOT, ArtifactKind.HIERARCHY],
+  gameplayEntered: [ArtifactKind.HIERARCHY],
+  sessionEnded: [ArtifactKind.SCREENSHOT, ArtifactKind.HIERARCHY],
   safeExit: [ArtifactKind.HIERARCHY],
 });
 
@@ -1099,7 +1117,7 @@ export function deriveCapabilities(record) {
     if (!eventSucceeded(e)) return false;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    if (!before || !after) return false;
+    if (!before || !after || !observationHasCapturedHierarchy(before) || !observationHasCapturedHierarchy(after)) return false;
     const sb = observeState({ ...before, gameId: record.gameId }).state;
     const sa = observeState({ ...after, gameId: record.gameId }).state;
     return sb === GameStates.TUTORIAL && (sa === GameStates.INTRO || sa === GameStates.PLAYING);
@@ -1174,7 +1192,8 @@ export function deriveCapabilities(record) {
       }),
     };
   });
-  const accepted = causal.filter((x) => x.c.verdict === CausalityVerdict.INPUT_ACCEPTED);
+  const accepted = causal.filter((x) => x.c.verdict === CausalityVerdict.INPUT_ACCEPTED &&
+    observationHasCapturedHierarchy(x.before) && observationHasCapturedHierarchy(x.after));
   const autonomousTimeouts = causal.filter((x) => x.c.verdict === CausalityVerdict.AUTONOMOUS_TIMEOUT);
   const ambiguousInputs = causal.filter((x) => x.c.verdict === CausalityVerdict.AMBIGUOUS_CAUSALITY);
   axes.inputAttempted = axis(playingInputEvents.length ? AxisStatus.ATTEMPTED : AxisStatus.NOT_EXECUTED, attemptId,
@@ -1203,7 +1222,7 @@ export function deriveCapabilities(record) {
   for (const x of accepted) {
     const before = x.before;
     const after = x.after;
-    if (!before || !after) continue;
+    if (!before || !after || !observationHasCapturedHierarchy(before) || !observationHasCapturedHierarchy(after)) continue;
     const fbBefore = new Set(observeState({ ...before, gameId: record.gameId }).feedbackMarkers);
     const fbAfter = observeState({ ...after, gameId: record.gameId }).feedbackMarkers;
     const fresh = fbAfter.filter((f) => !fbBefore.has(f));
@@ -1221,7 +1240,7 @@ export function deriveCapabilities(record) {
     if (!eventSucceeded(e)) continue;
     const before = seqObs.get(e.observationBeforeSeq);
     const after = seqObs.get(e.observationAfterSeq);
-    if (!before || !after) continue;
+    if (!before || !after || !observationHasCapturedHierarchy(before) || !observationHasCapturedHierarchy(after)) continue;
     const rb = observeState({ ...before, gameId: record.gameId }).round;
     const ra = observeState({ ...after, gameId: record.gameId }).round;
     if (rb != null && ra != null && ra > rb) { roundAdvanced = { from: rb, to: ra, e }; break; }
@@ -1242,7 +1261,8 @@ export function deriveCapabilities(record) {
   for (let i = 1; i < states.length; i++) {
     const prev = states[i - 1];
     const cur = states[i];
-    if (prev.s.state !== GameStates.PLAYING || cur.s.state !== GameStates.PLAYING ||
+    if (!observationHasCapturedHierarchy(prev.o) || !observationHasCapturedHierarchy(cur.o) ||
+        prev.s.state !== GameStates.PLAYING || cur.s.state !== GameStates.PLAYING ||
         !prev.s.identityVerified || !cur.s.identityVerified) continue;
     const acceptedInputBetween = causal.some((x) => eventSucceeded(x.e) &&
       x.e.observationBeforeSeq >= prev.o.seq && x.e.observationAfterSeq <= cur.o.seq &&
@@ -1410,9 +1430,11 @@ export function deriveCapabilities(record) {
   for (const key of ['backgroundRelaunch', 'interruptionRecovery', 'offlineContinuity', 'a11yProfile', 'responsiveTransition']) {
     const claimed = (record.resilience && record.resilience[key]) || null;
     if (!claimed) axes[key] = axis(AxisStatus.NOT_EXECUTED, attemptId, '', []);
-    else if (claimed.verified === true && claimed.evidence && claimed.evidence.length) {
-      axes[key] = axis(AxisStatus.VERIFIED, attemptId, claimed.note || '', claimed.evidence);
-    } else axes[key] = axis(AxisStatus.ATTEMPTED, attemptId, claimed.note || 'attempted, not verified', claimed.evidence || []);
+    // No typed device-state/transition proof protocol exists for these axes.
+    // Arbitrary strings (even real observation IDs) cannot prove resilience.
+    else axes[key] = axis(AxisStatus.ATTEMPTED, attemptId,
+      'resilience verification unsupported: axis-specific device-state and transition evidence required',
+      Array.isArray(claimed.evidence) ? claimed.evidence : []);
   }
 
   return axes;

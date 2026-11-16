@@ -80,6 +80,7 @@ import {
   CAPABILITY_ARTIFACT_REQUIREMENTS as CONTRACT_CAPABILITY_REQUIREMENTS,
   deriveCapabilities,
   observationRequiresArtifact,
+  projectHierarchyGameplayValues,
 } from './coverage-contract.mjs';
 
 // Loaded only when hierarchy XML is parsed. A top-level require made
@@ -586,7 +587,7 @@ export function sniffHierarchy(bytes) {
 /** Compare ledger hierarchy claims with IDs and packages in captured XML bytes. */
 function hierarchyObservationProblems(parsed, run, observation, gameMetadata, expectedPackage) {
   const problems = [];
-  if (!parsed?.ok || !observation) return ['hierarchy is not bound to a run observation'];
+  if (!parsed?.ok || !observation) return { problems: ['hierarchy is not bound to a run observation'], capturedValues: null };
   const nodes = parsed.nodes;
   const packageNames = new Set(nodes.map((node) => node.package).filter(Boolean));
   if (!expectedPackage || !packageNames.has(expectedPackage)) {
@@ -597,6 +598,7 @@ function hierarchyObservationProblems(parsed, run, observation, gameMetadata, ex
   }
 
   const controlsByGame = new Map();
+  const capturedControls = {};
   const gameIds = [...(gameMetadata?.keys() || [])].sort((a, b) => b.length - a.length);
   for (const node of nodes) {
     const rawId = node['resource-id'] || node.resourceId || '';
@@ -604,7 +606,11 @@ function hierarchyObservationProblems(parsed, run, observation, gameMetadata, ex
     for (const gameId of gameIds) {
       if (resourceId === gameId || resourceId.startsWith(`${gameId}.`)) {
         if (!controlsByGame.has(gameId)) controlsByGame.set(gameId, new Set());
-        controlsByGame.get(gameId).add(resourceId === gameId ? 'screen' : resourceId.slice(gameId.length + 1));
+        const suffix = resourceId === gameId ? 'screen' : resourceId.slice(gameId.length + 1);
+        controlsByGame.get(gameId).add(suffix);
+        if (gameId === run.gameId) capturedControls[suffix] = {
+          text: node.text || '', desc: node['content-desc'] || '',
+        };
         break;
       }
     }
@@ -620,6 +626,14 @@ function hierarchyObservationProblems(parsed, run, observation, gameMetadata, ex
   const claimedControls = Array.isArray(observation.controls) ? [...observation.controls].sort() : [];
   if (JSON.stringify(claimedControls) !== JSON.stringify(actualControls)) {
     problems.push(`controls claim [${claimedControls.join(', ')}] does not match captured hierarchy [${actualControls.join(', ')}]`);
+  }
+
+  const capturedValues = projectHierarchyGameplayValues(capturedControls);
+  for (const field of ['score', 'scoreControlId', 'boardValues', 'controlDetails']) {
+    if (observation[field] !== undefined &&
+        JSON.stringify(canonicalJson(observation[field])) !== JSON.stringify(canonicalJson(capturedValues[field]))) {
+      problems.push(`${field} claim does not match captured hierarchy values`);
+    }
   }
 
   const raw = observation.rawScreen;
@@ -656,7 +670,7 @@ function hierarchyObservationProblems(parsed, run, observation, gameMetadata, ex
       problems.push('app destination lacks matching live foreground/package metadata');
     }
   }
-  return problems;
+  return { problems, capturedValues };
 }
 
 const TUTORIAL_STATE_QUERY = 'SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?';
@@ -1113,6 +1127,13 @@ export function verifyArtifactLedger(runs, opts = {}) {
     let runMeaningfulArtifacts = 0;
     let runMeaningfulBindings = 0;
     let verifiedHierarchyIdentity = false;
+    const verifiedHierarchyObservations = new Map();
+    // Executed event windows are evidence claims even if a missing endpoint
+    // prevents the pure contract from awarding the intended capability.
+    const eventObservationSequences = new Set((run.events || [])
+      .filter((event) => event.actionExecuted === true)
+      .flatMap((event) => [event.observationBeforeSeq, event.observationAfterSeq])
+      .filter(Number.isInteger));
     // Absence in local mode is a BLOCKED condition, not an integrity violation.
     // The capability-sufficiency check below must not double-report the same
     // absence as a FAIL: if any required artifact was simply not present, the
@@ -1222,12 +1243,13 @@ export function verifyArtifactLedger(runs, opts = {}) {
 
       if (artifact.kind === 'hierarchy') {
         const parsed = parseHierarchy(bytes);
-        const hierarchyProblems = hierarchyObservationProblems(parsed, run, receiptBinding.observation, gameMetadata, expectedApplicationPackage);
+        const { problems: hierarchyProblems, capturedValues } = hierarchyObservationProblems(parsed, run, receiptBinding.observation, gameMetadata, expectedApplicationPackage);
         if (hierarchyProblems.length) {
           counters.badContent++;
           record('hierarchy-observation-mismatch', `${attemptId}: ${label} — ${hierarchyProblems.join('; ')}`);
           return null;
         }
+        verifiedHierarchyObservations.set(receiptBinding.observation.seq, capturedValues);
         if (receiptBinding.observation?.observedGameId === run.gameId) verifiedHierarchyIdentity = true;
       } else if (artifact.kind === 'tutorial-state') {
         const stateProblems = tutorialStateArtifactProblems(bytes, run, artifact);
@@ -1272,7 +1294,7 @@ export function verifyArtifactLedger(runs, opts = {}) {
       const label = `obs#${o.seq}${o.phase ? ` (${o.phase})` : ''}`;
       const ok = verifyOne(o.evidenceArtifact, label, mandatory, o);
       if (ok && ok.kind) verifiedKinds.add(ok.kind);
-      const hierarchyOk = verifyOne(o.hierarchyArtifact, `${label} hierarchy`, false, o);
+      const hierarchyOk = verifyOne(o.hierarchyArtifact, `${label} hierarchy`, eventObservationSequences.has(o.seq) && ok?.kind !== 'hierarchy', o);
       if (hierarchyOk && hierarchyOk.kind) verifiedKinds.add(hierarchyOk.kind);
     }
     // Run-level artifacts -------------------------------------------------
@@ -1297,6 +1319,35 @@ export function verifyArtifactLedger(runs, opts = {}) {
     // artifacts were readable in this mode (otherwise absence is already
     // accounted for above).
     const axes = safeDeriveCapabilities(run);
+    // Re-derive behavior from verified XML values, never from ledger-only
+    // score/board/target assertions. Unverified observations cannot witness an
+    // axis; an artifact elsewhere in the run cannot substitute for an endpoint.
+    const capturedAxes = safeDeriveCapabilities({
+      ...run,
+      observations: (run.observations || []).map((observation) => {
+        const values = verifiedHierarchyObservations.get(observation.seq);
+        return values ? { ...observation, ...values } : {
+          ...observation, hierarchyArtifact: null, controls: [], hierarchyControlIds: [],
+          observedGameId: null, score: null, boardValues: [], controlDetails: {},
+        };
+      }),
+    });
+    for (const [name, axis] of Object.entries(axes || {})) {
+      if (axis.status !== 'VERIFIED') continue;
+      const witnessSequences = new Set();
+      for (const reference of axis.evidence || []) {
+        for (const match of String(reference).matchAll(/obs#(\d+)/g)) witnessSequences.add(Number(match[1]));
+        for (const match of String(reference).matchAll(/evt#(\d+)/g)) {
+          const event = (run.events || []).find((candidate) => candidate.seq === Number(match[1]));
+          if (event) for (const seq of [event.observationBeforeSeq, event.observationAfterSeq]) witnessSequences.add(seq);
+        }
+      }
+      const missingWitness = [...witnessSequences].some((seq) => !verifiedHierarchyObservations.has(seq));
+      if (!absenceInRun && (missingWitness || capturedAxes?.[name]?.status !== 'VERIFIED')) {
+        counters.capabilityUnbound++;
+        record('capability-observation-unverified', `${attemptId}: ${name} is not supported by its own verified hierarchy observations/values`);
+      }
+    }
     if (!absenceInRun && (axes?.identity?.status === 'VERIFIED' || axes?.gameplayEntered?.status === 'VERIFIED') && !verifiedHierarchyIdentity) {
       counters.capabilityUnbound++;
       record('identity-hierarchy-unbound', `${attemptId}: identity/gameplay is claimed but no verified hierarchy binds the observed game id to the requested game`);

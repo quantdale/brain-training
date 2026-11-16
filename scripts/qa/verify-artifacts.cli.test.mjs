@@ -42,7 +42,7 @@ import {
   sniffScreenshot,
   verifyArtifactLedger,
 } from './artifact-integrity.mjs';
-import { deriveCapabilities } from './coverage-contract.mjs';
+import { deriveCapabilities, deriveLevel } from './coverage-contract.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..', '..');
@@ -1166,4 +1166,111 @@ test('UNIT: strict cannot turn a non-PASS verdict into success', () => {
     assert.equal(deriveVerificationExitCode(v, { strict: false }), 1, `${v} non-strict`);
     assert.equal(deriveVerificationExitCode(v, { strict: true }), 1, `${v} strict`);
   }
+});
+
+/** Independent XML fixture: claims are explicit, never built by the extractor
+ * under test. Each acquisition has its own indexed receipt. */
+function causalRun({ changedScore = true, changedTarget = false, terminal = false, targetText = 'A', numericEntities = false } = {}) {
+  const run = baseRun({ attemptId: `causal-${randomUUID()}` }).run;
+  const token = 'session-token.fixture-session';
+  const frames = [
+    ['launch', ['tutorial'], null, targetText],
+    ['observe', ['intro', 'start'], null, targetText],
+    ['observe', ['stage', 'round.1', 'score-live', 'choice.0'], '0', targetText],
+    ['play', ['stage', 'round.2', 'score-live', 'choice.0'], changedScore ? '100' : '0', changedTarget ? 'B' : targetText],
+  ];
+  if (terminal) frames.push(['terminal', ['results', 'result-facts', 'score-final'], '100', targetText]);
+  const escape = (text) => {
+    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    return numericEntities ? escaped.replace(/A/g, '&#65;').replace(/Ω/g, '&#x3a9;') : escaped;
+  };
+  run.observations = frames.map(([phase, suffixes, score, choice], index) => {
+    const seq = index + 1;
+    const timestamp = `2026-10-22T00:00:${String(seq * 10).padStart(2, '0')}.000Z`;
+    const controls = [...suffixes, token].sort();
+    const controlDetails = Object.fromEntries(controls.map((suffix) => [suffix, {
+      text: suffix.startsWith('score-') ? score : suffix === 'choice.0' ? choice : '',
+      desc: suffix === 'choice.0' ? 'Option A' : '',
+    }]));
+    const xml = Buffer.from(`<hierarchy>${controls.map((suffix) => `<node resource-id="${run.gameId}.${suffix}" package="com.braintraining.app" text="${escape(controlDetails[suffix].text)}" content-desc="${escape(controlDetails[suffix].desc)}" />`).join('')}</hierarchy>`);
+    const observation = {
+      seq, timestamp, executionAttemptId: run.executionAttemptId, phase, controls, controlDetails,
+      observedGameId: run.gameId, hierarchyControlIds: controls.map((suffix) => `${run.gameId}.${suffix}`),
+      screenMarkers: [], score, scoreControlId: suffixes.find((suffix) => suffix.startsWith('score-')) || null,
+      boardValues: suffixes.includes('choice.0') ? [`choice.0=${choice}`] : [],
+      rawScreen: { expectedPackage: run.buildIdentity.packageName, focusPackage: `${run.buildIdentity.packageName}/Main`, hierarchyStatus: 'ok', appAlive: true, controlCount: controls.length },
+    };
+    const artifact = writeArtifact(`causal-${seq}`, xml, 'xml');
+    const receipt = writeCaptureReceipt(artifact, run.executionAttemptId, run.buildIdentity, observation);
+    observation.hierarchyArtifact = {
+      kind: 'hierarchy', file: artifact.file, bytes: artifact.bytes, sha256: artifact.sha256,
+      executionAttemptId: run.executionAttemptId, observationSeq: seq, observationTimestamp: timestamp,
+      captureReceipt: receipt.reference,
+    };
+    if (phase === 'launch' || phase === 'terminal') {
+      const png = writeArtifact(`causal-${seq}`, PNG_1X1, 'png');
+      const pngReceipt = writeCaptureReceipt(png, run.executionAttemptId, run.buildIdentity, observation);
+      observation.evidenceArtifact = { ...observation.hierarchyArtifact, kind: 'screenshot', file: png.file, bytes: png.bytes, sha256: png.sha256, captureReceipt: pngReceipt.reference };
+    }
+    return observation;
+  });
+  run.events = run.observations.slice(1).map((after, index) => ({
+    seq: index + 1, executionAttemptId: run.executionAttemptId, timestamp: after.timestamp,
+    action: 'tap', target: index === 0 ? 'tutorial-done' : index === 1 ? 'start' : 'choice.0',
+    actionRequested: true, actionExecuted: true, actionAcknowledged: true,
+    observationBeforeSeq: after.seq - 1, observationAfterSeq: after.seq,
+  }));
+  return run;
+}
+
+test('T03 CLI: genuine XML-backed score and target changes preserve L2/L3 positive paths', () => {
+  for (const options of [{ numericEntities: true, targetText: 'A Ω' }, {}, { changedScore: false, changedTarget: true }, { terminal: true }, { targetText: `A & < > " ' \u03a9` }]) {
+    const run = causalRun(options);
+    assert.equal(deriveLevel(run).level, options.terminal ? 3 : 2);
+    const result = runCli([writeLedger([run]), '--mode', 'local']);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+});
+
+for (const [name, mutate] of Object.entries({
+  score: (o) => { o.score = '100'; },
+  board: (o) => { o.boardValues = ['choice.0=forged']; },
+  text: (o) => { o.controlDetails['choice.0'].text = 'forged'; },
+  description: (o) => { o.controlDetails['choice.0'].desc = 'forged'; },
+})) {
+  test(`T03 CLI: ledger-only ${name} forgery contradicts unchanged XML`, () => {
+    const run = causalRun({ changedScore: false });
+    const baseline = runCli([writeLedger([run]), '--mode', 'local']);
+    assert.equal(baseline.status, 0, baseline.stdout + baseline.stderr);
+    assert.notEqual(deriveCapabilities(run).inputAccepted.status, 'VERIFIED');
+    mutate(run.observations[3]);
+    // XML bytes, digests and capture receipts remain unchanged.
+    assert.equal(deriveCapabilities(run).inputAccepted.status, 'VERIFIED', name);
+    const result = runCli([writeLedger([run]), '--mode', 'local']);
+    assert.equal(result.status, 1, `${name}: ${result.stdout}${result.stderr}`);
+    assert.match(result.stdout, /hierarchy-observation-mismatch/);
+  });
+}
+
+for (const seq of [3, 4]) {
+  for (const replay of [false, true]) {
+    test(`T04 CLI: pivotal obs#${seq} ${replay ? 'unrelated' : 'missing'} hierarchy never passes`, () => {
+      const run = causalRun();
+      const decisive = run.observations[seq - 1];
+      delete decisive.evidenceArtifact;
+      if (replay) decisive.hierarchyArtifact = structuredClone(run.observations[0].hierarchyArtifact);
+      else delete decisive.hierarchyArtifact;
+      const result = runCli([writeLedger([run]), '--mode', 'local']);
+      assert.equal(result.status, 1, `obs#${seq}, replay=${replay}: ${result.stdout}${result.stderr}`);
+      assert.doesNotMatch(result.stdout, /verdict=PASS/);
+    });
+  }
+}
+
+test('T03 CLI: omitting target details cannot fabricate a disappearance of a still-visible target', () => {
+  const run = causalRun({ changedScore: false });
+  delete run.observations[3].controlDetails;
+  assert.equal(deriveCapabilities(run).inputAccepted.status, 'VERIFIED');
+  const result = runCli([writeLedger([run]), '--mode', 'local']);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
 });
