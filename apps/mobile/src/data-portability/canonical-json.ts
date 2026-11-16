@@ -7,11 +7,12 @@
  * we control at snapshot-build time by sorting element arrays). The output of
  * `canonicalString` is what the checksum is computed over.
  *
- * Campaign 010 (debt D2): the writer below produces that same canonical text in
- * a SINGLE pass — no intermediate deep copy, one stringification. The legacy
- * pipeline (`canonicalize` deep copy + one big `JSON.stringify`) is preserved
- * as `canonicalize` because tests and external tooling rely on its deep-copy
- * semantics, but nothing on the hot path uses it anymore.
+ * Campaign 010 (debt D2): the writer below streams sorted keys in a SINGLE
+ * pass — no intermediate deep copy. Unlike the original deep-copy/stringify
+ * pipeline, it orders array-index object keys lexically, not numerically.
+ * These modern bytes are persistent format: do not silently change them.
+ * `canonicalize` preserves the original writer's deep-copy semantics for
+ * historical checksum verification; normal exports use the streaming writer.
  */
 
 /** Return a deep copy of `value` with all object keys recursively sorted. */
@@ -54,8 +55,10 @@ const CANONICAL_EMIT_FLUSH_SIZE = 16 * 1024;
 /**
  * Stream the canonical JSON text of `value` through `emit`, chunk by chunk.
  *
- * Byte-for-byte identical to `JSON.stringify(canonicalize(value))` — including
- * its edge semantics: `undefined`/function/symbol members are omitted from
+ * For plain JSON values without array-index object keys, byte-for-byte
+ * identical to `JSON.stringify(canonicalize(value))`. All object keys here use
+ * lexical order; the original writer's numeric-key ordering is handled only
+ * by the import compatibility path. `undefined`/function/symbol members are omitted from
  * objects and become `null` inside arrays, non-finite numbers become `null`,
  * exotic objects (Date via `toJSON`, wrappers, Map/Set/RegExp) delegate to
  * `JSON.stringify` exactly like the legacy canonicalize-then-stringify

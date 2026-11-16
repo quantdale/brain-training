@@ -203,6 +203,7 @@ export function sessionRecordFromProjection(row: ProjectedSessionRow): GameSessi
     xp: row.xp,
     startedAt: row.startedAt,
     completedAt: row.completedAt,
+    ...(row.completedLocalDate ? { completedLocalDate: row.completedLocalDate } : {}),
     durationMs: row.durationMs,
   };
 }

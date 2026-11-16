@@ -9,12 +9,15 @@
  * the whole snapshot. `periodKey` in each evaluation matches the db progress
  * row key (`periodKeyFor`), so persisted rows and evaluations always agree.
  */
-import { currentPeriodKey, isoWeekKey, localDateKey } from './period';
+import { currentPeriodKey, periodKeyFor } from './period';
+import { activityLocalDate } from '@/platform/local-calendar';
 import type { QuestDefinition, QuestEvaluation } from './types';
 
 export interface QuestSessionSample {
   /** Unix epoch ms. */
   completedAt: number;
+  /** Fixed completion-day attribution; old callers may omit it. */
+  completedLocalDate?: string | null;
   gameId: string;
   /** Cognitive domain (game's primary category), see `GAME_CATEGORIES`. */
   domain: string;
@@ -83,9 +86,12 @@ function periodFilter(
 ): (sample: QuestSessionSample) => boolean {
   switch (definition.kind) {
     case 'daily':
-      return (s) => localDateKey(new Date(s.completedAt)) === periodKey;
+      return (s) => activityLocalDate(s) === periodKey;
     case 'weekly':
-      return (s) => isoWeekKey(new Date(s.completedAt)) === periodKey;
+      return (s) => {
+        const day = activityLocalDate(s);
+        return day !== null && periodKeyFor('weekly', day) === periodKey;
+      };
     case 'longterm':
       return () => true;
   }

@@ -30,7 +30,8 @@ import {
   type SQLiteAdapter,
 } from "@/db";
 import { PROGRESSION_SEED_VERSION_KEY } from "@/progression/seeding";
-import type { BackupData, ImportMode } from "./types";
+import { localDateForTimestamp } from "@/platform/local-calendar";
+import { BackupDataValidationError, type BackupData, type ImportMode } from "./types";
 import {
   emptyCounters,
   type ImportCounters,
@@ -123,9 +124,26 @@ function xpAwardIdentity(
   return stable ? composite(source, award.reason) : null;
 }
 
-/** Composite key helper (entries are kept distinct unless every field matches). */
+/** Structural tuple encoding: input strings may themselves contain delimiters. */
 const composite = (...parts: (string | number | null)[]): string =>
-  parts.join("\u0000");
+  JSON.stringify(parts);
+
+function occurrenceCounts<T>(items: readonly T[], key: (item: T) => string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const identity = key(item);
+    counts.set(identity, (counts.get(identity) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/** Consume only pre-import occurrences, never rows inserted by this import. */
+function consumeOccurrence(counts: Map<string, number>, identity: string): boolean {
+  const remaining = counts.get(identity) ?? 0;
+  if (remaining === 0) return false;
+  counts.set(identity, remaining - 1);
+  return true;
+}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -219,8 +237,11 @@ export function mergeProfileSettings(
   incoming: Record<string, unknown>,
 ): Record<string, unknown> {
   const merged: Record<string, unknown> = { ...target, ...incoming };
-  if (isPlainObject(target.streaks) && isPlainObject(incoming.streaks)) {
-    merged.streaks = mergeStreakSettings(target.streaks, incoming.streaks);
+  if (target.streaks !== undefined || incoming.streaks !== undefined) {
+    merged.streaks = mergeStreakSettings(
+      isPlainObject(target.streaks) ? target.streaks : {},
+      isPlainObject(incoming.streaks) ? incoming.streaks : {},
+    );
   }
   if (target.cosmetics !== undefined || incoming.cosmetics !== undefined) {
     const t = isPlainObject(target.cosmetics) ? target.cosmetics : {};
@@ -335,7 +356,7 @@ async function writeSessions(
   c: ImportCounters,
 ): Promise<void> {
   const INSERT =
-    "INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms, completed_local_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   for (const s of sessions) {
     if (mode === "merge") {
       const existing = await txn.get<{ id: string }>(
@@ -364,6 +385,7 @@ async function writeSessions(
       // this INTEGER-declared column. Preserve those backups while restoring
       // the current storage invariant at the import boundary.
       Math.round(s.durationMs),
+      s.completedLocalDate ?? localDateForTimestamp(s.completedAt),
     ]);
     c.sessionsAdded += 1;
   }
@@ -404,26 +426,29 @@ async function writeLedger(
 ): Promise<void> {
   const INSERT =
     "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
+  const existing = mode === "merge"
+    ? await txn.all<BackupData["currencyLedger"][number]>(
+        "SELECT amount, reason, session_id AS sessionId, created_at AS createdAt, operation_id AS operationId FROM currency_ledger",
+      )
+    : [];
+  const operations = new Set(existing.flatMap((e) => e.operationId === null ? [] : [e.operationId]));
+  const fingerprint = (e: BackupData["currencyLedger"][number]) =>
+    composite(e.sessionId, e.reason, e.amount, e.createdAt);
+  const canonicalGameplay = (e: BackupData["currencyLedger"][number]) =>
+    e.reason === "gameplay" && e.sessionId !== null && e.operationId === `gameplay:${e.sessionId}`;
+  const legacy = occurrenceCounts(existing.filter((e) => e.operationId === null), fingerprint);
+  const unkeyedMatches = occurrenceCounts(
+    existing.filter((e) => e.operationId === null || canonicalGameplay(e)), fingerprint,
+  );
   for (const e of ledger) {
     if (mode === "merge") {
-      if (e.operationId) {
-        const ex = await txn.get<{ id: number }>(
-          "SELECT id FROM currency_ledger WHERE operation_id = ?",
-          [e.operationId],
-        );
-        if (ex) continue;
-      } else if (e.sessionId) {
-        const ex = await txn.get<{ id: number }>(
-          "SELECT id FROM currency_ledger WHERE session_id = ? AND reason = ? AND amount = ? AND created_at = ?",
-          [e.sessionId, e.reason, e.amount, e.createdAt],
-        );
-        if (ex) continue;
-      } else {
-        const ex = await txn.get<{ id: number }>(
-          "SELECT id FROM currency_ledger WHERE session_id IS NULL AND reason = ? AND amount = ? AND created_at = ?",
-          [e.reason, e.amount, e.createdAt],
-        );
-        if (ex) continue;
+      if (e.operationId !== null) {
+        if (operations.has(e.operationId)) continue;
+        // Schema v8 assigned this identity to an equivalent legacy gameplay
+        // row. Restore does not re-run old migrations, so bridge it here.
+        if (canonicalGameplay(e) && consumeOccurrence(legacy, fingerprint(e))) continue;
+      } else if (consumeOccurrence(unkeyedMatches, fingerprint(e))) {
+        continue;
       }
     }
     await txn.run(INSERT, [
@@ -433,6 +458,7 @@ async function writeLedger(
       e.createdAt,
       e.operationId,
     ]);
+    if (e.operationId !== null) operations.add(e.operationId);
     c.ledgerAdded += 1;
   }
 }
@@ -445,22 +471,57 @@ async function writeXpAwards(
 ): Promise<void> {
   const INSERT =
     "INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)";
+  const existing = mode === "merge"
+    ? await txn.all<BackupData["xpAwards"][number]>(
+        "SELECT amount, reason, source, created_at AS createdAt FROM xp_awards",
+      )
+    : [];
+  const identities = new Set(existing.flatMap((a) => {
+    const identity = xpAwardIdentity(a);
+    return identity === null ? [] : [identity];
+  }));
+  const fingerprint = (a: BackupData["xpAwards"][number]) =>
+    composite(a.source, a.amount, a.reason, a.createdAt);
+  const generic = occurrenceCounts(existing.filter((a) => xpAwardIdentity(a) === null), fingerprint);
   for (const a of awards) {
+    const stable = xpAwardIdentity(a);
     if (mode === "merge") {
-      const stable = xpAwardIdentity(a);
-      const ex = stable
-        ? await txn.get<{ id: number }>(
-            "SELECT id FROM xp_awards WHERE source = ? AND reason = ?",
-            [a.source, a.reason],
-          )
-        : await txn.get<{ id: number }>(
-            "SELECT id FROM xp_awards WHERE source = ? AND amount = ? AND reason = ? AND created_at = ?",
-            [a.source, a.amount, a.reason, a.createdAt],
-          );
-      if (ex) continue;
+      if (stable !== null ? identities.has(stable) : consumeOccurrence(generic, fingerprint(a))) continue;
     }
     await txn.run(INSERT, [a.amount, a.reason, a.source, a.createdAt]);
+    if (stable !== null) identities.add(stable);
     c.xpAwardsAdded += 1;
+  }
+}
+
+/** Check the actual deduplicated post-import state before the transaction commits. */
+async function validateImportedEconomy(txn: SQLiteAdapter, mode: ImportMode): Promise<void> {
+  let sessionXp: number;
+  let awardXp: number;
+  let balance: number;
+  try {
+    sessionXp = (await txn.get<{ total: number }>(
+      "SELECT COALESCE(SUM(xp), 0) AS total FROM game_sessions",
+    ))?.total ?? 0;
+    awardXp = (await txn.get<{ total: number }>(
+      "SELECT COALESCE(SUM(amount), 0) AS total FROM xp_awards",
+    ))?.total ?? 0;
+    balance = (await txn.get<{ balance: number }>("SELECT balance FROM currency_balance"))?.balance ?? 0;
+  } catch (error) {
+    // SQLite SUM itself can overflow its 64-bit accumulator before JS sees a
+    // result. Never replace exact currency/XP arithmetic with floating TOTAL.
+    if (error instanceof Error && /integer overflow/i.test(error.message)) {
+      throw new BackupDataValidationError(["Import would overflow exact currency or XP totals."]);
+    }
+    throw error;
+  }
+  if (![sessionXp, awardXp, sessionXp + awardXp, balance].every(Number.isSafeInteger)) {
+    throw new BackupDataValidationError(["Import would exceed safe exact currency or XP totals."]);
+  }
+  if (mode === "merge" && balance < 0) {
+    throw new BackupDataValidationError([
+      "Merge would create a negative currency balance from conflicting spending histories; no data was changed.",
+    ]);
   }
 }
 
@@ -922,6 +983,7 @@ export async function applyData(
   await writeQuestProgress(txn, questProgress, mode, c);
   await writeAchievementDefinitions(txn, achievementDefinitions, mode, c);
   await writeAchievementUnlocks(txn, achievementUnlocks, mode, c);
+  await validateImportedEconomy(txn, mode);
 }
 
 function summarizeWritten(c: ImportCounters): number {

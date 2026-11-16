@@ -13,6 +13,7 @@
 
 import type { GameSessionRecord } from '@/db';
 import { localDateKey } from '@/quests/period';
+import { activityLocalDate } from '@/platform/local-calendar';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -59,7 +60,8 @@ export function buildActivityCalendar(
 ): ActivityCalendar {
   const counts = new Map<string, number>();
   for (const session of sessions) {
-    const key = localDateKey(new Date(session.completedAt));
+    const key = activityLocalDate(session);
+    if (key === null) continue;
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 

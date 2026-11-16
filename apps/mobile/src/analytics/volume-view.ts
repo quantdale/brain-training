@@ -21,7 +21,7 @@
 
 import type { GameSessionRecord } from '@/db';
 
-import { localDateKey } from '@/quests/period';
+import { activityLocalDate } from '@/platform/local-calendar';
 
 import type { Direction, TimeWindowKey } from './types';
 import { WINDOW_DAYS, windowStartMs } from './windows';
@@ -76,7 +76,8 @@ export function buildSessionVolume(
         continue;
       }
       windowSessions += 1;
-      activeDayKeys.add(localDateKey(new Date(t)));
+      const day = activityLocalDate(session);
+      if (day !== null) activeDayKeys.add(day);
       // Week bucket index counted back from "now": 0 = current (partial) week.
       const bucket = Math.floor((nowMs - t) / (7 * DAY_MS));
       weeklyBuckets.set(bucket, (weeklyBuckets.get(bucket) ?? 0) + 1);
@@ -89,7 +90,8 @@ export function buildSessionVolume(
         continue;
       }
       windowSessions += 1;
-      activeDayKeys.add(localDateKey(new Date(session.completedAt)));
+      const day = activityLocalDate(session);
+      if (day !== null) activeDayKeys.add(day);
     }
   }
 

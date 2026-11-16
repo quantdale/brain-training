@@ -3,6 +3,7 @@ import { DIFFICULTY_LEVELS } from "@/sdk/types/difficulty";
 import type { MasteryInput } from "@/mastery/engine";
 import { LOCAL_PROFILE_ID } from "./profile";
 import { RatingRepository } from "./rating";
+import { localDateForTimestamp } from "@/platform/local-calendar";
 import {
   MAX_READ_LIMIT,
   DEFAULT_READ_LIMIT,
@@ -57,14 +58,15 @@ interface SessionRow {
   xp: number;
   started_at: number;
   completed_at: number;
+  completed_local_date?: string | null;
   duration_ms: number;
 }
 
 const INSERT_SESSION = `INSERT OR IGNORE INTO game_sessions (
     id, game_id, game_version, generator_version, scoring_version, seed,
     difficulty_json, raw_result_json, normalized_result, xp,
-    started_at, completed_at, duration_ms
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    started_at, completed_at, duration_ms, completed_local_date
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 const SELECT_SESSION_BY_ID = "SELECT * FROM game_sessions WHERE id = ?";
 const SELECT_ALL_SESSIONS = "SELECT * FROM game_sessions";
@@ -90,7 +92,7 @@ const SELECT_COUNT = "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_DISTINCT_GAME_COUNT =
   "SELECT COUNT(DISTINCT game_id) AS n FROM game_sessions";
 const SELECT_DISTINCT_ACTIVITY_DATE_COUNT =
-  "SELECT COUNT(DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime')) AS n FROM game_sessions";
+  "SELECT COUNT(DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime'))) AS n FROM game_sessions";
 const SELECT_ACCURACY_SESSION_COUNT =
   "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_BEST_NORMALIZED =
@@ -98,7 +100,7 @@ const SELECT_BEST_NORMALIZED =
 const SELECT_GAME_ID_COUNTS =
   "SELECT game_id AS gameId, COUNT(*) AS n FROM game_sessions";
 const SELECT_LIGHTWEIGHT =
-  "SELECT game_id AS gameId, xp, completed_at AS completedAt FROM game_sessions";
+  "SELECT game_id AS gameId, xp, completed_at AS completedAt, completed_local_date AS completedLocalDate FROM game_sessions";
 const SELECT_AGGREGATES = `
   SELECT game_id AS gameId, COUNT(*) AS count,
          AVG(normalized_result) AS avgNormalized,
@@ -269,6 +271,7 @@ function mapRow(row: SessionRow): GameSessionRecord {
     xp: row.xp,
     startedAt: row.started_at,
     completedAt: row.completed_at,
+    ...(row.completed_local_date ? { completedLocalDate: row.completed_local_date } : {}),
     durationMs: row.duration_ms,
     ...(workoutProvenance ? { workoutProvenance } : {}),
   };
@@ -354,6 +357,10 @@ export class SessionRepository {
     const startedAt = canonicalInteger(rawSession.startedAt, "session.startedAt");
     const completedAt = canonicalInteger(rawSession.completedAt, "session.completedAt");
     const durationMs = canonicalInteger(rawSession.durationMs, "session.durationMs", 0);
+    const completedLocalDate = localDateForTimestamp(completedAt);
+    if (localDateForTimestamp(startedAt) === null || completedLocalDate === null) {
+      throw new RangeError("completeSession: session timestamps must be supported calendar dates");
+    }
     if (completedAt < startedAt) {
       throw new Error("completeSession: completedAt must be >= startedAt");
     }
@@ -407,6 +414,7 @@ export class SessionRepository {
       xp,
       startedAt,
       completedAt,
+      completedLocalDate,
       durationMs,
     };
 
@@ -456,6 +464,7 @@ export class SessionRepository {
         startedAt,
         completedAt,
         durationMs,
+        completedLocalDate,
       ]);
       const isNew = insert.changes > 0;
 
@@ -741,12 +750,13 @@ export class SessionRepository {
   async listLightweight(
     limit = 5000,
     throughMs?: number,
-  ): Promise<{ gameId: string; xp: number; completedAt: number }[]> {
+  ): Promise<{ gameId: string; xp: number; completedAt: number; completedLocalDate?: string | null }[]> {
     const bound = completedAtCondition(throughMs);
     return this.adapter.all<{
       gameId: string;
       xp: number;
       completedAt: number;
+      completedLocalDate?: string | null;
     }>(
       `${SELECT_LIGHTWEIGHT}${bound.sql ? ` WHERE ${bound.sql}` : ""} ORDER BY completed_at DESC LIMIT ?`,
       [...bound.params, limit],
@@ -767,13 +777,13 @@ export class SessionRepository {
     txn?: SQLiteAdapter,
   ): Promise<string[]> {
     const bound = completedAtCondition(throughMs);
-    const rows = await (txn ?? this.adapter).all<{ date: string }>(
-      `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime') as date
+    const rows = await (txn ?? this.adapter).all<{ date: string | null }>(
+      `SELECT DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime')) as date
        FROM game_sessions${bound.sql ? ` WHERE ${bound.sql}` : ""}
        ORDER BY date DESC`,
       bound.params,
     );
-    return rows.map((row) => row.date);
+    return rows.flatMap((row) => row.date === null ? [] : [row.date]);
   }
 
   /**
@@ -975,9 +985,11 @@ export class SessionRepository {
     }
     const { whereSql, params } = buildSessionFilter(query);
     // Only two fixed modifier strings exist; caller text never reaches SQL.
-    const modifier = query.dayBoundary === "local" ? ", 'localtime'" : "";
+    const dateExpression = query.dayBoundary === "local"
+      ? "COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime'))"
+      : "DATE(completed_at / 1000, 'unixepoch')";
     return this.adapter.all<DailySessionCount>(
-      `SELECT DATE(completed_at / 1000, 'unixepoch'${modifier}) AS day,
+      `SELECT ${dateExpression} AS day,
               COUNT(*) AS count
        FROM game_sessions ${whereSql}
        GROUP BY day
@@ -1294,6 +1306,7 @@ export interface SessionProgressRow {
   xp: number;
   startedAt: number;
   completedAt: number;
+  completedLocalDate?: string | null;
   durationMs: number;
   /** First numeric `raw_result_json` score field (metrics-map priority), else null. */
   mScore: number | null;
@@ -1396,6 +1409,7 @@ const SESSION_PROGRESS_COLUMNS = [
   "xp",
   "started_at AS startedAt",
   "completed_at AS completedAt",
+  "completed_local_date AS completedLocalDate",
   "duration_ms AS durationMs",
   coalescedJsonNumbers("raw_result_json", SCORE_FIELDS) + " AS mScore",
   coalescedJsonNumbers("raw_result_json", ACCURACY_FIELDS) + " AS mAccuracy",

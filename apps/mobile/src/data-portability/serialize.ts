@@ -17,6 +17,7 @@
  */
 
 import { LOCAL_PROFILE_ID, SCHEMA_VERSION, type AppDatabase } from '@/db';
+import { localDateForTimestamp } from '@/platform/local-calendar';
 import { canonicalChunks, writeCanonicalJson } from './canonical-json';
 import { CHECKSUM_ALGORITHM, Sha256 } from './checksum';
 import {
@@ -122,6 +123,7 @@ interface RawSessionRow {
   xp: number;
   started_at: number;
   completed_at: number;
+  completed_local_date?: string | null;
   duration_ms: number;
 }
 
@@ -159,6 +161,7 @@ export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
       xp: r.xp,
       startedAt: r.started_at,
       completedAt: r.completed_at,
+      completedLocalDate: r.completed_local_date ?? localDateForTimestamp(r.completed_at) ?? undefined,
       durationMs: r.duration_ms,
     }));
 

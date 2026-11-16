@@ -53,6 +53,8 @@ export interface BackupGameSession {
   xp: number;
   startedAt: number;
   completedAt: number;
+  /** Added with schema 14; older backups infer the import-local day once. */
+  completedLocalDate?: string;
   durationMs: number;
 }
 

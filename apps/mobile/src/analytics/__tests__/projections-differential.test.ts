@@ -507,6 +507,7 @@ describe.each([
       expect(keys).toEqual(
         [
           'completedAt',
+          'completedLocalDate',
           'durationMs',
           'gameId',
           'gameVersion',

@@ -185,7 +185,11 @@ describe("completeSession", () => {
 
     // Session row persisted with JSON round-trip intact.
     const stored = await sessions.getById("session-1");
-    expect(stored).toEqual(input.session);
+    expect(stored).toEqual({
+      ...input.session,
+      completedLocalDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+    });
+    expect(stored?.completedLocalDate).toBe(result.session.completedLocalDate);
     expect(stored?.difficulty).toEqual({ mode: "normal" });
     expect(stored?.rawResult).toEqual({ score: 120, accuracy: 0.87 });
 

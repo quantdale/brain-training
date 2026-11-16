@@ -12,7 +12,7 @@
 
 import type { GameSessionRecord } from '@/db';
 
-import { localDateKey } from '@/quests/period';
+import { activityLocalDate } from '@/platform/local-calendar';
 
 /** One breadth group: days on which exactly `breadth` distinct domains were trained. */
 export interface BreadthGroup {
@@ -59,7 +59,8 @@ export function buildDomainBreadthPerformance(
 
   for (const session of sessions) {
     const domain = resolveDomain(session.gameId);
-    const key = localDateKey(new Date(session.completedAt));
+    const key = activityLocalDate(session);
+    if (key === null) continue;
     if (domain === null) {
       // A day whose sessions are all unmapped must not count as breadth-0 data.
       unmappedDayKeys.add(key);

@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 /**
  * Connection-level invariant: how long a statement waits for a lock held by
@@ -862,6 +862,23 @@ export const MIGRATIONS: readonly Migration[] = [
       if (!columns.some((column) => column.name === "skipped_indices_json")) {
         await txn.exec(SQL.addWorkoutSkippedIndicesColumn);
       }
+    },
+  },
+  {
+    version: 14,
+    up: async (txn) => {
+      const columns = await txn.all<{ name: string }>("PRAGMA table_info(game_sessions)");
+      if (!columns.some((column) => column.name === "completed_local_date")) {
+        await txn.exec("ALTER TABLE game_sessions ADD COLUMN completed_local_date TEXT");
+      }
+      // Historical timezone was never recorded. Infer ONCE using the upgrade
+      // timezone, retain original instants, and never rewrite attributed days
+      // on migration replay. Invalid legacy instants remain explicitly null.
+      await txn.exec(`UPDATE game_sessions
+        SET completed_local_date = DATE(completed_at / 1000, 'unixepoch', 'localtime')
+        WHERE completed_local_date IS NULL`);
+      await txn.exec(`CREATE INDEX IF NOT EXISTS idx_game_sessions_local_date
+        ON game_sessions (completed_local_date)`);
     },
   },
 ];

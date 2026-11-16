@@ -14,8 +14,9 @@
  */
 
 import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
+import { isLocalCalendarDate, localDateForTimestamp } from '@/platform/local-calendar';
 
-import { canonicalString } from './canonical-json';
+import { canonicalize, canonicalString } from './canonical-json';
 import { CHECKSUM_ALGORITHM, computeChecksum } from './checksum';
 import { DiagnosticsBudget, IssueRecorder } from './diagnostics-budget';
 import {
@@ -153,6 +154,9 @@ function validateData(data: unknown): BackupData {
       !isSafeInteger(s.xp) ||
       !isSafeInteger(s.startedAt) ||
       !isSafeInteger(s.completedAt) ||
+      localDateForTimestamp(s.startedAt as number) === null ||
+      localDateForTimestamp(s.completedAt as number) === null ||
+      (s.completedLocalDate !== undefined && !isLocalCalendarDate(s.completedLocalDate)) ||
       !isNumber(s.durationMs) ||
       !Number.isSafeInteger(Math.round(s.durationMs))
     ) {
@@ -612,7 +616,20 @@ export function parseAndValidateBackup(text: string): ParsedBackup {
   // an untyped stack overflow.
   let actual: string;
   try {
-    actual = computeChecksum(canonicalString(payload as Record<string, unknown>));
+    actual = computeChecksum(canonicalString(payload));
+    if (
+      actual !== provided &&
+      (parsed.engineVersion === undefined || parsed.engineVersion === 1)
+    ) {
+      // Engine 1 deep-copied sorted keys, then used JSON.stringify, which
+      // enumerates array-index keys numerically. Engine 2+ streams all keys
+      // lexically. Keep modern export bytes stable while accepting genuine
+      // historical checksums; neither path accepts a modified payload.
+      const legacy = computeChecksum(JSON.stringify(canonicalize(payload)));
+      if (legacy === provided) {
+        actual = legacy;
+      }
+    }
   } catch (error) {
     if (error instanceof BackupError) {
       throw error;

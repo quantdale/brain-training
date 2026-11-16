@@ -1,3 +1,27 @@
+# Repository-wide hardening — 2026-11-16 (IN PROGRESS)
+
+Baseline `c4a40bb5`: full Jest 731 suites/8,238 tests PASS, 5 classified skips;
+TypeScript/whole-package zero-warning ESLint PASS; dependency tree matches lock.
+All five opt-in perf probes executed: 5 suites/22 tests PASS, 20k-session backup
+checksum/byte parity verified; measurements in the external audit session.
+Fresh dependency gate PASS with 8 existing accepted GHSAs, not zero risk.
+
+Initial checksum regression: 2 genuine failures/2 controls before; 3 suites/19
+tests PASS after. Import-integrity regression: 11 genuine failures/1 control
+before, 12/12 PASS after; full initial portability 21 suites/248 tests PASS.
+Calendar-attribution migration/round-trip/invalid-date/reward-replay regressions
+added. First integrated run failed 4 old exact-shape assertions (new persisted
+calendar field); expected shapes were extended explicitly, not loosened.
+Final scoped integration: 74 suites/934 tests PASS, 2 opt-in skips; types and
+scoped zero-warning ESLint PASS. Invalid invocation and fixture-cleanup failures
+are retained separately, not behavioral red proof.
+
+Full integrated source/generated/spec/security/evidence gates, exact ending CI,
+native-after and independent final review remain pending. Dedicated AVD now
+appears via ADB after supported software/non-Vulkan startup; readiness and
+runtime journeys are not inferred from enumeration alone. Details and risks:
+`docs/audits/2026-11-16-repository-audit.md`.
+
 # Repository cleanup — 2026-11-10
 
 Baseline used for every comparison here: `main` @ `7b13b7e4` (= `origin/main`

@@ -1,5 +1,33 @@
 # Durable Project State
 
+## Repository-wide hardening — 2026-11-16 (IN PROGRESS)
+
+Owner explicitly authorized exhaustive audit/remediation and resumed interrupted
+reviewers/workers. Goal mode is inactive; ordinary task authorization continues.
+Baseline clean main/origin `c4a40bb5`, fetched before changes; baseline full Jest
+731 suites/8,238 tests, types/whole-package lint PASS. Six read-only subsystem
+reviews recovered their retained sessions after provider quota interruptions;
+implementation is isolated in six assigned detached Windows-Git worktrees.
+
+Initial canonical repairs: original-writer numeric-key backup checksums, import
+multiset preservation/idempotency, upgraded/legacy gameplay reward bridging,
+structural tuple identities, exact post-import economy bounds/negative-merge
+refusal, and monotonic malformed streak settings. Schema 14 persists completion
+local dates, closing timezone rebucketing of streaks and recurring quest rewards;
+legacy timezone is irretrievable, so migration infers once in the upgrade zone
+without changing original instants. Backup import/export carries that date;
+new invalid-calendar timestamps are rejected, corrupt old samples cannot brick
+quest catch-up. Lifetime-XP quests now include reward XP.
+
+Focused integrated calendar/persistence/progression/analytics/quests/streaks:
+74 suites/934 tests PASS, two opted-in probes skipped (all five probes ran
+separately at baseline); current global types/scoped zero-warning lint PASS.
+Full final suite, native-after and independent final repair review remain OPEN.
+Ready worker commits are not accepted solely on their receipts; parent review
+and convergence continue. Audit register and external evidence location:
+`docs/audits/2026-11-16-repository-audit.md`. Campaign 080 remains ACTIVE, no
+release acceptance/physical-device/60-FPS claim.
+
 ## Repository cleanup — 2026-11-10 (maintenance only)
 
 Freshness gate: `git fetch --all --prune` moved `origin/main` from `a3dbb468`

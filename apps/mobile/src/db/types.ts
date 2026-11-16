@@ -56,6 +56,8 @@ export interface GameSessionRecord {
   xp: number;
   startedAt: number;
   completedAt: number;
+  /** Completion-local calendar day, fixed at write/import; absent on legacy fixtures. */
+  completedLocalDate?: string;
   durationMs: number;
   /** Exact workout instance/leg that launched this session, when applicable. */
   workoutProvenance?: WorkoutSessionProvenance;

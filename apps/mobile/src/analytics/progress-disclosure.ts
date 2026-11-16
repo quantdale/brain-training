@@ -13,7 +13,7 @@ import type { DomainInsight } from "./domain-insights";
 import type { TrainingBalance } from "./training-balance";
 import { filterByWindow } from "./windows";
 import type { Direction, TimeWindowKey } from "./types";
-import { localDateKey } from "@/quests/period";
+import { activityLocalDate } from "@/platform/local-calendar";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -72,7 +72,10 @@ export function buildProgressConsistency(
 ): ProgressConsistency {
   const inWindow = filterByWindow(sessions, nowMs, windowKey);
   const days = new Set(
-    inWindow.map((session) => localDateKey(new Date(session.completedAt))),
+    inWindow.flatMap((session) => {
+      const day = activityLocalDate(session);
+      return day === null ? [] : [day];
+    }),
   );
   return {
     sessions: inWindow.length,

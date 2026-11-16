@@ -21,6 +21,7 @@ import { getGameDefinition } from "@/registry/registry";
 import { reconstructStreak, readCoveredDates } from "@/streaks";
 import {
   currentPeriodKey,
+  periodKeyFor,
   evaluateQuests,
   QUEST_DEFINITIONS_V1,
   selectActiveQuests,
@@ -28,6 +29,7 @@ import {
   type QuestSnapshot,
 } from "@/quests";
 import { localDateString } from "@/workout/today";
+import { activityLocalDate, localCalendarNoon } from "@/platform/local-calendar";
 
 /**
  * Cap on how many recent sessions are materialized for quest evaluation. A
@@ -65,6 +67,7 @@ export async function buildQuestSamples(
   const rows = await db.sessions.listLightweight(limit, throughMs);
   return rows.map((row) => ({
     completedAt: row.completedAt,
+    completedLocalDate: row.completedLocalDate,
     gameId: row.gameId,
     domain: getGameDefinition(row.gameId)?.primaryCategory ?? "Unknown",
     xp: row.xp,
@@ -91,19 +94,21 @@ export async function syncQuestProgress(
   // window; longterm quests read the `lifetime` aggregates so the cap can
   // never strand or under-report their progress.
   const throughMs = now.getTime();
-  const [rows, sessionCount, totalXp] = await Promise.all([
+  const [rows, sessionCount, sessionXp, rewardXp] = await Promise.all([
     db.sessions.listLightweight(SYNC_SESSION_SCAN_LIMIT, throughMs),
     db.sessions.countSessions({ toMs: throughMs }),
     db.sessions.getTotalXp(throughMs),
+    db.xpAwards.getTotalAwardedXp(throughMs),
   ]);
   const snapshot: QuestSnapshot = {
     sessions: rows.map((row) => ({
       completedAt: row.completedAt,
+      completedLocalDate: row.completedLocalDate,
       gameId: row.gameId,
       domain: getGameDefinition(row.gameId)?.primaryCategory ?? "Unknown",
       xp: row.xp,
     })),
-    lifetime: { sessionCount, totalXp },
+    lifetime: { sessionCount, totalXp: sessionXp + rewardXp },
   };
   const active = selectActiveQuests(QUEST_DEFINITIONS_V1, now);
   const evaluations = evaluateQuests(active, snapshot, now);
@@ -140,20 +145,23 @@ async function catchUpEndedQuestPeriods(
     const currentKey = currentPeriodKey(kind, now);
     // `listLightweight` is newest-first, so the first sample seen for a period
     // is its newest and the walk can stop once the bound is reached.
-    const newestByPeriod = new Map<string, number>();
+    const newestByPeriod = new Map<string, { at: number; day: string }>();
     for (const sample of snapshot.sessions) {
-      const key = currentPeriodKey(kind, new Date(sample.completedAt));
-      if (key === currentKey || newestByPeriod.has(key)) {
+      const day = activityLocalDate(sample);
+      if (day === null) continue; // Preserve corrupt old rows, not invalid calendar claims.
+      const key = periodKeyFor(kind, day);
+      if (key >= currentKey || newestByPeriod.has(key)) {
         continue;
       }
       if (newestByPeriod.size === QUEST_CATCH_UP_PERIODS[kind]) {
         break;
       }
-      newestByPeriod.set(key, sample.completedAt);
+      newestByPeriod.set(key, { at: sample.completedAt, day });
     }
 
-    for (const [period, newestAt] of newestByPeriod) {
-      const evaluatedAt = new Date(newestAt);
+    for (const [period, newest] of newestByPeriod) {
+      const newestAt = newest.at;
+      const evaluatedAt = localCalendarNoon(newest.day);
       const earned = evaluateQuests(
         selectActiveQuests(QUEST_DEFINITIONS_V1, evaluatedAt).filter(
           (definition) => definition.kind === kind,
