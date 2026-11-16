@@ -1,4 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
+import * as calendar from '@/platform/local-calendar';
 import { evaluateQuest, evaluateQuests } from '../evaluate';
 import type { QuestSessionSample, QuestSnapshot } from '../evaluate';
 import { QUEST_DEFINITIONS_V1 } from '../definitions';
@@ -48,6 +49,20 @@ describe('evaluateQuests', () => {
     expect(byId.get('qt100')?.periodKey).toBe('all');
     // The catalog has grown beyond the baseline four.
     expect(results.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('resolves each sample calendar only once per evaluation and never caches across calls', () => {
+    const expected = QUEST_DEFINITIONS_V1.map((definition) => evaluateQuest(definition, SNAPSHOT, NOW));
+    const resolve = jest.spyOn(calendar, 'activityLocalDate');
+    try {
+      expect(evaluateQuests(QUEST_DEFINITIONS_V1, SNAPSHOT, NOW)).toEqual(expected);
+      expect(resolve).toHaveBeenCalledTimes(SNAPSHOT.sessions.length);
+      resolve.mockClear();
+      // No global memo: a subsequent evaluation must re-resolve legacy
+      // instants using its current timezone and current sample contents.
+      expect(evaluateQuests(QUEST_DEFINITIONS_V1, SNAPSHOT, NOW)).toEqual(expected);
+      expect(resolve).toHaveBeenCalledTimes(SNAPSHOT.sessions.length);
+    } finally { resolve.mockRestore(); }
   });
 
   it('daily quest counts only sessions on the same local date', () => {

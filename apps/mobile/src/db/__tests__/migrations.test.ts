@@ -51,6 +51,22 @@ describe('migrations', () => {
     );
   });
 
+  it.each(['currency_ledger', 'xp_awards'])('indexes complete event-time ordering for %s without a temporary sort', async (table) => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 14 });
+    await runMigrations(adapter);
+    // Replaying the last migration must also be safe on a database whose
+    // actual shape is newer than its recorded user_version.
+    await adapter.exec('PRAGMA user_version = 14');
+    await runMigrations(adapter);
+    const rows = await adapter.all<{ detail: string }>(
+      `EXPLAIN QUERY PLAN SELECT * FROM ${table} ORDER BY created_at DESC, CAST(id AS TEXT) DESC LIMIT 10`,
+    );
+    expect(rows.map((row) => row.detail).join('\n')).toContain(`idx_${table}_event_time`);
+    expect(rows.map((row) => row.detail).join('\n')).not.toMatch(/TEMP B-TREE/);
+    await adapter.close();
+  });
+
   it('upgrades a v2 database to v3 preserving existing rows', async () => {
     const adapter = createNodeSqliteAdapter(':memory:');
     await runMigrations(adapter, { targetVersion: 2 });

@@ -29,10 +29,3 @@ export function activityLocalDate(sample: {
     ? localDateForTimestamp(sample.completedAt)
     : isLocalCalendarDate(sample.completedLocalDate) ? sample.completedLocalDate : null;
 }
-
-/** A representative local instant for a known civil day, not a new attribution. */
-export function localCalendarNoon(day: string): Date {
-  if (!isLocalCalendarDate(day)) throw new RangeError('Invalid activity calendar date');
-  const [year, month, date] = day.split('-').map(Number);
-  return new Date(year, month - 1, date, 12);
-}

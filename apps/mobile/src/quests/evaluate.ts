@@ -45,7 +45,22 @@ export function evaluateQuests(
   snapshot: QuestSnapshot,
   now: Date,
 ): QuestEvaluation[] {
-  return definitions.map((definition) => evaluateQuest(definition, snapshot, now));
+  const calendar = createCalendarLookup();
+  return definitions.map((definition) => evaluateQuestForPeriod(
+    definition, snapshot, currentPeriodKey(definition.kind, now), calendar,
+  ));
+}
+
+/** Historical evaluation must not convert a valid civil date into today's zone. */
+export function evaluateQuestsForDate(
+  definitions: readonly QuestDefinition[],
+  snapshot: QuestSnapshot,
+  day: string,
+): QuestEvaluation[] {
+  const calendar = createCalendarLookup();
+  return definitions.map((definition) => evaluateQuestForPeriod(
+    definition, snapshot, periodKeyFor(definition.kind, day), calendar,
+  ));
 }
 
 /** Evaluate one definition (result keeps the definition's order/semantics). */
@@ -54,8 +69,16 @@ export function evaluateQuest(
   snapshot: QuestSnapshot,
   now: Date,
 ): QuestEvaluation {
-  const periodKey = currentPeriodKey(definition.kind, now);
-  const inPeriod = periodFilter(definition, periodKey);
+  return evaluateQuestForPeriod(definition, snapshot, currentPeriodKey(definition.kind, now));
+}
+
+function evaluateQuestForPeriod(
+  definition: QuestDefinition,
+  snapshot: QuestSnapshot,
+  periodKey: string,
+  calendar: CalendarLookup = createCalendarLookup(),
+): QuestEvaluation {
+  const inPeriod = periodFilter(definition, periodKey, calendar);
   const sessions = snapshot.sessions.filter(inPeriod);
   const criteria = definition.criteria; // const so the union narrows inside closures
 
@@ -83,16 +106,38 @@ export function evaluateQuest(
 function periodFilter(
   definition: QuestDefinition,
   periodKey: string,
+  calendar: CalendarLookup,
 ): (sample: QuestSessionSample) => boolean {
   switch (definition.kind) {
     case 'daily':
-      return (s) => activityLocalDate(s) === periodKey;
+      return (s) => calendar(s, 'daily') === periodKey;
     case 'weekly':
-      return (s) => {
-        const day = activityLocalDate(s);
-        return day !== null && periodKeyFor('weekly', day) === periodKey;
-      };
+      return (s) => calendar(s, 'weekly') === periodKey;
     case 'longterm':
       return () => true;
   }
+}
+
+type CalendarLookup = (sample: QuestSessionSample, kind: 'daily' | 'weekly') => string | null;
+
+/** Evaluation-local only: a global cache would freeze legacy timezone inference.
+ * Calendar validation and ISO week arithmetic need not repeat for every quest.
+ * Work stays lazy so lifetime-only evaluation does not inspect session dates. */
+function createCalendarLookup(): CalendarLookup {
+  const days = new Map<QuestSessionSample, string | null>();
+  const weeks = new Map<string, string>();
+  return (sample, kind) => {
+    let day = days.get(sample);
+    if (day === undefined) {
+      day = activityLocalDate(sample);
+      days.set(sample, day);
+    }
+    if (kind === 'daily' || day === null) return day;
+    let week = weeks.get(day);
+    if (week === undefined) {
+      week = periodKeyFor('weekly', day);
+      weeks.set(day, week);
+    }
+    return week;
+  };
 }

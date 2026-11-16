@@ -23,13 +23,15 @@ import {
   currentPeriodKey,
   periodKeyFor,
   evaluateQuests,
+  evaluateQuestsForDate,
   QUEST_DEFINITIONS_V1,
   selectActiveQuests,
+  selectActiveQuestsForDate,
   type QuestSessionSample,
   type QuestSnapshot,
 } from "@/quests";
 import { localDateString } from "@/workout/today";
-import { activityLocalDate, localCalendarNoon } from "@/platform/local-calendar";
+import { activityLocalDate } from "@/platform/local-calendar";
 
 /**
  * Cap on how many recent sessions are materialized for quest evaluation. A
@@ -161,13 +163,12 @@ async function catchUpEndedQuestPeriods(
 
     for (const [period, newest] of newestByPeriod) {
       const newestAt = newest.at;
-      const evaluatedAt = localCalendarNoon(newest.day);
-      const earned = evaluateQuests(
-        selectActiveQuests(QUEST_DEFINITIONS_V1, evaluatedAt).filter(
+      const earned = evaluateQuestsForDate(
+        selectActiveQuestsForDate(QUEST_DEFINITIONS_V1, newest.day).filter(
           (definition) => definition.kind === kind,
         ),
         snapshot,
-        evaluatedAt,
+        newest.day,
       ).filter((evaluation) => evaluation.completed);
       if (earned.length === 0) {
         continue;

@@ -26,12 +26,12 @@ export interface IsoWeek {
  * containing that date. Longterm: the `'all'` sentinel.
  */
 export function periodKeyFor(kind: QuestKind, dateStr: string): string {
-  const date = parseLocalDate(dateStr);
+  const date = parseCivilDate(dateStr);
   switch (kind) {
     case 'daily':
-      return localDateKey(date);
+      return dateStr;
     case 'weekly':
-      return isoWeekKey(date);
+      return formatIsoWeek(isoWeekOfDay(date.valueOf()));
     case 'longterm':
       return LONGTERM_PERIOD_KEY;
   }
@@ -46,7 +46,7 @@ export function currentPeriodKey(kind: QuestKind, now: Date): string {
 export function localDateKey(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
+  return `${String(date.getFullYear()).padStart(4, '0')}-${month}-${day}`;
 }
 
 /**
@@ -55,8 +55,11 @@ export function localDateKey(date: Date): string {
  * Thursday, so e.g. `2025-12-29` is `2026-W01`.
  */
 export function isoWeekKey(date: Date): string {
-  const { year, week } = isoWeekOf(date);
-  return `${year}-W${String(week).padStart(2, '0')}`;
+  return formatIsoWeek(isoWeekOf(date));
+}
+
+function formatIsoWeek({ year, week }: IsoWeek): string {
+  return `${String(year).padStart(4, '0')}-W${String(week).padStart(2, '0')}`;
 }
 
 /**
@@ -69,16 +72,19 @@ export function isoWeekKey(date: Date): string {
  * across a DST change and would skew the day-of-year.
  */
 export function isoWeekOf(date: Date): IsoWeek {
-  const dayMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  return isoWeekOfDay(utcDayMs(date.getFullYear(), date.getMonth(), date.getDate()));
+}
+
+function isoWeekOfDay(dayMs: number): IsoWeek {
   const dayNum = new Date(dayMs).getUTCDay() || 7; // Mon=1 .. Sun=7
   const thursdayMs = dayMs + (4 - dayNum) * 86_400_000; // Thursday of this ISO week
   const year = new Date(thursdayMs).getUTCFullYear();
-  const dayOfYear = (thursdayMs - Date.UTC(year, 0, 1)) / 86_400_000 + 1;
+  const dayOfYear = (thursdayMs - utcDayMs(year, 0, 1)) / 86_400_000 + 1;
   return { year, week: Math.ceil(dayOfYear / 7) };
 }
 
-/** Parse `YYYY-MM-DD` into a *local* Date; rejects invalid calendar dates. */
-function parseLocalDate(dateStr: string): Date {
+/** UTC is only an arithmetic carrier: no current-zone midnight is constructed. */
+function parseCivilDate(dateStr: string): Date {
   const match = LOCAL_DATE_RE.exec(dateStr);
   if (!match) {
     throw new Error(`periodKeyFor: expected local date "YYYY-MM-DD", got "${dateStr}"`);
@@ -86,10 +92,19 @@ function parseLocalDate(dateStr: string): Date {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-  // Rollover check: `new Date(2026, 1, 30)` silently becomes Mar 2.
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+  const date = new Date(utcDayMs(year, month - 1, day));
+  // A Gregorian date remains valid even if the current zone skipped it (Apia
+  // 2011-12-30). Still reject ordinary month/day rollover and unsupported years.
+  if (year < 100 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
     throw new Error(`periodKeyFor: invalid calendar date "${dateStr}"`);
   }
   return date;
+}
+
+function utcDayMs(year: number, month: number, day: number): number {
+  const date = new Date(0);
+  // Date.UTC/new Date(y,m,d) reinterpret 0..99 as 1900..1999. An accepted
+  // year-0100 date can legitimately belong to ISO week-year 0099.
+  date.setUTCFullYear(year, month, day);
+  return date.valueOf();
 }

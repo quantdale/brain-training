@@ -200,22 +200,21 @@ function mergeStreakSettings(
     }
   }
 
-  const deviceUsage = target.freezeUsed;
-  const backupUsage = incoming.freezeUsed;
-  if (isPlainObject(deviceUsage) && isPlainObject(backupUsage)) {
-    const devicePeriod = String(deviceUsage.period);
-    const backupPeriod = String(backupUsage.period);
-    if (devicePeriod === backupPeriod) {
-      merged.freezeUsed = {
-        ...backupUsage,
-        count: Math.max(
-          nonNegativeCount(deviceUsage.count) ?? 0,
-          nonNegativeCount(backupUsage.count) ?? 0,
-        ),
-      };
-    } else {
-      merged.freezeUsed = devicePeriod > backupPeriod ? deviceUsage : backupUsage;
-    }
+  const usage = (value: unknown) => isPlainObject(value) &&
+    typeof value.period === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(value.period) &&
+    typeof value.count === "number" && Number.isSafeInteger(value.count) && value.count >= 0
+    ? { ...value, period: value.period, count: value.count }
+    : null;
+  const deviceUsage = usage(target.freezeUsed);
+  const backupUsage = usage(incoming.freezeUsed);
+  if (deviceUsage !== null && backupUsage !== null) {
+    merged.freezeUsed = deviceUsage.period === backupUsage.period
+      ? { ...backupUsage, count: Math.max(deviceUsage.count, backupUsage.count) }
+      : deviceUsage.period > backupUsage.period ? deviceUsage : backupUsage;
+  } else if (deviceUsage !== null || backupUsage !== null) {
+    // Malformed nested data must not erase a known usage count and reopen a
+    // monthly purchase cap, even when the surrounding streak block is valid.
+    merged.freezeUsed = deviceUsage ?? backupUsage;
   }
   return merged;
 }
@@ -431,23 +430,57 @@ async function writeLedger(
         "SELECT amount, reason, session_id AS sessionId, created_at AS createdAt, operation_id AS operationId FROM currency_ledger",
       )
     : [];
-  const operations = new Set(existing.flatMap((e) => e.operationId === null ? [] : [e.operationId]));
+  const operations = new Map(existing.flatMap((e, index) => e.operationId === null ? [] : [[e.operationId, index] as const]));
   const fingerprint = (e: BackupData["currencyLedger"][number]) =>
     composite(e.sessionId, e.reason, e.amount, e.createdAt);
   const canonicalGameplay = (e: BackupData["currencyLedger"][number]) =>
     e.reason === "gameplay" && e.sessionId !== null && e.operationId === `gameplay:${e.sessionId}`;
-  const legacy = occurrenceCounts(existing.filter((e) => e.operationId === null), fingerprint);
-  const unkeyedMatches = occurrenceCounts(
-    existing.filter((e) => e.operationId === null || canonicalGameplay(e)), fingerprint,
-  );
-  for (const e of ledger) {
+  const legacy = new Map<string, number[]>();
+  const unkeyedMatches = new Map<string, number[]>();
+  existing.forEach((e, index) => {
+    const key = fingerprint(e);
+    if (e.operationId === null) {
+      const matches = legacy.get(key) ?? [];
+      matches.push(index);
+      legacy.set(key, matches);
+    }
+    if (e.operationId === null || canonicalGameplay(e)) {
+      const matches = unkeyedMatches.get(key) ?? [];
+      matches.push(index);
+      unkeyedMatches.set(key, matches);
+    }
+  });
+  const consumed = new Set<number>();
+  const consume = (candidates: Map<string, number[]>, key: string) => {
+    const indexes = candidates.get(key);
+    while (indexes?.length) {
+      const index = indexes.pop()!;
+      if (!consumed.has(index)) {
+        consumed.add(index);
+        return true;
+      }
+    }
+    return false;
+  };
+  // Stable identities reserve their exact row before any legacy fingerprint
+  // matching. Every pre-import occurrence may cover ONE incoming occurrence,
+  // across both pools: a migrated row cannot also swallow a legacy duplicate.
+  const ordered = mode === "merge" ? [
+    ...ledger.filter((e) => e.operationId !== null),
+    ...ledger.filter((e) => e.operationId === null),
+  ] : ledger;
+  for (const e of ordered) {
     if (mode === "merge") {
       if (e.operationId !== null) {
-        if (operations.has(e.operationId)) continue;
+        const exact = operations.get(e.operationId);
+        if (exact !== undefined) {
+          consumed.add(exact);
+          continue;
+        }
         // Schema v8 assigned this identity to an equivalent legacy gameplay
         // row. Restore does not re-run old migrations, so bridge it here.
-        if (canonicalGameplay(e) && consumeOccurrence(legacy, fingerprint(e))) continue;
-      } else if (consumeOccurrence(unkeyedMatches, fingerprint(e))) {
+        if (canonicalGameplay(e) && consume(legacy, fingerprint(e))) continue;
+      } else if (consume(unkeyedMatches, fingerprint(e))) {
         continue;
       }
     }
@@ -458,7 +491,7 @@ async function writeLedger(
       e.createdAt,
       e.operationId,
     ]);
-    if (e.operationId !== null) operations.add(e.operationId);
+    if (e.operationId !== null) operations.set(e.operationId, -1);
     c.ledgerAdded += 1;
   }
 }

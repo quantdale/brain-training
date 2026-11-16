@@ -91,6 +91,8 @@ describe('metrics-map extraction', () => {
   });
 
   it('falls back to a best reaction field when no mean is present', () => {
+    expect(extractReactionMs({ avgResponseTimeMs: 800, fastestResponseMs: 200 })).toBe(800);
+    expect(extractReactionMs({ avgResponseTimeMs: null, fastestResponseMs: 200 })).toBe(200);
     expect(extractReactionMs({ meanReactionMs: 250 })).toBe(250);
     expect(extractReactionMs({ fastestReactionMs: 180 })).toBe(180);
   });

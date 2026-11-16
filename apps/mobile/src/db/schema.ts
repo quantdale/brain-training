@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 /**
  * Connection-level invariant: how long a statement waits for a lock held by
@@ -879,6 +879,18 @@ export const MIGRATIONS: readonly Migration[] = [
         WHERE completed_local_date IS NULL`);
       await txn.exec(`CREATE INDEX IF NOT EXISTS idx_game_sessions_local_date
         ON game_sessions (completed_local_date)`);
+    },
+  },
+  {
+    version: 15,
+    up: async (txn) => {
+      // Reward history limits by event time before merging, with its existing
+      // lexical row-id tie break. Match both ORDER BY expressions so equal-
+      // timestamp imports do not require sorting the complete reward history.
+      await txn.exec(`CREATE INDEX IF NOT EXISTS idx_currency_ledger_event_time
+        ON currency_ledger (created_at DESC, CAST(id AS TEXT) DESC)`);
+      await txn.exec(`CREATE INDEX IF NOT EXISTS idx_xp_awards_event_time
+        ON xp_awards (created_at DESC, CAST(id AS TEXT) DESC)`);
     },
   },
 ];

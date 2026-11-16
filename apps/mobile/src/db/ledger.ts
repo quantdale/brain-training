@@ -1,5 +1,6 @@
 import type { SQLiteAdapter } from './adapter';
 import type { LedgerEntry } from './types';
+import { CURRENCY_WRITE_WITHIN_SAFE_BOUNDS } from './economy-write-bounds';
 
 /**
  * Append-only currency transaction ledger (constitution §17). Entries are
@@ -27,12 +28,12 @@ const SELECT_BY_OPERATION =
   'SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE operation_id = ?';
 // OR IGNORE: a same-key race resolves via the reselect below instead of
 // surfacing a UNIQUE violation (060). Given append()'s pre-validation
-// (integers/strings checked before this statement), changes===0 with a key
-// is reachable only via the partial unique index — OR IGNORE would also
-// swallow NOT NULL/CHECK, but those cannot reach this statement. Genuine
-// constraint violations (FK, trigger ABORT) still throw.
+// (integers/strings checked before this statement), changes===0 means either
+// an existing idempotency key or a refused cumulative balance. NOT NULL/CHECK
+// cannot fail after validation; genuine FK/trigger violations still throw.
 const INSERT_ENTRY =
-  'INSERT OR IGNORE INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
+  `INSERT OR IGNORE INTO currency_ledger (amount, reason, session_id, created_at, operation_id)
+   SELECT ?, ?, ?, ?, ? WHERE ${CURRENCY_WRITE_WITHIN_SAFE_BOUNDS}`;
 
 function requireLedgerInteger(value: unknown, field: string): number {
   if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
@@ -98,18 +99,12 @@ export class LedgerRepository {
         return mapRow(existing);
       }
     }
-    const result = await a.run(INSERT_ENTRY, [amount, reason, sessionId, createdAt, operationId]);
-    if (operationId !== null && result.changes === 0) {
-      // Lost a same-key race between the pre-check and the insert (or
-      // landed after a committed twin): return the winner instead of
-      // surfacing a UNIQUE violation. Given the pre-validation above,
-      // `changes === 0` with a key means the partial unique index fired
-      // (060).
-      const winner = await a.get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
-      if (winner) {
-        return mapRow(winner);
-      }
-      throw new Error(`ledger append lost a race with no winner for ${operationId}`);
+    const result = await a.run(INSERT_ENTRY, [amount, reason, sessionId, createdAt, operationId, amount]);
+    if (result.changes === 0) {
+      // Preserve a same-key race's winner before reporting a refused total.
+      const winner = operationId === null ? null : await a.get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
+      if (winner) return mapRow(winner);
+      throw new RangeError('ledger balance must remain a safe integer');
     }
     return { id: result.lastInsertRowId, amount, reason, sessionId, createdAt };
   }

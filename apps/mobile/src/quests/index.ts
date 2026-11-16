@@ -25,10 +25,11 @@ export {
   LONGTERM_PERIOD_KEY,
 } from './period';
 export type { IsoWeek } from './period';
-export { evaluateQuests, evaluateQuest } from './evaluate';
+export { evaluateQuests, evaluateQuest, evaluateQuestsForDate } from './evaluate';
 export type { QuestSnapshot, QuestSessionSample } from './evaluate';
 export {
   selectActiveQuests,
+  selectActiveQuestsForDate,
   pickStable,
   DAILY_QUEST_SLOTS,
   WEEKLY_QUEST_SLOTS,

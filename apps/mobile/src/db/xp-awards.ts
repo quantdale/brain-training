@@ -1,4 +1,5 @@
 import type { SQLiteAdapter } from './adapter';
+import { XP_WRITE_WITHIN_SAFE_BOUNDS } from './economy-write-bounds';
 
 /**
  * XP awards — engagement XP granted outside game sessions (quests,
@@ -25,7 +26,8 @@ interface XpAwardRow {
   created_at: number;
 }
 
-const INSERT = 'INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)';
+const INSERT = `INSERT INTO xp_awards (amount, reason, source, created_at)
+  SELECT ?, ?, ?, ? WHERE ${XP_WRITE_WITHIN_SAFE_BOUNDS}`;
 const SELECT_TOTAL = 'SELECT COALESCE(SUM(amount), 0) AS total FROM xp_awards';
 const SELECT_RECENT =
   'SELECT id, amount, reason, source, created_at FROM xp_awards';
@@ -48,8 +50,8 @@ export class XpAwardsRepository {
 
   /** Append one award. Returns the persisted row. `txn` runs it inside a transaction (task 7.3). */
   async award(amount: number, reason: string, source: string, txn?: SQLiteAdapter): Promise<XpAward> {
-    if (!Number.isInteger(amount) || amount <= 0) {
-      throw new Error(`xp award amount must be a positive integer, got ${amount}`);
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+      throw new Error(`xp award amount must be a positive integer within the safe range, got ${amount}`);
     }
     // Capture the clock once so the returned timestamp always equals the
     // stored `created_at` even if the injectable clock advances mid-call.
@@ -58,7 +60,8 @@ export class XpAwardsRepository {
       throw new Error(`xp award createdAt must be a safe integer (got ${String(createdAt)})`);
     }
     const a = txn ?? this.adapter;
-    const result = await a.run(INSERT, [amount, reason, source, createdAt]);
+    const result = await a.run(INSERT, [amount, reason, source, createdAt, amount]);
+    if (result.changes === 0) throw new RangeError('combined XP total must remain a safe integer');
     return { id: result.lastInsertRowId, amount, reason, source, createdAt };
   }
 

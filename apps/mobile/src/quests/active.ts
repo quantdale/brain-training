@@ -12,7 +12,7 @@
  * via a stable string hash; the first N entries are chosen, then re-sorted to
  * their original catalog order so the UI presentation is also stable.
  */
-import { currentPeriodKey } from "./period";
+import { localDateKey, periodKeyFor } from "./period";
 import type { QuestDefinition } from "./types";
 
 /** How many daily/weekly quests are surfaced per period. */
@@ -33,6 +33,16 @@ export function selectActiveQuests(
  definitions: readonly QuestDefinition[],
  now: Date,
 ): QuestDefinition[] {
+ return selectActiveQuestsForDate(definitions, localDateKey(now));
+}
+
+/** Historical selection uses the recorded civil date, never a reconstructed instant. */
+export function selectActiveQuestsForDate(
+ definitions: readonly QuestDefinition[],
+ day: string,
+): QuestDefinition[] {
+ const dailyKey = periodKeyFor("daily", day);
+ const weeklyKey = periodKeyFor("weekly", day);
  const daily = definitions.filter((d) => d.kind === "daily");
  const weekly = definitions.filter((d) => d.kind === "weekly");
  const longterm = definitions.filter((d) => d.kind === "longterm");
@@ -50,12 +60,12 @@ export function selectActiveQuests(
 
  const dailyPicked = pickStable(
   nonBaselineDaily,
-  currentPeriodKey("daily", now),
+  dailyKey,
   dailyRemaining,
  );
  const weeklyPicked = pickStable(
   nonBaselineWeekly,
-  currentPeriodKey("weekly", now),
+  weeklyKey,
   weeklyRemaining,
  );
 

@@ -68,6 +68,21 @@ describe('append-only import integrity audit', () => {
     expect(await target.ledger.getBalance()).toBe(10);
   });
 
+  it.each([null, 'gameplay:audit-session'])('reserves keyed matches before matching mixed-key multiplicity (target=%s)', async (targetKey) => {
+    const target = await makeDb();
+    const row = (operationId: string | null) => ({
+      amount: 10, reason: 'gameplay', sessionId: 'audit-session', createdAt: T0 + 100, operationId,
+    });
+    await applyImport(target, parsed({ ...emptyData(), gameSessions: [session()], currencyLedger: [row(targetKey)] }), 'replace');
+    const incoming = parsed({ ...emptyData(), gameSessions: [session()], currencyLedger: [row(null), row('gameplay:audit-session')] });
+    await applyImport(target, incoming, 'merge');
+    expect(await target.ledger.list()).toHaveLength(2);
+    expect(await target.ledger.getBalance()).toBe(20);
+    await applyImport(target, incoming, 'merge');
+    expect(await target.ledger.list()).toHaveLength(2);
+    expect(await target.ledger.getBalance()).toBe(20);
+  });
+
   it('does not collapse distinct logical identities containing delimiter characters', async () => {
     const target = await makeDb();
     const data = {
@@ -121,6 +136,11 @@ describe('append-only import integrity audit', () => {
 });
 
 describe('monotonic recognized profile settings', () => {
+  it.each([null, 'invalid', [], { period: null, count: 0 }])('retains valid monthly freeze usage against malformed nested state %s', (freezeUsed) => {
+    const retained = { period: '2026-11', count: 1 };
+    const merged = mergeProfileSettings({ streaks: { freezeUsed: retained } }, { streaks: { freezeUsed } });
+    expect((merged.streaks as { freezeUsed: unknown }).freezeUsed).toEqual(retained);
+  });
   it.each([null, 'invalid', []])('keeps device streak claims when incoming streaks is %s', (streaks) => {
     const retained = {
       claimedMilestones: ['mil-3'], coveredDates: ['2026-11-15'], freeze: 1,

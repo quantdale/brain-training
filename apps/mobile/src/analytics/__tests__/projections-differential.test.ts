@@ -170,6 +170,8 @@ function adversarialRows(baseMs: number): FixtureRow[] {
     doc('attention-visual-search', '{}', '{"avgResponseMs":0,"medianReactionMs":420,"fastestResponseMs":300}', 102),
     doc('attention-visual-search', '{}', '{"avgResponseMs":0,"fastestResponseMs":300}', 103),
     doc('attention-visual-search', '{}', '{"avgResponseMs":-1,"bestReactionMs":-5,"fastestResponseMs":500}', 104),
+    doc('flexibility-color-stroop', '{}', '{"avgResponseTimeMs":800,"fastestResponseMs":200}', 105),
+    doc('flexibility-color-stroop', '{}', '{"avgResponseTimeMs":null,"fastestResponseMs":200}', 106),
     // Old-version shapes: legacy field names the extractors must still find.
     doc('language-word-match', '"easy"', '{"points":42,"hitRate":0.6,"fastestReactionMs":300}', 10),
     doc('language-word-match', '{"level":"impossible"}', '{"totalScore":7,"precision":1.5,"medianReactionMs":480}', 11),

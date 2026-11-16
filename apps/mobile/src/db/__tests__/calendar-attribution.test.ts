@@ -6,8 +6,10 @@ import { createNodeSqliteAdapter } from '../adapters/node';
 import { initializeConnection, runMigrations } from '../migrate';
 import { applyQuestReward, evaluateQuest, QUEST_DEFINITIONS_V1, toDbQuestDefinition } from '@/quests';
 import { syncQuestProgress } from '@/progression/sync';
+import { initializeProgression } from '@/progression/seeding';
 import { applyImport, exportLocalDataBundle, parseAndValidateBackup, serializeBackup } from '@/data-portability';
 import { buildEnvelope, emptyData, T0 } from '@/data-portability/__tests__/helpers';
+import { clearWorkoutSessionLaunch, registerWorkoutSessionLaunch } from '@/workout/session-provenance';
 
 function record(id: string, completedAt = T0 + 100) {
   return {
@@ -71,6 +73,18 @@ describe('immutable session calendar attribution', () => {
     await adapter.close();
   });
 
+  it.each(['0100-06-01', '2011-12-30'])('catches up the recorded civil day %s without rebucketing it in the current zone', async (day) => {
+    const adapter = await createMigratedDb();
+    const db = new AppDatabase(adapter);
+    const at = day === '0100-06-01' ? Date.UTC(100, 5, 1, 12) : Date.UTC(2011, 11, 30, 12);
+    const data = { ...emptyData(), gameSessions: ['a', 'b', 'c'].map((id) => ({ ...record(id, at), completedLocalDate: day })) };
+    await applyImport(db, parseAndValidateBackup(serializeBackup(buildEnvelope(data))), 'replace');
+    await expect(initializeProgression(db, new Date(2026, 10, 16, 12))).resolves.toBeUndefined();
+    const progress = await db.quests.listProgressForPeriod(day);
+    expect(progress.find((row) => row.questId === 'qd3')).toMatchObject({ progress: 3, completedAt: at });
+    await adapter.close();
+  });
+
   it('includes reward XP in the lifetime-XP quest, not only game-session XP', async () => {
     const adapter = await createMigratedDb();
     const db = new AppDatabase(adapter, { now: () => T0 + 1000 });
@@ -103,6 +117,28 @@ describe('immutable session calendar attribution', () => {
     expect(await adapter.get('SELECT completed_at, completed_local_date FROM game_sessions WHERE id = ?', ['legacy'])).toEqual(first);
     expect(first?.completed_at).toBe(T0 + 100);
     await adapter.close();
+  });
+});
+
+describe('workout provenance matches the physical session game', () => {
+  it.each(['explicit', 'embedded', 'launch'] as const)('rejects mismatched %s ownership before completion', async (source) => {
+    const adapter = await createMigratedDb();
+    const db = new AppDatabase(adapter);
+    const provenance = { instanceKey: '2026-11-16', legIndex: 0, gameId: 'speed-tap-rush' };
+    const session = record(`mismatch-${source}`);
+    const input = {
+      ...session,
+      ...(source === 'explicit' ? { workoutProvenance: provenance } : {}),
+      ...(source === 'embedded' ? { rawResult: { workoutProvenance: provenance } } : {}),
+    };
+    if (source === 'launch') registerWorkoutSessionLaunch(session.id, provenance);
+    try {
+      await expect(db.sessions.completeSession({ session: input })).rejects.toThrow(/provenance|ownership/i);
+      expect(await db.sessions.getCount()).toBe(0);
+    } finally {
+      clearWorkoutSessionLaunch(session.id);
+      await adapter.close();
+    }
   });
 });
 

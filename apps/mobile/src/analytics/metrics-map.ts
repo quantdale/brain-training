@@ -36,6 +36,7 @@ const REACTION_MEAN_FIELDS = [
   'avgReactionMs',
   'averageAnswerMs',
   'avgReactionTimeMs',
+  'avgResponseTimeMs', // Color Stroop's persisted correct-response mean.
   'medianReactionMs',
 ] as const;
 

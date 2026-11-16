@@ -3,6 +3,7 @@ import { DIFFICULTY_LEVELS } from "@/sdk/types/difficulty";
 import type { MasteryInput } from "@/mastery/engine";
 import { LOCAL_PROFILE_ID } from "./profile";
 import { RatingRepository } from "./rating";
+import { CURRENCY_WRITE_WITHIN_SAFE_BOUNDS, XP_WRITE_WITHIN_SAFE_BOUNDS } from "./economy-write-bounds";
 import { localDateForTimestamp } from "@/platform/local-calendar";
 import {
   MAX_READ_LIMIT,
@@ -66,7 +67,8 @@ const INSERT_SESSION = `INSERT OR IGNORE INTO game_sessions (
     id, game_id, game_version, generator_version, scoring_version, seed,
     difficulty_json, raw_result_json, normalized_result, xp,
     started_at, completed_at, duration_ms, completed_local_date
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    WHERE ${XP_WRITE_WITHIN_SAFE_BOUNDS}`;
 
 const SELECT_SESSION_BY_ID = "SELECT * FROM game_sessions WHERE id = ?";
 const SELECT_ALL_SESSIONS = "SELECT * FROM game_sessions";
@@ -145,7 +147,8 @@ const SELECT_MASTERY_INPUT_BY_GAME = `
   FROM game_sessions`;
 const SELECT_BALANCE = "SELECT balance FROM currency_balance";
 const INSERT_LEDGER_ENTRY_OP =
-  "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
+  `INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id)
+   SELECT ?, ?, ?, ?, ? WHERE ${CURRENCY_WRITE_WITHIN_SAFE_BOUNDS}`;
 const PROFILE_INSERT_IF_ABSENT =
   "INSERT OR IGNORE INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
 const PROFILE_TOUCH = "UPDATE profile SET updated_at = ? WHERE id = ?";
@@ -387,6 +390,12 @@ export class SessionRepository {
       : undefined;
     const launchProvenance =
       explicitProvenance ?? peekWorkoutSessionLaunch(id);
+    const embeddedProvenance = extractWorkoutProvenance(rawSession.rawResult);
+    if ([explicitProvenance, launchProvenance, embeddedProvenance].some(
+      (provenance) => provenance !== undefined && provenance.gameId !== gameId,
+    )) {
+      throw new Error("completeSession: workout provenance must match the session's actual game");
+    }
     // The existing game-specific persisters all pass through this one DB
     // boundary. Decorating here keeps the ownership tuple coupled to the
     // durable session even when a game module knows nothing about workouts.
@@ -465,6 +474,7 @@ export class SessionRepository {
         completedAt,
         durationMs,
         completedLocalDate,
+        storedXp,
       ]);
       const isNew = insert.changes > 0;
 
@@ -474,7 +484,7 @@ export class SessionRepository {
       if (!isNew) {
         const existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
         if (!existing) {
-          throw new Error(`completeSession: missing existing row for duplicate id ${s.id}`);
+          throw new RangeError('completeSession: combined XP total must remain a safe integer');
         }
         const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
         return {
@@ -499,7 +509,9 @@ export class SessionRepository {
           s.id,
           completedAt,
           gameplayOperationId(s.id),
+          outcome.currency,
         ]);
+        if (result.changes === 0) throw new RangeError('completeSession: currency balance must remain a safe integer');
         ledgerEntry = {
           id: result.lastInsertRowId,
           amount: outcome.currency,
@@ -514,7 +526,9 @@ export class SessionRepository {
           s.id,
           completedAt,
           gameplayOperationId(s.id),
+          requestedCurrency.amount,
         ]);
+        if (result.changes === 0) throw new RangeError('completeSession: currency balance must remain a safe integer');
         ledgerEntry = {
           id: result.lastInsertRowId,
           amount: requestedCurrency.amount,
@@ -1335,6 +1349,7 @@ const REACTION_MEAN_FIELDS = [
   "avgReactionMs",
   "averageAnswerMs",
   "avgReactionTimeMs",
+  "avgResponseTimeMs",
   "medianReactionMs",
 ] as const;
 const REACTION_BEST_FIELDS = [

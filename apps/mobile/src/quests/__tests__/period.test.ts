@@ -22,6 +22,12 @@ describe('periodKeyFor', () => {
     expect(LONGTERM_PERIOD_KEY).toBe('all');
   });
 
+  it('keeps accepted early civil years padded, including their previous ISO week-year', () => {
+    expect(periodKeyFor('daily', '0100-06-01')).toBe('0100-06-01');
+    expect(periodKeyFor('weekly', '0100-01-01')).toBe('0099-W53');
+    expect(localDateKey(new Date(100, 5, 1, 12))).toBe('0100-06-01');
+  });
+
   it('rejects malformed or impossible dates', () => {
     expect(() => periodKeyFor('daily', '2026-8-16')).toThrow(/YYYY-MM-DD/);
     expect(() => periodKeyFor('daily', '2026/08/16')).toThrow(/YYYY-MM-DD/);
