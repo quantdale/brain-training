@@ -46,9 +46,20 @@ export function useWorkoutResultAdvance(
     null as WorkoutInstance | null,
   );
 
-  const [advancedInstance, setAdvancedInstance] =
-    useState<WorkoutInstance | null>(null);
-  const effective = advancedInstance ?? loadedInstance;
+  const [continuation, setContinuation] = useState<{
+    sessionId: string;
+    instance: WorkoutInstance | null;
+    next: {
+      id: string | null;
+      completed: boolean;
+      provenance: WorkoutSessionProvenance | null;
+    } | null;
+    error: string | null;
+  } | null>(null);
+  // Gate during render, not a later reset effect: route identity switches must
+  // never expose the preceding session's navigation or failure for one frame.
+  const current = continuation?.sessionId === sessionId ? continuation : null;
+  const effective = current?.instance ?? loadedInstance;
 
   // Reconcile the loaded row in memory so catalog drift cannot leave the
   // result surface pointed at a retired current game. The durable transition
@@ -61,12 +72,15 @@ export function useWorkoutResultAdvance(
   const advancingRef = useRef(false);
   const advancedForSessionRef = useRef<string | null>(null);
   const persistedRepairRef = useRef<string | null>(null);
-  const [advanceError, setAdvanceError] = useState<string | null>(null);
-  const [next, setNext] = useState<{
-    id: string | null;
-    completed: boolean;
-    provenance: WorkoutSessionProvenance | null;
-  } | null>(null);
+  const generationRef = useRef<object | null>(null);
+  useEffect(() => {
+    const generation = {};
+    generationRef.current = generation;
+    advancingRef.current = false;
+    advancedForSessionRef.current = null;
+    persistedRepairRef.current = null;
+    return () => { generationRef.current = null; };
+  }, [sessionId]);
 
   useEffect(() => {
     // Ownership must be checked against the exact persisted row returned by
@@ -108,36 +122,45 @@ export function useWorkoutResultAdvance(
     }
 
     advancingRef.current = true;
+    const generation = generationRef.current;
     advanceWorkoutForSession({
       gameId: session.gameId,
       workoutProvenance: session.workoutProvenance,
     })
       .then((result) => {
+        // A durable write may still land after leaving Results. Notify Home,
+        // but never let that obsolete resolution replace the current session.
+        if (result.advanced) emitWorkoutChanged();
+        if (generationRef.current !== generation) return;
         advancedForSessionRef.current = session.id;
-        setAdvancedInstance(result.instance);
-        setNext({
-          id: result.nextGameId,
-          completed: result.completed,
-          provenance: result.nextProvenance,
+        setContinuation({
+          sessionId: session.id,
+          instance: result.instance,
+          next: {
+            id: result.nextGameId,
+            completed: result.completed,
+            provenance: result.nextProvenance,
+          },
+          error: null,
         });
-        if (result.advanced) {
-          emitWorkoutChanged();
-        }
       })
       .catch((e: unknown) => {
         console.error("[results] workout advance failed", e);
-        setAdvanceError("Workout progress could not be saved");
+        if (generationRef.current !== generation) return;
+        setContinuation({ sessionId: session.id, instance: null, next: null,
+          error: "Workout progress could not be saved" });
       })
       .finally(() => {
-        advancingRef.current = false;
+        if (generationRef.current === generation) advancingRef.current = false;
       });
   }, [session, loadedInstance]);
 
+  const next = current?.next;
   return {
     instance: reconciled,
     nextGameId: next?.id ?? null,
     completed: reconciled?.status === "completed" || next?.completed === true,
     nextProvenance: next?.provenance ?? null,
-    advanceError,
+    advanceError: current?.error ?? null,
   };
 }
