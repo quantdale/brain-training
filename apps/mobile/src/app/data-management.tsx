@@ -277,6 +277,7 @@ export default function DataManagementScreen() {
       setMessage(null);
       try {
         await backupTransport.deleteStrandedArtifact?.(name);
+        refresh();
         setMessage(
           `Removed hidden file "${name}". Its backup content is gone; export a new backup if you need one.`,
         );
@@ -286,7 +287,7 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [busy],
+    [busy, refresh],
   );
 
   const onExport = useCallback(async () => {

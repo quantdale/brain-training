@@ -1213,6 +1213,21 @@ describe('data-management honest read states (072)', () => {
     expect(screen.queryByTestId('data-saved-backups-error')).toBeNull();
   });
 
+  it.each([false, true])('refreshes hidden-file inventory only after successful deletion (failure=%s)', async (fails) => {
+    let files = ['.orphan.prev'];
+    transport.listStrandedArtifacts.mockImplementation(async () => files);
+    transport.deleteStrandedArtifact.mockImplementation(async () => {
+      if (fails) throw new Error('delete denied');
+      files = [];
+    });
+    await renderScreen();
+    const button = await screen.findByTestId('data-stranded-delete-.orphan.prev');
+    await fireEvent.press(button);
+    await fireEvent.press(screen.getByTestId('data-stranded-delete-.orphan.prev'));
+    await screen.findByText(fails ? /Could not remove.*delete denied/ : /Removed hidden file/);
+    await waitFor(() => expect(screen.queryByTestId('data-stranded-artifacts') !== null).toBe(fails));
+  });
+
   it('a stranded-artifact read FAILURE is reported, never shown as none found', async () => {
     // D10 (audit 2026-10-02): the stranded consumer discarded status/error, so
     // a failed read rendered identically to "no stranded files" — the exact
