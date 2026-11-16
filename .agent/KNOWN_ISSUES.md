@@ -9,7 +9,12 @@ carries over deliberately; its streams do not repeat.
 and wrong-tap Stroop timing are repaired with regressions; final source755 suites/
 8,467 tests PASS, native qualification remains blocked. Follow-up normal-write
 total overflow and failed preference hydration replay have fixes and accepting
-bounded independent re-review. UTC subsecond attribution is repaired as well. Details:
+bounded independent re-review. UTC subsecond attribution is repaired as well.
+Published `f0ae74b0` App CI/scheduled coverage found timer/async-act coordination
+in two new preference test suites, not a reproduced product recursion defect.
+Test-only clock/queue correction passes independent review and full Node22
+coverage755/8,467 at unchanged15s; fresh hosted confirmation remains a delivery
+gate. Android/iOS hosted build smoke passed; that is not gameplay acceptance. Details:
 `docs/audits/2026-11-16-repository-audit.md`.
 
 Still open: Vigilance's documented false-alarm asymmetry is not a proven defect

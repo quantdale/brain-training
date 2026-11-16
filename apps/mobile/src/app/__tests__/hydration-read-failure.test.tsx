@@ -10,7 +10,7 @@ import RootLayout from '@/app/_layout';
 import DataManagementScreen from '@/app/data-management';
 import ProfileScreen from '@/app/(tabs)/profile';
 import { useSettings, type SettingsContextValue } from '@/components/settings/settings-provider';
-import { preferenceChangesBlocked } from '@/components/settings/profile-preferences';
+import { enqueuePreferenceWrite, preferenceChangesBlocked } from '@/components/settings/profile-preferences';
 import { liveAudioHaptics } from '@/sdk/audio-haptics';
 import { getDb, resetDatabaseForTests } from '@/db';
 import { applyImport, exportLocalDataBundle, wipeLocalData } from '@/data-portability';
@@ -60,7 +60,8 @@ it.each(['merge', 'replace', 'wipe'] as const)('keeps %s committed, blocks stale
   jest.mocked(applyImport).mockClear();
   jest.mocked(wipeLocalData).mockClear();
   await renderRouter({ _layout: RootLayout, ...rootLayoutRoutes({ 'data-management': Route }) }, { initialUrl: '/data-management' });
-  jest.useRealTimers();
+  // Router starts with fake timers. Keep one clock through render, actions
+  // and cleanup: switching mid-tree stalls React's async act on Node 22.
   await screen.findByTestId('data-import-input');
   const profile = getDb().profile;
   await profile.update({ settings: { sfx: false, haptics: false, theme: 'dark' } });
@@ -137,7 +138,10 @@ it.each(['merge', 'replace', 'wipe'] as const)('keeps %s committed, blocks stale
     expect(current.themeId).toBe(wiped ? 'system' : 'dark');
     expect(liveAudioHaptics.getSettings()).toMatchObject({ sfxEnabled: wiped, hapticsEnabled: wiped });
     await act(async () => { current.setSetting('sfx', !wiped); });
-    await waitFor(async () => expect((await profile.get())?.settings).toMatchObject({ sfx: !wiped, haptics: wiped }));
+    // Drain the owned writer lane, not an async predicate inside fake-clock
+    // waitFor: its act scope can still be settling when the assertion resolves.
+    await act(async () => { await enqueuePreferenceWrite(async () => undefined); });
+    expect((await profile.get())?.settings).toMatchObject({ sfx: !wiped, haptics: wiped });
     expect(jest.mocked(applyImport)).toHaveBeenCalledTimes(wiped ? 0 : 1);
     expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(wiped ? 1 : 0);
   } finally { releaseRead?.(); readSpy.mockRestore(); updateSpy.mockRestore(); }

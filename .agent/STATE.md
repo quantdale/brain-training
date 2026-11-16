@@ -7,7 +7,9 @@ reviewers/workers. Goal mode is inactive; ordinary task authorization continues.
 Baseline clean main/origin `c4a40bb5`, fetched before changes; baseline full Jest
 731 suites/8,238 tests, types/whole-package lint PASS. Six read-only subsystem
 reviews recovered their retained sessions after provider quota interruptions;
-implementation is isolated in six assigned detached Windows-Git worktrees.
+implementation used six assigned detached Windows-Git worktrees. All six were
+subsequently verified clean/patch-equivalent, their dependency junctions unlinked,
+and removed with Git; only the canonical worktree remains.
 
 Initial canonical repairs: original-writer numeric-key backup checksums, import
 multiset preservation/idempotency, upgraded/legacy gameplay reward bridging,
@@ -50,8 +52,18 @@ wipe, snapshot reset, host input or other AVD manipulation. ARTEMIS doctor
 credential/tooling checks pass, Android warns for no ready device. Thus native
 launch/gameplay/physical performance and release/campaign acceptance remain
 NOT VALIDATED. This is a documented source-qualified recovery checkpoint under
-the native-unavailable governance exception; hosted exact-SHA checks and worktree
-cleanup are checked after publication. Audit register and external evidence:
+the native-unavailable governance exception. Published `f0ae74b0` passed hosted
+Android build, iOS compile/process-alive smoke and push Repository Integrity, but
+App CI failed nine tests; scheduled coverage also failed seven preference cases.
+Node22 reproduction isolated test-clock/async-polling coordination: the two new
+route suites now retain Router's fake clock and explicitly drain the preference
+writer before exact SQLite assertions. No product behavior, dependency, assertion
+or timeout was weakened. Independent source review accepts the bounded correction;
+parent-executed Node22 cold-cache7/7 and Node24 affected21/21 pass. Full Node22
+coverage at the unchanged15s timeout passes755 suites/8,467 tests, all coverage
+floors and five classified skips (`ci-node22-coverage-final.*`). Exact ending-SHA
+hosted confirmation is a post-push delivery gate, not inferred from those older
+runs; its receipt belongs in the external session handoff. Audit register:
 `docs/audits/2026-11-16-repository-audit.md`. Campaign 080 remains ACTIVE, no
 release acceptance/physical-device/60-FPS claim.
 

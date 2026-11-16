@@ -1,5 +1,26 @@
 # Repository-wide hardening — 2026-11-16 (SOURCE QUALIFIED; NATIVE BLOCKED)
 
+Post-publication Node22 follow-up:
+- At `f0ae74b0`, Android Build Smoke43874862394, iOS Build Smoke43874862479
+  (compile plus20s process-alive, no Metro/gameplay) and push Repository Integrity
+  43874862682 succeeded. App CI43874862401 failed9 tests; scheduled Integrity
+  43878406454 passed durable-state but failed7 preference tests under coverage.
+- Preserved red logs/JSON. Bounded Node22 replay/minimization isolates rendered-
+  tree timer/async-act coordination. Two test suites now retain Router's fake
+  clock and await a no-op preference-writer sentinel before exact SQLite reads.
+  No product code, dependencies, assertions or timeouts were weakened; the bare
+  no-root async-wait probe passed, so no universal upstream bug is claimed.
+- Independently designed cold-cache Node22 two-suite replay7/7 PASS/exit0;
+  Node24 all four previously failed suites21/21 PASS/exit0. Independent source
+  review accepts the exact correction, reviewer-local execution NOT VALIDATED.
+- Full Node22 coverage at the unchanged15s timeout:755 suites/8,467 tests PASS,
+  all configured coverage floors PASS,5 exact classified skips; classifier PASS.
+  `ci-node22-coverage-final.json/.log/.exit`, `ci-node22-jest-signal-final.json`.
+  TypeScript and whole-package zero-warning ESLint PASS; LSP remains inconclusive.
+- Six session worktrees were clean/integrated and removed via Git after safely
+  unlinking dependency junctions; only canonical main remains. Exact ending-SHA
+  hosted results are a post-push observation, never inferred from older runs.
+
 Baseline `c4a40bb5`: full Jest 731 suites/8,238 tests PASS, 5 classified skips;
 TypeScript/whole-package zero-warning ESLint PASS; dependency tree matches lock.
 All five opt-in perf probes executed: 5 suites/22 tests PASS, 20k-session backup

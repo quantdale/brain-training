@@ -9,6 +9,7 @@ import RootLayout from '@/app/_layout';
 import ProfileScreen from '@/app/(tabs)/profile';
 import DataManagementScreen from '@/app/data-management';
 import { useSettings, type SettingsContextValue } from '@/components/settings/settings-provider';
+import { enqueuePreferenceWrite } from '@/components/settings/profile-preferences';
 import { liveAudioHaptics } from '@/sdk/audio-haptics';
 import { getDb } from '@/db';
 import { exportLocalDataBundle } from '@/data-portability';
@@ -40,7 +41,8 @@ function RestoreRoute() {
 
 async function mount() {
   await renderRouter({ _layout: RootLayout, ...rootLayoutRoutes({ 'data-management': RestoreRoute }) }, { initialUrl: '/data-management' });
-  jest.useRealTimers();
+  // Keep Router's fake clock through cleanup; changing timer modes after
+  // mounting leaves async act/Animated work unsettled on the CI Node 22 host.
   await screen.findByTestId('profile-settings-theme-light');
 }
 async function preview(text: string, mode: 'merge' | 'replace') {
@@ -79,7 +81,10 @@ describe('authoritative preference restoration', () => {
     await screen.findByText(new RegExp(mode === 'replace' ? 'Replace complete' : 'Merge complete'));
     await expectPreferences(false, false, 'dark');
     await fireEvent(screen.getByTestId('settings-sfx'), 'valueChange', true);
-    await waitFor(async () => expect((await getDb().profile.get())?.settings).toMatchObject({ sfx: true, haptics: false, theme: 'dark' }));
+    // Wait for the writer itself before reading SQLite; async waitFor polling
+    // can resolve before its fake-clock act scope has finished settling.
+    await act(async () => { await enqueuePreferenceWrite(async () => undefined); });
+    expect((await getDb().profile.get())?.settings).toMatchObject({ sfx: true, haptics: false, theme: 'dark' });
     expect(current.settings).toEqual({ sfx: true, haptics: false });
   });
 

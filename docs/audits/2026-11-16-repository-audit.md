@@ -11,7 +11,7 @@ The owner explicitly requested exhaustive repository-wide investigation and dire
 - Baseline: TypeScript and whole-package zero-warning ESLint PASS; Jest 731 passed suites / 8,238 passed tests, 4 opt-in suites / 5 classified skipped tests, no failures. All five opted-in performance probes subsequently ran: 5 suites / 22 tests PASS, including 20,000-session backup verification.
 - Fresh production dependency gate: 8 previously accepted moderate+ GHSAs, none newly unallowlisted. Full dependency audit additionally reports the Low `deepmerge` GHSA-gcqx-w48m-w2h4; registry latest remains vulnerable 4.3.1. No waiver or blind major override was added. Expo Doctor 20/21 reports ten upstream patch drifts, not a hermetic repository failure.
 - Six read-only reviews covered persistence/portability; all 42 game modules; progression/workout/economy/analytics; app/SDK/UI; and scripts/CI/plugins/security/evidence. Their provider quota interruptions were resumed from retained sessions, not restarted. Those reviewers had no execution tool: their proposed counterexamples are hypotheses until separately reproduced below.
-- Six isolated implementation worktrees have disjoint ownership; canonical-main/schema/economy/shared-contract integration and runtime QA belong to the parent. Dependency junctions are read-only; no independent dependency installs or emulators.
+- Six isolated implementation worktrees had disjoint ownership; canonical-main/schema/economy/shared-contract integration and runtime QA belonged to the parent. All six were verified clean/patch-equivalent, dependency junctions safely unlinked, and worktrees removed through Git. No independent dependency installs or emulators; only the canonical worktree remains.
 
 Retained session evidence: `D:/Documents/tryPython/_AgentArtifacts/brain-training/sessions/20261116-pi-repo-audit/`. Initial malformed Jest invocation is retained as an invocation failure, not red behavioral proof. The valid checksum red run is `legacy-checksum-red02.log`.
 
@@ -77,24 +77,53 @@ Stroop's persisted avgResponseTimeMs was also absent from both analytics field m
 
 A final explicit UTC replay exposed a pre-epoch subsecond blind spot: SQLite integer division truncated -1 ms toward zero, moving legacy attribution into the next day. `5150e90e` uses real division for migration and read-time local/UTC fallbacks. The original independent UTC counterexample failed before and passes after; permanent migration/fallback/projection regressions pass. No already-attributed day or original instant is rewritten.
 
+## Hosted Node22 regression and test-clock correction
+
+Published checkpoint `f0ae74b0` passed Android Build Smoke43874862394, iOS Build
+Smoke43874862479 and push Repository Integrity43874862682. App CI43874862401
+failed nine tests: seven preference cases plus two downstream cleanup hooks.
+Scheduled Integrity43878406454 passed durable-state but reproduced the seven
+preference failures even at its90s coverage timeout; increasing timeouts is not
+a repair. Original logs/JSON remain under `hosted-App-CI-f0ae74b0-*` and
+`hosted-Integrity-extra-f0ae74b0-failed.log`.
+
+A bounded actual Node22 replay exposed rendered-tree clock/async-act coordination.
+The two new route suites switched from Router's fake clock mid-tree, then polled
+SQLite with async `waitFor` predicates. Retaining Router's clock removes the first
+stall; an explicitly awaited no-op preference-writer sentinel replaces only the
+async database polling, retaining every exact assertion. The bare no-root async-
+wait probe passes, so this is not claimed as a universal upstream defect. Source
+inspection finds no recursive production profile read; timeout contamination is
+consistent with the hosted stack overflow, not proof of a product recursion bug.
+No product code, dependency, skip, assertion or timeout was changed by this repair.
+
+Independent source review accepts the exact test diff after inspecting the parent-
+executed independently designed cold-cache Node22 replay:2 suites/7 tests PASS,
+process exit0 (`ci-preference-sentinel-node22-cold03.*`). Node24 all four previously
+failed suites:4/21 PASS/exit0 (`ci-sentinel-node24-scope03.*`). Full Node22 coverage
+then passed755 suites/8,467 tests and all configured floors at the unchanged15s
+per-test timeout (`ci-node22-coverage-final.*`); five exact opt-in skips classify
+successfully. Reviewer-local execution remains NOT VALIDATED. Fresh exact-ending
+hosted confirmation is still a post-push delivery gate, not inferred here.
+
 ## Final local source qualification
 
-Code-bearing application checkpoint `5150e90e`; subsequent `83f13907` is shell formatting only. All figures are executed receipts, not sums of overlapping worker suites.
+Code-bearing application checkpoint `5150e90e`; subsequent `83f13907` is shell formatting only, with the two test-only coordination corrections described above. All figures are executed receipts, not sums of overlapping worker suites.
 
 | Gate | Result / retained evidence |
 |---|---|
-| Whole Jest | **PASS: 755 suites / 8,467 tests**, five classified opt-in skips, zero failures; `final-source-jest-subsecond.json/.log/.exit`. Classifier: `final-jest-signal.json`. |
+| Whole Jest / critical-tree coverage | **PASS on Node22: 755 suites / 8,467 tests**, all configured coverage floors, unchanged15s timeout, five classified opt-in skips, zero failures; `ci-node22-coverage-final.json/.log/.exit`, `ci-node22-jest-signal-final.json`. Earlier Node24 full matrix remains in `final-source-jest-subsecond.*`. |
 | Deterministic Node tooling | **329/329 PASS**, no skips; `node-full-final-subsecond.log/.exit`. |
-| TypeScript / whole-package ESLint | **PASS, zero warnings**; `convergence-types06.log`, `convergence-lint06.log`. LSP coverage remains inconclusive, not falsely clean. |
+| TypeScript / whole-package ESLint | **PASS, zero warnings**; repeated after the CI-test correction (`ci-repair-types.log`, `ci-repair-lint.log`). LSP coverage remains inconclusive, not falsely clean. |
 | Hermetic repo/generated/security/contracts | **PASS**: repo state, registry, 142 generated specs, actual-baseline provenance, task ownership, offline, secrets, workflow hygiene, affected-map sync, Expo alignment, CLI/runtime contracts and clean-checkout self-test. `hermetic-convergence04.log`, `final-postcommit-gates01.log`; these do not claim an actual independent clean install. |
 | Validator self-tests / freshness | **PASS**, `validator-self-tests-final01.log`; strict OpenSpec **207/207 PASS** (`openspec-final01.log`). |
 | Production dependency gate | **PASS with eight existing accepted advisories**, not zero vulnerabilities (`dependency-audit-final01.log`). No package/lockfile upgrades. |
 | Web production export | **PASS: 23 routes**, `web-export-final02.log/.exit`; existing local-CSS-font warnings retained. |
 | Five opt-in scale probes | **PASS**, 22 probe tests; expanded correctness/probe convergence 10 suites/71 tests. `perf-current02-cache.log`; 20k-session backup verifies, not a physical-device test. |
 | Independent follow-ups | DATA R1–R6 and evaluation cache accepted within replayed scopes. GAME, APP and TOOLING source reviewers accept their bounded fixes after inspecting parent-executed independently designed probes; no invented reviewer-local execution. Reports under `independent-data-review/`, and retained Pi reviewer outputs. |
-| Android generation / compile | **Prebuild PASS**; generated SQLite backup XML inspected. Release Gradle **BLOCKED/TIMEOUT after 1,100 seconds**, only daemon startup output and no task/APK completion. `android-current-prebuild.log`, `android-current-release.log`; no compile success inferred. |
+| Native build lanes | At published `f0ae74b0`, hosted Android clean build **PASS** and iOS Simulator compile plus20s process-alive smoke **PASS** (Debug without Metro, not gameplay). Local prebuild PASS; local Gradle **TIMEOUT after1,100s** remains retained, not relabeled successful. `android-current-prebuild.log`, `android-current-release.log`. Exact ending-SHA lanes require fresh hosted observation. |
 | Android runtime / physical platforms | **NOT VALIDATED / BLOCKED**: no ready emulator guest; no current-build gameplay journey, physical performance, comprehensive screen-reader or signing/owner acceptance. |
-| Exact published-SHA CI / cleanup | Observed after publication; not pre-claimed by this report. |
+| Exact published-SHA CI / cleanup | `f0ae74b0` results and test-only repair are detailed above; exact ending-SHA confirmation is reported after push in the external session handoff. All six integrated session worktrees/junctions are removed; no abandoned branch/worktree. |
 
 Earlier failures remain unchanged: whole integration01 had 744 passed suites/8,382 passed tests and two obsolete shape/async expectations; integration02 had 754 passed suites/8,464 passed tests and one error-wording mismatch. They were corrected without disabling tests; later complete matrices, not those failures, establish the final result.
 
@@ -113,4 +142,4 @@ LSP probes were attempted on changed files. The server did not confirm every cle
 
 ## Completion gate
 
-Reproduced source findings in the reviewed packets are repaired, regression-tested and independently dispositioned. Remaining native acceptance is a genuine environment blocker, not a source pass. The source-qualified recovery checkpoint may be published under the documented native-unavailable governance exception after the green local source gates; exact hosted results, clean main and removal of session worktrees are checked afterward. Campaign 080 stays ACTIVE for current-build runtime/physical/owner obligations. No exhaustive runtime or release-completion claim is made.
+Reproduced source findings in the reviewed packets are repaired, regression-tested and independently dispositioned. The hosted test-clock regression has a bounded accepted test-only correction and a passing full Node22 coverage replay. Remaining native gameplay acceptance is a genuine environment blocker, not a source pass. The source-qualified recovery checkpoint may be published under the documented native-unavailable governance exception after green local source gates; exact ending-SHA hosted results and clean main are checked afterward and retained in the external session handoff. All six integrated session worktrees/junctions are removed. Campaign080 stays ACTIVE for current-build runtime/physical/owner obligations. No exhaustive runtime or release-completion claim is made.

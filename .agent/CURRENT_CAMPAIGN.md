@@ -15,8 +15,14 @@ Independent follow-ups accept mixed-key/nested-settings/civil-date/normal-write
 bounds, hydration recovery and evidence/retry corrections within named scopes.
 All five opt-in probes ran; measured per-evaluation cache reduces repeated work.
 Native remains BLOCKED: guest unresponsive; local Gradle timed out before tasks.
-Exact hosted checks/cleanup are verified post-publication; no campaign/release
-or native-runtime completion is claimed. Live register:
+All six integrated worktrees/junctions are removed. Published `f0ae74b0` passed
+Android/iOS build lanes and push integrity, but App CI and scheduled coverage
+exposed preference-test timer coordination. The two test-only corrections retain
+Router's clock and explicitly await the writer queue; independent review accepts
+them, cold Node22 tests7/7 pass, and full Node22 coverage755/8,467 passes at15s.
+No assertion/timeout/dependency/product behavior changed. Exact ending-SHA hosted
+results must be observed after push; no campaign/release or native-runtime
+completion is claimed. Live register:
 `docs/audits/2026-11-16-repository-audit.md`. No new top-level campaign or
 historical certification relabeling; Campaign080 remains ACTIVE.
 
