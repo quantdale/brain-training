@@ -48,6 +48,7 @@ describe('start-session', () => {
       bestStreak: 0,
       streak: 0,
       postFlipCorrect: 0,
+      correctResponseSamples: 0,
       totalResponseTimeMs: 0,
       fastestResponseMs: Number.POSITIVE_INFINITY,
     });
@@ -199,7 +200,8 @@ describe('trial-timeout', () => {
     expect(state.stats.trialsPlayed).toBe(1);
     expect(state.stats.correctTrials).toBe(0);
     expect(state.stats.streak).toBe(0);
-    expect(state.stats.totalResponseTimeMs).toBe(1500);
+    expect(state.stats.totalResponseTimeMs).toBe(0);
+    expect(state.stats.correctResponseSamples).toBe(0);
 
     // The session must continue after a slow trial.
     state = colorStroopGameReducer(state, { stamp: inputStamp(state), nowMs: state.roundStartedAtMs + (state.currentResponseTimeMs ?? 0), type: 'next-trial' });

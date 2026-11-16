@@ -179,7 +179,7 @@ describe('SpeedColorMatchScreen', () => {
     expect(raw.trialsCorrect).toBe(15);
     expect(raw.difficulty).toBe('easy');
     expect(raw.forced).toBe(false);
-    expect(raw.gameVersion).toBe('1.1.0');
+    expect(raw.gameVersion).toBe('1.1.1');
     expect(raw.scoringVersion).toBe('1.2.0');
     expect(raw.generatorVersion).toBe('1.0.0');
   });

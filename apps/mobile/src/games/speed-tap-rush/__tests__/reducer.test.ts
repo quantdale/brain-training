@@ -217,7 +217,7 @@ describe('next-round', () => {
     for (let i = 0; i < 10; i += 1) {
       state = tapLiveTarget(state, 1000);
     }
-    state = tapRushGameReducer(state, { type: 'next-round', spawnedAtMs: 2000 });
+    state = tapRushGameReducer(state, { type: 'next-round', stamp: targetStamp(state), spawnedAtMs: 2000 });
     expect(state.phase).toBe('active');
     expect(state.roundIndex).toBe(1);
     expect(state.windowMs).toBe(1000);
@@ -239,10 +239,10 @@ describe('next-round', () => {
     expect(paused.paused).toBe(true);
     // A press that was already queued when the app auto-paused must not start
     // the round: its first target would otherwise expire on resume.
-    expect(tapRushGameReducer(paused, { type: 'next-round', spawnedAtMs: 2000 })).toBe(paused);
+    expect(tapRushGameReducer(paused, { type: 'next-round', stamp: targetStamp(paused), spawnedAtMs: 2000 })).toBe(paused);
     // After resume the same action is accepted again.
     const resumed = tapRushGameReducer(paused, { type: 'resume', nowMs: 5000, remainingMs: 0 });
-    const next = tapRushGameReducer(resumed, { type: 'next-round', spawnedAtMs: 5000 });
+    const next = tapRushGameReducer(resumed, { type: 'next-round', stamp: targetStamp(resumed), spawnedAtMs: 5000 });
     expect(next.phase).toBe('active');
     expect(next.paused).toBe(false);
   });
@@ -250,7 +250,7 @@ describe('next-round', () => {
   it('holds the window after a failed round', () => {
     let state = startSession('hold');
     state = tapOutside(state, 1000);
-    state = tapRushGameReducer(state, { type: 'next-round', spawnedAtMs: 2000 });
+    state = tapRushGameReducer(state, { type: 'next-round', stamp: targetStamp(state), spawnedAtMs: 2000 });
     expect(state.windowMs).toBe(1100);
   });
 
@@ -260,7 +260,7 @@ describe('next-round', () => {
       for (let i = 0; i < 8; i += 1) {
         state = tapLiveTarget(state, state.spawnedAtMs ?? 1000);
       }
-      state = tapRushGameReducer(state, { type: 'next-round', spawnedAtMs: 3000 });
+      state = tapRushGameReducer(state, { type: 'next-round', stamp: targetStamp(state), spawnedAtMs: 3000 });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(3);
@@ -276,7 +276,7 @@ describe('adaptive', () => {
     for (let i = 0; i < 10; i += 1) {
       passed = tapLiveTarget(passed, 1000);
     }
-    passed = tapRushGameReducer(passed, { type: 'next-round', spawnedAtMs: 2000 });
+    passed = tapRushGameReducer(passed, { type: 'next-round', stamp: targetStamp(passed), spawnedAtMs: 2000 });
     expect(passed.windowMs).toBe(1000);
 
     let failed = startSession('adaptive-fail', 'adaptive');
@@ -284,7 +284,7 @@ describe('adaptive', () => {
     for (let i = 1; i < 10; i += 1) {
       failed = tapLiveTarget(failed, 1000);
     }
-    failed = tapRushGameReducer(failed, { type: 'next-round', spawnedAtMs: 2000 });
+    failed = tapRushGameReducer(failed, { type: 'next-round', stamp: targetStamp(failed), spawnedAtMs: 2000 });
     expect(failed.windowMs).toBe(1200);
   });
 });

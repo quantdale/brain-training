@@ -285,7 +285,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
         return;
       }
       const nowMs = readActiveTime();
-      if (current.deadlineMs !== null && nowMs > current.deadlineMs) {
+      if (current.deadlineMs !== null && nowMs >= current.deadlineMs) {
         dispatch({ type: 'answer-timeout', nowMs, cue });
         return;
       }

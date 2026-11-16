@@ -341,6 +341,10 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    const status = session.status();
+    if ((current.phase !== 'intro' && current.phase !== 'results') ||
+        current.inputEpoch !== state.inputEpoch ||
+        (status !== null && status !== 'completed' && status !== 'abandoned')) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     applyGameplayAction({
@@ -349,7 +353,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
     });
-  }, [session, sessionSeed, applyGameplayAction]);
+  }, [session, sessionSeed, state.inputEpoch, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -547,7 +551,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => applyGameplayAction({ type: 'next-round' })}
+                onPress={() => applyGameplayAction({ type: 'next-round', stamp: recallWindowStamp })}
               />
             </View>
           ) : null}

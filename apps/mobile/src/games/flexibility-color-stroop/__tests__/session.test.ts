@@ -22,6 +22,7 @@ const STATS: ColorStroopStats = {
   bestStreak: 5,
   streak: 0,
   postFlipCorrect: 3,
+  correctResponseSamples: 10,
   totalResponseTimeMs: 9600,
   fastestResponseMs: 350,
 };
@@ -99,7 +100,8 @@ describe('buildColorStroopRawResult', () => {
     expect(raw.bestStreak).toBe(5);
     expect(raw.postFlipCorrect).toBe(3);
     expect(raw.totalFlips).toBe(3);
-    expect(raw.avgResponseTimeMs).toBe(800);
+    expect(raw.avgResponseTimeMs).toBe(960);
+    expect(raw.correctResponseSamples).toBe(10);
   });
 
   it('persists a missing fastest sample as null, never 0', () => {

@@ -12,7 +12,7 @@
  * (same pattern as the tap-rush tutorial). The demo has no timer on purpose:
  * it teaches the ordering rule, not the time pressure.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -119,22 +119,34 @@ function DemoBoard({ attempt, onWrong, onDone, onSkip }: DemoBoardProps) {
   const [clearedCount, setClearedCount] = useState(0);
   const board = round[0];
   const completed = clearedCount >= board.order.length;
+  // The whole visible board may be swept in one native batch.
+  const cursorRef = useRef({ clearedCount: 0, retired: false });
+  useEffect(() => {
+    const cursor = cursorRef.current;
+    cursor.retired = false;
+    return () => { cursor.retired = true; };
+  }, []);
 
   const handleTap = (tokenId: number) => {
-    if (completed) {
+    const cursor = cursorRef.current;
+    if (cursor.retired || cursor.clearedCount >= board.order.length) {
       return;
     }
     const token = board.tokens.find((candidate) => candidate.id === tokenId);
     if (token === undefined) {
       return;
     }
-    if (token.value === board.order[clearedCount]) {
-      const next = clearedCount + 1;
+    if (board.order.slice(0, cursor.clearedCount).includes(token.value)) return;
+    if (token.value === board.order[cursor.clearedCount]) {
+      const next = cursor.clearedCount + 1;
+      cursor.clearedCount = next;
       setClearedCount(next);
       if (next >= board.order.length) {
+        cursor.retired = true;
         onDone();
       }
     } else {
+      cursor.retired = true;
       onWrong();
     }
   };

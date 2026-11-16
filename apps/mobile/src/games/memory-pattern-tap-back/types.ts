@@ -133,7 +133,7 @@ export type PatternTapBackAction =
   | { type: 'observe-tick'; stamp: PatternObservationStamp }
   | { type: 'tap-tile'; index: number; stamp: PatternRecallStamp }
   | { type: 'recall-tick'; stamp: PatternRecallStamp }
-  | { type: 'next-round' }
+  | { type: 'next-round'; stamp: PatternRoundStamp }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }

@@ -245,7 +245,7 @@ describe('remaining cue input: real scheduled and rendered callers', () => {
     const raw = completeSession.mock.calls[0][0].session.rawResult as { reactions: number[]; diagnosticMetadata: { pausedDurationMs: number }; scoringVersion: string };
     expect(raw.reactions).toEqual([2000, ...Array.from({ length: compare.stats.roundsTotal - 1 }, () => 0)]);
     expect(raw.diagnosticMetadata.pausedDurationMs).toBe(5000);
-    expect(raw.scoringVersion).toBe('1.1.0');
+    expect(raw.scoringVersion).toBe('1.2.0');
     expect(raw).not.toHaveProperty('inputEpoch');
   });
 

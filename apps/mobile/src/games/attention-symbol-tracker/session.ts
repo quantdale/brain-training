@@ -20,7 +20,7 @@ import type {
   GameSessionRecord,
 } from '@/db';
 
-import { accuracyOf } from './scoring';
+import { accuracyOf, referenceMaxRecall } from './scoring';
 import { GAME_ID } from './types';
 import type {
   SymbolTrackerDifficultyParams,
@@ -92,6 +92,7 @@ export function buildSymbolTrackerRawResult(
     roundsPassed: input.stats.roundsPassed,
     accuracy: accuracyOf(input.stats.roundsPassed, input.stats.roundsPlayed),
     bestRecall: input.stats.bestRecall,
+    referenceMaxRecall: referenceMaxRecall(input.params),
     bestStreak: input.stats.bestStreak,
     initialTrackCount: input.params.initialTrackCount,
     tokenCount: input.params.tokenCount,

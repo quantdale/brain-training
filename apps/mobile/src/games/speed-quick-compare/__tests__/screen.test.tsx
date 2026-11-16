@@ -217,7 +217,7 @@ describe('QuickCompareScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
   });
 
-  it('an answer exactly AT the deadline counts; the pending expiry cannot double-resolve', async () => {
+  it('an answer exactly AT the deadline is a miss; the pending expiry cannot double-resolve', async () => {
     const { clock } = await renderScreen();
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -229,13 +229,13 @@ describe('QuickCompareScreen', () => {
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, 'option', String(correctIndex(0)))),
     );
-    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Correct!');
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
 
     // The expiry timer fires afterwards but is a no-op (round already resolved).
     await act(async () => {
       jest.advanceTimersByTime(PARAMS.windowMs);
     });
-    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Correct!');
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
   });
 
   it('an answer strictly AFTER the deadline resolves the miss even while the expiry callback is stalled', async () => {

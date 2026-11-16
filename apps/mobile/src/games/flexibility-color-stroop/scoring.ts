@@ -8,6 +8,7 @@
  * Normalization rule (documented, deterministic):
  *
  *   accuracy       = correctTrials / trialsPlayed            (0..1)
+ *   avgResponseTimeMs = mean of correct responses only (null with no samples)
  *   speedBonus     = clamp((W - avgResponseTimeMs) / (0.75 * W), 0, 1)  (faster = better)
  *                    W = the level's stimulus window (generatorInfo.stimulusMs;
  *                    2000 for records persisted before it was recorded)
@@ -144,7 +145,9 @@ export function normalizeColorStroopResult(
   _context: NormalizeContext,
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.correctTrials, raw.trialsPlayed);
-  const speed = speedBonus(raw.avgResponseTimeMs, stimulusWindowOf(raw));
+  // Null is no sample, never an instant response. Legacy numeric averages
+  // remain usable without reinterpreting stored historical normalized values.
+  const speed = raw.avgResponseTimeMs === null ? 0 : speedBonus(raw.avgResponseTimeMs, stimulusWindowOf(raw));
   // The flip denominator is the session's ACTUAL number of rule-flip trials.
   // Records persisted before `totalFlips` existed fall back to the legacy
   // floor(totalTrials / 4) estimate.

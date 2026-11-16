@@ -113,8 +113,9 @@ export function colorStroopGameReducer(
         bestStreak: Math.max(state.stats.bestStreak, newCorrectStreak),
         streak: newCorrectStreak,
         postFlipCorrect: newPostFlipCorrect,
-        totalResponseTimeMs: state.stats.totalResponseTimeMs + responseTimeMs,
-        fastestResponseMs: Math.min(state.stats.fastestResponseMs, responseTimeMs),
+        correctResponseSamples: state.stats.correctResponseSamples + (correct ? 1 : 0),
+        totalResponseTimeMs: state.stats.totalResponseTimeMs + (correct ? responseTimeMs : 0),
+        fastestResponseMs: correct ? Math.min(state.stats.fastestResponseMs, responseTimeMs) : state.stats.fastestResponseMs,
       };
 
       return {
@@ -189,8 +190,8 @@ export function colorStroopGameReducer(
     }
 
     case 'trial-timeout': {
-      // Stimulus timeout: the unanswered trial counts as wrong (full-window
-      // response time) but the session continues with the next trial.
+      // A timeout counts as wrong, but is not a correct-response timing sample.
+      // Full-window feedback remains visible without entering the speed metrics.
       if (state.phase !== 'stimulus' || state.paused || state.profile === null ||
           !isCurrentInput(state, action.stamp) || !Number.isFinite(action.nowMs) || action.nowMs < state.deadlineMs) {
         return state;
@@ -204,7 +205,6 @@ export function colorStroopGameReducer(
         ...state.stats,
         trialsPlayed: state.stats.trialsPlayed + 1,
         streak: 0,
-        totalResponseTimeMs: state.stats.totalResponseTimeMs + responseTimeMs,
       };
       return {
         ...state,
@@ -302,6 +302,7 @@ export function colorStroopGameReducer(
         postFlipCorrect: totalFlips,
         // A perfect run is wholly instant: any response times accrued before
         // the force hook must not leak into the recorded speed diagnostic.
+        correctResponseSamples: params.trials,
         totalResponseTimeMs: 0,
         fastestResponseMs: 0,
       };

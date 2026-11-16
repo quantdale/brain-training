@@ -77,9 +77,9 @@ export function buildColorStroopRawResult(input: BuildRawResultInput): ColorStro
   });
 
   const avgResponseTimeMs =
-    input.stats.trialsPlayed > 0
-      ? input.stats.totalResponseTimeMs / input.stats.trialsPlayed
-      : 0;
+    input.stats.correctResponseSamples > 0
+      ? input.stats.totalResponseTimeMs / input.stats.correctResponseSamples
+      : null;
 
   return {
     score: input.stats.score,
@@ -90,6 +90,7 @@ export function buildColorStroopRawResult(input: BuildRawResultInput): ColorStro
     bestStreak: input.stats.bestStreak,
     postFlipCorrect: input.stats.postFlipCorrect,
     totalFlips: input.totalFlips,
+    correctResponseSamples: input.stats.correctResponseSamples,
     avgResponseTimeMs,
     // The internal stats sentinel is `Infinity`; persist a real `null` so the
     // stored JSON and analytics never treat "no sample" as a 0 ms best

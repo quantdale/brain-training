@@ -11,7 +11,8 @@ import { packVersion } from '@/sdk/version-pack';
 
 // 077: accepted hits share the rendered dp floor and each target receives its
 // full deadline. Historical scores retain the previous input/timing rules.
-export const SCORING_VERSION = '1.2.0';
+// Only the current, unpaused result continuation can advance a round.
+export const SCORING_VERSION = '1.3.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

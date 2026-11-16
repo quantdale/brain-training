@@ -184,7 +184,7 @@ export function gameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+      if (state.phase !== 'roundResult' || !isCurrentRound(state, action.stamp) || state.paused || state.profile === null || state.difficulty === null) {
         return state;
       }
       const params = paramsFromProfile(state.profile);

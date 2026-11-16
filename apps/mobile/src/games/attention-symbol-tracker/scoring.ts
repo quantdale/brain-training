@@ -89,10 +89,9 @@ export function normalizeSymbolTrackerResult(
   _context: NormalizeContext,
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.roundsPassed, raw.roundsPlayed);
-  // The raw result stores the resolved params' initial count + token count;
-  // the escalation cap also depends on rounds, so recover the reference max
-  // from the raw result's own fields.
-  const referenceMax = Math.min(
+  // New results retain the actual resolved cap, including Adaptive's limit.
+  // Do not reinterpret older raw data that never recorded this reference.
+  const referenceMax = raw.referenceMaxRecall ?? Math.min(
     raw.tokenCount,
     raw.initialTrackCount + (raw.totalRounds - 1),
   );

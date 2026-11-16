@@ -198,7 +198,7 @@ describe('next-round', () => {
       state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
     }
     expect(state.roundOutcome).toBe('passed');
-    state = gameReducer(state, { type: 'next-round' });
+    state = gameReducer(state, { type: 'next-round', stamp: recallStamp(state) });
     expect(state.phase).toBe('observe');
     expect(state.roundIndex).toBe(1);
     expect(state.length).toBe(5);
@@ -209,7 +209,7 @@ describe('next-round', () => {
   it('holds the length after a failure', () => {
     let state = observeAll(startSession('hold'));
     state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: (state.sequence[0] + 1) % 9 });
-    state = gameReducer(state, { type: 'next-round' });
+    state = gameReducer(state, { type: 'next-round', stamp: recallStamp(state) });
     expect(state.length).toBe(4);
     expect(state.roundIndex).toBe(1);
   });
@@ -222,7 +222,7 @@ describe('next-round', () => {
         state = gameReducer(state, { type: 'tap-tile', stamp: recallStamp(state), index: tile });
         state = gameReducer(state, { type: 'recall-tick', stamp: recallStamp(state) });
       }
-      state = gameReducer(state, { type: 'next-round' });
+      state = gameReducer(state, { type: 'next-round', stamp: recallStamp(state) });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(4);

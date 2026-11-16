@@ -102,7 +102,7 @@ function reduceGameState(
       }
       // Post-deadline answers are ignored — the window already closed and the
       // expiry timer owns the resolution. Guards against timer/dispatch races.
-      if (state.deadlineMs !== null && action.nowMs > state.deadlineMs) {
+      if (state.deadlineMs !== null && action.nowMs >= state.deadlineMs) {
         return state;
       }
       const reactionMs = Math.max(0, action.nowMs - (state.roundStartedAtMs ?? action.nowMs));

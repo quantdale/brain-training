@@ -88,6 +88,8 @@ export interface SymbolTrackerRawResult extends GameRawResult {
   readonly roundsPassed: number;
   readonly accuracy: number;
   readonly bestRecall: number;
+  /** Resolved reachable count; absent only on legacy raw results. */
+  readonly referenceMaxRecall?: number;
   readonly bestStreak: number;
   readonly initialTrackCount: number;
   /** Distinct symbols placed on the observe board (escalation cap). */

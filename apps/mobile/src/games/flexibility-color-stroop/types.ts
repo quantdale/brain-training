@@ -89,6 +89,8 @@ export interface ColorStroopStats {
   readonly bestStreak: number;
   readonly streak: number;
   readonly postFlipCorrect: number;
+  /** Sum/count of correct responses only; wrong taps and timeouts are not samples. */
+  readonly correctResponseSamples: number;
   readonly totalResponseTimeMs: number;
   readonly fastestResponseMs: number;
 }
@@ -100,6 +102,7 @@ export const INITIAL_STATS: Readonly<ColorStroopStats> = Object.freeze({
   bestStreak: 0,
   streak: 0,
   postFlipCorrect: 0,
+  correctResponseSamples: 0,
   totalResponseTimeMs: 0,
   fastestResponseMs: Number.POSITIVE_INFINITY,
 });
@@ -140,8 +143,11 @@ export interface ColorStroopRawResult extends GameRawResult {
    * legacy `floor(totalTrials / 4)` estimate when absent.
    */
   readonly totalFlips?: number;
-  readonly avgResponseTimeMs: number;
-  /** Fastest valid reaction; `null` when no finite sample existed. */
+  /** Correct-response samples; absent on pre-1.6.0 all-trial metrics. */
+  readonly correctResponseSamples?: number;
+  /** Mean correct response time; null when no correct sample exists. */
+  readonly avgResponseTimeMs: number | null;
+  /** Fastest correct response; `null` when no finite sample existed. */
   readonly fastestResponseMs: number | null;
   readonly challengeRating: number;
   readonly difficulty: DifficultyLevel;

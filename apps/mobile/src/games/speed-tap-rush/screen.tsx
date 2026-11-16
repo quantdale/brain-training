@@ -370,6 +370,10 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
+    const status = session.status();
+    if ((current.phase !== 'intro' && current.phase !== 'results') ||
+        current.inputEpoch !== state.inputEpoch ||
+        (status !== null && status !== 'completed' && status !== 'abandoned')) return;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     applyGameplayAction({
@@ -379,7 +383,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
       startedAtMs: identity.startedAtMs,
       spawnedAtMs: clock.now(),
     });
-  }, [session, sessionSeed, clock, applyGameplayAction]);
+  }, [session, sessionSeed, clock, state.inputEpoch, applyGameplayAction]);
 
   const handleRestart = handleStart;
 
@@ -507,7 +511,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => applyGameplayAction({ type: 'next-round', spawnedAtMs: clock.now() })}
+                onPress={() => applyGameplayAction({ type: 'next-round', spawnedAtMs: clock.now(), stamp: liveStamp })}
               />
             </View>
           ) : null}

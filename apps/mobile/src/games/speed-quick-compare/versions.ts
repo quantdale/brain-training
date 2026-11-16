@@ -10,7 +10,8 @@
 import { packVersion } from '@/sdk/version-pack';
 
 // 1.1 rejects premature/stale expiry and measures input on the active clock.
-export const SCORING_VERSION = '1.1.0';
+// Expiry exclusively owns the exact deadline; equality is not an answer.
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

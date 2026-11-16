@@ -123,8 +123,13 @@ function DemoTrial({ attempt, onWrong, onDone, onSkip }: DemoTrialProps) {
   // Track the pending advance timer so it cannot fire after unmount (e.g. the
   // user quits the tutorial mid-demo) and setState on a dead component.
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Claim before React commits; old trial/attempt callbacks never own a new trial.
+  const cursorRef = useRef({ trialIndex: 0, claimed: false, retired: false });
   useEffect(() => {
+    const cursor = cursorRef.current;
+    cursor.retired = false;
     return () => {
+      cursor.retired = true;
       if (advanceTimerRef.current !== null) {
         clearTimeout(advanceTimerRef.current);
       }
@@ -132,23 +137,30 @@ function DemoTrial({ attempt, onWrong, onDone, onSkip }: DemoTrialProps) {
   }, []);
 
   const handleTapColor = (color: ColorName) => {
-    if (completed) return;
+    const cursor = cursorRef.current;
+    if (cursor.retired || cursor.claimed || cursor.trialIndex !== trialIndex) return;
+    cursor.claimed = true;
     setSelectedColor(color);
     setCompleted(true);
 
     if (color === trial.swatchColor) {
       // Move to next trial or complete
       if (trialIndex + 1 >= DEMO_TRIALS) {
+        cursor.retired = true;
         onDone();
       } else {
         advanceTimerRef.current = setTimeout(() => {
+          if (cursor.retired || cursor.trialIndex !== trialIndex) return;
           advanceTimerRef.current = null;
-          setTrialIndex((index) => index + 1);
+          cursor.trialIndex = trialIndex + 1;
+          cursor.claimed = false;
+          setTrialIndex(trialIndex + 1);
           setSelectedColor(null);
           setCompleted(false);
         }, 800);
       }
     } else {
+      cursor.retired = true;
       onWrong();
     }
   };

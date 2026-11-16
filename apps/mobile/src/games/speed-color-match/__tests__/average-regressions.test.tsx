@@ -182,7 +182,7 @@ describe('Color Match correct-response averages through the real screen', () => 
     expect(completeSession).toHaveBeenCalledTimes(1);
     expect(completeSession.mock.calls[0][0].session.rawResult).toMatchObject({
       trialsCorrect: 2, trialsPlayed: 15, avgReactionMs: 400, fastestReactionMs: 200, slowestReactionMs: 600,
-      gameVersion: '1.1.0', generatorVersion: '1.0.0', scoringVersion: '1.2.0',
+      gameVersion: '1.1.1', generatorVersion: '1.0.0', scoringVersion: '1.2.0',
     });
     expect(screen.getByTestId(testId(GAME_ID, 'avg-reaction'))).toHaveTextContent('400ms');
   });

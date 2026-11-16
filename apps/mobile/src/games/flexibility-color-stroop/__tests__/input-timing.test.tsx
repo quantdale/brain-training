@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, liveAudioHaptics, testId } from '@/sdk';
+import type { CompleteSessionInput } from '@/db';
 import ColorStroopScreen from '../screen';
+import type { ColorStroopRawResult } from '../types';
 import { colorStroopGameReducer } from '../reducer';
 import { GAME_ID, createInitialColorStroopState, inputStamp } from '../types';
 
@@ -166,4 +168,46 @@ describe('Color Stroop actual deadline', () => {
     expect(screen.queryByText('RULE CHANGE!')).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, 'answer-buttons'))).toBeOnTheScreen();
   });
+  it.each([true, false])('persists only correct timing samples through captured native callbacks (correct first=%s)', async (correctFirst) => {
+    const clock = createFakeClock(0);
+    const store = createInMemoryTutorialStore();
+    store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
+    const completeSession = jest.fn(async (input: CompleteSessionInput) => ({
+      session: input.session, ledgerEntry: null, balance: 0, rating: null, completionOutcome: null,
+    }));
+    await render(<ColorStroopScreen clock={clock} tutorialStore={store} sessionSeed="077-stroop" persistSession={{ completeSession }} />);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    const trials = start().trials;
+    const firstAnswer = correctFirst ? trials[0].correctAnswer : trials[0].correctAnswer === 'red' ? 'blue' : 'red';
+    const id = testId(GAME_ID, `answer-buttons-${firstAnswer}`);
+    const prePause = capturePress(id);
+    clock.advance(500);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    clock.advance(5000);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    clock.advance(500);
+    const current = capturePress(id);
+    await act(async () => { prePause(); current(); current(); });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-trial')));
+    clock.advance(100);
+    const wrong = trials[1].correctAnswer === 'red' ? 'blue' : 'red';
+    const wrongPress = capturePress(testId(GAME_ID, `answer-buttons-${wrong}`));
+    await act(async () => { wrongPress(); wrongPress(); });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-trial')));
+    clock.advance(1500);
+    // A delayed native answer at equality takes the timeout path, not a sample.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, `answer-buttons-${trials[2].correctAnswer}`)));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-lose')));
+    expect(completeSession).toHaveBeenCalledTimes(1);
+    const raw = completeSession.mock.calls[0][0].session.rawResult as ColorStroopRawResult;
+    expect(raw.trialsPlayed).toBe(3);
+    expect(raw.correctTrials).toBe(correctFirst ? 1 : 0);
+    expect(raw.correctResponseSamples).toBe(correctFirst ? 1 : 0);
+    expect(raw.avgResponseTimeMs).toBe(correctFirst ? 1000 : null);
+    expect(raw.fastestResponseMs).toBe(correctFirst ? 1000 : null);
+    expect(raw.diagnosticMetadata.pausedDurationMs).toBe(5000);
+    expect(raw.scoringVersion).toBe('1.6.0');
+  });
+
 });

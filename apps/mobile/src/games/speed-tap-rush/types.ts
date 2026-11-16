@@ -178,7 +178,7 @@ export type TapRushAction =
       /** Monotonic clock value when the window closed. */
       nowMs: number;
     }
-  | { type: 'next-round'; spawnedAtMs: number }
+  | { type: 'next-round'; spawnedAtMs: number; stamp: TapRushTargetStamp }
   | { type: 'pause' }
   | {
       type: 'resume';

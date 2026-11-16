@@ -11,7 +11,8 @@ import { packVersion } from '@/sdk/version-pack';
 
 // 077: recall follows the actual displayed path without a hidden input lock.
 // Preserve the earlier result provenance instead of reinterpreting old scores.
-export const SCORING_VERSION = '1.2.0';
+// Only the current, unpaused result continuation can advance a round.
+export const SCORING_VERSION = '1.3.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db
