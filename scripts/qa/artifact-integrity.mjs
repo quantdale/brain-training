@@ -1327,7 +1327,12 @@ export function verifyArtifactLedger(runs, opts = {}) {
       observations: (run.observations || []).map((observation) => {
         const values = verifiedHierarchyObservations.get(observation.seq);
         return values ? { ...observation, ...values } : {
-          ...observation, hierarchyArtifact: null, controls: [], hierarchyControlIds: [],
+          // Keep chronology, not cached screen claims. A schema-invalid null
+          // hierarchy artifact would poison the WHOLE re-derived record and
+          // discard unrelated, independently verified earlier witnesses.
+          seq: observation.seq, timestamp: observation.timestamp,
+          executionAttemptId: observation.executionAttemptId, phase: observation.phase,
+          controls: [], hierarchyControlIds: [], screenMarkers: [],
           observedGameId: null, score: null, boardValues: [], controlDetails: {},
         };
       }),

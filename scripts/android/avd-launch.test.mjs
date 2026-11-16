@@ -7,7 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const avd = fileURLToPath(new URL('./avd.sh', import.meta.url)).replaceAll('\\', '/');
-function fixture(emulatorBody, suffix = '') {
+function fixture(emulatorBody, suffix = '', options = []) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'avd-launch-'));
   const sdk = path.join(dir, 'fake SDK');
   fs.mkdirSync(path.join(sdk, 'platform-tools'), { recursive: true });
@@ -17,7 +17,7 @@ function fixture(emulatorBody, suffix = '') {
   fs.writeFileSync(path.join(sdk, 'platform-tools/adb'), '#!/usr/bin/env bash\nexit 0\n', { mode: 0o755 });
   if (emulatorBody !== null) fs.writeFileSync(path.join(sdk, `emulator/emulator${suffix}`), `#!/usr/bin/env bash\n${emulatorBody}\n`, { mode: 0o755 });
   const marker = path.join(dir, 'invoked.txt');
-  const result = spawnSync('bash', [avd, 'boot', '--no-wait', '--no-snapshot'], {
+  const result = spawnSync('bash', [avd, 'boot', '--no-wait', '--no-snapshot', ...options], {
     encoding: 'utf8', timeout: 10000,
     env: { ...process.env, BT_SDK: sdk.replaceAll('\\', '/'), ANDROID_AVD_HOME: path.join(dir, 'avds').replaceAll('\\', '/'), BT_AVD_NAME: 'test-only', BT_EMULATOR_EXTRA_ARGS: '', TEST_MARKER: marker.replaceAll('\\', '/') },
   });
@@ -36,6 +36,16 @@ for (const suffix of ['', '.exe']) {
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 }
+test('T05 immediate launch crashes consume the configured retry budget', () => {
+  const { dir, marker, result } = fixture('printf "attempt\\n" >> "$TEST_MARKER"\nexit 23', '', ['--retry', '3']);
+  try {
+    assert.equal(result.status, 1, result.stdout);
+    assert.equal(fs.readFileSync(marker, 'utf8').trim().split(/\r?\n/).length, 3);
+    assert.match(result.stderr, /failed.*3 attempt/i);
+    assert.doesNotMatch(result.stdout, /emulator launched;/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 for (const body of ['exit 23', null]) {
   test(`T05 --no-wait fails for ${body === null ? 'missing executable' : 'immediate launch failure'}`, () => {
     const { dir, result } = fixture(body);

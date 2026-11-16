@@ -74,6 +74,19 @@ for (const existing of ['ledger', 'receipts']) {
   });
 }
 
+test('producer decodes the exact XML values certified by the independent verifier', () => {
+  const xml = '<hierarchy><node resource-id="com.braintraining.app:id/memory.screen" />' +
+    '<node resource-id="com.braintraining.app:id/memory.option.0" text="A &amp; B &lt; C &#x1F680;" content-desc="&quot;choice&quot;" bounds="[0,0][100,100]" />' +
+    '<node resource-id="com.braintraining.app:id/memory.score-live" text="&#49;&#48;&#48;" /></hierarchy>';
+  const parsed = parseHierarchyGameData(xml, 'memory');
+  assert.equal(parsed.observedGameId, 'memory');
+  assert.equal(parsed.controls['option.0'].text, 'A & B < C 🚀');
+  assert.equal(parsed.controls['option.0'].desc, '"choice"');
+  assert.equal(parsed.controls['score-live'].text, '100');
+  assert.ok(parsed.hierarchyControlIds.includes('memory.option.0'));
+  assert.deepEqual(parseHierarchyGameData('<hierarchy><node resource-id="memory.screen" text="bad &entity;" /></hierarchy>', 'memory').controls, {});
+});
+
 test('hierarchyStatus accepts only a complete hierarchy document with nodes', () => {
   assert.equal(hierarchyStatus('<hierarchy rotation="0"><node resource-id="game" /></hierarchy>'), 'ok');
   assert.equal(hierarchyStatus('<hierarchy/>'), 'empty');
@@ -295,7 +308,7 @@ test('parseHierarchyGameData derives identity and control IDs from acquired UIA 
   const parsed = parseHierarchyGameData(xml, 'memory-pair-recall');
   assert.equal(parsed.observedGameId, 'memory-pair-recall');
   assert.deepEqual(parsed.hierarchyControlIds, [
-    'memory-pair-recall.intro', 'memory-pair-recall.session-token.session%3A42', 'android:id/content',
+    'memory-pair-recall.intro', 'memory-pair-recall.session-token.session%3A42', 'content',
   ]);
   assert.deepEqual(Object.keys(parsed.controls).sort(), ['intro', 'session-token.session%3A42']);
   assert.equal(parseHierarchyGameData(xml, 'attention-odd-one-out').observedGameId, 'memory-pair-recall',

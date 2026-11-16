@@ -45,13 +45,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { loadBuildManifest } from './artifact-integrity.mjs';
+import { loadBuildManifest, parseHierarchy } from './artifact-integrity.mjs';
 import {
   CONTRACT_VERSION,
   GameStates,
   classifyRun,
   deriveScreenKind,
   observationRequiresArtifact,
+  projectHierarchyGameplayValues,
   createSha256,
   isIsoTimestamp,
   observeState,
@@ -356,11 +357,11 @@ export function dumpHierarchy(serial, run = adb) {
 export function parseHierarchyGameData(xml, expectedGameId) {
   const controls = {};
   const hierarchyControlIds = [];
-  const nodeRe = /<node\b[^>]*>/g;
-  let m;
-  while ((m = nodeRe.exec(xml))) {
-    const tag = m[0];
-    const rid = /resource-id="([^"]*)"/.exec(tag)?.[1] || '';
+  const parsed = parseHierarchy(Buffer.from(xml, 'utf8'));
+  if (!parsed.ok) return { controls, hierarchyControlIds, observedGameId: null };
+  for (const node of parsed.nodes) {
+    const rawId = node['resource-id'] || node.resourceId || '';
+    const rid = rawId.includes(':id/') ? rawId.split(':id/').pop() : rawId.split('/').pop();
     if (!rid) continue;
     hierarchyControlIds.push(rid);
     const candidateGameId = rid === expectedGameId || rid.startsWith(`${expectedGameId}.`)
@@ -368,11 +369,11 @@ export function parseHierarchyGameData(xml, expectedGameId) {
       : rid.slice(0, rid.indexOf('.'));
     if (candidateGameId !== expectedGameId || !gameMetadata(candidateGameId)) continue;
     const suffix = rid === candidateGameId ? 'screen' : rid.slice(candidateGameId.length + 1);
-    const bounds = /bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(tag);
+    const bounds = /^\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]$/.exec(node.bounds || '');
     controls[suffix] = {
       bounds: bounds ? [+bounds[1], +bounds[2], +bounds[3], +bounds[4]] : null,
-      text: /text="([^"]*)"/.exec(tag)?.[1] || '',
-      desc: /content-desc="([^"]*)"/.exec(tag)?.[1] || '',
+      text: node.text || '',
+      desc: node['content-desc'] || '',
     };
   }
   const observedGameIds = new Set(hierarchyControlIds.flatMap((resourceId) => {
@@ -471,18 +472,8 @@ function observe(ctx, phase, key) {
     : { controls: {}, hierarchyControlIds: [], observedGameId: null };
   const controls = parsed.controls;
   const suffixes = Object.keys(controls).sort();
-  const scoreControlId = ['score-final', 'score-live', 'score'].find((id) => controls[id]);
-  const scoreControl = scoreControlId ? controls[scoreControlId] : null;
-  const boardValues = suffixes
-    .filter((s) => /(tile|card|option|word|choice|cell|item|node|target-card|number|symbol|token|chip|key|display|board|sequence|status|problem|text|answer|label|prompt)(\.\d+)?$/.test(s))
-    .map((s) => `${s}=${controls[s].text || controls[s].desc || ''}`);
+  const gameplayValues = projectHierarchyGameplayValues(controls);
   const screenKind = deriveScreenKind({ ...rawScreen, controlCount: suffixes.length });
-  // Control identity (text/desc) is captured so the causality contract can
-  // attribute a change to the SPECIFIC control that was tapped (P1-A).
-  const controlDetails = Object.fromEntries(suffixes.map((s) => [s, {
-    text: controls[s].text || '',
-    desc: controls[s].desc || '',
-  }]));
   const obs = {
     seq: ctx.obsSeq++,
     executionAttemptId: ctx.attemptId,
@@ -493,11 +484,8 @@ function observe(ctx, phase, key) {
     screenMarkers: [],
     rawScreen,
     screenKind,
-    controlDetails,
+    ...gameplayValues,
     observedGameId: parsed.observedGameId,
-    score: scoreControl ? (scoreControl.text || scoreControl.desc || null) : null,
-    scoreControlId: scoreControl ? scoreControlId : null,
-    boardValues,
     evidenceArtifact: null,
     requireArtifact: false,
   };
@@ -522,15 +510,18 @@ function observe(ctx, phase, key) {
       ctx.artifacts.push(art);
       obs.evidenceArtifact = { ...art };
     } catch { /* screenshot failure stays visible as evidenceArtifact: null */ }
-    if (rawScreen.hierarchyStatus === 'ok') {
-      const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
-      fs.mkdirSync(artDir, { recursive: true });
-      fs.writeFileSync(xmlPath, xml);
-      const xmlArt = captureArtifact(ctx, xmlPath, Buffer.from(xml), 'hierarchy', { seq: obs.seq, timestamp: obs.timestamp });
-      ctx.artifacts.push(xmlArt);
-      obs.hierarchyArtifact = { ...xmlArt };
-      if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
-    }
+  }
+  // Every acquired XML observation can become an event endpoint. Preserve its
+  // own already-acquired bytes even for ordinary play (no extra device dump
+  // or screenshot): another phase's artifacts cannot prove input causality.
+  if (rawScreen.hierarchyStatus === 'ok') {
+    const xmlPath = path.join(artDir, `obs-${String(obs.seq).padStart(2, '0')}-${phase}.xml`);
+    fs.mkdirSync(artDir, { recursive: true });
+    fs.writeFileSync(xmlPath, xml);
+    const xmlArt = captureArtifact(ctx, xmlPath, Buffer.from(xml), 'hierarchy', { seq: obs.seq, timestamp: obs.timestamp });
+    ctx.artifacts.push(xmlArt);
+    obs.hierarchyArtifact = { ...xmlArt };
+    if (!obs.evidenceArtifact) obs.evidenceArtifact = { ...xmlArt };
   }
   ctx.observations.push(obs);
   return obs;

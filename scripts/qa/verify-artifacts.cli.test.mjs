@@ -1223,6 +1223,28 @@ function causalRun({ changedScore = true, changedTarget = false, terminal = fals
   return run;
 }
 
+test('T04 CLI: optional screenshot-only observations do not invalidate earlier verified witnesses', () => {
+  const run = causalRun();
+  const incidental = {
+    ...structuredClone(run.observations.at(-1)), seq: 5,
+    timestamp: '2026-10-22T00:00:50.000Z', phase: 'incidental',
+  };
+  delete incidental.hierarchyArtifact;
+  const png = writeArtifact('incidental', PNG_1X1, 'png');
+  const receipt = writeCaptureReceipt(png, run.executionAttemptId, run.buildIdentity, incidental);
+  incidental.evidenceArtifact = {
+    kind: 'screenshot', file: png.file, bytes: png.bytes, sha256: png.sha256,
+    executionAttemptId: run.executionAttemptId, observationSeq: incidental.seq,
+    observationTimestamp: incidental.timestamp, captureReceipt: receipt.reference,
+  };
+  run.observations.push(incidental);
+  // This observation is NOT an endpoint or an evidence witness. The four
+  // earlier XML-backed acquisitions still establish the same L2 journey.
+  assert.equal(deriveLevel(run).level, 2);
+  const result = runCli([writeLedger([run]), '--mode', 'local']);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
 test('T03 CLI: genuine XML-backed score and target changes preserve L2/L3 positive paths', () => {
   for (const options of [{ numericEntities: true, targetText: 'A Ω' }, {}, { changedScore: false, changedTarget: true }, { terminal: true }, { targetText: `A & < > " ' \u03a9` }]) {
     const run = causalRun(options);

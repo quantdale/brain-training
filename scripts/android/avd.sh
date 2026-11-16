@@ -149,7 +149,14 @@ cmd_boot() {
     if ! kill -0 "$launch_pid" 2>/dev/null; then
       local launch_status=0
       wait "$launch_pid" || launch_status=$?
-      bt_die "emulator launch failed (exit $launch_status) for '$BT_AVD_NAME'"
+      if [ "$attempt" -ge "$retry" ]; then
+        bt_die "emulator launch failed (exit $launch_status) for '$BT_AVD_NAME' after $attempt attempt(s)"
+      fi
+      bt_warn "emulator launch failed (exit $launch_status); retrying ..."
+      attempt=$((attempt + 1))
+      # The process is already reaped: no other AVD needs stopping. Immediate
+      # crashes consume the same explicit retry budget as boot-time crashes.
+      continue
     fi
     disown "$launch_pid" || true
 
