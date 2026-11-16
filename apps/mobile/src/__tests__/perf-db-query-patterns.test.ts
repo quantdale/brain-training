@@ -204,7 +204,7 @@ describe('perf: history reads honor their LIMIT', () => {
     const rows = await db.sessions.listLightweight(100);
     expect(rows.length).toBe(8);
     for (const row of rows) {
-      expect(Object.keys(row).sort()).toEqual(['completedAt', 'gameId', 'xp']);
+      expect(Object.keys(row).sort()).toEqual(['completedAt', 'completedLocalDate', 'gameId', 'xp']);
     }
   });
 

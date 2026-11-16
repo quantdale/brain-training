@@ -116,6 +116,9 @@ describe('perf: release() disposes every player and freezes the engine', () => {
 
     const secondPlayers = createdPlayers().slice(3);
     second.playSfx('tap');
+    // Expo seekTo is asynchronous; playback follows its settled seek rather
+    // than racing the native seek. Drain that promise, not an arbitrary sleep.
+    await Promise.resolve();
     expect(
       (secondPlayers[0] as { played: boolean }).played,
     ).toBe(true);
