@@ -9,9 +9,10 @@
  *     non-progress settings (theme, sensory preferences) survive device
  *     restore; exported backup files in the files domain are likewise
  *     carried (see Change 062);
- *   - the SQLite `database` domain is EXCLUDED from cloud backup, device-to-
- *     device transfer, and (API <= 30) full backup, so a restore can never
- *     resurrect wiped progression data.
+ *   - Expo SQLite's files/SQLite directory (database and sidecars) and the
+ *     defensive `database` domain are EXCLUDED from cloud backup, device-to-
+ *     device transfer, and (API <= 30) full backup to prevent progression
+ *     resurrection. Other files, including explicit exports, remain eligible.
  *
  * Before this plugin these settings existed only as hand edits inside the
  * gitignored `android/` directory and silently vanished on every clean
@@ -27,8 +28,8 @@
  * below are pinned by plugins/__tests__/with-android-backup-rules.test.ts.
  *
  * minSdk note: 24 (Expo root-plugin default) < 31, so BOTH rule files are
- * required for full coverage. No AsyncStorage/RKStorage usage exists in src,
- * so the database-domain exclusion covers all canonical persistence.
+ * required for full coverage. Expo SDK 57 SQLite uses context.filesDir/SQLite,
+ * not Android's database domain; both exclusions must survive clean prebuild.
  */
 const { createRunOncePlugin, withAndroidManifest, withDangerousMod } =
   require("@expo/config-plugins");
@@ -40,17 +41,19 @@ const DATA_EXTRACTION_RULES_XML = `<?xml version="1.0" encoding="utf-8"?>
 <!--
   Data extraction rules for API 31+ (android:dataExtractionRules).
   Auto-backup policy (campaign 010 audit B7, codified by the local config
-  plugin plugins/with-android-backup-rules.js): exclude the entire database
-  domain from both cloud backup and device-to-device transfer so wiped
+  plugin plugins/with-android-backup-rules.js): exclude files/SQLite and the
+  database domain from cloud backup and device-to-device transfer so wiped
   progression data cannot be resurrected by a restore. SharedPreferences
   remain eligible. Generated file: edit the plugin, not this copy.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="database" path="." />
+        <exclude domain="file" path="SQLite" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="database" path="." />
+        <exclude domain="file" path="SQLite" />
     </device-transfer>
 </data-extraction-rules>
 `;
@@ -58,13 +61,14 @@ const DATA_EXTRACTION_RULES_XML = `<?xml version="1.0" encoding="utf-8"?>
 const BACKUP_RULES_XML = `<?xml version="1.0" encoding="utf-8"?>
 <!--
   Auto-backup rules for API 30 and below (android:fullBackupContent).
-  Campaign 010 audit B7: exclude the entire database domain so wiped
+  Campaign 010 audit B7: exclude files/SQLite and the database domain so wiped
   progression data cannot be resurrected by a cloud restore. API 31+ devices
   use data_extraction_rules.xml instead. Generated file: edit the plugin
   (plugins/with-android-backup-rules.js), not this copy.
 -->
 <full-backup-content>
     <exclude domain="database" path="." />
+    <exclude domain="file" path="SQLite" />
 </full-backup-content>
 `;
 

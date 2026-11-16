@@ -6,7 +6,7 @@
  *
  *   - `android.versionCode` = MAJOR*1_000_000 + MINOR*1_000 + PATCH, derived
  *     from `expo.version` (the single source of truth). Monotonic for any
- *     semver bump while major < 1000 and minor < 1000, so store ordering can
+ *     semver bump while every component is < 1000, so store ordering can
  *     never regress when versions advance.
  *   - `ios.buildNumber` = the same semver string (CFBundleVersion accepts it),
  *     unless `IOS_BUILD_NUMBER` is set. App Store Connect refuses a repeated
@@ -37,9 +37,9 @@ function parseSemver(version) {
 /** Deterministic monotonic Android versionCode from a semver string. */
 function versionCodeFromSemver(version) {
   const { major, minor, patch } = parseSemver(version);
-  if (major > 999 || minor > 999 || patch > 999_999) {
+  if (major > 999 || minor > 999 || patch > 999) {
     throw new Error(
-      `withDeterministicVersion: version ${version} exceeds the encoding range (major<1000, minor<1000, patch<=999999)`,
+      `withDeterministicVersion: version ${version} exceeds the encoding range (major<1000, minor<1000, patch<1000)`,
     );
   }
   return major * 1_000_000 + minor * 1_000 + patch;

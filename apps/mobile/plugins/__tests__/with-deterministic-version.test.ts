@@ -36,6 +36,21 @@ describe("versionCodeFromSemver", () => {
     expect(() => versionCodeFromSemver("0.1000.0")).toThrow(/encoding range/);
   });
 
+  it("rejects patch overflow that collides with a minor bump", () => {
+    for (const version of ["0.1.1000", "0.1.1001", "0.0.999999"]) {
+      expect(() => versionCodeFromSemver(version)).toThrow(/encoding range/);
+    }
+  });
+
+  it("orders every accepted component boundary without carry collisions", () => {
+    for (let component = 0; component < 999; component++) {
+      expect(versionCodeFromSemver(`0.0.${component}`)).toBeLessThan(versionCodeFromSemver(`0.0.${component + 1}`));
+      expect(versionCodeFromSemver(`999.${component}.999`)).toBeLessThan(versionCodeFromSemver(`999.${component + 1}.0`));
+      expect(versionCodeFromSemver(`${component}.999.999`)).toBeLessThan(versionCodeFromSemver(`${component + 1}.0.0`));
+    }
+    expect(versionCodeFromSemver("999.999.999")).toBe(999_999_999);
+  });
+
   it("parseSemver extracts integer components", () => {
     expect(parseSemver("12.34.56")).toEqual({
       major: 12,
