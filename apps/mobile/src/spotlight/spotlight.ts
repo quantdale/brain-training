@@ -50,9 +50,8 @@ export function dailySpotlight(
   const gameId = sorted[rng.nextInt(sorted.length)];
   // Day-index rotation over the sorted ids guarantees every difficulty level
   // recurs on a fixed cadence while staying date-deterministic.
-  const dayNumber = Math.floor(
-    Date.parse(`${date}T00:00:00`) / 86_400_000,
-  );
+  const [year, month, day] = date.split("-").map(Number);
+  const dayNumber = Date.UTC(year, month - 1, day) / 86_400_000;
   const difficulty = DIFFICULTY_ROTATION[
     ((dayNumber % DIFFICULTY_ROTATION.length) + DIFFICULTY_ROTATION.length) %
       DIFFICULTY_ROTATION.length

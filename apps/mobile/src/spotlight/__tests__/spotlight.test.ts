@@ -9,6 +9,13 @@ import {
 const IDS = ["memory", "speed-tap-rush", "logic-code-cracker", "math-fast-math"];
 
 describe("dailySpotlight", () => {
+  it.each(["2026-11-16", "2026-03-08", "2026-03-09", "2026-11-01", "2028-02-29"])("rotates by civil date, not local-midnight offset: %s", (date) => {
+    const [y, m, d] = date.split("-").map(Number);
+    const ordinal = Date.UTC(y, m - 1, d) / 86_400_000;
+    const rotation = ["normal", "hard", "expert", "easy"];
+    expect(dailySpotlight(IDS, date)?.difficulty).toBe(rotation[ordinal % 4]);
+  });
+
   it("is versioned", () => {
     expect(SPOTLIGHT_VERSION).toBe(1);
   });

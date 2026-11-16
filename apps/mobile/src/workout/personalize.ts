@@ -197,8 +197,7 @@ export function rankByRecency(
  // most recently played game therefore ends up last.
  const tail: GameDefinition[] = [];
  const seen = new Set<string>();
- for (let i = recentGameIds.length - 1; i >= 0; i -= 1) {
-  const id = recentGameIds[i];
+ for (const id of recentGameIds) {
   const game = gameById.get(id);
   if (game !== undefined && !seen.has(id)) {
    seen.add(id);
@@ -206,7 +205,7 @@ export function rankByRecency(
   }
  }
 
- return [...fresh, ...tail];
+ return [...fresh, ...tail.reverse()];
 }
 
 /**

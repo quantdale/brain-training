@@ -14,6 +14,7 @@
  */
 
 import type { WorkoutInstance } from '@/db';
+import { parseInstanceKey } from '@/workout/metadata';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -40,7 +41,7 @@ export interface WorkoutAnalytics {
   completionRate: number | null;
   /** Sum of assigned game slots across loaded instances. */
   gamesAssigned: number;
-  /** Sum of completed game slots (resume index) across loaded instances. */
+  /** Settled game slots excluding explicitly skipped legs. */
   gamesCompleted: number;
   /**
    * Consecutive completed days ending at the most recent completed day in the
@@ -55,7 +56,7 @@ export interface WorkoutAnalytics {
 }
 
 /**
- * Build the analytics. Duplicate dates are collapsed (latest write wins by
+ * Build the analytics. Duplicate instance keys collapse (latest write wins by
  * array order); instances with unknown game ids still count toward completion
  * — the repository already reconciles catalog drift before persisting.
  */
@@ -63,25 +64,28 @@ export function buildWorkoutAnalytics(
   instances: readonly WorkoutInstance[],
   lifetimeCompleted: number,
 ): WorkoutAnalytics {
-  // Collapse to one instance per date (defensive; the repo keys rows by date).
-  const byDate = new Map<string, WorkoutInstance>();
+  // Keep daily and template instances separate for per-instance counters.
+  const byKey = new Map<string, WorkoutInstance>();
   for (const instance of instances) {
-    byDate.set(instance.date, instance);
+    byKey.set(instance.date, instance);
   }
 
-  const loaded = [...byDate.values()];
+  const loaded = [...byKey.values()];
   const completed = loaded.filter((i) => i.status === 'completed');
 
   let gamesAssigned = 0;
   let gamesCompleted = 0;
   for (const instance of loaded) {
     gamesAssigned += instance.gameIds.length;
-    gamesCompleted += Math.min(instance.currentIndex, instance.gameIds.length);
+    const settled = Math.max(0, Math.min(Math.trunc(instance.currentIndex), instance.gameIds.length));
+    const skipped = new Set((instance.skippedIndices ?? []).filter(
+      (index) => Number.isSafeInteger(index) && index >= 0 && index < settled,
+    ));
+    gamesCompleted += settled - skipped.size;
   }
 
   // Completed dates sorted chronologically; runs are consecutive calendar days.
-  const completedDates = completed
-    .map((i) => i.date)
+  const completedDates = [...new Set(completed.map((i) => parseInstanceKey(i.date).date))]
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
   let longestCompletedRun = 0;

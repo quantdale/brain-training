@@ -142,6 +142,10 @@ describe('reorderByWeakDomains', () => {
 });
 
 describe('rankByRecency', () => {
+  it('uses the newest occurrence when history repeats a game', () => {
+    expect(ids(rankByRecency(makeGames(2), ['game-0', 'game-1', 'game-0']))).toEqual(['game-1', 'game-0']);
+  });
+
   it('keeps fresh games first in input order', () => {
     const games = makeGames(8);
     const ranked = rankByRecency(games, ['game-5', 'game-2']);
@@ -161,11 +165,9 @@ describe('rankByRecency', () => {
 
   it('ignores ids not in the selection and drops duplicates', () => {
     const games = makeGames(4);
-    // recentGameIds is newest-first; the oldest occurrence of game-1 (the
-    // final entry) leads the reversed tail, game-99 is not in the selection
-    // and the duplicate game-1 is dropped.
+    // The newest occurrence determines recency, even when the game repeats.
     const ranked = rankByRecency(games, ['game-1', 'game-3', 'game-99', 'game-1']);
-    expect(ids(ranked)).toEqual(['game-0', 'game-2', 'game-1', 'game-3']);
+    expect(ids(ranked)).toEqual(['game-0', 'game-2', 'game-3', 'game-1']);
   });
 
   it('is deterministic and does not mutate its input', () => {
