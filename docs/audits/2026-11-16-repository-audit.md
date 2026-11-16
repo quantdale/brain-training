@@ -1,6 +1,6 @@
 # Repository-wide audit and remediation — 2026-11-16
 
-**Status: IN PROGRESS. Not release or Campaign 080 acceptance.**
+**Status: source remediation qualified; native validation BLOCKED. Not exhaustive runtime, release or Campaign 080 acceptance.**
 
 The owner explicitly requested exhaustive repository-wide investigation and direct remediation. Goal mode was subsequently deactivated; the owner then explicitly requested resumption, including the interrupted reviewers. This work continues under that ordinary authorization. Unrelated feature development is frozen. Campaign 080 remains the only active top-level campaign.
 
@@ -53,21 +53,64 @@ quest claim followed by rejection of a second-day claim from the same sessions,
 legacy migration replay, backup round-trip, malformed timestamps/bootstrap, and
 lifetime reward-XP progress.
 
-## Remaining audit packets (not yet closed)
+## Integrated repair waves and independent follow-up
 
-- Persistence: final independent calendar/economy review; crash-safe file recovery; actual storage bytes; aggregate write boundaries and malformed nested settings follow-up.
-- Game A: Sentence Builder valid alternatives, overdue input and pre-solved case-insensitive scrambles; Number Line timeout error denominator; Deduction Table replay outcomes.
-- Game B: duplicate Start delivery, tutorial callback races, adaptive Symbol Tracker reference, continuation ownership, Quick Compare deadline ownership, Order Sweep rapid tutorial picks, Stroop correct-response timing metrics. Vigilance's documented discrimination asymmetry is not a proven defect and will not be speculatively rebalanced.
-- App/SDK: live preference hydration after import/wipe; raw-link parser budget; retained workout navigation/focus; async audio failures/disposal; failed lazy import retry; optimistic favorite identity; stranded-file inventory; reduced-motion initialization race.
-- Progression: older-workout reconciliation, actual-game provenance validation, skipped/template analytics, continuation identity, lifetime reward XP, chronological reward limits, summary query scope, civil-day Spotlight and duplicate recency ordering.
-- Tooling: actual SQLite backup domain; evidence resilience/value/artifact binding; AVD function launch; immutable sweep outputs; version-code domain; range containment; unresolved dependency metadata; malformed Jest counters.
+All six initial repair packets and the progression/settings follow-ups are now integrated into canonical main; worker evidence is retained separately, not summed into a whole-app test count.
+
+| Area | Integrated correction and executed evidence |
+|---|---|
+| Persistence/recovery | Complete-backup format/checksum validation before recovery cleanup; preserve recovery copies on short writes; actual SQLite page storage metrics (`96f7cd37`). Original compatibility/economy repairs remain above. |
+| Games | Sentence alternatives/deadlines/unsolved scramble fallback; exact Deduction outcomes; Number Line submitted-sample denominator (`c1813a4f`). Duplicate Start/Next/tutorial ownership, Tracker reference provenance, Compare equality and correct-only Stroop timings (`e5fb5be3`). Independent source review accepts the bounded game snapshot after independently designed probes14/14 and ten actual-call-site suites80/80 passed by parent execution. No native acceptance inferred. |
+| App/SDK | Retained workout navigation/focus, async audio disposal/failures, lazy-import retry, favorite identity and reduced-motion races (`e835af2a`); result identity (`bf824014`); stranded inventory (`10faef56`); live preference hydration/write barrier (`b5e5fc72`); pre-parser native-intent budgets (`d2235190`). |
+| Progression | Reconcile all active workouts and scope summary evidence (`f5461735`); actual played/template/skip analytics, civil-day Spotlight and repeated-game recency (`f6208327`); chronological reward limits (`0c7e6a3b`). Schema15 adds matching event-time/lexical-id indexes, verified by actual SQLite query plans and migration replay. Completion rejects provenance naming a different physical game. |
+| Tooling/evidence | Correct SQLite backup-exclusion domain and bounded version encoding (`bba91065`); fail-closed launch/output/alignment/dependency/Jest gates (`d9f62b99`); hierarchy-bound causality and unsupported resilience refusal (`e7b9a99e`). Producer now uses strict XML/entity decoding and the same value projection, with a hierarchy artifact for every observation. |
+
+Independent DATA review initially **REJECTED** four further edge cases: one target ledger occurrence could match both incoming keyed and unkeyed rows; malformed nested freezeUsed could reopen monthly caps; a valid foreign civil date skipped by the current timezone could throw; accepted year0100 could produce unpadded period keys. These are repaired with shared physical-row allocation, validated nested usage, padded civil-key arithmetic and civil-date quest-selection/evaluation APIs (no current-zone instant reconstruction). The unchanged independent probes subsequently **ACCEPT R1–R4**. Permanent scoped integration:103 suites/1,253 tests PASS; explicit Pacific/Apia/accepted-year/calendar22/22 PASS. Original red logs remain.
+
+That reviewer then proved **R5/R6**, normal-write overflow after a valid MAX_SAFE import: two ordinary +1 awards/credits make SQLite's exact total9007199254740993 appear as9007199254740992 through JS projections, and the app's own export becomes unrestorable. A single unsafe XP award was also accepted. New statement-local INSERT predicates atomically bound combined session+award XP and currency, preserving concurrent standalone writes and idempotent retries without nested transactions or clamping. Permanent preservation regression: 8 failures/one control before, 9/9 PASS after. Independent unchanged preservation replay 9/9 and related plus seven adversarial edge probes 117/117 PASS; **ACCEPT R5/R6**. These include signed lower bounds, explicit transaction rollback, rating-owned rewards, shared-file connections and idempotency at the ceiling.
+
+Independent APP review reproduced a post-commit hydration-read failure that incorrectly reported import failure and reopened stale sibling-setting writes. Follow-up `cc141c4e` retains a provider-owned latch and exposes read-only recovery on Data Management/Profile, without repeating import/wipe. Canonical hydration/preference/bounds 17 tests PASS; independent exact-diff source re-review **ACCEPTS** this correction with parent-execution limitations explicit. The original verbatim probe and its behavioral red are retained.
+
+Independent TOOLING review found optional screenshot-only observations poisoned all capability re-derivation through a schema-invalid null hierarchyArtifact, and immediate emulator crashes bypassed the explicit retry budget. Both permanent regressions failed before; CLI/sweep/AVD integration88/88 PASS after. The independently designed parent-executed probe retains forgery FAIL, missing-endpoint BLOCKED and unsupported-resilience ATTEMPTED while accepting the unchanged legitimate journey plus an unused optional capture. Independent bounded source re-review **ACCEPTS** both fixes after inspecting the parent-executed red/green receipts.
+
+Stroop's persisted avgResponseTimeMs was also absent from both analytics field maps. The mean-preference regression failed800→200 before; JS/SQL differential fixtures now include mean and null-fallback cases. No old normalized score is recomputed.
+
+A final explicit UTC replay exposed a pre-epoch subsecond blind spot: SQLite integer division truncated -1 ms toward zero, moving legacy attribution into the next day. `5150e90e` uses real division for migration and read-time local/UTC fallbacks. The original independent UTC counterexample failed before and passes after; permanent migration/fallback/projection regressions pass. No already-attributed day or original instant is rewritten.
+
+## Final local source qualification
+
+Code-bearing application checkpoint `5150e90e`; subsequent `83f13907` is shell formatting only. All figures are executed receipts, not sums of overlapping worker suites.
+
+| Gate | Result / retained evidence |
+|---|---|
+| Whole Jest | **PASS: 755 suites / 8,467 tests**, five classified opt-in skips, zero failures; `final-source-jest-subsecond.json/.log/.exit`. Classifier: `final-jest-signal.json`. |
+| Deterministic Node tooling | **329/329 PASS**, no skips; `node-full-final-subsecond.log/.exit`. |
+| TypeScript / whole-package ESLint | **PASS, zero warnings**; `convergence-types06.log`, `convergence-lint06.log`. LSP coverage remains inconclusive, not falsely clean. |
+| Hermetic repo/generated/security/contracts | **PASS**: repo state, registry, 142 generated specs, actual-baseline provenance, task ownership, offline, secrets, workflow hygiene, affected-map sync, Expo alignment, CLI/runtime contracts and clean-checkout self-test. `hermetic-convergence04.log`, `final-postcommit-gates01.log`; these do not claim an actual independent clean install. |
+| Validator self-tests / freshness | **PASS**, `validator-self-tests-final01.log`; strict OpenSpec **207/207 PASS** (`openspec-final01.log`). |
+| Production dependency gate | **PASS with eight existing accepted advisories**, not zero vulnerabilities (`dependency-audit-final01.log`). No package/lockfile upgrades. |
+| Web production export | **PASS: 23 routes**, `web-export-final02.log/.exit`; existing local-CSS-font warnings retained. |
+| Five opt-in scale probes | **PASS**, 22 probe tests; expanded correctness/probe convergence 10 suites/71 tests. `perf-current02-cache.log`; 20k-session backup verifies, not a physical-device test. |
+| Independent follow-ups | DATA R1–R6 and evaluation cache accepted within replayed scopes. GAME, APP and TOOLING source reviewers accept their bounded fixes after inspecting parent-executed independently designed probes; no invented reviewer-local execution. Reports under `independent-data-review/`, and retained Pi reviewer outputs. |
+| Android generation / compile | **Prebuild PASS**; generated SQLite backup XML inspected. Release Gradle **BLOCKED/TIMEOUT after 1,100 seconds**, only daemon startup output and no task/APK completion. `android-current-prebuild.log`, `android-current-release.log`; no compile success inferred. |
+| Android runtime / physical platforms | **NOT VALIDATED / BLOCKED**: no ready emulator guest; no current-build gameplay journey, physical performance, comprehensive screen-reader or signing/owner acceptance. |
+| Exact published-SHA CI / cleanup | Observed after publication; not pre-claimed by this report. |
+
+Earlier failures remain unchanged: whole integration01 had 744 passed suites/8,382 passed tests and two obsolete shape/async expectations; integration02 had 754 passed suites/8,464 passed tests and one error-wording mismatch. They were corrected without disabling tests; later complete matrices, not those failures, establish the final result.
+
+Measured quest-period work was also addressed, not speculatively optimized: five sample rows initially triggered **65** calendar resolutions per batch. An evaluation-local lazy cache reduces this to five, with no cross-call timezone cache. At the 5k scan cap, in-process evaluation measured **48.45→8.11 ms**, full sync **139.27→70.59 ms** on this host. Independent uncached-oracle/batch/individual/mutation tests pass **27/27 in UTC and 27/27 in actual Pacific/Apia**. These are local microbenchmarks, not native FPS, latency or a causal physical performance claim.
+
+## Bounded residual risks
+- Backup recovery has a conditional stronger-fault limitation: if the filesystem writes an ENTIRELY DIFFERENT checksum-valid backup, the first exact copy check retains .prev, but a later sweep cannot distinguish that valid wrong live file without a persistent expected-content journal. Independent review classifies this low-priority fault-model debt; ordinary truncation/ENOSPC/caught-write/restart controls pass and no native occurrence is established. Its counterexample remains retained, not relabeled repaired.
+- Conservative rejection of signed64 intermediate SUM overflow is intentional: even a mathematically safe final sum in that row order is unusable by normal SQLite balance readers. Unidentified legacy-event ambiguity and historical timezone irrecoverability remain as documented above.
+- Vigilance's documented false-alarm asymmetry is not a proven defect; no speculative rebalance. Existing low-priority duplicated score/contrast/taste debt, accepted dependency advisories and upstream patch drift are not hidden.
 
 ## Runtime and evidence limitations
 
-The dedicated existing AVD initially failed startup: default-port launch reported too many emulator instances despite no listed device; explicit-port launches exited during graphics startup. Supported `-gpu software -feature -Vulkan -no-snapshot` later produced an ADB device at emulator-5570. Full readiness/app/runtime validation remains pending. No user data was reset, no other AVD/process was terminated, and enumeration is not native PASS. External ARTEMIS configuration/provider readiness was checked, but no device journey has yet executed. Physical Android/iOS, screen-reader acceptance, store signing, physical performance and subjective acceptance remain unclaimed.
+The dedicated existing AVD initially failed startup: default-port launch reported too many emulator instances despite no listed device; explicit-port launches exited during graphics startup. Supported `-gpu software -feature -Vulkan -no-snapshot` later produced an ADB device at emulator-5570. The transport later went offline; scoped shell/console requests hung. Session-owned hung launcher/qemu processes were stopped without wipe or snapshot manipulation. Supported SwiftShader/no-Wifi/no-Vulkan and no-GPU follow-ups did not establish a responsive guest shell or completed boot. A final TCG/no-GPU isolation probe exited 0xC0000005 without boot; no host hypervisor/driver changes were attempted. Full readiness/app/runtime validation is BLOCKED. No user data was reset, no other AVD/process was terminated, and enumeration is not native PASS. Final ARTEMIS doctor passed credential/tooling/config checks but warned on Android readiness; no device journey executed. Physical Android/iOS, screen-reader acceptance, store signing, physical performance and subjective acceptance remain unclaimed.
 
 LSP probes were attempted on changed files. The server did not confirm every clean file; auxiliary generic ast-grep rules also report pre-existing assertions/comments. Neither an empty cache nor an inconclusive LSP probe is counted as clean. TypeScript compiler, ESLint, executable regressions and integration gates remain the authoritative executed source checks.
 
 ## Completion gate
 
-Continue reproducing, repairing and independently reviewing until no further reasonable actionable findings remain; rerun full source/generated/spec/security/evidence checks and targeted runtime where feasible, reconcile each finding and remaining risk, publish coherent commits without force, remove session worktrees/junctions, and leave clean pushed main. This report does not currently assert that gate is satisfied.
+Reproduced source findings in the reviewed packets are repaired, regression-tested and independently dispositioned. Remaining native acceptance is a genuine environment blocker, not a source pass. The source-qualified recovery checkpoint may be published under the documented native-unavailable governance exception after the green local source gates; exact hosted results, clean main and removal of session worktrees are checked afterward. Campaign 080 stays ACTIVE for current-build runtime/physical/owner obligations. No exhaustive runtime or release-completion claim is made.

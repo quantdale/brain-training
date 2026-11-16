@@ -5,12 +5,22 @@ fast math, equation builder and quick compare. Sequence memory can still repeat
 once its 12 two-length sequences are exhausted. Prospective Cue's lone Easy glyph
 carries over deliberately; its streams do not repeat.
 
-Also open: a timezone change can rewrite past streak days because no local date
-is stored (`db/sessions.ts:771`, needs a migration). Merging diverged ledgers can
-go negative (Low). Vigilance scoring is harsher after one false alarm and may
-need tuning. Color Stroop's average still includes wrong taps. The in-game score
-appears in both the header and a count-up strip in 19 games. Dark-mode answer
-button borders measure 1.64:1; their symbols carry the contrast.
+2026-11-16 reconciliation: timezone rebucketing, negative diverged-ledger merge
+and wrong-tap Stroop timing are repaired with regressions; final source755 suites/
+8,467 tests PASS, native qualification remains blocked. Follow-up normal-write
+total overflow and failed preference hydration replay have fixes and accepting
+bounded independent re-review. UTC subsecond attribution is repaired as well. Details:
+`docs/audits/2026-11-16-repository-audit.md`.
+
+Still open: Vigilance's documented false-alarm asymmetry is not a proven defect
+and was not speculatively rebalanced. The in-game score appears in both header
+and count-up strip in19 games. Dark answer borders measure1.64:1; symbols carry
+contrast. A conditional backup-recovery limitation remains: a filesystem writing
+a DIFFERENT checksum-valid backup can fool a later sweep after the first copy
+check rejects it. Ordinary truncation/caught-write/restart controls pass; no
+native occurrence is established. Persistent expected-content journaling would
+be needed to cover that stronger fault model. Emulator boot/runtime and physical
+platform/performance qualification remain unresolved, not source-test PASS.
 
 # iOS CI does not exercise the iOS 27 SDK (2026-11-08)
 

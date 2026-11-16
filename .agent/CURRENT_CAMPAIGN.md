@@ -7,11 +7,16 @@
 **2026-11-16 hardening overlay (ACTIVE):** owner explicitly requested an
 exhaustive repository-wide audit and remediation, then resumed interrupted
 retained reviewer/worker sessions. Unrelated feature development is frozen.
-Initial persistence/economy/calendar corrections are source-validated (74 scoped
-suites/934 tests; types/scoped lint PASS); isolated game/app/tooling/evidence and
-progression repairs are converging. Schema14 records completion-local dates to
-prevent timezone quest/streak rebucketing. Final whole-source/native/review/CI
-qualification is not yet complete. Live register:
+The six repair packets and progression/settings follow-ups are integrated.
+Source qualified:755 suites/8,467 tests,329 Node checks, types/full-package lint,
+strict OpenSpec207/207,23-route web export and hermetic/security gates PASS.
+Schema14 fixes completion-day attribution; schema15 indexes chronological rewards.
+Independent follow-ups accept mixed-key/nested-settings/civil-date/normal-write
+bounds, hydration recovery and evidence/retry corrections within named scopes.
+All five opt-in probes ran; measured per-evaluation cache reduces repeated work.
+Native remains BLOCKED: guest unresponsive; local Gradle timed out before tasks.
+Exact hosted checks/cleanup are verified post-publication; no campaign/release
+or native-runtime completion is claimed. Live register:
 `docs/audits/2026-11-16-repository-audit.md`. No new top-level campaign or
 historical certification relabeling; Campaign080 remains ACTIVE.
 

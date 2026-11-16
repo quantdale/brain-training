@@ -1,6 +1,6 @@
 # Durable Project State
 
-## Repository-wide hardening — 2026-11-16 (IN PROGRESS)
+## Repository-wide hardening — 2026-11-16 (SOURCE QUALIFIED; NATIVE BLOCKED)
 
 Owner explicitly authorized exhaustive audit/remediation and resumed interrupted
 reviewers/workers. Goal mode is inactive; ordinary task authorization continues.
@@ -19,12 +19,39 @@ without changing original instants. Backup import/export carries that date;
 new invalid-calendar timestamps are rejected, corrupt old samples cannot brick
 quest catch-up. Lifetime-XP quests now include reward XP.
 
-Focused integrated calendar/persistence/progression/analytics/quests/streaks:
-74 suites/934 tests PASS, two opted-in probes skipped (all five probes ran
-separately at baseline); current global types/scoped zero-warning lint PASS.
-Full final suite, native-after and independent final repair review remain OPEN.
-Ready worker commits are not accepted solely on their receipts; parent review
-and convergence continue. Audit register and external evidence location:
+All six initial implementation packets and progression/settings follow-ups are
+integrated. Independent DATA replay accepts mixed-key occurrence allocation,
+nested monthly-use preservation, skipped foreign civil dates and year0100
+bootstrap. Normal-write cumulative economy overflow was then reproduced and
+repaired with statement-atomic SQL bounds (no nested transaction or clamping);
+independent unchanged9/9 and related/edge117/117 replays ACCEPT it. Schema15
+adds event-time reward indexes. Stroop analytics prefer its persisted mean on
+both JS/SQL paths. The final pre-epoch subsecond boundary was reproduced in UTC
+and repaired with SQLite real division (`5150e90e`), retaining fixed attribution.
+
+Final source at `5150e90e` (then shell-format-only `83f13907`): full Jest755
+suites/8,467 tests PASS, five classified opt-in skips; all329 deterministic Node
+checks PASS; types/full-package zero-warning ESLint,13 hermetic gates, validator
+self-tests/allowlist freshness, strict OpenSpec207/207, web23 routes PASS. All
+five opt-in probes ran (22 tests), including20k-session backup verification.
+Evaluation-local calendar caching removes repeated per-quest work: measured
+5k evaluation48.45→8.11ms, not a native performance claim; independent27 tests
+in each actual UTC/Apia process accept semantic parity/cross-call freshness.
+Independent DATA/GAME/APP/TOOLING follow-ups accept their bounded corrections;
+reviewers without execution inspected independently designed parent-run probes,
+not falsely claimed reviewer-local execution. Fresh dependency gate PASS with
+eight accepted advisories; no zero-risk/dependency-upgrade claim.
+
+Android generation succeeded, including actual SQLite backup exclusions. Local
+Gradle release timed out1100s after daemon startup, no tasks/APK receipt: BLOCKED,
+not compile PASS. Existing dedicated AVD guest shell/boot remained unresponsive;
+TCG diagnostic exited0xC0000005. Only session-owned processes were stopped; no
+wipe, snapshot reset, host input or other AVD manipulation. ARTEMIS doctor
+credential/tooling checks pass, Android warns for no ready device. Thus native
+launch/gameplay/physical performance and release/campaign acceptance remain
+NOT VALIDATED. This is a documented source-qualified recovery checkpoint under
+the native-unavailable governance exception; hosted exact-SHA checks and worktree
+cleanup are checked after publication. Audit register and external evidence:
 `docs/audits/2026-11-16-repository-audit.md`. Campaign 080 remains ACTIVE, no
 release acceptance/physical-device/60-FPS claim.
 

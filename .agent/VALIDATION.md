@@ -1,4 +1,4 @@
-# Repository-wide hardening — 2026-11-16 (IN PROGRESS)
+# Repository-wide hardening — 2026-11-16 (SOURCE QUALIFIED; NATIVE BLOCKED)
 
 Baseline `c4a40bb5`: full Jest 731 suites/8,238 tests PASS, 5 classified skips;
 TypeScript/whole-package zero-warning ESLint PASS; dependency tree matches lock.
@@ -16,10 +16,38 @@ Final scoped integration: 74 suites/934 tests PASS, 2 opt-in skips; types and
 scoped zero-warning ESLint PASS. Invalid invocation and fixture-cleanup failures
 are retained separately, not behavioral red proof.
 
-Full integrated source/generated/spec/security/evidence gates, exact ending CI,
-native-after and independent final review remain pending. Dedicated AVD now
-appears via ADB after supported software/non-Vulkan startup; readiness and
-runtime journeys are not inferred from enumeration alone. Details and risks:
+Convergence checkpoint:103 scoped suites/1,253 tests PASS (two opt-in skips);
+actual Pacific/Apia child + supported-year/calendar22/22 PASS. Independent DATA
+replay accepts R1–R4, then reproduced normal-write economy overflow: permanent
+preservation8 red/one control ->9/9 green using atomic INSERT predicates.
+Independent-designed game14/14 and ten caller suites80/80 PASS by parent
+execution; independent source review accepts that scope. Optional screenshot
+observation/retry-budget regressions red before; integrated CLI/sweep/AVD88/88
+PASS after. Canonical hydration/settings/bounds17 tests PASS; one nonexistent
+requested rewards path made that invocation fail BEFORE that extra suite, not
+a product failure or a green overall run.
+
+Final source (`5150e90e`; subsequent shell-format-only `83f13907`):
+- Whole Jest755 suites/8,467 tests PASS; five exact classified opt-in skips,
+  classifier PASS. `final-source-jest-subsecond.json/.log/.exit`.
+- All329 deterministic Node checks PASS; types06 and whole-package zero-warning
+  ESLint06 PASS;13 hermetic gates and validator self-tests/freshness PASS.
+- Strict OpenSpec207/207, web export23 routes PASS. Fresh production dependency
+  gate PASS with eight existing accepted advisories, not zero vulnerabilities.
+- All five opted-in probes PASS22 tests;20k backup verified. Measured calendar
+  evaluation5k48.45→8.11ms after per-evaluation cache; actual UTC/Apia independent
+  differential27/27 each PASS. Normal-write bounds independent9+117 PASS/ACCEPT;
+  APP hydration and TOOLING witness/retry corrections accepted in bounded review.
+- UTC pre-epoch fractional-second replay red1969-12-31→1970-01-01 before;
+  real-division fix now PASS; permanent boundary + migration/projection45 tests
+  PASS. No prior failure, skipped invalid path or observational bad-behavior
+  assertion was relabeled green.
+- Android prebuild PASS; generated backup XML inspected. Gradle release command
+  timed out1100s after daemon startup with no task/APK completion: BLOCKED.
+  AVD shell/boot readiness unavailable, TCG probe0xC0000005, ARTEMIS Android warn;
+  no device journey/native-after PASS. No wipe/reset or host-input automation.
+- Exact published-SHA hosted checks and session-worktree cleanup are observed
+  after commit, not inferred here. No campaign/release acceptance. Details:
 `docs/audits/2026-11-16-repository-audit.md`.
 
 # Repository cleanup — 2026-11-10
