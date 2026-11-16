@@ -72,11 +72,27 @@ export class XpAwardsRepository {
     return row?.total ?? 0;
   }
 
-  /** Most recent awards, newest first. */
+  /** Latest inserted awards first (reverse append order). */
   async list(limit = 100, throughMs?: number): Promise<XpAward[]> {
     const bound = throughMs === undefined ? undefined : requireThroughMs(throughMs);
     const rows = await this.adapter.all<XpAwardRow>(
       `${SELECT_RECENT}${bound === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY id DESC LIMIT ?`,
+      bound === undefined ? [limit] : [bound, limit],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      amount: r.amount,
+      reason: r.reason,
+      source: r.source,
+      createdAt: r.created_at,
+    }));
+  }
+
+  /** Event-time order with the merged feed's lexical row-id tie break. */
+  async listByCreatedAt(limit = 100, throughMs?: number): Promise<XpAward[]> {
+    const bound = throughMs === undefined ? undefined : requireThroughMs(throughMs);
+    const rows = await this.adapter.all<XpAwardRow>(
+      `${SELECT_RECENT}${bound === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY created_at DESC, CAST(id AS TEXT) DESC LIMIT ?`,
       bound === undefined ? [limit] : [bound, limit],
     );
     return rows.map((r) => ({

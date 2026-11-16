@@ -151,4 +151,16 @@ export class LedgerRepository {
     );
     return rows.map(mapRow);
   }
+
+  /** Event-time order with the merged feed's lexical row-id tie break. */
+  async listByCreatedAt(limit = 100, throughMs?: number): Promise<LedgerEntry[]> {
+    if (throughMs !== undefined && !Number.isSafeInteger(throughMs)) {
+      throw new Error('ledger history upper bound must be a safe integer');
+    }
+    const rows = await this.adapter.all<LedgerRow>(
+      `${SELECT_RECENT}${throughMs === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY created_at DESC, CAST(id AS TEXT) DESC LIMIT ?`,
+      throughMs === undefined ? [limit] : [throughMs, limit],
+    );
+    return rows.map(mapRow);
+  }
 }

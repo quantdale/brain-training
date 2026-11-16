@@ -76,6 +76,40 @@ describe('mergeRewardHistory — equal-timestamp determinism', () => {
 });
 
 describe('loadRewardHistory — real db, interleaved writes', () => {
+  it.each(['coins', 'xp'])('limits %s by event time before merging, despite clock rollback', async (stream) => {
+    let now = 2000;
+    const adapter = await createMigratedDb();
+    try {
+      const db = new AppDatabase(adapter, { now: () => now });
+      if (stream === 'coins') {
+        await db.ledger.append({ amount: 1, reason: 'probe' });
+        now = 1000;
+        await db.ledger.append({ amount: 2, reason: 'probe' });
+        expect((await db.ledger.listRecent(1))[0].createdAt).toBe(1000);
+      } else {
+        await db.xpAwards.award(1, 'probe', 'probe:first');
+        now = 1000;
+        await db.xpAwards.award(2, 'probe', 'probe:second');
+        expect((await db.xpAwards.list(1))[0].createdAt).toBe(1000);
+      }
+      expect((await loadRewardHistory(db, 1, 3000))[0].at).toBe(2000);
+      expect((await loadRewardHistory(db, 1, 1500))[0].at).toBe(1000);
+    } finally { await adapter.close(); }
+  });
+
+  it('keeps the pinned lexical tie order when a limit cuts through two-digit ids', async () => {
+    const adapter = await createMigratedDb();
+    try {
+      const db = new AppDatabase(adapter, { now: () => 1000 });
+      for (let i = 0; i < 12; i += 1) {
+        await db.xpAwards.award(1, 'probe', `probe:${i}`);
+        await db.ledger.append({ amount: 1, reason: 'probe' });
+      }
+      const full = await loadRewardHistory(db, 30, 2000);
+      expect(await loadRewardHistory(db, 1, 2000)).toEqual(full.slice(0, 1));
+      expect(await loadRewardHistory(db, 15, 2000)).toEqual(full.slice(0, 15));
+    } finally { await adapter.close(); }
+  });
   it('stays stable across loads at one frozen clock and orders newest-first as it advances', async () => {
     let now = 1_700_000_000_000;
     const adapter = await createMigratedDb();

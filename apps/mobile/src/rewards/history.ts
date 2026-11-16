@@ -73,8 +73,8 @@ export function describeLedgerReason(reason: string): { label: string; detail?: 
 
 /**
  * Merge xp awards + ledger entries into one newest-first feed. Ties break by
- * row id descending (later insert first), then by id string for total
- * determinism. Returns at most `limit` entries.
+ * the namespaced id string descending for total determinism. Returns at most
+ * `limit` entries.
  */
 export function mergeRewardHistory(
   xpAwards: readonly XpAward[],
@@ -115,8 +115,8 @@ export async function loadRewardHistory(
   throughMs = Date.now(),
 ): Promise<RewardHistoryEntry[]> {
   const [xpAwards, ledgerEntries] = await Promise.all([
-    db.xpAwards.list(limit, throughMs),
-    db.ledger.listRecent(limit, throughMs),
+    db.xpAwards.listByCreatedAt(limit, throughMs),
+    db.ledger.listByCreatedAt(limit, throughMs),
   ]);
   return mergeRewardHistory(xpAwards, ledgerEntries, limit);
 }
