@@ -94,7 +94,7 @@ const SELECT_COUNT = "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_DISTINCT_GAME_COUNT =
   "SELECT COUNT(DISTINCT game_id) AS n FROM game_sessions";
 const SELECT_DISTINCT_ACTIVITY_DATE_COUNT =
-  "SELECT COUNT(DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime'))) AS n FROM game_sessions";
+  "SELECT COUNT(DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000.0, 'unixepoch', 'localtime'))) AS n FROM game_sessions";
 const SELECT_ACCURACY_SESSION_COUNT =
   "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_BEST_NORMALIZED =
@@ -792,7 +792,7 @@ export class SessionRepository {
   ): Promise<string[]> {
     const bound = completedAtCondition(throughMs);
     const rows = await (txn ?? this.adapter).all<{ date: string | null }>(
-      `SELECT DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime')) as date
+      `SELECT DISTINCT COALESCE(completed_local_date, DATE(completed_at / 1000.0, 'unixepoch', 'localtime')) as date
        FROM game_sessions${bound.sql ? ` WHERE ${bound.sql}` : ""}
        ORDER BY date DESC`,
       bound.params,
@@ -1000,8 +1000,8 @@ export class SessionRepository {
     const { whereSql, params } = buildSessionFilter(query);
     // Only two fixed modifier strings exist; caller text never reaches SQL.
     const dateExpression = query.dayBoundary === "local"
-      ? "COALESCE(completed_local_date, DATE(completed_at / 1000, 'unixepoch', 'localtime'))"
-      : "DATE(completed_at / 1000, 'unixepoch')";
+      ? "COALESCE(completed_local_date, DATE(completed_at / 1000.0, 'unixepoch', 'localtime'))"
+      : "DATE(completed_at / 1000.0, 'unixepoch')";
     return this.adapter.all<DailySessionCount>(
       `SELECT ${dateExpression} AS day,
               COUNT(*) AS count

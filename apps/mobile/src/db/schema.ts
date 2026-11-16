@@ -874,8 +874,10 @@ export const MIGRATIONS: readonly Migration[] = [
       // Historical timezone was never recorded. Infer ONCE using the upgrade
       // timezone, retain original instants, and never rewrite attributed days
       // on migration replay. Invalid legacy instants remain explicitly null.
+      // Real division is intentional: integer division truncates negative
+      // milliseconds toward zero and can move a pre-epoch midnight forward.
       await txn.exec(`UPDATE game_sessions
-        SET completed_local_date = DATE(completed_at / 1000, 'unixepoch', 'localtime')
+        SET completed_local_date = DATE(completed_at / 1000.0, 'unixepoch', 'localtime')
         WHERE completed_local_date IS NULL`);
       await txn.exec(`CREATE INDEX IF NOT EXISTS idx_game_sessions_local_date
         ON game_sessions (completed_local_date)`);

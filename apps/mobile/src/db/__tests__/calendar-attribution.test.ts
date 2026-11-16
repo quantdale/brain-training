@@ -97,6 +97,28 @@ describe('immutable session calendar attribution', () => {
     await adapter.close();
   });
 
+  it('does not round a negative subsecond instant into the next calendar day', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await initializeConnection(adapter);
+    await runMigrations(adapter, { targetVersion: 13 });
+    const at = new Date(1969, 11, 30, 23, 59, 59, 999).getTime();
+    await adapter.run(
+      `INSERT INTO game_sessions (id,game_id,game_version,generator_version,scoring_version,seed,
+       difficulty_json,raw_result_json,normalized_result,xp,started_at,completed_at,duration_ms)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ['subsecond', 'memory', 1, 1, 1, 1, '{}', '{}', 0.5, 0, at, at, 0],
+    );
+    await runMigrations(adapter);
+    const row = await adapter.get<{ day: string }>('SELECT completed_local_date AS day FROM game_sessions');
+    expect(row?.day).toBe('1969-12-30');
+    // Exercise read-time legacy fallback separately from migration backfill.
+    await adapter.run('UPDATE game_sessions SET completed_local_date = NULL');
+    const db = new AppDatabase(adapter);
+    expect(await db.sessions.getDistinctActivityDates()).toEqual(['1969-12-30']);
+    expect(await db.sessions.getDailySessionCounts({ dayBoundary: 'local' })).toEqual([{ day: '1969-12-30', count: 1 }]);
+    await adapter.close();
+  });
+
   it('infers legacy completion days once, without rewriting stored instants on migration replay', async () => {
     const adapter = createNodeSqliteAdapter(':memory:');
     await initializeConnection(adapter);
