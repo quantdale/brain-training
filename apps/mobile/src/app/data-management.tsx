@@ -26,6 +26,8 @@ import { Platform, ScrollView, StyleSheet, TextInput, View } from "react-native"
 
 import { ScreenShell } from "@/components/screen-shell";
 import { ConfirmButton } from "@/components/settings/confirm-button";
+import { useOptionalSettings } from "@/components/settings/settings-provider";
+import { withAuthoritativePreferences } from "@/components/settings/profile-preferences";
 import { ThemedText } from "@/components/themed-text";
 import { Radii, Spacing, Typography, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -106,6 +108,20 @@ async function loadCounts(): Promise<LocalDataCounts> {
 
 export default function DataManagementScreen() {
   const theme = useTheme();
+  const hydratePreferences = useOptionalSettings()?.hydratePreferences;
+  const changePreferences = useCallback((mutation: () => Promise<void>) =>
+    withAuthoritativePreferences(async () => {
+      try {
+        await mutation();
+      } finally {
+        // Also reconcile a partially successful mutation/reseed failure. Never
+        // persist this read back: missing keys after wipe mean provider defaults.
+        if (hydratePreferences) {
+          const profile = await getDb().profile.get();
+          hydratePreferences(profile?.settings ?? {});
+        }
+      }
+    }), [hydratePreferences]);
   const [refreshKey, setRefreshKey] = useState(0);
   // 072: the shared empty-stack fallback, so a cold deep link into this
   // screen lands on Profile instead of stranding the user.
@@ -512,48 +528,50 @@ export default function DataManagementScreen() {
       setBusy(true);
       setMessage(null);
       try {
-        // Apply the payload that passed the displayed dry-run. Exact text,
-        // mode, revision and consent were checked before any mutation; the
-        // portability engine retains its validation and transaction guards.
-        const parsed =
-          previewResult.parsed ?? parseAndValidateBackup(importText);
-        // Record the same loss list that was displayed and explicitly accepted.
-        const acknowledgedLossy = previewResult.forwardCompatibility?.lossy
-          ? {
-              count: previewResult.forwardCompatibility.items.length,
-              summary: previewResult.forwardCompatibility.summary,
-              paths: previewResult.forwardCompatibility.items.map((i) => i.path),
+        await changePreferences(async () => {
+            // Apply the payload that passed the displayed dry-run. Exact text,
+            // mode, revision and consent were checked before any mutation; the
+            // portability engine retains its validation and transaction guards.
+            const parsed =
+              previewResult.parsed ?? parseAndValidateBackup(importText);
+            // Record the same loss list that was displayed and explicitly accepted.
+            const acknowledgedLossy = previewResult.forwardCompatibility?.lossy
+              ? {
+                  count: previewResult.forwardCompatibility.items.length,
+                  summary: previewResult.forwardCompatibility.summary,
+                  paths: previewResult.forwardCompatibility.items.map((i) => i.path),
+                }
+              : undefined;
+            const result = await applyImport(getDb(), parsed, mode, acknowledgedLossy);
+            // 065: the import rewrote (replace) or added to (merge) persisted
+            // workout rows behind mounted consumers' backs. Emit the existing
+            // workout-changed signal so Home refetches instead of rendering a
+            // deleted instance (dead Reroll, standalone save).
+            emitWorkoutChanged();
+            // A replace import erases definitions along with the rest of the data;
+            // re-seed the singleton profile + catalogs in-process so the app is a
+            // usable first-run product without a restart. Merges keep existing
+            // definitions (and seed only when the fingerprint is stale).
+            let restoreFailed = false;
+            if (mode === "replace") {
+              try {
+                await refreshProgression(getDb());
+              } catch (error) {
+                restoreFailed = true;
+                console.error("[data-management] post-replace progression restore failed", error);
+              }
             }
-          : undefined;
-        const result = await applyImport(getDb(), parsed, mode, acknowledgedLossy);
-        // 065: the import rewrote (replace) or added to (merge) persisted
-        // workout rows behind mounted consumers' backs. Emit the existing
-        // workout-changed signal so Home refetches instead of rendering a
-        // deleted instance (dead Reroll, standalone save).
-        emitWorkoutChanged();
-        // A replace import erases definitions along with the rest of the data;
-        // re-seed the singleton profile + catalogs in-process so the app is a
-        // usable first-run product without a restart. Merges keep existing
-        // definitions (and seed only when the fingerprint is stale).
-        let restoreFailed = false;
-        if (mode === "replace") {
-          try {
-            await refreshProgression(getDb());
-          } catch (error) {
-            restoreFailed = true;
-            console.error("[data-management] post-replace progression restore failed", error);
-          }
-        }
-        const suffix = restoreFailed
-          ? " The default quest catalog could not be restored — reopen the app to retry."
-          : "";
-        setMessage(
-          mode === "replace"
-            ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).${suffix}`
-            : `Merge complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added.`,
-        );
-        invalidatePreview();
-        refresh();
+            const suffix = restoreFailed
+              ? " The default quest catalog could not be restored — reopen the app to retry."
+              : "";
+            setMessage(
+              mode === "replace"
+                ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).${suffix}`
+                : `Merge complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added.`,
+            );
+            invalidatePreview();
+            refresh();
+        });
       } catch (e) {
         setMessage(`Import failed: ${(e as Error).message}`);
       } finally {
@@ -561,7 +579,7 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [busy, importText, invalidatePreview, previewSnapshot, refresh],
+    [busy, changePreferences, importText, invalidatePreview, previewSnapshot, refresh],
   );
 
   const onWipe = useCallback(async () => {
@@ -576,6 +594,7 @@ export default function DataManagementScreen() {
     setBusy(true);
     setMessage(null);
     try {
+      await changePreferences(async () => {
       await wipeLocalData(getDb());
       // 065: every workout row is gone; mounted workout consumers must drop
       // the deleted instance and render the durable (empty) state.
@@ -601,12 +620,13 @@ export default function DataManagementScreen() {
       invalidatePreview();
       setWipeConfirm("");
       refresh();
+      });
     } catch (e) {
       setMessage(`Wipe failed: ${(e as Error).message}`);
     } finally {
       setBusy(false);
     }
-  }, [busy, invalidatePreview, refresh, wipeConfirm]);
+  }, [busy, changePreferences, invalidatePreview, refresh, wipeConfirm]);
 
   // Keep write and validation outcomes beside their controls. The old footer
   // hid restore feedback below the unrelated destructive-data section.

@@ -25,7 +25,8 @@ import {
   type ReactNode,
 } from 'react';
 
-import { DEFAULT_THEME_ID } from '@/theme/registry';
+import { DEFAULT_THEME_ID, getThemeOption, THEME_SETTINGS_KEY } from '@/theme/registry';
+import { preferenceChangesBlocked } from './profile-preferences';
 
 /** Sensory setting keys exposed as toggles. */
 export type SettingKey = 'sfx' | 'haptics';
@@ -44,6 +45,8 @@ export interface SettingsContextValue {
   /** Selected theme id (see `src/theme/registry.ts`). */
   themeId: string;
   setThemeId: (id: string) => void;
+  /** Replace from canonical profile settings without persisting a new intent. */
+  hydratePreferences: (profileSettings: Record<string, unknown>) => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
@@ -63,16 +66,17 @@ export function SettingsProvider({
   onSettingsChange?: (settings: Settings) => void | Promise<void>;
 }) {
   const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initialSettings });
-  const [themeId, setThemeId] = useState<string>(initialThemeId);
+  const [themeId, updateThemeId] = useState<string>(initialThemeId);
   // Latest committed settings, so two synchronous toggles compose correctly
   // without reading state inside a setState updater. Persistence is a side
   // effect: React may replay/discard an updater, so a discarded concurrent
   // render must never double-persist. `settings` only changes through
-  // `setSetting`, so this ref cannot drift from the state.
+  // `setSetting` or authoritative hydration, which update this ref together.
   const settingsRef = useRef(settings);
 
   const setSetting = useCallback(
     (key: SettingKey, value: boolean) => {
+      if (preferenceChangesBlocked()) return;
       const next = { ...settingsRef.current, [key]: value };
       settingsRef.current = next;
       setSettings(next);
@@ -81,9 +85,24 @@ export function SettingsProvider({
     [onSettingsChange],
   );
 
+  const setThemeId = useCallback((id: string) => {
+    if (!preferenceChangesBlocked()) updateThemeId(id);
+  }, []);
+
+  const hydratePreferences = useCallback((profileSettings: Record<string, unknown>) => {
+    const next = {
+      sfx: typeof profileSettings.sfx === 'boolean' ? profileSettings.sfx : DEFAULT_SETTINGS.sfx,
+      haptics: typeof profileSettings.haptics === 'boolean' ? profileSettings.haptics : DEFAULT_SETTINGS.haptics,
+    };
+    settingsRef.current = next;
+    setSettings(next);
+    const theme = profileSettings[THEME_SETTINGS_KEY];
+    updateThemeId(getThemeOption(typeof theme === 'string' ? theme : DEFAULT_THEME_ID).id);
+  }, []);
+
   const value = useMemo(
-    () => ({ settings, setSetting, themeId, setThemeId }),
-    [settings, setSetting, themeId],
+    () => ({ settings, setSetting, themeId, setThemeId, hydratePreferences }),
+    [settings, setSetting, themeId, setThemeId, hydratePreferences],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

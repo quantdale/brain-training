@@ -7,6 +7,7 @@ import { StyleSheet, View, useWindowDimensions } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
+import { enqueuePreferenceWrite, preferenceChangesBlocked } from "@/components/settings/profile-preferences";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
 import { StateCard } from "@/components/shell";
@@ -551,10 +552,11 @@ export default function ProfileScreen() {
   };
 
   const onSelectTheme = (option: ThemeOption) => {
+    if (preferenceChangesBlocked()) return;
     setThemeId(option.id);
     try {
-      void getDb()
-        .profile.update({ settings: { [THEME_SETTINGS_KEY]: option.id } })
+      void enqueuePreferenceWrite(() => getDb()
+        .profile.update({ settings: { [THEME_SETTINGS_KEY]: option.id } }))
         .catch((error: unknown) => {
           console.error("[profile] theme persist failed", error);
           // Campaign 028 sweep: the optimistic in-session switch stays, but a

@@ -27,6 +27,7 @@ import {
   type Settings,
 } from "@/components/settings/settings-provider";
 import { AudioHapticsProvider } from "@/components/sensory/audio-haptics-provider";
+import { enqueuePreferenceWrite } from "@/components/settings/profile-preferences";
 import { createRatingPipeline } from "@/rating";
 import { initDatabase , getDb } from "@/db";
 import { initializeProgression } from "@/progression";
@@ -82,10 +83,6 @@ export default function RootLayout() {
     Partial<Settings> | undefined
   >(undefined);
   const cancelledRef = useRef(false);
-  // SQLite has one writer at a time. Keep optimistic toggle updates
-  // responsive while ensuring rapid SFX/haptics changes do not overlap
-  // profile transactions and lose the later merged settings.
-  const sensoryPersistQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   /**
    * Persist the sensory toggles into the profile settings JSON. Fire-and-forget
@@ -102,15 +99,11 @@ export default function RootLayout() {
         tone: "danger",
       });
     };
-    sensoryPersistQueueRef.current = sensoryPersistQueueRef.current
-      .catch(() => undefined)
-      .then(() =>
-        getDb().profile.update({
-          settings: { sfx: settings.sfx, haptics: settings.haptics },
-        }),
-      )
-      .then(() => undefined)
-      .catch(onPersistFailure);
+    void enqueuePreferenceWrite(() =>
+      getDb().profile.update({
+        settings: { sfx: settings.sfx, haptics: settings.haptics },
+      }),
+    ).catch(onPersistFailure);
   }, []);
 
   /**
