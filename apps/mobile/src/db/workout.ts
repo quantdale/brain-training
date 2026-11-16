@@ -26,6 +26,7 @@ import type { GameSessionRecord, SQLiteValue } from "./types";
 import { applyWorkoutPositionCas } from "./workout-cas";
 import { reconcileWorkout } from "@/workout/reconcile";
 import {
+  parseInstanceKey,
   parseWorkoutMetadata,
   type WorkoutMetadata,
 } from "@/workout/metadata";
@@ -268,8 +269,8 @@ export async function deleteEmptyWorkoutInstances(
  *
  * Idempotent and reward-free by construction: it only moves the resume
  * position through the same compare-and-set every other position write uses,
- * and never touches sessions, XP, or the currency ledger. Bounded: ten active
- * instances, five hundred provenance rows each.
+ * and never touches sessions, XP, or the currency ledger. Reads active rows in
+ * batches of ten, with five hundred provenance rows per instance.
  *
  * Returns the number of positions repaired (evidence for the boot log/tests).
  */
@@ -277,60 +278,69 @@ export async function reconcileWorkoutPositions(
   adapter: SQLiteAdapter,
   now: () => number = () => Date.now(),
 ): Promise<number> {
-  const rows = await adapter.all<WorkoutRow>(
-    "SELECT * FROM workout_instances WHERE status = 'active' " +
-      "ORDER BY updated_at DESC LIMIT 10",
-  );
   let repaired = 0;
-  for (const row of rows) {
-    const instance = rowToInstance(row);
-    const legCount = instance.gameIds.length;
-    if (legCount === 0) {
-      continue;
-    }
-    // 073 §1.3: the walk advances position through the shared CAS, so it is a
-    // position writer too — a row whose stored leg list is corrupt must be
-    // left for the repair path, never walked forward over the filtered view.
-    try {
-      storedLegList(row);
-    } catch {
-      continue;
-    }
-    const played = await loadPlayedLegs(adapter, instance.date, instance.gameIds);
-    if (played === null) {
-      // The provenance scan is unavailable on this engine. Reconciliation is
-      // a repair, never a requirement: leave every row exactly as it is.
-      return repaired;
-    }
-    const settled = new Set<number>(played);
-    for (const skipped of instance.skippedIndices) {
-      settled.add(skipped);
-    }
-    let position = instance.currentIndex;
-    while (position < legCount && settled.has(position)) {
-      position += 1;
-    }
-    if (position === instance.currentIndex) {
-      continue;
-    }
-    const status: WorkoutStatus = position >= legCount ? "completed" : "active";
-    const updatedAt = now();
-    const applied = await applyWorkoutPositionCas(
-      (sql: string, params: SQLiteValue[]) => adapter.run(sql, params),
-      {
-        date: instance.date,
-        status: instance.status,
-        currentIndex: instance.currentIndex,
-        updatedAt: instance.updatedAt,
-        rerollAttempt: instance.rerollAttempt,
-        seedVersion: instance.seedVersion,
-        gameIdsJson: row.game_ids_json,
-      },
-      'advance',
-      [position, status, updatedAt],
+  let afterKey: string | null = null;
+  while (true) {
+    // The immutable primary key is the cursor: repairs change status and
+    // updated_at, so OFFSET or an updated_at cursor could skip/revisit rows.
+    const rows: WorkoutRow[] = await adapter.all<WorkoutRow>(
+      "SELECT * FROM workout_instances WHERE status = 'active' " +
+        (afterKey === null ? "" : "AND date > ? ") +
+        "ORDER BY date ASC LIMIT 10",
+      afterKey === null ? [] : [afterKey],
     );
-    if (applied) {
-      repaired += 1;
+    if (rows.length === 0) break;
+    afterKey = rows[rows.length - 1].date;
+    for (const row of rows) {
+      const instance = rowToInstance(row);
+      const legCount = instance.gameIds.length;
+      if (legCount === 0) {
+        continue;
+      }
+      // 073 §1.3: the walk advances position through the shared CAS, so it is a
+      // position writer too — a row whose stored leg list is corrupt must be
+      // left for the repair path, never walked forward over the filtered view.
+      try {
+        storedLegList(row);
+      } catch {
+        continue;
+      }
+      const played = await loadPlayedLegs(adapter, instance.date, instance.gameIds);
+      if (played === null) {
+        // The provenance scan is unavailable on this engine. Reconciliation is
+        // a repair, never a requirement: leave every row exactly as it is.
+        return repaired;
+      }
+      const settled = new Set<number>(played);
+      for (const skipped of instance.skippedIndices) {
+        settled.add(skipped);
+      }
+      let position = instance.currentIndex;
+      while (position < legCount && settled.has(position)) {
+        position += 1;
+      }
+      if (position === instance.currentIndex) {
+        continue;
+      }
+      const status: WorkoutStatus = position >= legCount ? "completed" : "active";
+      const updatedAt = now();
+      const applied = await applyWorkoutPositionCas(
+        (sql: string, params: SQLiteValue[]) => adapter.run(sql, params),
+        {
+          date: instance.date,
+          status: instance.status,
+          currentIndex: instance.currentIndex,
+          updatedAt: instance.updatedAt,
+          rerollAttempt: instance.rerollAttempt,
+          seedVersion: instance.seedVersion,
+          gameIdsJson: row.game_ids_json,
+        },
+        'advance',
+        [position, status, updatedAt],
+      );
+      if (applied) {
+        repaired += 1;
+      }
     }
   }
   return repaired;
@@ -351,9 +361,10 @@ async function loadPlayedLegs(
   gameIds: readonly string[],
 ): Promise<Set<number> | null> {
   try {
-    const rows = await adapter.all<{ leg_index: unknown; game_id: unknown }>(
+    const rows = await adapter.all<{ leg_index: unknown; game_id: unknown; provenance_game_id: unknown }>(
       `SELECT json_extract(raw_result_json, '$.workoutProvenance.legIndex') AS leg_index,
-              json_extract(raw_result_json, '$.workoutProvenance.gameId') AS game_id
+              game_id,
+              json_extract(raw_result_json, '$.workoutProvenance.gameId') AS provenance_game_id
          FROM game_sessions
         WHERE json_extract(raw_result_json, '$.workoutProvenance.instanceKey') = ?
         LIMIT 500`,
@@ -367,7 +378,8 @@ async function loadPlayedLegs(
         Number.isSafeInteger(leg) &&
         leg >= 0 &&
         leg < gameIds.length &&
-        row.game_id === gameIds[leg]
+        row.game_id === gameIds[leg] &&
+        row.provenance_game_id === gameIds[leg]
       ) {
         legs.add(leg);
       }
@@ -1185,7 +1197,8 @@ export class WorkoutRepository {
    * Fetch the sessions that may back positions of the given instances: one
    * bounded query over `game_sessions` (read-only use of another domain's
    * table; no write path touches it here). Callers pass the result straight
-   * into `buildWorkoutSummary`, which re-filters per instance by createdAt.
+   * into `buildWorkoutSummary`, which re-filters by exact ownership or each
+   * instance's legacy calendar window.
    */
   private async sessionsForInstances(
     instances: readonly WorkoutInstance[],
@@ -1194,40 +1207,50 @@ export class WorkoutRepository {
       return [];
     }
     const idSet = new Set<string>();
-    let minCreatedAt = Number.POSITIVE_INFINITY;
+    const windows = new Map<string, number>();
     for (const instance of instances) {
-      minCreatedAt = Math.min(minCreatedAt, instance.createdAt);
+      const date = parseInstanceKey(instance.date).date;
+      windows.set(date, Math.min(windows.get(date) ?? Infinity, instance.createdAt));
       for (const gameId of instance.gameIds) {
         idSet.add(gameId);
       }
     }
     const ids = [...idSet].slice(0, MAX_SUMMARY_GAME_IDS);
-    if (ids.length === 0 || !Number.isFinite(minCreatedAt)) {
+    if (ids.length === 0) {
       return [];
     }
     const placeholders = ids.map(() => "?").join(", ");
     const columns =
       "id, game_id, normalized_result, xp, duration_ms, completed_at, rowid AS persisted_order";
+    const windowParams: SQLiteValue[] = [];
+    const windowSql = [...windows].map(([date, fromMs]) => {
+      const [year, month, day] = date.split("-").map(Number);
+      const endMs = new Date(year, month - 1, day + 1).getTime();
+      windowParams.push(fromMs, endMs);
+      return "(completed_at >= ? AND completed_at < ?)";
+    }).join(" OR ");
     const fromWhere = `FROM game_sessions
-       WHERE completed_at >= ? AND game_id IN (${placeholders})
+       WHERE game_id IN (${placeholders}) AND (${windowSql})
        ORDER BY completed_at ASC`;
-    const params = [minCreatedAt, ...ids];
+    const keys = [...new Set(instances.map((instance) => instance.date))];
+    const keyPlaceholders = keys.map(() => "?").join(", ");
     try {
-      // A session owned by a workout leg belongs to it even when a clock change
-      // stamped it before the workout was created.
+      // Owned sessions survive clock rollback, but only the requested keys
+      // bypass the calendar windows. Unrelated old workout history stays in SQL.
       return await this.adapter.all<SummarySessionRow>(
         `SELECT ${columns},
                 json_extract(raw_result_json, '$.workoutProvenance') AS workout_provenance
          FROM game_sessions
-         WHERE (completed_at >= ? OR json_extract(raw_result_json, '$.workoutProvenance') IS NOT NULL)
-           AND game_id IN (${placeholders})
+         WHERE game_id IN (${placeholders}) AND (
+           json_extract(raw_result_json, '$.workoutProvenance.instanceKey') IN (${keyPlaceholders})
+           OR ${windowSql})
          ORDER BY completed_at ASC`,
-        params,
+        [...ids, ...keys, ...windowParams],
       );
     } catch {
-      // JSON1-less engine: summaries degrade to the date-bounded same-game
-      // match rather than failing the history screen.
-      return this.adapter.all<SummarySessionRow>(`SELECT ${columns} ${fromWhere}`, params);
+      // JSON1-less engine: keep the same bounded calendar candidates; exact
+      // ownership cannot be recovered without the JSON projection.
+      return this.adapter.all<SummarySessionRow>(`SELECT ${columns} ${fromWhere}`, [...ids, ...windowParams]);
     }
   }
 
