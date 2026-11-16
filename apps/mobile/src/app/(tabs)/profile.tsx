@@ -409,7 +409,7 @@ async function loadProfile(
 }
 
 export default function ProfileScreen() {
-  const { themeId, setThemeId } = useSettings();
+  const { themeId, setThemeId, preferenceHydrationError, preferenceHydrationBusy, retryPreferenceHydration } = useSettings();
   const theme = useTheme();
   const { width, fontScale } = useWindowDimensions();
   const stacked = width < 360 || fontScale >= 1.5;
@@ -586,11 +586,22 @@ export default function ProfileScreen() {
   const protectionCount =
     data.inventory.freeze + data.inventory.shield + data.inventory.recovery;
 
+  // Provider-owned recovery survives DataManagement unmount; keep it reachable
+  // even if this screen's unrelated progression/profile load also fails.
+  const preferenceRecovery = preferenceHydrationError ? (
+    <Card testID="profile-preferences-error">
+      <ThemedText type="body">Preferences could not be reloaded. Preference changes are paused until reload succeeds.</ThemedText>
+      <Button label="Reload preferences" testID="profile-preferences-retry"
+        disabled={preferenceHydrationBusy} onPress={() => void retryPreferenceHydration()} />
+    </Card>
+  ) : null;
+
   // A failed load must not present the zeroed fallback as a new-player profile:
   // show the recoverable error with a retry, matching Home/progress-detail.
   if (status === 'error') {
     return (
       <ScreenShell>
+        {preferenceRecovery}
         <ThemedText type="title" testID="profile-title">
           Profile
         </ThemedText>
@@ -618,6 +629,7 @@ export default function ProfileScreen() {
   if (status === 'loading' && !hasData) {
     return (
       <ScreenShell>
+        {preferenceRecovery}
         <ThemedText type="title" testID="profile-title">
           Profile
         </ThemedText>
@@ -644,6 +656,8 @@ export default function ProfileScreen() {
           </ThemedText>
         </View>
       </Entrance>
+
+      {preferenceRecovery}
 
       {/* Identity must paint immediately when data arrives, including tab re-entry. */}
       <Entrance index={1} enabled={false}>

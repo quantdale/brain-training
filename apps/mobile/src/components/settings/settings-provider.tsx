@@ -26,7 +26,12 @@ import {
 } from 'react';
 
 import { DEFAULT_THEME_ID, getThemeOption, THEME_SETTINGS_KEY } from '@/theme/registry';
-import { preferenceChangesBlocked } from './profile-preferences';
+import {
+  completePreferenceHydration,
+  preferenceChangesBlocked,
+  requirePreferenceHydration,
+  withAuthoritativePreferences,
+} from './profile-preferences';
 
 /** Sensory setting keys exposed as toggles. */
 export type SettingKey = 'sfx' | 'haptics';
@@ -47,6 +52,12 @@ export interface SettingsContextValue {
   setThemeId: (id: string) => void;
   /** Replace from canonical profile settings without persisting a new intent. */
   hydratePreferences: (profileSettings: Record<string, unknown>) => void;
+  /** Read failure is separate from mutation success; writes remain blocked. */
+  preferenceHydrationError: string | null;
+  preferenceHydrationBusy: boolean;
+  reconcilePreferences: (read: () => Promise<Record<string, unknown>>) => Promise<void>;
+  /** Retry only the saved canonical read, never the import/wipe mutation. */
+  retryPreferenceHydration: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
@@ -73,6 +84,10 @@ export function SettingsProvider({
   // render must never double-persist. `settings` only changes through
   // `setSetting` or authoritative hydration, which update this ref together.
   const settingsRef = useRef(settings);
+  const [preferenceHydrationError, setPreferenceHydrationError] = useState<string | null>(null);
+  const [preferenceHydrationBusy, setPreferenceHydrationBusy] = useState(false);
+  const hydrationReadRef = useRef<(() => Promise<Record<string, unknown>>) | null>(null);
+  const hydrationInFlightRef = useRef(false);
 
   const setSetting = useCallback(
     (key: SettingKey, value: boolean) => {
@@ -98,11 +113,41 @@ export function SettingsProvider({
     setSettings(next);
     const theme = profileSettings[THEME_SETTINGS_KEY];
     updateThemeId(getThemeOption(typeof theme === 'string' ? theme : DEFAULT_THEME_ID).id);
+    completePreferenceHydration();
   }, []);
 
+  const reconcilePreferences = useCallback(async (read: () => Promise<Record<string, unknown>>) => {
+    hydrationReadRef.current = read;
+    requirePreferenceHydration();
+    hydrationInFlightRef.current = true;
+    setPreferenceHydrationBusy(true);
+    try {
+      hydratePreferences(await read());
+      hydrationReadRef.current = null;
+      setPreferenceHydrationError(null);
+    } catch (error) {
+      // Do not relabel a committed import/wipe as failed. The provider owns
+      // recovery so navigating away cannot drop the write lock or retry read.
+      setPreferenceHydrationError(error instanceof Error ? error.message : String(error));
+    } finally {
+      hydrationInFlightRef.current = false;
+      setPreferenceHydrationBusy(false);
+    }
+  }, [hydratePreferences]);
+
+  const retryPreferenceHydration = useCallback(async () => {
+    const read = hydrationReadRef.current;
+    if (!read || hydrationInFlightRef.current) return;
+    // Reserve synchronously to reject rapid retries before the queued read starts.
+    hydrationInFlightRef.current = true;
+    await withAuthoritativePreferences(() => reconcilePreferences(read));
+  }, [reconcilePreferences]);
+
   const value = useMemo(
-    () => ({ settings, setSetting, themeId, setThemeId, hydratePreferences }),
-    [settings, setSetting, themeId, setThemeId, hydratePreferences],
+    () => ({ settings, setSetting, themeId, setThemeId, hydratePreferences,
+      preferenceHydrationError, preferenceHydrationBusy, reconcilePreferences, retryPreferenceHydration }),
+    [settings, setSetting, themeId, setThemeId, hydratePreferences,
+      preferenceHydrationError, preferenceHydrationBusy, reconcilePreferences, retryPreferenceHydration],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

@@ -108,7 +108,8 @@ async function loadCounts(): Promise<LocalDataCounts> {
 
 export default function DataManagementScreen() {
   const theme = useTheme();
-  const hydratePreferences = useOptionalSettings()?.hydratePreferences;
+  const preferences = useOptionalSettings();
+  const reconcilePreferences = preferences?.reconcilePreferences;
   const changePreferences = useCallback((mutation: () => Promise<void>) =>
     withAuthoritativePreferences(async () => {
       try {
@@ -116,12 +117,11 @@ export default function DataManagementScreen() {
       } finally {
         // Also reconcile a partially successful mutation/reseed failure. Never
         // persist this read back: missing keys after wipe mean provider defaults.
-        if (hydratePreferences) {
-          const profile = await getDb().profile.get();
-          hydratePreferences(profile?.settings ?? {});
+        if (reconcilePreferences) {
+          await reconcilePreferences(async () => (await getDb().profile.get())?.settings ?? {});
         }
       }
-    }), [hydratePreferences]);
+    }), [reconcilePreferences]);
   const [refreshKey, setRefreshKey] = useState(0);
   // 072: the shared empty-stack fallback, so a cold deep link into this
   // screen lands on Profile instead of stranding the user.
@@ -649,6 +649,17 @@ export default function DataManagementScreen() {
         accessibilityLabel="Back to Profile"
         onPress={goBack}
       />
+      {preferences?.preferenceHydrationError ? (
+        <Card testID="data-preferences-error">
+          <ThemedText type="body">Preferences could not be reloaded. Preference changes are paused until reload succeeds.</ThemedText>
+          <Button
+            label="Reload preferences"
+            testID="data-preferences-retry"
+            disabled={preferences.preferenceHydrationBusy || busy}
+            onPress={() => void preferences.retryPreferenceHydration()}
+          />
+        </Card>
+      ) : null}
       <Entrance index={0}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
