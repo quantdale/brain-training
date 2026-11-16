@@ -53,12 +53,12 @@ export async function countLocalData(
       [LOCAL_PROFILE_ID],
     );
     // Storage visibility (Campaign 014): page metrics never throw the count
-    // pass — a backend without PRAGA support degrades to 0 bytes.
+    // pass — a backend without PRAGMA support degrades to 0 bytes.
     let storageBytes = 0;
     try {
-      const pages = await txn.get<{ n: number }>("PRAGMA page_count");
-      const size = await txn.get<{ n: number }>("PRAGMA page_size");
-      storageBytes = (pages?.n ?? 0) * (size?.n ?? 0);
+      const pages = await txn.get<{ page_count: number }>("PRAGMA page_count");
+      const size = await txn.get<{ page_size: number }>("PRAGMA page_size");
+      storageBytes = (pages?.page_count ?? 0) * (size?.page_size ?? 0);
     } catch {
       storageBytes = 0;
     }

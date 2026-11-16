@@ -23,7 +23,12 @@ import {
   pickBackupFile,
   shareBackupFile,
 } from '../file-transport';
-import { MAX_BACKUP_TEXT_LENGTH } from '../deserialize';
+import { MAX_BACKUP_TEXT_LENGTH, parseAndValidateBackup } from '../deserialize';
+import { buildEnvelope, emptyData } from './helpers';
+
+function backupText(label: string): string {
+  return JSON.stringify(buildEnvelope({ ...emptyData(), recoveryFixture: label }));
+}
 
 /* ------------------------------------------------------------------ */
 /* In-memory expo-file-system double                                   */
@@ -186,10 +191,10 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     expect(await t.listBackups()).toEqual([]);
     expect(mockStore.has('file:///mock-documents/backups')).toBe(true); // created by listing
 
-    await t.writeBackup('b1.json', 'one');
-    await t.writeBackup('b2.json', 'two');
+    await t.writeBackup('b1.json', backupText('one'));
+    await t.writeBackup('b2.json', backupText('two'));
     expect((await t.listBackups()).sort()).toEqual(['b1.json', 'b2.json']);
-    expect(await t.readBackup('b1.json')).toBe('one');
+    expect(await t.readBackup('b1.json')).toBe(backupText('one'));
 
     await t.deleteBackup('b2.json');
     expect(await t.listBackups()).toEqual(['b1.json']);
@@ -197,10 +202,10 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
 
   it('overwrite replaces content and keeps a single listing entry', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('same.json', 'first');
-    await t.writeBackup('same.json', 'second');
+    await t.writeBackup('same.json', backupText('first'));
+    await t.writeBackup('same.json', backupText('second'));
 
-    expect(await t.readBackup('same.json')).toBe('second');
+    expect(await t.readBackup('same.json')).toBe(backupText('second'));
     expect(await t.listBackups()).toEqual(['same.json']);
   });
 
@@ -216,7 +221,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
 
   it('rejects path traversal names before touching storage', async () => {
     const t = createFileBackupTransport();
-    await expect(t.writeBackup('../escape.json', 'bad')).rejects.toThrow(/file name inside/);
+    await expect(t.writeBackup('../escape.json', backupText('bad'))).rejects.toThrow(/file name inside/);
     await expect(t.readBackup('nested/backup.json')).rejects.toThrow(/file name inside/);
     await expect(t.deleteBackup('..')).rejects.toThrow(/file name inside/);
   });
@@ -230,20 +235,20 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     // name" and "structurally fine but unlistable" send a user to different
     // fixes, and collapsing them into one message is how a reserved name ends
     // up being retried forever.
-    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/reserved for internal backup files/);
-    await expect(t.writeBackup('run.tmp', '{}')).rejects.toThrow(/reserved for internal backup files/);
+    await expect(t.writeBackup('.hidden.json', backupText('{}'))).rejects.toThrow(/reserved for internal backup files/);
+    await expect(t.writeBackup('run.tmp', backupText('{}'))).rejects.toThrow(/reserved for internal backup files/);
     await expect(t.readBackup('.hidden.json')).rejects.toThrow(/reserved for internal backup files/);
     await expect(t.deleteBackup('run.tmp')).rejects.toThrow(/reserved for internal backup files/);
     // The name in the message is what lets the user work out which of their
     // own filenames was the problem.
-    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/".hidden.json"/);
+    await expect(t.writeBackup('.hidden.json', backupText('{}'))).rejects.toThrow(/".hidden.json"/);
     expect(await t.listBackups()).toEqual([]);
   });
 
   it('rejects structurally invalid names with the structural message', async () => {
     const t = createFileBackupTransport();
     for (const bad of ['', '.', '..', 'a/b', 'a\\b', 'a\u0000b']) {
-      await expect(t.writeBackup(bad, '{}')).rejects.toThrow(/file name inside/);
+      await expect(t.writeBackup(bad, backupText('{}'))).rejects.toThrow(/file name inside/);
     }
     expect(await t.listBackups()).toEqual([]);
   });
@@ -268,7 +273,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
       'name.tmp.tmp',
     ];
     for (const name of candidates) {
-      const accepted = await t.writeBackup(name, '{"probe":true}').then(
+      const accepted = await t.writeBackup(name, backupText('{"probe":true}')).then(
         () => true,
         () => false,
       );
@@ -292,7 +297,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     // than something they cannot see.
     const t = createFileBackupTransport();
     for (const bad of ['', '.', '..', '.hidden.json', 'run.tmp', 'a/b', 'a\\b', 'a\u0000b']) {
-      await expect(t.writeBackup(bad, '{}')).rejects.toThrow();
+      await expect(t.writeBackup(bad, backupText('{}'))).rejects.toThrow();
     }
     expect(await t.listBackups()).toEqual([]);
   });
@@ -310,7 +315,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
 
   it('070: repairs an interrupted replacement by promoting the rotation copy', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('unrelated.json', '{}');
+    await t.writeBackup('unrelated.json', backupText('{}'));
 
     // An interrupted replacement: the old content survives ONLY at the rotation
     // sibling, because the process died between the rotation and the rename and
@@ -318,19 +323,41 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     // contract is that a read of the NAME yields complete content — so the
     // sweep promotes the sibling back to the live name on the next access.
     const rotationName = '.interrupted.json.prev';
-    plantHiddenFile(rotationName, 'PREVIOUS-ONLY-COPY');
+    plantHiddenFile(rotationName, backupText('PREVIOUS-ONLY-COPY'));
 
     expect(await t.listStrandedArtifacts?.()).toEqual([]);
     // The user's backup is back under the name they saved it as.
-    expect(await t.readBackup('interrupted.json')).toBe('PREVIOUS-ONLY-COPY');
+    expect(await t.readBackup('interrupted.json')).toBe(backupText('PREVIOUS-ONLY-COPY'));
     expect(await t.listBackups()).toContain('interrupted.json');
     // The hidden sibling is gone: promoted, not duplicated.
-    expect([...mockStore.values()].filter((e) => e.content === 'PREVIOUS-ONLY-COPY')).toHaveLength(1);
+    expect([...mockStore.values()].filter((e) => e.content === backupText('PREVIOUS-ONLY-COPY'))).toHaveLength(1);
+  });
+
+  it('D05: recovers a truncated live backup on the transport read/list seams', async () => {
+    const t = createFileBackupTransport();
+    await t.listBackups();
+    plantHiddenFile('interrupted.json', '{"format":');
+    plantHiddenFile('.interrupted.json.prev', backupText('previous'));
+    const restored = await t.readBackup('interrupted.json');
+    expect(restored).toBe(backupText('previous'));
+    expect(() => parseAndValidateBackup(restored)).not.toThrow();
+    expect(await t.listBackups()).toEqual(['interrupted.json']);
+    expect(await t.listStrandedArtifacts?.()).toEqual([]);
+  });
+
+  it('D05: retains and reports a complete temp beside a corrupt live file', async () => {
+    const t = createFileBackupTransport();
+    await t.listBackups();
+    plantHiddenFile('interrupted.json', '{"format":');
+    plantHiddenFile('.interrupted.json.abc-123.tmp', backupText('pending'));
+    expect(await t.listStrandedArtifacts?.()).toEqual(['.interrupted.json.abc-123.tmp']);
+    expect(mockStore.get('file:///mock-documents/backups/.interrupted.json.abc-123.tmp')?.content)
+      .toBe(backupText('pending'));
   });
 
   it('070: reports a file an earlier build saved under a now-hidden name', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('unrelated.json', '{}');
+    await t.writeBackup('unrelated.json', backupText('{}'));
     // A dotfile under the current rule, written by a build that accepted it.
     // The app once reported it as saved and can now neither show nor restore
     // it, so it must be surfaced rather than quietly swept.
@@ -356,7 +383,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     // The seam is for hidden files only; a visible name must go through the
     // normal (two-tap, confirm-guarded) delete control.
     const t = createFileBackupTransport();
-    await t.writeBackup('visible.json', '{}');
+    await t.writeBackup('visible.json', backupText('{}'));
     await expect(t.deleteStrandedArtifact?.('visible.json')).rejects.toThrow(
       /not a hidden backup artifact/,
     );
@@ -365,20 +392,20 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
 
   it('070: a pure-litter leftover is reclaimed, not reported', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('live.json', 'NEW');
+    await t.writeBackup('live.json', backupText('NEW'));
     // A `.prev` whose live counterpart EXISTS is stale litter, not a stranded
     // copy of anything — the sweep reclaims it instead of asking the user.
-    plantHiddenFile('.live.json.prev', 'OLD');
+    plantHiddenFile('.live.json.prev', backupText('OLD'));
 
     expect(await t.listStrandedArtifacts?.()).toEqual([]);
     // ...and it is actually gone, not merely unreported.
-    expect([...mockStore.values()].filter((e) => e.content === 'OLD')).toHaveLength(0);
+    expect([...mockStore.values()].filter((e) => e.content === backupText('OLD'))).toHaveLength(0);
   });
 
   it('listBackups orders newest-first (descending names)', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('brain-training-backup_2026-08-20_09-00-00.json', 'a');
-    await t.writeBackup('brain-training-backup_2026-08-21_10-00-00.json', 'b');
+    await t.writeBackup('brain-training-backup_2026-08-20_09-00-00.json', backupText('a'));
+    await t.writeBackup('brain-training-backup_2026-08-21_10-00-00.json', backupText('b'));
     expect(await t.listBackups()).toEqual([
       'brain-training-backup_2026-08-21_10-00-00.json',
       'brain-training-backup_2026-08-20_09-00-00.json',
@@ -387,7 +414,7 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
 
   it('hides dotfiles and leftover .tmp partials from the listing', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('real.json', 'complete');
+    await t.writeBackup('real.json', backupText('complete'));
     // An aborted atomic write can leave the writer's `.<name>.<nonce>.tmp`
     // partial behind, and platform metadata files are dotfiles; neither is a
     // restorable backup and neither may be selectable in the UI.
@@ -415,7 +442,7 @@ describe('write failures (mocked ENOSPC/EACCES)', () => {
 
     let caught: unknown;
     try {
-      await t.writeBackup('doomed.json', '{"export":true}');
+      await t.writeBackup('doomed.json', backupText('{"export":true}'));
     } catch (error) {
       caught = error;
     }
@@ -434,17 +461,17 @@ describe('write failures (mocked ENOSPC/EACCES)', () => {
 
   it('keeps the previous complete backup when the overwrite move fails (EACCES)', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('keep.json', 'old-complete');
+    await t.writeBackup('keep.json', backupText('old-complete'));
     const fault = Object.assign(new Error('EACCES: permission denied'), {
       code: 'EACCES',
     });
     mockFsFault = { op: 'move', error: fault };
 
-    await expect(t.writeBackup('keep.json', 'new-partial')).rejects.toBe(fault);
+    await expect(t.writeBackup('keep.json', backupText('new-partial'))).rejects.toBe(fault);
 
     // Atomicity contract: the prior complete backup is untouched, listed
     // exactly once, and the failed write's temp file was cleaned up.
-    expect(await t.readBackup('keep.json')).toBe('old-complete');
+    expect(await t.readBackup('keep.json')).toBe(backupText('old-complete'));
     expect((await t.listBackups()).filter((name) => name === 'keep.json')).toHaveLength(
       1,
     );
@@ -557,7 +584,7 @@ describe('shareBackupFile (mocked expo-sharing)', () => {
 
   it('returns false without opening the share sheet when sharing is unavailable', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('b.json', 'content');
+    await t.writeBackup('b.json', backupText('content'));
     mockIsAvailableAsync.mockResolvedValue(false);
 
     await expect(shareBackupFile('b.json')).resolves.toBe(false);
@@ -566,7 +593,7 @@ describe('shareBackupFile (mocked expo-sharing)', () => {
 
   it('hands the saved file URI to the share sheet when available', async () => {
     const t = createFileBackupTransport();
-    await t.writeBackup('b.json', 'content');
+    await t.writeBackup('b.json', backupText('content'));
     mockIsAvailableAsync.mockResolvedValue(true);
     mockShareAsync.mockResolvedValue(undefined);
 

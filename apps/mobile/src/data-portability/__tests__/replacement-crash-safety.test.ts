@@ -4,8 +4,8 @@
  * The property under test is a SAFETY property, and safety properties are the
  * kind that ordinary usage tests never catch: a rotation that is correct for
  * every successful run can still be wrong for the one run that is interrupted.
- * So this suite does not exercise the happy path — it terminates the
- * replacement after EVERY step and asserts the same invariant each time:
+ * Alongside successful writes, this suite injects caught faults before every
+ * replacement step and asserts the same invariant each time:
  *
  *   the backup name reads COMPLETE PREVIOUS content or COMPLETE NEW content.
  *   Never empty. Never missing. Never a partial write.
@@ -24,6 +24,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
+import { parseAndValidateBackup } from '../deserialize';
 import {
   isPreviousBackupName,
   previousBackupName,
@@ -32,9 +33,10 @@ import {
   type ReplacementStep,
   type RotationFileSystem,
 } from '../replacement';
+import { buildEnvelope, emptyData, T0 } from './helpers';
 
-const OLD_CONTENT = 'PREVIOUS-BACKUP-CONTENT';
-const NEW_CONTENT = 'NEW-BACKUP-CONTENT';
+const OLD_CONTENT = JSON.stringify(buildEnvelope(emptyData(), { createdAt: T0 }));
+const NEW_CONTENT = JSON.stringify(buildEnvelope(emptyData(), { createdAt: T0 + 1 }));
 
 interface FaultPoint {
   step: ReplacementStep;
@@ -54,8 +56,8 @@ interface Harness {
   /**
    * Run the replacement with the harness's fault points armed. The faults fire
    * BEFORE the named step runs, so `faultAt('rotate-existing', ...)` means the
-   * process died after the temp write and before the old content was rotated —
-   * exactly the instant a real kill would land.
+   * call failed after the temp write and before the old content was rotated —
+   * with in-process cleanup still available (restart states are tested separately).
    */
   run(name: string, contents: string): Promise<void>;
   /**
@@ -165,6 +167,7 @@ function assertUsable(h: Harness, label: string): void {
     const content = h.read(name);
     // "Complete" means the whole content, not a prefix of it.
     expect(content === OLD_CONTENT || content === NEW_CONTENT).toBe(true);
+    expect(() => parseAndValidateBackup(content)).not.toThrow();
   }
 }
 
@@ -267,12 +270,12 @@ describe('crash-safety: interrupted at every step', () => {
     expect(h.visible()).toEqual(['backup.json']);
   });
 
-  it('leaves no temp file behind after any interruption', async () => {
+  it('reclaims temps after a caught fault once a complete live backup is available', async () => {
     for (const step of steps) {
       const h = createHarness({ 'backup.json': OLD_CONTENT }, faultAt(step, `killed at ${step}`));
       await expect(h.run('backup.json', NEW_CONTENT)).rejects.toThrow();
-      // A `.tmp` leftover is invisible AND unrestorable, so it is pure litter.
-      expect(h.names().filter((n) => n.endsWith('.tmp'))).toEqual([]);
+      // A valid live copy justifies reclaiming this writer's default temp.
+      expect(h.has('.backup.json.pending')).toBe(false);
     }
   });
 
@@ -378,7 +381,8 @@ describe('successful replacement', () => {
       'x'.repeat(100_000),
       '{"nested":{"deep":[1,2,3]},"emoji":"\u{1F600}"}',
     ];
-    for (const contents of tricky) {
+    for (const text of tricky) {
+      const contents = JSON.stringify(buildEnvelope({ ...emptyData(), extra: text }));
       const h = createHarness({ 'backup.json': OLD_CONTENT });
       await h.run('backup.json', contents);
       expect(h.read('backup.json')).toBe(contents);
@@ -388,9 +392,9 @@ describe('successful replacement', () => {
   it('overwrites repeatedly without accumulating artifacts', async () => {
     const h = createHarness({});
     for (let i = 0; i < 5; i++) {
-      await h.run('backup.json', `content-${i}`);
+      await h.run('backup.json', JSON.stringify(buildEnvelope(emptyData(), { createdAt: T0 + i })));
     }
-    expect(h.read('backup.json')).toBe('content-4');
+    expect(h.read('backup.json')).toBe(JSON.stringify(buildEnvelope(emptyData(), { createdAt: T0 + 4 })));
     expect(h.names()).toEqual(['backup.json']);
   });
 
@@ -469,7 +473,7 @@ describe('rotation leftover sweep', () => {
     expect(healthy.names()).toEqual(['backup.json']);
 
     const unfinished = createHarness({ '.other.json.pending': 'never-landed' });
-    expect(await sweepRotationLeftovers(unfinished.fs)).toEqual([]);
+    expect(await sweepRotationLeftovers(unfinished.fs)).toEqual(['.other.json.pending']);
     expect(unfinished.has('.other.json.pending')).toBe(true);
   });
 

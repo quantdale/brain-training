@@ -22,6 +22,18 @@ describe('local-data deletion workflow', () => {
     expect(counts.hasProfile).toBe(true);
   });
 
+  it('reports allocated database bytes using the actual SQLite PRAGMA column names (D09)', async () => {
+    const db = await makeDb();
+    await seedFixture(db);
+    const expected = await db.transaction(async (txn) => {
+      const pages = await txn.get<{ page_count: number }>('PRAGMA page_count');
+      const size = await txn.get<{ page_size: number }>('PRAGMA page_size');
+      return pages!.page_count * size!.page_size;
+    });
+    expect(expected).toBeGreaterThan(0);
+    expect((await countLocalData(db)).storageBytes).toBe(expected);
+  });
+
   it('wipes everything and leaves an empty, still-valid store', async () => {
     const db = await makeDb();
     await seedFixture(db);
