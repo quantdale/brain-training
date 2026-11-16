@@ -91,6 +91,7 @@ export function buildLogicDeductionRawResult(
     totalRounds: input.params.rounds,
     roundsPlayed: input.stats.roundsPlayed,
     roundsCorrect: input.stats.roundsCorrect,
+    roundOutcomes: [...input.outcomes],
     sumAnswerRatio: input.stats.sumAnswerRatio,
     accuracy: accuracyOf(input.stats.roundsCorrect, input.stats.roundsPlayed),
     bestStreak: input.stats.bestStreak,

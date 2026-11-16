@@ -8,6 +8,8 @@ import {
   LOGIC_DEDUCTION_DIFFICULTY_PARAMS,
   resolveLogicDeductionDifficulty,
 } from "../difficulty";
+import { createInitialLogicDeductionState, logicDeductionReducer } from "../reducer";
+import { normalizeLogicDeductionResult } from "../scoring";
 import { INITIAL_STATS } from "../types";
 import type { LogicDeductionRawResult } from "../types";
 import {
@@ -177,5 +179,54 @@ describe("persistLogicDeductionSession", () => {
         }
       },
     );
+  });
+});
+
+
+describe('exact supplied replay outcomes', () => {
+  it('copies outcomes, including empty and forced histories, without fabricating rounds', () => {
+    const outcomes: import('../types').RoundOutcome[] = ['correct', 'timeout', 'wrong'];
+    const raw = buildRaw({ outcomes, forced: true });
+    expect(raw.roundOutcomes).toEqual(outcomes);
+    expect(raw.roundOutcomes).not.toBe(outcomes);
+    outcomes.push('correct');
+    expect(raw.roundOutcomes).toEqual(['correct', 'timeout', 'wrong']);
+    expect(buildRaw().roundOutcomes).toEqual([]);
+  });
+
+  it('distinguishes aggregate-colliding adaptive histories and replays their intermediate rounds', () => {
+    function play(outcomes: readonly import('../types').RoundOutcome[]) {
+      let state = logicDeductionReducer(createInitialLogicDeductionState(), { type: 'select-difficulty', level: 'adaptive' });
+      state = logicDeductionReducer(state, { type: 'start-session', seed: 'collision', sessionId: 'collision', startedAtMs: 0, nowMs: 0 });
+      const rounds = [];
+      for (const outcome of outcomes) {
+        rounds.push(state.round);
+        state = logicDeductionReducer(state, {
+          type: 'answer-option',
+          index: outcome === 'correct' ? state.round!.correctIndex : (state.round!.correctIndex + 1) % state.round!.options.length,
+          nowMs: state.roundStartedAtMs! + state.params!.roundTimeMs / 2,
+        });
+        state = logicDeductionReducer(state, { type: 'next-round', nowMs: 0 });
+      }
+      const raw = buildRaw({ difficulty: 'adaptive', stats: state.stats, params: state.params!, outcomes: state.roundOutcomes });
+      return { raw, rounds, params: state.params };
+    }
+    const a = play(['correct', 'correct', 'wrong', 'wrong', 'correct', 'wrong']);
+    const b = play(['correct', 'wrong', 'correct', 'correct', 'wrong', 'wrong']);
+    expect(a.raw.score).toBe(375);
+    expect(a.raw.score).toBe(b.raw.score);
+    expect(a.raw.bestStreak).toBe(2);
+    expect(a.raw.bestStreak).toBe(b.raw.bestStreak);
+    expect(a.raw.sumAnswerRatio).toBe(3);
+    expect(a.params).toEqual(b.params);
+    expect(a.rounds).not.toEqual(b.rounds);
+    expect(a.raw.roundOutcomes).not.toEqual(b.raw.roundOutcomes);
+    expect(play(a.raw.roundOutcomes as readonly import('../types').RoundOutcome[]).rounds).toEqual(a.rounds);
+    expect(play(b.raw.roundOutcomes as readonly import('../types').RoundOutcome[]).rounds).toEqual(b.rounds);
+    const context = { gameId: 'logic-deduction-table', difficulty: 'adaptive' as const, durationMs: 1000 };
+    const legacy = { ...a.raw };
+    delete legacy.roundOutcomes;
+    expect(normalizeLogicDeductionResult(a.raw, context).value).toBe(0.375);
+    expect(normalizeLogicDeductionResult(legacy, context).value).toBe(0.375);
   });
 });

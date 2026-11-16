@@ -1,11 +1,11 @@
 /**
  * Curated sentence bank for the Sentence Builder game.
  *
- * ~80 sentences across 10 grammatical categories. Each sentence is hand-crafted
- * to be unambiguous in its correct word order and appropriate for the target
- * word-count tiers. Sentences whose clauses can be swapped without changing
- * their words (e.g. conditionals: "She might join us if she finishes early" /
- * "If she finishes early she might join us") declare every defensible order in
+ * 150 sentences across 10 grammatical categories. Each sentence is hand-crafted
+ * with explicit accepted word orders appropriate for the target word-count
+ * tiers. Reviewed movable adjuncts, separable phrasal verbs, and clause swaps
+ * that preserve their words (e.g. conditionals: "She might join us if she finishes early" /
+ * "If she finishes early she might join us") declare accepted alternatives in
  * `alternatives`, so the reducer accepts any of them instead of falsely
  * rejecting a grammatical reconstruction. The bank is versioned (exported as a
  * frozen array) so any change that alters gameplay is detectable via the
@@ -48,37 +48,37 @@ function s(
 export const SENTENCE_BANK: readonly CuratedSentence[] = Object.freeze([
   // ---- Simple Past Tense (10) ----
   s('The cat sat on the mat', 'simple-past'),             // 5
-  s('She walked to the store yesterday', 'simple-past'),  // 6
-  s('They played soccer in the park', 'simple-past'),     // 6
-  s('He cooked dinner for his family', 'simple-past'),    // 6
-  s('We visited the museum last week', 'simple-past'),    // 6
+  s('She walked to the store yesterday', 'simple-past', ['Yesterday she walked to the store', 'She walked yesterday to the store']),  // 6
+  s('They played soccer in the park', 'simple-past', ['In the park they played soccer']),     // 6
+  s('He cooked dinner for his family', 'simple-past', ['For his family he cooked dinner']),    // 6
+  s('We visited the museum last week', 'simple-past', ['Last week we visited the museum']),    // 6
   s('The dog barked at the stranger', 'simple-past'),     // 6
-  s('She read a book before bedtime', 'simple-past'),     // 6
-  s('They finished the project on time', 'simple-past'),  // 6
+  s('She read a book before bedtime', 'simple-past', ['Before bedtime she read a book']),     // 6
+  s('They finished the project on time', 'simple-past', ['On time they finished the project']),  // 6
   s('The boy kicked the ball hard', 'simple-past'),       // 6
-  s('He ate lunch at noon', 'simple-past'),               // 5
+  s('He ate lunch at noon', 'simple-past', ['At noon he ate lunch']),               // 5
   s('The bird flew across the sky', 'simple-past'),       // 6
-  s('We watched a movie last night', 'simple-past'),      // 6
+  s('We watched a movie last night', 'simple-past', ['Last night we watched a movie']),      // 6
   s('She painted a beautiful landscape', 'simple-past'),  // 6
-  s('They danced at the wedding', 'simple-past'),         // 5
+  s('They danced at the wedding', 'simple-past', ['At the wedding they danced']),         // 5
   s('He fixed the broken chair', 'simple-past'),          // 5
 
   // ---- Present Continuous (10) ----
-  s('The children are playing outside', 'present-continuous'),   // 5
+  s('The children are playing outside', 'present-continuous', ['Outside the children are playing']),   // 5
   s('She is reading an interesting novel', 'present-continuous'), // 7
-  s('They are cooking dinner right now', 'present-continuous'),  // 6
+  s('They are cooking dinner right now', 'present-continuous', ['Right now they are cooking dinner', 'They are right now cooking dinner']),  // 6
   s('The birds are singing in the trees', 'present-continuous'), // 7
-  s('He is working on a new project', 'present-continuous'),     // 6
+  s('He is working on a new project', 'present-continuous', ['On a new project he is working']),     // 6
   s('We are planning a trip to Paris', 'present-continuous'),    // 6
   s('The cat is sleeping on the couch', 'present-continuous'),   // 7
   s('She is learning to play piano', 'present-continuous'),      // 6
-  s('The baby is crying very loudly', 'present-continuous'),     // 6
-  s('It is raining very hard today', 'present-continuous'),      // 6
-  s('The students are studying for exams', 'present-continuous'), // 7
+  s('The baby is crying very loudly', 'present-continuous', ['Very loudly the baby is crying']),     // 6
+  s('It is raining very hard today', 'present-continuous', ['Today it is raining very hard', 'It is raining today very hard']),      // 6
+  s('The students are studying for exams', 'present-continuous', ['For exams the students are studying']), // 7
   s('He is building a model airplane', 'present-continuous'),    // 6
   s('We are waiting for the bus', 'present-continuous'),         // 6
   s('The dog is chasing its tail', 'present-continuous'),        // 6
-  s('She is writing a letter to her friend', 'present-continuous'), // 8
+  s('She is writing a letter to her friend', 'present-continuous', ['To her friend she is writing a letter']), // 8
 
   // ---- Compound Sentences (10) ----
   s('I wanted to go but it was raining', 'compound', ['It was raining but I wanted to go']),        // 8
@@ -122,7 +122,7 @@ export const SENTENCE_BANK: readonly CuratedSentence[] = Object.freeze([
   s('If it rains tomorrow we will cancel the picnic', 'conditional', ['We will cancel the picnic if it rains tomorrow']),      // 9
   s('He would pass the test if he studied harder', 'conditional', ['If he studied harder he would pass the test']),         // 8
   s('We could go to the beach if the weather improves', 'conditional', ['If the weather improves we could go to the beach']),    // 9
-  s('If you heat water it eventually boils', 'conditional'),               // 7
+  s('If you heat water it eventually boils', 'conditional', ['It eventually boils if you heat water', 'If you heat water it boils eventually']),               // 7
   s('She might join us if she finishes early', 'conditional', ['If she finishes early she might join us']),             // 8
   s('If I were you I would accept the offer', 'conditional', ['I would accept the offer if I were you']),              // 8
   s('If you study hard you will pass the test', 'conditional', ['You will pass the test if you study hard']),            // 8
@@ -145,31 +145,31 @@ export const SENTENCE_BANK: readonly CuratedSentence[] = Object.freeze([
   s('The floor was swept by the cleaner', 'passive'),                // 7
   s('The door was locked from the inside', 'passive'),               // 7
   s('The food was prepared by the chef', 'passive'),                 // 7
-  s('The building was constructed last year', 'passive'),            // 6
+  s('The building was constructed last year', 'passive', ['Last year the building was constructed']),            // 6
   s('The prize was awarded to the winner', 'passive'),               // 7
   s('The rules were explained by the teacher', 'passive'),           // 7
   s('The painting was created by a famous artist', 'passive'),       // 8
 
   // ---- Questions (10) ----
-  s('What time does the train leave today', 'questions'),            // 8
+  s('What time does the train leave today', 'questions', ['Today what time does the train leave']),            // 8
   s('Have you ever been to a foreign country', 'questions'),         // 8
   s('Where did you put my glasses', 'questions'),                    // 6
-  s('Why is the sky blue in the daytime', 'questions'),              // 8
+  s('Why is the sky blue in the daytime', 'questions', ['In the daytime why is the sky blue']),              // 8
   s('Can you help me move this table', 'questions'),                 // 7
-  s('How many books did you read this year', 'questions'),           // 8
-  s('Did she finish the assignment on time', 'questions'),           // 8
-  s('Would you like some more coffee please', 'questions'),          // 8
-  s('Who is coming to the party tonight', 'questions'),              // 7
+  s('How many books did you read this year', 'questions', ['This year how many books did you read']),           // 8
+  s('Did she finish the assignment on time', 'questions', ['On time did she finish the assignment']),           // 8
+  s('Would you like some more coffee please', 'questions', ['Please would you like some more coffee']),          // 8
+  s('Who is coming to the party tonight', 'questions', ['Tonight who is coming to the party']),              // 7
   s('Do you know where the keys are', 'questions'),                  // 7
   s('What is your favorite season of the year', 'questions'),        // 8
-  s('Have you tried the new restaurant downtown', 'questions'),      // 8
+  s('Have you tried the new restaurant downtown', 'questions', ['Downtown have you tried the new restaurant']),      // 8
   s('Where did you learn to cook so well', 'questions'),             // 8
   s('Why did the chicken cross the road', 'questions'),              // 8
-  s('How does this machine work exactly', 'questions', ['Exactly how does this machine work']),              // 7
+  s('How does this machine work exactly', 'questions', ['Exactly how does this machine work', 'How exactly does this machine work']),              // 7
 
   // ---- Imperatives (10) ----
   s('Please close the door behind you', 'imperatives', ['Close the door behind you please']),             // 6
-  s('Turn off the lights when you leave', 'imperatives', ['When you leave turn off the lights']),            // 7
+  s('Turn off the lights when you leave', 'imperatives', ['When you leave turn off the lights', 'Turn the lights off when you leave', 'When you leave turn the lights off']),            // 7
   s('Mix the ingredients in a large bowl', 'imperatives', ['In a large bowl mix the ingredients']),           // 7
   s('Do not touch the hot stove', 'imperatives'),                    // 6
   s('Open your books to page forty two', 'imperatives'),             // 7
@@ -177,11 +177,11 @@ export const SENTENCE_BANK: readonly CuratedSentence[] = Object.freeze([
   s('Write your name at the top', 'imperatives'),                    // 6
   s('Be careful when crossing the street', 'imperatives', ['When crossing the street be careful']),           // 7
   s('Hand me that red pen please', 'imperatives', ['Please hand me that red pen']),                   // 6
-  s('Take out the trash right now', 'imperatives'),                  // 6
+  s('Take out the trash right now', 'imperatives', ['Take the trash out right now', 'Right now take out the trash', 'Right now take the trash out']),                  // 6
   s('Please sit down and be quiet', 'imperatives', ['Sit down and be quiet please']),                  // 6
-  s('Fill in the blanks with the correct words', 'imperatives'),     // 8
+  s('Fill in the blanks with the correct words', 'imperatives', ['Fill the blanks in with the correct words', 'With the correct words fill in the blanks', 'With the correct words fill the blanks in']),     // 8
   s('Remember to lock the door when you leave', 'imperatives', ['When you leave remember to lock the door']),      // 8
-  s('Do not run in the hallway', 'imperatives'),                     // 6
+  s('Do not run in the hallway', 'imperatives', ['In the hallway do not run']),                     // 6
   s('Bring your notebook to class tomorrow', 'imperatives', ['Tomorrow bring your notebook to class']),        // 7
 
   // ---- Comparatives (10) ----
@@ -210,11 +210,11 @@ export const SENTENCE_BANK: readonly CuratedSentence[] = Object.freeze([
   s('He was feeling under the weather', 'idiomatic'),              // 6
   s('They decided to call it a night', 'idiomatic'),               // 6
   s('She wanted to kill two birds with one stone', 'idiomatic'),   // 9
-  s('He finally crossed the finish line', 'idiomatic'),            // 7
+  s('He finally crossed the finish line', 'idiomatic', ['Finally he crossed the finish line', 'He crossed the finish line finally']),            // 7
   s('We should burn the midnight oil', 'idiomatic'),               // 6
   s('She decided to take the bull by the horns', 'idiomatic'),     // 8
   s('He was barking up the wrong tree', 'idiomatic'),              // 7
-  s('We need to think outside the box', 'idiomatic'),              // 7
+  s('We need to think outside the box', 'idiomatic', ['Outside the box we need to think']),              // 7
   s('She felt like a fish out of water', 'idiomatic'),             // 8
   s('He was over the moon about the news', 'idiomatic'),           // 8
 ]) as readonly CuratedSentence[];

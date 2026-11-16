@@ -79,6 +79,7 @@ export function buildNumberLineRawResult(input: BuildRawResultInput): NumberLine
     generatorInfo,
   });
 
+  const errorSamples = input.stats.roundsPlayed - input.stats.timeouts;
   return {
     score: input.stats.score,
     roundsTotal: input.params.rounds,
@@ -86,9 +87,9 @@ export function buildNumberLineRawResult(input: BuildRawResultInput): NumberLine
     roundsHit: input.stats.roundsHit,
     meanCloseness: meanClosenessOf(input.stats.totalCloseness, input.stats.roundsPlayed),
     avgAbsoluteError:
-      input.stats.roundsPlayed > 0
-        ? input.stats.totalAbsoluteError / input.stats.roundsPlayed
-        : 0,
+      errorSamples > 0
+        ? input.stats.totalAbsoluteError / errorSamples
+        : null,
     finalTolerancePct: input.finalTolerancePct,
     challengeRating: input.challengeRating,
     difficulty: input.difficulty,

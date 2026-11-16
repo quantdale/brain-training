@@ -1,5 +1,6 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from "@jest/globals";
+import type { Rng } from "@/sdk";
 import { createRng } from "@/sdk";
 
 import { SENTENCE_BANK } from "../content/sentence-bank";
@@ -165,5 +166,37 @@ describe("generateRound scramble vs accepted orders", () => {
     });
     expect(scrambled.acceptedOrders).toEqual(acceptedOrdersOf(sentence));
     expect(scrambled.acceptedOrders[0]).toEqual([...scrambled.original]);
+  });
+});
+
+
+describe('case-folded pre-solved rejection', () => {
+  function riggedRng(permutation: readonly number[]): Rng {
+    const rng = createRng('rigged');
+    return { ...rng, fork: () => ({ ...rng, shuffle: <T,>(items: readonly T[]) => permutation.map((i) => items[i]) }) };
+  }
+
+  it('rejects the concrete lower-case Exactly alternative even after retry exhaustion', () => {
+    const sentence = SENTENCE_BANK.find((entry) => entry.text === 'How does this machine work exactly')!;
+    const { scrambled } = generateRound({
+      rng: riggedRng([5, 0, 1, 2, 3, 4]), roundIndex: 0, bank: [sentence],
+      minWords: 6, maxWords: 6, prevCategory: null, usedCategories: [],
+    });
+    for (const order of scrambled.acceptedOrders) {
+      expect(scrambled.scrambled.map((w) => w.toLowerCase())).not.toEqual(order.map((w) => w.toLowerCase()));
+    }
+  });
+
+  it('compares casing with the same rule as tap adjudication', () => {
+    expect(sameWordOrder(['Exactly', 'how'], ['exactly', 'How'])).toBe(true);
+  });
+
+  it('does not emit the identity when every shuffle retries the identity', () => {
+    const sentence = SENTENCE_BANK.find((entry) => entry.text === 'He ate lunch at noon')!;
+    const { scrambled } = generateRound({
+      rng: riggedRng([0, 1, 2, 3, 4]), roundIndex: 0, bank: [sentence],
+      minWords: 5, maxWords: 5, prevCategory: null, usedCategories: [],
+    });
+    expect(scrambled.scrambled).not.toEqual(scrambled.original);
   });
 });

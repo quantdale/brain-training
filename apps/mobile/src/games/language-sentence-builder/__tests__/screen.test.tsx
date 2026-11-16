@@ -226,9 +226,9 @@ describe('SentenceBuilderScreen', () => {
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SentenceBuilderRawResult;
     expect(raw.score).toBeGreaterThan(0);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.2.0');
-    expect(raw.scoringVersion).toBe('1.2.0');
-    expect(input.session.scoringVersion).toBe(1_002_000);
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.3.0');
+    expect(raw.scoringVersion).toBe('1.3.0');
+    expect(input.session.scoringVersion).toBe(1_003_000);
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);
@@ -251,6 +251,55 @@ describe('SentenceBuilderScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
     // Still in puzzle phase (timer was frozen during pause).
     expect(screen.getByTestId(testId(GAME_ID, 'word-grid'))).toBeOnTheScreen();
+  });
+
+  it.each([24_999, 25_000, 25_001])('adjudicates input at active %i ms without timer delivery', async (elapsed) => {
+    const seed = 'deadline-input';
+    const { clock } = await renderScreen({ seed });
+    const [sentence] = generateSessionSentences(seed, 1, 5, 7);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await solveRoundBySentence({ ...sentence, original: sentence.original.slice(0, -1) });
+    await act(async () => { clock.advance(elapsed); }); // deliberately do NOT deliver JS timers
+    const last = sentence.scrambled.indexOf(sentence.original[sentence.original.length - 1]);
+    await fireEvent.press(screen.getByTestId(`${testId(GAME_ID, 'word-grid')}.word.${last}`));
+    expect(screen.getByTestId(testId(GAME_ID, elapsed < TIME_BUDGET_MS ? 'round-passed' : 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-points'))).toHaveTextContent(
+      elapsed < TIME_BUDGET_MS ? `+${100 + 10 * sentence.original.length} points` : '+0 points',
+    );
+    await act(async () => { jest.advanceTimersByTime(TIME_BUDGET_MS); });
+    expect(screen.getByTestId(testId(GAME_ID, 'round-points'))).toHaveTextContent(
+      elapsed < TIME_BUDGET_MS ? `+${100 + 10 * sentence.original.length} points` : '+0 points',
+    );
+  });
+
+  it('excludes pause and feedback time but expires at the resumed active deadline', async () => {
+    const seed = 'resumed-deadline';
+    const { clock } = await renderScreen({ seed });
+    const sentences = generateSessionSentences(seed, 2, 5, 7);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await solveRoundBySentence(sentences[0]);
+    await act(async () => { clock.advance(40_000); });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    await solveRoundBySentence({ ...sentences[1], original: sentences[1].original.slice(0, -1) });
+    await act(async () => { clock.advance(10_000); });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    await act(async () => { clock.advance(90_000); });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    await act(async () => { clock.advance(15_000); });
+    const last = sentences[1].scrambled.indexOf(sentences[1].original[sentences[1].original.length - 1]);
+    await fireEvent.press(screen.getByTestId(`${testId(GAME_ID, 'word-grid')}.word.${last}`));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-points'))).toHaveTextContent('+0 points');
+  });
+
+  it('re-arms an early wake from the active clock rather than losing the deadline', async () => {
+    const { clock } = await renderScreen({ seed: 'early-wake' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // The timeout scheduler is independent from the injected monotonic clock.
+    await act(async () => { jest.advanceTimersByTime(TIME_BUDGET_MS); });
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-result'))).toBeNull();
+    await advanceTime(clock, TIME_BUDGET_MS);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
   });
 
   it('timer expiry fails the round', async () => {

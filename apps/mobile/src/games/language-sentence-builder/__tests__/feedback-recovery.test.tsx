@@ -38,9 +38,9 @@ describe('Sentence Builder honest partial outcomes', () => {
   it('retains partial points without counting an incomplete order as a passed sentence', () => {
     let state = partialRoundState();
     for (let index = 0; index < 8; index += 1) {
-      state = sentenceBuilderReducer(state, { type: 'tap-word', index }) as typeof state;
+      state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index }) as typeof state;
     }
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: 9 }) as typeof state;
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: 9 }) as typeof state;
     expect(state.roundOutcome).toBe('partial');
     expect(state.stats.score).toBe(50);
     expect(state.stats.roundsPassed).toBe(0);
@@ -50,15 +50,15 @@ describe('Sentence Builder honest partial outcomes', () => {
   });
 
   it('does not consume the same physical word tile twice', () => {
-    const state = sentenceBuilderReducer(partialRoundState(), { type: 'tap-word', index: 0 });
-    expect(sentenceBuilderReducer(state, { type: 'tap-word', index: 0 })).toBe(state);
-    expect(sentenceBuilderReducer(state, { type: 'tap-word', index: -1 })).toBe(state);
+    const state = sentenceBuilderReducer(partialRoundState(), { type: 'tap-word', atActiveMs: 0, index: 0 });
+    expect(sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: 0 })).toBe(state);
+    expect(sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: -1 })).toBe(state);
   });
 
   it('preserves actual input counts if time runs out after a correct prefix', () => {
     let state = partialRoundState();
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: 0 }) as typeof state;
-    state = sentenceBuilderReducer(state, { type: 'timer-expired' }) as typeof state;
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: 0 }) as typeof state;
+    state = sentenceBuilderReducer(state, { type: 'timer-expired', atActiveMs: 25_000 }) as typeof state;
     expect(state.stats.totalTaps).toBe(1);
     expect(state.stats.correctTaps).toBe(1);
     expect(state.stats.score).toBe(0);
@@ -121,8 +121,8 @@ describe('Sentence Builder honest partial outcomes', () => {
     expect(raw.bestStreak).toBe(0);
     expect(raw.accuracy).toBe(0);
     expect(record.normalizedResult).toBe(0);
-    expect(raw.scoringVersion).toBe('1.2.0');
-    expect(record.scoringVersion).toBe(1_002_000);
+    expect(raw.scoringVersion).toBe('1.3.0');
+    expect(record.scoringVersion).toBe(1_003_000);
   });
 
   it('uses the language on-fill ink for dark-mode word chips', async () => {

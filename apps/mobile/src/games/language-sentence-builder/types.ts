@@ -132,9 +132,9 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 export type SentenceBuilderAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'tap-word'; index: number }
-  | { type: 'timer-expired' }
-  | { type: 'next-round' }
+  | { type: 'tap-word'; index: number; atActiveMs: number }
+  | { type: 'timer-expired'; atActiveMs: number }
+  | { type: 'next-round'; startActiveMs: number }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'tutorial-open' }
@@ -180,6 +180,8 @@ export interface SentenceBuilderState {
   pausedDurationMs: number;
   /** 0-based index of the current round. */
   roundIndex: number;
+  /** Lifecycle active elapsed time at this round's start (excludes pause time). */
+  roundStartActiveMs: number;
   /** Scrambled sentence for the current round (null before first round). */
   scrambled: ScrambledSentence | null;
   /** Indices tapped so far (in order). */
@@ -224,6 +226,7 @@ export function createInitialState(): SentenceBuilderState {
     activeDurationMs: 0,
     pausedDurationMs: 0,
     roundIndex: 0,
+    roundStartActiveMs: 0,
     scrambled: null,
     taps: [],
     inputIndex: 0,

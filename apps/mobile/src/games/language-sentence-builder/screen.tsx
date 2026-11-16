@@ -37,7 +37,6 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameDeadlineTimeout,
 } from '@/components/game-host';
 
 import { CATEGORY_LABELS } from './content/sentence-bank';
@@ -118,18 +117,26 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
   const inSession = state.phase === 'puzzle' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Per-sentence timer: one budget timeout while the puzzle phase is
-  // live; pause cancels it and resume continues the remaining active budget.
-  // The round key starts a fresh budget for each new sentence.
-  useGameDeadlineTimeout(
-    state.phase === 'puzzle' && !state.paused,
-    () => dispatch({ type: 'timer-expired' }),
-    timeBudgetMs,
-    clock,
-    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
-  );
-  // Display only: mirrors the timeout above (same activity, budget and reset
-  // key), so the bar shows the true remaining budget after a resume.
+  // Callback delivery only wakes the reducer: lifecycle active time owns the
+  // deadline. Recompute from that same clock on resume, not effect-cleanup time.
+  const elapsedMs = session.elapsedMs;
+  useEffect(() => {
+    if (state.phase !== 'puzzle' || state.paused) return;
+    const remainingMs = () => Math.max(0, state.roundStartActiveMs + timeBudgetMs - elapsedMs());
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      // Timer precision must not end a round early or consume its only wake.
+      const remaining = remainingMs();
+      if (remaining > 0) {
+        timer = setTimeout(wake, Math.ceil(remaining));
+      } else {
+        dispatch({ type: 'timer-expired', atActiveMs: elapsedMs() });
+      }
+    };
+    timer = setTimeout(wake, Math.ceil(remainingMs()));
+    return () => clearTimeout(timer);
+  }, [state.phase, state.paused, state.roundStartActiveMs, state.roundIndex, state.sessionId, timeBudgetMs, elapsedMs]);
+  // Display only; gameplay adjudication above uses lifecycle active time.
   const countdownDeadlineMs = useWindowDeadline(
     state.phase === 'puzzle' && !state.paused,
     timeBudgetMs,
@@ -271,9 +278,9 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       }
       // Play haptic feedback.
       liveAudioHaptics.haptic('light');
-      dispatch({ type: 'tap-word', index: scrambledIndex });
+      dispatch({ type: 'tap-word', index: scrambledIndex, atActiveMs: session.elapsedMs() });
     },
-    [dispatch],
+    [dispatch, session],
   );
 
   const handleStart = useCallback(() => {
@@ -478,7 +485,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                onPress={() => dispatch({ type: 'next-round', startActiveMs: session.elapsedMs() })}
               />
             </View>
           ) : null}

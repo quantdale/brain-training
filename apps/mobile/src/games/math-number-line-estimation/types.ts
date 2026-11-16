@@ -95,7 +95,8 @@ export interface NumberLineRawResult extends GameRawResult {
   readonly roundsPlayed: number;
   readonly roundsHit: number;
   readonly meanCloseness: number;
-  readonly avgAbsoluteError: number;
+  /** Mean error of submitted estimates only; null when none were submitted (game 2.1+). */
+  readonly avgAbsoluteError: number | null;
   readonly finalTolerancePct: number;
   readonly challengeRating: number;
   readonly difficulty: DifficultyLevel;

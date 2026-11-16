@@ -7,7 +7,7 @@
   ],
   "description": "Place the target number on a line. Tap a position, adjust it, then submit your estimate. The correct position appears afterward; closer estimates score more.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "2.0.0",
+  "gameVersion": "2.1.0",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

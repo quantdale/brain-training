@@ -15,12 +15,14 @@
  */
 import type { Rng } from "@/sdk";
 
+import { sameWord } from "./scoring";
+
 import type {
  CuratedSentence,
  ScrambledSentence,
 } from "./types";
 
-/** Upper bound on re-draw attempts before accepting the last candidate scramble. */
+/** Upper bound on random draws before a deterministic non-solved fallback. */
 export const MAX_SCRAMBLE_ATTEMPTS = 12;
 
 /** Maximum category-distance to consider "near-duplicate" (same category = 0). */
@@ -58,7 +60,7 @@ export function hasNoDuplicateWords(sentence: CuratedSentence): boolean {
 /**
  * Every accepted token order for a sentence: the original plus each curated
  * alternative, as whitespace-split surface words (original casing preserved —
- * these are compared verbatim against tapped tiles during play).
+ * gameplay compares these case-insensitively against tapped tiles).
  * Alternatives were already validated as exact permutations by content
  * validation; this re-derives their token arrays for play.
  */
@@ -79,7 +81,7 @@ export function sameWordOrder(
  a: readonly string[],
  b: readonly string[],
 ): boolean {
- return a.length === b.length && a.every((w, i) => w === b[i]);
+ return a.length === b.length && a.every((w, i) => sameWord(w, b[i]));
 }
 
 /**
@@ -206,11 +208,33 @@ export function generateRound(input: GenerateRoundInput): GenerateRoundResult {
    break;
   }
  }
- // Fallback: if all attempts produced original order, use the last non-null
- // attempt (which should be fine for words.length > 1). If still null,
- // it means the sentence has 1 word — present as-is.
+ // Retry exhaustion must not turn into an already-solved canonical board.
+ // Enumerate distinct surface-token permutations in lexical order. At most
+ // acceptedOrders.length can be solved, so one extra distinct order suffices.
  if (scrambleOrder === null) {
-  scrambleOrder = words.map((_, i) => i);
+  // Code-unit ordering avoids locale/engine-specific collation in replay.
+  const compare = (a: number, b: number) => {
+   const left = words[a].toLowerCase();
+   const right = words[b].toLowerCase();
+   return left < right ? -1 : left > right ? 1 : 0;
+  };
+  const candidate = words.map((_, i) => i).sort(compare);
+  for (let attempt = 0; attempt <= acceptedOrders.length; attempt += 1) {
+   if (!acceptedOrders.some((order) => sameWordOrder(order, candidate.map((i) => words[i])))) {
+    scrambleOrder = [...candidate];
+    break;
+   }
+   let pivot = candidate.length - 2;
+   while (pivot >= 0 && compare(candidate[pivot], candidate[pivot + 1]) >= 0) pivot -= 1;
+   if (pivot < 0) break;
+   let successor = candidate.length - 1;
+   while (compare(candidate[pivot], candidate[successor]) >= 0) successor -= 1;
+   [candidate[pivot], candidate[successor]] = [candidate[successor], candidate[pivot]];
+   candidate.splice(pivot + 1, candidate.length, ...candidate.slice(pivot + 1).reverse());
+  }
+  if (scrambleOrder === null) {
+   throw new Error("sentence-builder: sentence has no unsolved word order");
+  }
  }
 
  const scrambled = scrambleOrder.map((i) => words[i]);

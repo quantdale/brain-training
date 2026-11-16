@@ -9,7 +9,9 @@
 
 import { packVersion } from '@/sdk/version-pack';
 
-export const SCORING_VERSION = '1.2.0';
+// 1.3 accepts reviewed reconstructions and rejects taps at the active deadline.
+// The normalized-result formula remains unchanged for historical raw results.
+export const SCORING_VERSION = '1.3.0';
 
 /**
  * Pack a semantic version string into the integer recorded in the db

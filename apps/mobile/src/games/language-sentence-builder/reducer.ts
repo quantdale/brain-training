@@ -97,6 +97,7 @@ export function sentenceBuilderReducer(
         activeDurationMs: 0,
         pausedDurationMs: 0,
         roundIndex: 0,
+        roundStartActiveMs: 0,
         scrambled,
         taps: [],
         inputIndex: 0,
@@ -128,6 +129,11 @@ export function sentenceBuilderReducer(
         state.scrambled === null
       ) {
         return state;
+      }
+      // Native input may arrive before an overdue JS timeout. Only lifecycle
+      // active time owns the deadline; never award a tap at or after it.
+      if (action.atActiveMs - state.roundStartActiveMs >= paramsFromProfile(state.profile).timeBudgetMs) {
+        return sentenceBuilderReducer(state, { type: "timer-expired", atActiveMs: action.atActiveMs });
       }
       const { scrambled } = state;
       const expectedIndex = state.inputIndex;
@@ -198,7 +204,10 @@ export function sentenceBuilderReducer(
     }
 
     case "timer-expired": {
-      if (state.phase !== "puzzle" || state.paused || state.scrambled === null) {
+      if (state.phase !== "puzzle" || state.paused || state.scrambled === null || state.profile === null) {
+        return state;
+      }
+      if (action.atActiveMs - state.roundStartActiveMs < paramsFromProfile(state.profile).timeBudgetMs) {
         return state;
       }
       // Timer expired: round fails.
@@ -258,6 +267,7 @@ export function sentenceBuilderReducer(
         ...state,
         phase: "puzzle",
         roundIndex: nextIndex,
+        roundStartActiveMs: action.startActiveMs,
         scrambled: newScrambled,
         taps: [],
         inputIndex: 0,

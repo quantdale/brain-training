@@ -281,10 +281,11 @@ describe("LogicDeductionScreen", () => {
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as LogicDeductionRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));
-    expect(raw.diagnosticMetadata.gameVersion).toBe("1.2.0");
+    expect(raw.diagnosticMetadata.gameVersion).toBe("1.3.0");
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe("normal");
     expect(raw.forced).toBe(false);
+    expect(raw.roundOutcomes).toEqual(Array(NORMAL.rounds).fill("correct"));
     expect(input.session.difficulty).toEqual(
       expect.objectContaining({ level: "normal", challengeRating: 0.5 }),
     );

@@ -27,7 +27,7 @@ function solveRound(state: SentenceBuilderState): SentenceBuilderState {
     const scrambledIdx = state.scrambled.scrambled.findIndex((word, index) =>
       word === targetWord && !current.taps.includes(index),
     );
-    current = sentenceBuilderReducer(current, { type: 'tap-word', index: scrambledIdx });
+    current = sentenceBuilderReducer(current, { type: 'tap-word', atActiveMs: 0, index: scrambledIdx });
   }
   return current;
 }
@@ -88,11 +88,13 @@ describe('tap-word', () => {
   it('fails the round on a wrong tap', () => {
     let state = startSession('tap-wrong');
     const scrambled = state.scrambled!;
-    // Tap a word that's not the first original word.
+    // A wrong tap must open none of the accepted reconstructions.
+    const firstWords = new Set(scrambled.acceptedOrders.map((order) => order[0].toLowerCase()));
     const wrongIdx = scrambled.scrambled.findIndex(
-      (w) => w !== scrambled.original[0],
+      (word) => !firstWords.has(word.toLowerCase()),
     );
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: wrongIdx });
+    expect(wrongIdx).toBeGreaterThanOrEqual(0);
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: wrongIdx });
     // The round completes with failure since it mismatches the expected.
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('failed');
@@ -103,7 +105,7 @@ describe('tap-word', () => {
     let state = startSession('x');
     state = solveRound(state);
     expect(state.phase).toBe('roundResult');
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: 0 });
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: 0 });
     expect(state.stats.roundsPlayed).toBe(1);
   });
 
@@ -142,7 +144,7 @@ describe('tap-word with alternative word orders', () => {
       const idx = current.scrambled!.scrambled.findIndex(
         (w, index) => w.toLowerCase() === word.toLowerCase() && !current.taps.includes(index),
       );
-      current = sentenceBuilderReducer(current, { type: 'tap-word', index: idx });
+      current = sentenceBuilderReducer(current, { type: 'tap-word', atActiveMs: 0, index: idx });
     }
     return current;
   }
@@ -166,7 +168,7 @@ describe('tap-word with alternative word orders', () => {
     let state = stateForSentence();
     // First alt word is "she", which does NOT start the canonical order.
     const idx = state.scrambled!.scrambled.findIndex((w) => w.toLowerCase() === 'she');
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: idx });
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: idx });
     expect(state.phase).toBe('puzzle');
     expect(state.inputIndex).toBe(1);
   });
@@ -183,7 +185,7 @@ describe('tap-word with alternative word orders', () => {
 describe('timer-expired', () => {
   it('fails the current round', () => {
     let state = startSession('timer');
-    state = sentenceBuilderReducer(state, { type: 'timer-expired' });
+    state = sentenceBuilderReducer(state, { type: 'timer-expired', atActiveMs: 25_000 });
     expect(state.phase).toBe('roundResult');
     expect(state.roundOutcome).toBe('failed');
     expect(state.stats.roundsPlayed).toBe(1);
@@ -192,7 +194,7 @@ describe('timer-expired', () => {
   it('is ignored outside the puzzle phase', () => {
     const state = startSession('timer2');
     const solved = solveRound(state);
-    const result = sentenceBuilderReducer(solved, { type: 'timer-expired' });
+    const result = sentenceBuilderReducer(solved, { type: 'timer-expired', atActiveMs: 25_000 });
     expect(result.phase).toBe('roundResult');
   });
 });
@@ -200,7 +202,7 @@ describe('timer-expired', () => {
 describe('next-round', () => {
   it('advances to the next puzzle', () => {
     let state = solveRound(startSession('next'));
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     expect(state.phase).toBe('puzzle');
     expect(state.roundIndex).toBe(1);
     expect(state.scrambled).not.toBeNull();
@@ -210,7 +212,7 @@ describe('next-round', () => {
     let state = startSession('final', 'easy'); // 4 rounds
     for (let round = 0; round < 4; round += 1) {
       state = solveRound(state);
-      state = sentenceBuilderReducer(state, { type: 'next-round' });
+      state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     }
     expect(state.phase).toBe('results');
     expect(state.stats.roundsPlayed).toBe(4);
@@ -369,7 +371,7 @@ describe('no repeated sentences within a session (audit regression)', () => {
         let guard = 0;
         while (state.phase !== 'results' && guard < 20) {
           state = solveRound(state);
-          state = sentenceBuilderReducer(state, { type: 'next-round' });
+          state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
           if (state.phase === 'puzzle') {
             texts.push(state.scrambled!.original.join(' '));
           }
@@ -386,7 +388,7 @@ describe('timer expiry during pause (audit regression)', () => {
   it('does not fail the round when a stale timer fires while paused', () => {
     let state = startSession('timer-pause');
     state = sentenceBuilderReducer(state, { type: 'pause' });
-    state = sentenceBuilderReducer(state, { type: 'timer-expired' });
+    state = sentenceBuilderReducer(state, { type: 'timer-expired', atActiveMs: 25_000 });
     expect(state.phase).toBe('puzzle');
     expect(state.paused).toBe(true);
     expect(state.stats.roundsPlayed).toBe(0);
@@ -405,7 +407,7 @@ describe('word stats accounting (audit regression)', () => {
   it('records the offered sentence length separately from zero timeout taps', () => {
     let state = startSession('stats-timeout');
     const wordCount = state.scrambled!.original.length;
-    state = sentenceBuilderReducer(state, { type: 'timer-expired' });
+    state = sentenceBuilderReducer(state, { type: 'timer-expired', atActiveMs: 25_000 });
     expect(state.stats.totalWords).toBe(wordCount);
     expect(state.stats.totalTaps).toBe(0);
     expect(state.stats.correctTaps).toBe(0);
@@ -419,19 +421,19 @@ describe('adaptive word-range escalation (audit regression)', () => {
     expect(paramsFromProfile(state.profile!).maxWords).toBe(12);
 
     state = solveRound(state);
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     expect(paramsFromProfile(state.profile!).minWords).toBe(5);
     expect(paramsFromProfile(state.profile!).maxWords).toBe(12);
 
     state = solveRound(state);
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     expect(paramsFromProfile(state.profile!).minWords).toBe(6);
   });
 
   it('holds the range after a failed adaptive round', () => {
     let state = startSession('adaptive-hold', 'adaptive');
     state = solveRound(state);
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     const afterPass = paramsFromProfile(state.profile!);
 
     // Tap a word that no accepted order can start with → the round fails.
@@ -442,9 +444,9 @@ describe('adaptive word-range escalation (audit regression)', () => {
       (word) => !firstWords.has(word.toLowerCase()),
     );
     expect(wrongIdx).toBeGreaterThanOrEqual(0);
-    state = sentenceBuilderReducer(state, { type: 'tap-word', index: wrongIdx });
+    state = sentenceBuilderReducer(state, { type: 'tap-word', atActiveMs: 0, index: wrongIdx });
     expect(state.roundOutcome).toBe('failed');
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
 
     const afterFail = paramsFromProfile(state.profile!);
     expect(afterFail.minWords).toBe(afterPass.minWords);
@@ -454,8 +456,33 @@ describe('adaptive word-range escalation (audit regression)', () => {
   it('does not change fixed-level ranges', () => {
     let state = startSession('fixed-range', 'normal');
     state = solveRound(state);
-    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    state = sentenceBuilderReducer(state, { type: 'next-round', startActiveMs: 0 });
     expect(paramsFromProfile(state.profile!).minWords).toBe(5);
     expect(paramsFromProfile(state.profile!).maxWords).toBe(7);
+  });
+});
+
+
+describe('active timestamp deadline ownership', () => {
+  it('ignores premature expiry callbacks instead of trusting callback delivery', () => {
+    const state = startSession('premature-timer');
+    expect(sentenceBuilderReducer(state, { type: 'timer-expired', atActiveMs: 24_999 })).toBe(state);
+  });
+
+  it('fails exactly once at the deadline, keeping the last late word out of accuracy', () => {
+    let state = startSession('late-word');
+    const words = state.scrambled!.original;
+    for (const word of words.slice(0, -1)) {
+      const index = state.scrambled!.scrambled.indexOf(word);
+      state = sentenceBuilderReducer(state, { type: 'tap-word', index, atActiveMs: 100 });
+    }
+    const finalIndex = state.scrambled!.scrambled.indexOf(words[words.length - 1]);
+    const expired = sentenceBuilderReducer(state, { type: 'tap-word', index: finalIndex, atActiveMs: 25_000 });
+    expect(expired.roundOutcome).toBe('failed');
+    expect(expired.roundPoints).toBe(0);
+    expect(expired.stats.roundsPlayed).toBe(1);
+    expect(expired.stats.roundsPassed).toBe(0);
+    expect(expired.taps).toHaveLength(words.length - 1);
+    expect(sentenceBuilderReducer(expired, { type: 'timer-expired', atActiveMs: 25_000 })).toBe(expired);
   });
 });

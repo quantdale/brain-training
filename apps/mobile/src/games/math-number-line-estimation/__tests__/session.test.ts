@@ -10,6 +10,8 @@ import {
   seedToNumber,
 } from '../session';
 import type { SessionPersistence } from '../session';
+import { createInitialNumberLineState, numberLineGameReducer } from '../reducer';
+import { normalizeNumberLineResult } from '../scoring';
 import { INITIAL_STATS } from '../types';
 import type { NumberLineRawResult } from '../types';
 import { versionToNumber } from '../versions';
@@ -63,7 +65,7 @@ describe('buildNumberLineRawResult', () => {
       baseInput(),
     );
     expect(raw.meanCloseness).toBe(0); // nothing played
-    expect(raw.avgAbsoluteError).toBe(0);
+    expect(raw.avgAbsoluteError).toBeNull();
 
     const played = buildNumberLineRawResult({
       ...baseInput(),
@@ -164,5 +166,42 @@ describe('persistNumberLineSession', () => {
         }
       },
     );
+  });
+});
+
+
+describe('submitted-estimate error samples', () => {
+  function playedStats(answerFirst: boolean) {
+    let state = numberLineGameReducer(createInitialNumberLineState(), {
+      type: 'start-session', seed: 'error-samples', sessionId: 'samples', startedAtMs: 0,
+    });
+    if (answerFirst) {
+      const target = state.round!.target;
+      const estimate = target + 10 <= state.round!.lineMax ? target + 10 : target - 10;
+      state = numberLineGameReducer(state, { type: 'estimate', value: estimate, atActiveMs: 1 });
+    }
+    for (let i = answerFirst ? 1 : 0; i < 10; i += 1) {
+      if (i > 0) state = numberLineGameReducer(state, { type: 'next-round', startActiveMs: 0 });
+      state = numberLineGameReducer(state, { type: 'round-tick', atActiveMs: PARAMS.budgetMs });
+    }
+    return state.stats;
+  }
+
+  it('does not count nine timeouts as zero-error estimates', () => {
+    const stats = playedStats(true);
+    expect(stats.roundsPlayed).toBe(10);
+    expect(stats.timeouts).toBe(9);
+    expect(stats.totalAbsoluteError).toBe(10);
+    const raw = buildNumberLineRawResult({ ...baseInput(), stats, gameVersion: '2.1.0' });
+    expect(raw.avgAbsoluteError).toBe(10);
+    const legacy = { ...raw, avgAbsoluteError: 1, gameVersion: '2.0.0' };
+    const context = { gameId: 'math-number-line-estimation', difficulty: 'normal' as const, durationMs: 5000 };
+    expect(normalizeNumberLineResult(raw, context).value).toBe(normalizeNumberLineResult(legacy, context).value);
+  });
+
+  it('uses null, not a perfect zero, when all rounds time out', () => {
+    const stats = playedStats(false);
+    expect(stats.timeouts).toBe(10);
+    expect(buildNumberLineRawResult({ ...baseInput(), stats, gameVersion: '2.1.0' }).avgAbsoluteError).toBeNull();
   });
 });

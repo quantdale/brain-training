@@ -139,6 +139,8 @@ export interface LogicDeductionRawResult extends GameRawResult {
   readonly totalRounds: number;
   readonly roundsPlayed: number;
   readonly roundsCorrect: number;
+  /** Exact supplied history; absent on historical records before game 1.3. */
+  readonly roundOutcomes?: readonly RoundOutcome[];
   readonly sumAnswerRatio: number;
   readonly accuracy: number;
   readonly bestStreak: number;
